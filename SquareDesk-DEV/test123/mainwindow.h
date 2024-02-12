@@ -811,6 +811,14 @@ private slots:
     void on_darkSegmentButton_clicked();
 
 public:
+
+    // BULK operations -----
+    int  processOneFile(const QString &mp3filename);
+    void processFiles(QStringList &mp3filenames);
+    QStringList mp3FilenamesToProcess;
+    QMap<QString, int> mp3Results;
+    QMutex mp3ResultsLock;
+
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
     void on_sd_add_new_line(QString, int drawing_picture);

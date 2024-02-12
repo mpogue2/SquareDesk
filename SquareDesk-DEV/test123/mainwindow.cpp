@@ -4252,6 +4252,19 @@ void MainWindow::on_actionLoop_triggered()
 // ----------------------------------------------------------------------
 void MainWindow::on_UIUpdateTimerTick(void)
 {
+    int xx = mp3Results.size();
+    int outOf = mp3FilenamesToProcess.size();
+    if (xx < outOf) {
+        ui->statusBar->showMessage(QString("Processing MP3 files: " + QString::number(xx) + "/" + QString::number(outOf)));
+    } else {
+        int n = QThread::idealThreadCount();
+        if (QThreadPool::globalInstance()->maxThreadCount() < QThread::idealThreadCount()) {
+            ui->statusBar->showMessage("");
+            // qDebug() << "back to " << n << " threads";
+            QThreadPool::globalInstance()->setMaxThreadCount(n); // allow use of all threads again
+        }
+    }
+
     // This is called once per second, to update the seekbar and associated dynamic text
 
 //    qDebug() << "VERTICAL SCROLL VALUE: " << ui->textBrowserCueSheet->verticalScrollBar()->value();
@@ -5319,7 +5332,7 @@ void MainWindow::reloadCurrentMP3File() {
 
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType, QString songLabel)
 {
-    ui->darkSegmentButton->setHidden(true);  // COMMENT THIS OUT FOR NORMAL OPERATION, IN FOR DEBUGGING SEGMENTATION
+    ui->darkSegmentButton->setHidden(true);
 
     PerfTimer t("loadMP3File", __LINE__);
 
@@ -9688,7 +9701,7 @@ void MainWindow::handleDurationBPM() {
         ui->pushButtonTestLoop->setHidden(false);
 #ifdef DARKMODE
         ui->darkTestLoopButton->setHidden(false);
-//        ui->darkSegmentButton->setHidden(false);  // COMMENT THIS OUT FOR NORMAL OPERATION, IN FOR DEBUGGING SEGMENTATION
+        // ui->darkSegmentButton->setHidden(false);  // COMMENT THIS OUT FOR NORMAL OPERATION, IN FOR DEBUGGING SEGMENTATION
 #endif
         analogClock->setSingingCallSection("");
     } else {
@@ -10928,18 +10941,43 @@ void MainWindow::on_actionNormalize_Track_Audio_toggled(bool checked)
 
 void MainWindow::on_darkSegmentButton_clicked()
 {
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "Begin Experimental Segmentation",
-                                  "Segmentation might take up to 30 seconds. You can keep working while it runs.\n\nOK to start it now?",
-                                  QMessageBox::Yes|QMessageBox::No);
+    // QMessageBox::StandardButton reply;
+    // reply = QMessageBox::question(this, "Begin Experimental Segmentation",
+    //                               "Segmentation might take up to 30 seconds. You can keep working while it runs.\n\nOK to start it now?",
+    //                               QMessageBox::Yes|QMessageBox::No);
 
-    if (reply == QMessageBox::No) {
-        return;
-    }
+    // if (reply == QMessageBox::No) {
+    //     return;
+    // }
 
     // qDebug() << "***** Starting SEGMENTATION.";
     // int e =
-    cBass->segmentDetection(); // Gentlemen, start your engines... cBass will have the results in its decoder
+    // cBass->segmentDetection(); // Gentlemen, start your engines... cBass will have the results in its decoder
     // qDebug() << "   " << e;
+
+    mp3FilenamesToProcess.clear();
+    mp3Results.clear();
+
+    int numMP3files = 0;
+
+    QListIterator<QString> iter(*pathStack);
+    while (iter.hasNext()) {
+
+        QString s = iter.next();
+
+        int maxFiles = 99999;
+        QStringList s2 = s.split("#!#");
+        if (numMP3files < maxFiles && s2[0] == "patter" && s2[1].contains("RIV")) {
+            // qDebug() << "adding: " << s;
+            if (s2[1].endsWith(".mp3", Qt::CaseInsensitive)) {
+                mp3FilenamesToProcess.append(s2[1]);
+                numMP3files++;
+            }
+        }
+    }
+
+    // qDebug() << "mp3FilenamesToProcess:\n" << mp3FilenamesToProcess;
+
+    processFiles(mp3FilenamesToProcess);
 }
 

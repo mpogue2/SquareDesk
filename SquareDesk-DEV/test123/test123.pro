@@ -13,6 +13,9 @@ macx {
     QMAKE_INFO_PLIST = $$PWD/Info.plist
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 11.6
 #    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
+
+    # for BULK operations
+    QT += concurrent
 }
 
 macx {
@@ -61,6 +64,7 @@ SOURCES += main.cpp\
     lyricsEditor.cpp \
     mainwindow.cpp \
 #    miniBPM/MiniBpm.cpp \
+    mainwindow_bulk.cpp \
     mainwindow_choreo1.cpp \
     mainwindow_cuesheets.cpp \
     mainwindow_flashcalls.cpp \
@@ -139,6 +143,8 @@ HEADERS  += mainwindow.h \
     flexible_audio.h \
     globaldefines.h \
     miniBPM/MiniBpm.h \
+    minimp3.h \
+    minimp3_ex.h \
     myslider.h \
     importdialog.h \
     exportdialog.h \
