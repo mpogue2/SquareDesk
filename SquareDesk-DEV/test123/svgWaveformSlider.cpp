@@ -1,5 +1,6 @@
 #include "svgWaveformSlider.h"
 #include "math.h"
+#include <QFileInfo>
 
 // GOOD:
 // https://stackoverflow.com/questions/70206279/qslider-not-displaying-transparency-properly-when-overlapped-with-qlabel-pyqt5
@@ -416,10 +417,90 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
             //  by peeking at the actual data.
             // TODO: Make L and R go up and down respectively?  Or, should all samples go just UP?
 
-            float currentRatio = (float)WAVEFORMSAMPLES/(float)width();
-            for (int i = 0; i < width(); i++) {
-                h = normalizationScaleFactor * fullScaleInPixels * f[(int)(i * currentRatio)];  // truncates downward
-                paint->drawLine(i,30.0 + h,i,30.0 - h);
+            QColor segmentColors[4] = { QColor("#8868A1BB"), QColor("#88bf312c"), QColor("#8824a494"), QColor("#885368c9")}; // 0 = default, then 1,2,3 are separate colors for A,B,C
+            QMap<QString, int> MapSectionNameToInt{{"A", 1}, {"B", 2}, {"C", 3}, {"N", 0}};
+
+            struct sectionEntry
+            {
+                double startTime_sec;
+                double duration_sec;
+                QString sectionName;
+                QColor sectionColor;
+            };
+            QVector<sectionEntry> sections;
+
+            // read the segment file, if it exists
+//            QString segmentFilename = "/Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/.squaredesk/bulk/patter/RIV 914 - About Time.mp3.results.txt";
+
+            QFileInfo segmentFile(absolutePathToSegmentFile);
+            if (segmentFile.exists()) {
+                QFile segFile(absolutePathToSegmentFile);
+                if (segFile.open(QIODevice::ReadOnly))
+                {
+                    QTextStream in(&segFile);
+                    //        int line_number = 0;
+                    while (!in.atEnd()) //  && line_number < 10)
+                    {
+                        //            line_number++;
+                        QString line = in.readLine().trimmed();
+                        QStringList p1 = line.split(":");
+                        bool ok1, ok2;
+                        double startTime = (p1[0].split(", ")[0]).toDouble(&ok1);
+                        double duration  = (p1[0].split(", ")[1]).toDouble(&ok2);
+                        QString section   = p1[1].trimmed().split(" ")[1];
+                        if (section.startsWith("N")) {
+                            section = "N";  // all "N"s have the same color
+                        }
+
+                        // qDebug() << "LINE:" << line << "startTime/duration/section: " << startTime << duration << section << MapSectionNameToInt[section] << segmentColors[MapSectionNameToInt[section]];
+                        sectionEntry s;
+                        s.startTime_sec = startTime;
+                        s.duration_sec = duration;
+                        s.sectionName   = section;
+                        s.sectionColor = segmentColors[MapSectionNameToInt[section]];
+                        sections.append(s);
+                    }
+
+                    // qDebug() << "sections:";
+                    // for (int i = 0; i < sections.count(); i++) {
+                    //     qDebug() << "section[" << i << "] = " << sections.at(i).startTime_sec << "," << sections.at(i).startTime_sec << " : "<< sections.at(i).sectionName << " : " << sections.at(i).sectionColor;
+                    // }
+                }
+            }
+
+            if (sections.count() >= 2) {
+                int currentSegment = 0;  // starts out with the first segment
+                double songLength_sec = sections.last().startTime_sec + sections.last().duration_sec;
+                // qDebug() << "songLength_sec:" << songLength_sec;
+                bool firstLineInSection = true;
+
+                float currentRatio = (float)WAVEFORMSAMPLES/(float)width();
+                for (int i = 0; i < width(); i++) {
+                    h = normalizationScaleFactor * fullScaleInPixels * f[(int)(i * currentRatio)];  // truncates downward
+
+                    if (firstLineInSection) {
+                        paint->setPen(segmentColors[0]); // first line in a segment is always gray
+                        firstLineInSection = false;
+                    } else {
+                        paint->setPen(sections[currentSegment].sectionColor);
+                    }
+                    paint->drawLine(i,30.0 + h,i,30.0 - h);
+
+                    if (currentSegment + 1 == sections.count()) {
+                        // no change to currentSegment
+                    } else if ( songLength_sec * ((float)i / (float)width()) > sections[currentSegment+1].startTime_sec) {
+                        currentSegment++;  // bump to the next segment
+                        firstLineInSection = true;
+                    }
+                }
+            } else {
+                // no valid section info, so just paint in the default color
+                paint->setPen(segmentColors[0]); // all the lines are gray for this song
+                float currentRatio = (float)WAVEFORMSAMPLES/(float)width();
+                for (int i = 0; i < width(); i++) {
+                    h = normalizationScaleFactor * fullScaleInPixels * f[(int)(i * currentRatio)];  // truncates downward
+                    paint->drawLine(i,30.0 + h,i,30.0 - h);
+                }
             }
         }
     } else {
@@ -501,4 +582,9 @@ double svgWaveformSlider::getOutro() {
 void svgWaveformSlider::setWholeTrackPeak(double p) {
     // qDebug() << "wholeTrackPeak is now:" << p;
     wholeTrackPeak = p;
+}
+
+void svgWaveformSlider::setAbsolutePathToSegmentFile(QString s) {
+    // qDebug() << "absolutePathToSegmentFile: " << absolutePathToSegmentFile;
+    absolutePathToSegmentFile = s;
 }

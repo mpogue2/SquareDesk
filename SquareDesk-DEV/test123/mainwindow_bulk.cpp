@@ -109,11 +109,11 @@ int MainWindow::processOneFile(const QString &fn) {
         return(0);
     }
 
-    qDebug() << "***** Processing: " << fn;
+    // qDebug() << "***** Processing: " << fn;
 
     QString resolvedFilePath = finfo.symLinkTarget(); // path with the symbolic links followed/removed
     if (resolvedFilePath != "") {
-        qDebug() << "REAL FILE IS HERE:" << fn << resolvedFilePath;
+        // qDebug() << "REAL FILE IS HERE:" << fn << resolvedFilePath;
     }
 
 
@@ -204,7 +204,7 @@ int MainWindow::processOneFile(const QString &fn) {
     }
 
     QProcess vampSegment;
-    vampSegment.start(pathNameToVamp, QStringList() << "-s" << "segmentino:segmentino" << WAVfilename << "-o" << resultsFilename);
+    vampSegment.start(pathNameToVamp, QStringList() << "segmentino:segmentino" << WAVfilename << "-o" << resultsFilename); // intentionally no "-s", to get results as float seconds
     vampSegment.waitForFinished(5*60000);  // SYNCHRONOUS -- wait for process to be done, max 5 minutes.  Don't start another one until this one is done.
 
     // CLEANUP -----------
@@ -223,7 +223,7 @@ int MainWindow::processOneFile(const QString &fn) {
 
     // qDebug() << "mp3Results WITH ADD: " << mp3Results;
 
-    qDebug() << "finished: " << fn;
+    // qDebug() << "finished: " << fn;
 
     return(resultCode);
 }
@@ -234,7 +234,7 @@ void MainWindow::processFiles(QStringList &files) {
     int n = QThread::idealThreadCount();
 
     if (n > 2) {
-        n -= 2;
+        n -= 1;  // on an 8-core machine, use 7 cores for processing
     }
     // qDebug() << "\n\nprocessFiles: " << files << n;
 

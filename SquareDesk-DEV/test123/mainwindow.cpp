@@ -5627,6 +5627,14 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
         ui->darkSeekBar->setWholeTrackPeak(1.0); // don't scale the waveform
     }
     // qDebug() << "now updating BgPixmap";
+
+    QString bulkDirname = musicRootPath + "/.squaredesk/bulk";
+
+    QString WAVfilename = currentMP3filenameWithPath;
+    WAVfilename.replace(musicRootPath, bulkDirname);
+    QString resultsFilename = WAVfilename + ".results.txt";
+
+    ui->darkSeekBar->setAbsolutePathToSegmentFile(resultsFilename);
     ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMSAMPLES);
 #endif
     // ------------------
@@ -10941,14 +10949,16 @@ void MainWindow::on_actionNormalize_Track_Audio_toggled(bool checked)
 
 void MainWindow::on_darkSegmentButton_clicked()
 {
-    // QMessageBox::StandardButton reply;
-    // reply = QMessageBox::question(this, "Begin Experimental Segmentation",
-    //                               "Segmentation might take up to 30 seconds. You can keep working while it runs.\n\nOK to start it now?",
-    //                               QMessageBox::Yes|QMessageBox::No);
+    double secondsPerSong = 30.0 / (QThread::idealThreadCount() - 1);
 
-    // if (reply == QMessageBox::No) {
-    //     return;
-    // }
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "LONG OPERATION: Segmentation for ALL Patter recordings",
+                                  QString("Segmentation can take about ") + QString::number((int)secondsPerSong) + " seconds per song. You can keep working while it runs.\n\nOK to start it now?",
+                                  QMessageBox::Yes|QMessageBox::No);
+
+    if (reply == QMessageBox::No) {
+        return;
+    }
 
     // qDebug() << "***** Starting SEGMENTATION.";
     // int e =
@@ -10967,7 +10977,7 @@ void MainWindow::on_darkSegmentButton_clicked()
 
         int maxFiles = 99999;
         QStringList s2 = s.split("#!#");
-        if (numMP3files < maxFiles && s2[0] == "patter" && s2[1].contains("RIV")) {
+        if (numMP3files < maxFiles && s2[0] == "patter") {
             // qDebug() << "adding: " << s;
             if (s2[1].endsWith(".mp3", Qt::CaseInsensitive)) {
                 mp3FilenamesToProcess.append(s2[1]);

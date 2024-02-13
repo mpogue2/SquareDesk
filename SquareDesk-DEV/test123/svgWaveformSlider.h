@@ -50,6 +50,8 @@ public:
     void setValue(int value);
     void setFloatValue(float f);
 
+    void setAbsolutePathToSegmentFile(QString s);
+
     // NORMALIZATION ----
     void setWholeTrackPeak(double p);
 
@@ -79,6 +81,8 @@ signals:
     void bgFileChanged(QString s);
 
 private:
+    QString absolutePathToSegmentFile;
+
     void paintEvent(QPaintEvent *pe);
     void resizeEvent(QResizeEvent *re);
 
