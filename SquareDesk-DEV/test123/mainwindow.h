@@ -818,6 +818,8 @@ public:
     QStringList mp3FilenamesToProcess;
     QMap<QString, int> mp3Results;
     QMutex mp3ResultsLock;
+    QFuture<int> vampFuture; // cancel this at Quit time to stop more jobs from starting
+    bool killAllVamps; // set to true at desstructor time, so that threads will kill their QProcesses ASAP
 
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);

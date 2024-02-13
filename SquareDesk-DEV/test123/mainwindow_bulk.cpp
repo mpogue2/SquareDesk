@@ -216,7 +216,37 @@ int MainWindow::processOneFile(const QString &fn) {
 
     QProcess vampSegment;
     vampSegment.start(pathNameToVamp, QStringList() << "segmentino:segmentino" << WAVfilename << "-o" << tempResultsfile.fileName()); // intentionally no "-s", to get results as float seconds
-    vampSegment.waitForFinished(5*60000);  // SYNCHRONOUS -- wait for process to be done, max 5 minutes.  Don't start another one until this one is done.
+    // vampSegment.waitForFinished(5*60000);  // SYNCHRONOUS -- wait for process to be done, max 5 minutes.  Don't start another one until this one is done.
+
+    // qint64 processId = vampSegment.processId(); // this goes away when the process finishes, so cache it here for debugging.
+
+    for (int i = 0; i < 300; i++) {
+        // qDebug() << "vampSegment " << processId << " is running...";
+        bool b = vampSegment.waitForFinished(1000);  // wait for 1 second
+        if (b) {
+            // qDebug() << "vampSegment " << processId << " has completed normally.";
+            // finished normally
+            break;
+        }
+        if (killAllVamps || i >= 299) {
+            // if we are Quitting SquareDesk, OR if Vamp has already taken 300 seconds (give up)
+            // qDebug() << "Trying to kill: vampSegment" << processId << vampSegment.state();
+            vampSegment.kill(); // then kill our QProcess
+
+            // wait until it's dead (well, up to 3 seconds)
+            // TODO: we still get the warning, even when we wait for 10 seconds:
+            //     QProcess: Destroyed while process ("/Users/mpogue/clean3/SquareDesk/build-SquareDesk-Qt_6_5_3_for_macOS-Release/test123/SquareDesk.app/Contents/MacOS/vamp-simple-host") is still running.
+            for (int j = 0; j < 3; j++) {
+                sleep(1); // check status once per second
+                if (vampSegment.state() != QProcess::Running) {
+                    break;
+                }
+            }
+
+            free(info.buffer);
+            return(0);  // and break out of here, SquareDesk is going down!
+        }
+    }
 
     // COPY to final destination -------------
     // we do this so that the file is completely ready when it shows up in .squaredesk/bulk.  If we don't do this,
@@ -265,8 +295,10 @@ void MainWindow::processFiles(QStringList &files) {
 
     QThreadPool::globalInstance()->setExpiryTimeout(5*60000); // 2 minutes max, then *POOF*
 
-    // start them all up!
-    auto future = QtConcurrent::mapped(files,
+    killAllVamps = false; // don't kill anything
+
+    // start them all up!  vampFuture.cancel() will clear out any unstarted jobs
+    vampFuture = QtConcurrent::mapped(files,
                       [this] (const QString &fn)
                         {
                             // qDebug() << "fn:" << fn;

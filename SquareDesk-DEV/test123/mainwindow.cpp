@@ -2922,6 +2922,10 @@ void MainWindow::on_actionShow_All_Ages_triggered(bool checked)
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
+    vampFuture.cancel();  // ASAP stop any more Vamp jobs from starting
+    killAllVamps = true;  // tell the Vamps to kill themselves
+
+
 #ifdef DARKMODE
     if (darkmode) {
         playlistSlotWatcherTimer->stop();
