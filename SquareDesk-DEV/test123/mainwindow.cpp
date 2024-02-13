@@ -9709,7 +9709,7 @@ void MainWindow::handleDurationBPM() {
         ui->pushButtonTestLoop->setHidden(false);
 #ifdef DARKMODE
         ui->darkTestLoopButton->setHidden(false);
-        // ui->darkSegmentButton->setHidden(false);  // COMMENT THIS OUT FOR NORMAL OPERATION, IN FOR DEBUGGING SEGMENTATION
+        // ui->darkSegmentButton->setHidden(false);  // SEGMENTATION: COMMENT THIS OUT FOR NORMAL OPERATION, IN FOR DEBUGGING SEGMENTATION
 #endif
         analogClock->setSingingCallSection("");
     } else {
@@ -10949,7 +10949,7 @@ void MainWindow::on_actionNormalize_Track_Audio_toggled(bool checked)
 
 void MainWindow::on_darkSegmentButton_clicked()
 {
-    double secondsPerSong = 30.0 / (QThread::idealThreadCount() - 1);
+    double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
 
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(this, "LONG OPERATION: Segmentation for ALL Patter recordings",
@@ -10959,11 +10959,6 @@ void MainWindow::on_darkSegmentButton_clicked()
     if (reply == QMessageBox::No) {
         return;
     }
-
-    // qDebug() << "***** Starting SEGMENTATION.";
-    // int e =
-    // cBass->segmentDetection(); // Gentlemen, start your engines... cBass will have the results in its decoder
-    // qDebug() << "   " << e;
 
     mp3FilenamesToProcess.clear();
     mp3Results.clear();

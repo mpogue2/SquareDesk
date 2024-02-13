@@ -191,7 +191,7 @@ int MainWindow::processOneFile(const QString &fn) {
     wav_write_file_float1(info.buffer, WAVfilename.toStdString().c_str(), wavInfo2, framesInSong);   // write entire song as mono to a file
 
     // RUN VAMP ON IT -----------------------------
-    // start vamp on temp file, with output file specified as .squaredesk/bulk/patter/<filename>.segments.txt
+    // start vamp on temp file, with output file a temp file, ultimate destination .../.squaredesk/bulk/patter/<filename>.results.txt
     //   and wait for it to finish
 
     QString pathNameToVamp(QCoreApplication::applicationDirPath());
@@ -203,9 +203,31 @@ int MainWindow::processOneFile(const QString &fn) {
         return(-3); // ERROR, VAMP DOES NOT EXIST
     }
 
+    QTemporaryFile tempResultsfile;           // use a temporary file for results, then copy to resultsFilename, if all goes well
+    bool errOpen2 = tempResultsfile.open();   // this creates the results file in the temp directory
+    tempResultsfile.setAutoRemove(true);      // remove it when we leave scope
+
+    if (!errOpen2) {
+        free(info.buffer); // done with that memory, so free it
+        return(-4);
+    }
+
+    // qDebug() << "tempResultsFile: " << tempResultsfile.fileName();
+
     QProcess vampSegment;
-    vampSegment.start(pathNameToVamp, QStringList() << "segmentino:segmentino" << WAVfilename << "-o" << resultsFilename); // intentionally no "-s", to get results as float seconds
+    vampSegment.start(pathNameToVamp, QStringList() << "segmentino:segmentino" << WAVfilename << "-o" << tempResultsfile.fileName()); // intentionally no "-s", to get results as float seconds
     vampSegment.waitForFinished(5*60000);  // SYNCHRONOUS -- wait for process to be done, max 5 minutes.  Don't start another one until this one is done.
+
+    // COPY to final destination -------------
+    // we do this so that the file is completely ready when it shows up in .squaredesk/bulk.  If we don't do this,
+    //   the temporarily empty file will wake up the cloud services (dropbox, box.net, icloud, etc.) who will start to copy that
+    //   empty file to the cloud.  This way, they only wake up once, and copy the final file only to the cloud.
+    if (QFile::exists(resultsFilename)) {
+        // qDebug() << "Removing existing file: " << resultsFilename;
+        QFile::remove(resultsFilename);  // belt and suspenders
+    }
+
+    QFile::copy(tempResultsfile.fileName(), resultsFilename);  // copy it (source file will be auto-deleted
 
     // CLEANUP -----------
     free(info.buffer); // done with that memory, so free it
@@ -213,7 +235,7 @@ int MainWindow::processOneFile(const QString &fn) {
     QFile theWAVfile(WAVfilename);
     theWAVfile.remove(); // delete the temp WAV file
 
-    // qDebug() << "     processOneFile DONE: " << fn;
+    // qDebug() << "DONE: " << fn;
 
     // RETURN RESULT CODE ----------------------
     int resultCode = 0; // all is OK
