@@ -1654,8 +1654,14 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     newSequenceInProgress = editSequenceInProgress = false; // no sequence being edited right now.
     on_actionFormation_Thumbnails_triggered(); // make sure that the thumbnails are turned OFF, if Formation Thumbnails is not initially checked
 
-    if (ui->songTable->rowCount() >= 1) {
-        ui->songTable->selectRow(0); // select row 1 after initial load of the songTable (if there are rows)
+    if (darkmode) {
+        if (ui->darkSongTable->rowCount() >= 1) {
+            ui->darkSongTable->selectRow(0); // select row 1 after initial load of the songTable (if there are rows)
+        }
+    } else {
+        if (ui->songTable->rowCount() >= 1) {
+            ui->songTable->selectRow(0); // select row 1 after initial load of the songTable (if there are rows)
+        }
     }
 
     minimumVolume = prefsManager.GetlimitVolume(); // initialize the limiting of the volume control
@@ -6106,7 +6112,7 @@ void MainWindow::filterMusic()
     }
     ui->songTable->setSortingEnabled(true);
 
-    if (rowsVisible > 0) {
+    if (!darkmode && rowsVisible > 0) {
         ui->songTable->selectRow(firstVisibleRow);
     }
 
@@ -6117,7 +6123,7 @@ void MainWindow::filterMusic()
 #ifdef DARKMODE
 void MainWindow::darkFilterMusic()
 {
-//    qDebug() << "darkFilterMusic()";
+    // qDebug() << "darkFilterMusic()";
 
     PerfTimer t("darkFilterMusic", __LINE__);
     t.start(__LINE__);
@@ -6163,7 +6169,10 @@ void MainWindow::darkFilterMusic()
 
     t.elapsed(__LINE__);
 
+    // qDebug() << "firstVisibleRow: " << firstVisibleRow;
+
     if (rowsVisible > 0) {
+        // qDebug() << "good select row!";
         ui->darkSongTable->selectRow(firstVisibleRow);
     }
 
@@ -7244,7 +7253,8 @@ void MainWindow::on_songTable_itemSelectionChanged()
         // we've clicked on a real row, which needs its Title text to be highlighted
 
 #ifdef DARKMODE
-        if (darkSelectedSongRow() != selectedRow) {
+        if (!darkmode && darkSelectedSongRow() != selectedRow) {
+            qDebug() << "bad selectRow 2";
             ui->darkSongTable->selectRow(selectedRow);
         }
 
@@ -10007,6 +10017,7 @@ void MainWindow::on_darkSearch_textChanged(const QString &s)
             ui->titleSearch->setText(pieces[2]);
             break;
     }
+
 }
 
 
@@ -10193,6 +10204,7 @@ void MainWindow::on_darkSongTable_itemSelectionChanged()
     int darkSongTableRow = darkSelectedSongRow();
     if (songTableRow != darkSongTableRow) {
         // FIX: This is not right, if either is -1
+        // qDebug() << "good selectRow 2";
         ui->songTable->selectRow(darkSongTableRow);
     }
 
