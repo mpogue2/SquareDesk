@@ -2326,7 +2326,13 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
     //     startingPlaylistDirectory = QDir::homePath();
     // }
 
-    QString startingPlaylistDirectory = musicRootPath + "/playlists/" + relPathInSlot[whichSlot] + "_copy.csv";
+    QString startingPlaylistDirectory;
+
+    if (relPathInSlot[whichSlot] == "") {
+        startingPlaylistDirectory = musicRootPath + "/playlists/Untitled playlist.csv";
+    } else {
+        startingPlaylistDirectory = musicRootPath + "/playlists/" + relPathInSlot[whichSlot] + "_copy.csv";
+    }
 
     QString preferred("CSV files (*.csv)");
     trapKeypresses = false;
