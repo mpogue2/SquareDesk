@@ -4268,8 +4268,9 @@ void MainWindow::on_UIUpdateTimerTick(void)
             ui->statusBar->showMessage("");
             // qDebug() << "back to " << n << " threads";
             QThreadPool::globalInstance()->setMaxThreadCount(n); // allow use of all threads again
+
+            ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case we now have section info on the loaded song, only update ONCE
         }
-        ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case we now have section info on the loaded song
     }
 
     // This is called once per second, to update the seekbar and associated dynamic text
@@ -5410,7 +5411,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     // now clear out the waveform (if there is one)
 #ifdef DARKMODE
-//    qDebug() << "updateBgPixmap called from loadMP3File with nullptr, 0 to clear out";
+    // qDebug() << "updateBgPixmap called from loadMP3File with nullptr, 0 to clear out";
     ui->darkSeekBar->updateBgPixmap(nullptr, 0); // this means clear it out!
 #endif
 //    QDir md(MP3FileName);

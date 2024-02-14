@@ -304,6 +304,8 @@ void svgWaveformSlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, double es
 void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
     Q_UNUSED(t)
 
+    // qDebug() << "updateBgPixmap" << f;
+
     // Normalization
     double normalizationScaleFactor = 1.0;
     if (wholeTrackPeak > 0.1) {
@@ -331,7 +333,7 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
 
     bgPixmap->fill(QColor("#1A1A1A"));
 
-    QColor colors[4] = { QColor("#8868A1BB"), QColor("#88bf312c"), QColor("#8824a494"), QColor("#885368c9")};
+    QColor colors[4] = { QColor("#8868A1BB"), QColor("#88bf312c"), QColor("#8824a494"), QColor("#885368c9")}; // singing call colors
     int colorMap[] = {1,2,3,1,2,3,1};
 
     float h;
@@ -417,8 +419,45 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
             //  by peeking at the actual data.
             // TODO: Make L and R go up and down respectively?  Or, should all samples go just UP?
 
-            QColor segmentColors[4] = { QColor("#8868A1BB"), QColor("#88bf312c"), QColor("#8824a494"), QColor("#885368c9")}; // 0 = default, then 1,2,3 are separate colors for A,B,C
-            QMap<QString, int> MapSectionNameToInt{{"A", 1}, {"B", 2}, {"C", 3}, {"N", 0}};
+            // PATTER colors:
+#define SET 1
+#if SET==1
+            // SET1 from Brewer
+            // "#E41A1C" "#377EB8" "#4DAF4A" "#984EA3" "#FF7F00" "#FFFF33" "#A65628" "#F781BF"
+            QColor segmentColors[9] = { QColor("#8868A1BB"),
+                                       QColor("#88E41A1C"),
+                                       QColor("#88377EB8"),
+                                       QColor("#884DAF4A"),
+                                       QColor("#88984EA3"),
+                                       QColor("#88FF7F00"),
+                                       QColor("#88FFFF33"),
+                                       QColor("#88A65628"),
+                                       QColor("#88F781BF")
+            }; // 0 = default, then 1,2,3,4,5,6,7,8 are separate colors for A,B,C
+            QMap<QString, int> MapSectionNameToInt{{"N", 0}, {"A", 1}, {"B", 2}, {"C", 3}, {"D", 4}, {"E", 5}, {"F", 6}, {"G", 7}, {"H", 8}};
+#elif SET==2
+            // DARK2 from Brewer
+            // "#1B9E77" "#D95F02" "#7570B3" "#E7298A" "#66A61E" "#E6AB02" "#A6761D" "#666666"
+            QColor segmentColors[9] = { QColor("#8868A1BB"),
+                                        QColor("#881B9E77"),
+                                        QColor("#88D95F02"),
+                                        QColor("#887570B3"),
+                                        QColor("#88E7298A"),
+                                        QColor("#8866A61E"),
+                                        QColor("#88E6AB02"),
+                                        QColor("#88A6761D"),
+                                        QColor("#88666666")
+            }; // 0 = default, then 1,2,3,4,5,6,7,8 are separate colors for A,B,C
+            QMap<QString, int> MapSectionNameToInt{{"N", 0}, {"A", 1}, {"B", 2}, {"C", 3}, {"D", 4}, {"E", 5}, {"F", 6}, {"G", 7}, {"H", 8}};
+#else
+            // SINGING CALL COLORS
+            QColor segmentColors[4] = { QColor("#8868A1BB"),
+                                       QColor("#88bf312c"),
+                                       QColor("#8824a494"),
+                                       QColor("#885368c9")
+            }; // 0 = default, then 1,2,3 are separate colors for A,B,C
+            QMap<QString, int> MapSectionNameToInt{{"N", 0}, {"A", 1}, {"B", 2}, {"C", 3}, {"D", 1}, {"E", 2}, {"F", 3}, {"G", 1}, {"H", 2}};
+#endif
 
             struct sectionEntry
             {
@@ -505,6 +544,7 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
         }
     } else {
         // show just bg, centerline, and loading message ----
+        // qDebug() << "just show LOADING message";
         if (currentPos != nullptr) currentPos->setVisible(false);
         if (leftLoopMarker != nullptr) leftLoopMarker->setVisible(false);
         if (rightLoopMarker != nullptr) rightLoopMarker->setVisible(false);
