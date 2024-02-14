@@ -2922,9 +2922,11 @@ void MainWindow::on_actionShow_All_Ages_triggered(bool checked)
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
-    vampFuture.cancel();  // ASAP stop any more Vamp jobs from starting
-    killAllVamps = true;  // tell the Vamps to kill themselves
-
+    if (vampFuture.isRunning()) {
+        vampFuture.cancel();  // ASAP stop any more Vamp jobs from starting
+        killAllVamps = true;  // tell the running Vamps to kill themselves
+        sleep(5);  // give them a few seconds to go away
+    }
 
 #ifdef DARKMODE
     if (darkmode) {
@@ -4259,7 +4261,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
     int xx = mp3Results.size();
     int outOf = mp3FilenamesToProcess.size();
     if (xx < outOf) {
-        ui->statusBar->showMessage(QString("Processing MP3 files: " + QString::number(xx) + "/" + QString::number(outOf)));
+        ui->statusBar->showMessage(QString("Calculating section info: " + QString::number(xx) + "/" + QString::number(outOf)));
     } else {
         int n = QThread::idealThreadCount();
         if (QThreadPool::globalInstance()->maxThreadCount() < QThread::idealThreadCount()) {
@@ -4267,6 +4269,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
             // qDebug() << "back to " << n << " threads";
             QThreadPool::globalInstance()->setMaxThreadCount(n); // allow use of all threads again
         }
+        ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case we now have section info on the loaded song
     }
 
     // This is called once per second, to update the seekbar and associated dynamic text
@@ -10648,21 +10651,28 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
                     menu.addAction ( QString("Add to BOTTOM of playlist '") + relPathInSlot[2] + "'" , this , [this]{ darkAddPlaylistItemToBottom(2); } );
                 }
             }
-            menu.addSeparator();
-        }
-    }
+
 #if defined(Q_OS_MAC)
-        menu.addAction( "Reveal Audio File in Finder",       this, SLOT (darkRevealInFinder()) );
-        menu.addAction( "Reveal Current Cuesheet in Finder", this, SLOT (darkRevealAttachedLyricsFileInFinder()) );
+            // REVEAL STUFF ==============
+            menu.addSeparator();
+            menu.addAction( "Reveal Audio File in Finder",       this, SLOT (darkRevealInFinder()) );
+            menu.addAction( "Reveal Current Cuesheet in Finder", this, SLOT (darkRevealAttachedLyricsFileInFinder()) );
+
+            // SECTIONS STUFF ============
+            menu.addSeparator();
+            menu.addAction("Calculate Section Info for this song...",    this, [this, pathToMP3]{ EstimateSectionsForThisSong(pathToMP3); });
+            menu.addAction("Remove Section info for this song....", this, [this, pathToMP3]{ RemoveSectionsForThisSong(pathToMP3);   });
 #endif
 
 #if defined(Q_OS_WIN)
-        menu.addAction ( "Show in Explorer" , this , SLOT (darkRevealInFinder()) );
+            menu.addAction ( "Show in Explorer" , this , SLOT (darkRevealInFinder()) );
 #endif
 
 #if defined(Q_OS_LINUX)
-        menu.addAction ( "Open containing folder" , this , SLOT (darkRevealInFinder()) );
+            menu.addAction ( "Open containing folder" , this , SLOT (darkRevealInFinder()) );
 #endif
+        }
+    }
 
 // TAGS STUFF ==================
         menu.addSeparator();
@@ -10702,6 +10712,7 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
 
         menu.addMenu(tagsMenu);
 
+// DO IT ==========
     menu.popup(QCursor::pos());
     menu.exec();
 }
@@ -10949,44 +10960,3 @@ void MainWindow::on_actionNormalize_Track_Audio_toggled(bool checked)
         ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case it was a singing call
     }
 }
-
-
-void MainWindow::on_darkSegmentButton_clicked()
-{
-    double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
-
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "LONG OPERATION: Segmentation for ALL Patter recordings",
-                                  QString("Segmentation can take about ") + QString::number((int)secondsPerSong) + " seconds per song. You can keep working while it runs.\n\nOK to start it now?",
-                                  QMessageBox::Yes|QMessageBox::No);
-
-    if (reply == QMessageBox::No) {
-        return;
-    }
-
-    mp3FilenamesToProcess.clear();
-    mp3Results.clear();
-
-    int numMP3files = 0;
-
-    QListIterator<QString> iter(*pathStack);
-    while (iter.hasNext()) {
-
-        QString s = iter.next();
-
-        int maxFiles = 99999;
-        QStringList s2 = s.split("#!#");
-        if (numMP3files < maxFiles && s2[0] == "patter") {
-            // qDebug() << "adding: " << s;
-            if (s2[1].endsWith(".mp3", Qt::CaseInsensitive)) {
-                mp3FilenamesToProcess.append(s2[1]);
-                numMP3files++;
-            }
-        }
-    }
-
-    // qDebug() << "mp3FilenamesToProcess:\n" << mp3FilenamesToProcess;
-
-    processFiles(mp3FilenamesToProcess);
-}
-

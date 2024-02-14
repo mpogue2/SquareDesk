@@ -5250,6 +5250,27 @@
      <addaction name="actionNearest_Beat"/>
      <addaction name="actionNearest_Measure"/>
     </widget>
+    <widget class="QMenu" name="menuSections">
+     <property name="title">
+      <string>Sections</string>
+     </property>
+     <widget class="QMenu" name="menuEstimate_for">
+      <property name="title">
+       <string>Estimate for</string>
+      </property>
+      <addaction name="actionEstimate_for_this_song"/>
+      <addaction name="actionEstimate_for_all_songs"/>
+     </widget>
+     <widget class="QMenu" name="menuRemove_for">
+      <property name="title">
+       <string>Remove for</string>
+      </property>
+      <addaction name="actionRemove_for_this_song"/>
+      <addaction name="actionRemove_for_all_songs"/>
+     </widget>
+     <addaction name="menuEstimate_for"/>
+     <addaction name="menuRemove_for"/>
+    </widget>
     <addaction name="actionOpen_Audio_File"/>
     <addaction name="separator"/>
     <addaction name="actionPlay"/>
@@ -5274,6 +5295,7 @@
     <addaction name="actionTest_Loop"/>
     <addaction name="actionIn_Out_Loop_points_to_default"/>
     <addaction name="menuSnap_Loop_Points"/>
+    <addaction name="menuSections"/>
     <addaction name="separator"/>
     <addaction name="actionForce_Mono_Aahz_mode"/>
     <addaction name="actionNormalize_Track_Audio"/>
@@ -7029,6 +7051,29 @@
    </property>
    <property name="text">
     <string>Normalize Track Audio</string>
+   </property>
+  </action>
+  <action name="actionEstimate_for_this_song">
+   <property name="text">
+    <string>this song...</string>
+   </property>
+   <property name="toolTip">
+    <string>Find section boundaries for this song</string>
+   </property>
+  </action>
+  <action name="actionEstimate_for_all_songs">
+   <property name="text">
+    <string>all songs...</string>
+   </property>
+  </action>
+  <action name="actionRemove_for_this_song">
+   <property name="text">
+    <string>this song...</string>
+   </property>
+  </action>
+  <action name="actionRemove_for_all_songs">
+   <property name="text">
+    <string>all songs...</string>
    </property>
   </action>
  </widget>

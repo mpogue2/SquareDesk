@@ -810,6 +810,14 @@ private slots:
 
     void on_darkSegmentButton_clicked();
 
+    void on_actionEstimate_for_this_song_triggered();
+
+    void on_actionEstimate_for_all_songs_triggered();
+
+    void on_actionRemove_for_this_song_triggered();
+
+    void on_actionRemove_for_all_songs_triggered();
+
 public:
 
     // BULK operations -----
@@ -820,6 +828,8 @@ public:
     QMutex mp3ResultsLock;
     QFuture<int> vampFuture; // cancel this at Quit time to stop more jobs from starting
     bool killAllVamps; // set to true at desstructor time, so that threads will kill their QProcesses ASAP
+    void EstimateSectionsForThisSong(QString pathToMP3);
+    void RemoveSectionsForThisSong(QString pathToMP3);
 
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);

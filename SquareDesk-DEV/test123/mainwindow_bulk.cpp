@@ -283,6 +283,13 @@ int MainWindow::processOneFile(const QString &fn) {
 void MainWindow::processFiles(QStringList &files) {
     // this will run as many in parallel as makes sense on the user's system
 
+    if (vampFuture.isRunning()) {
+        QMessageBox msgBox;
+        msgBox.setText("Section calculations already in progress.\n\nPlease wait until the current calculations are complete.");
+        msgBox.exec();
+        return;
+    }
+
     int n = QThread::idealThreadCount();
 
     if (n > 2) {
@@ -305,7 +312,206 @@ void MainWindow::processFiles(QStringList &files) {
                             return(processOneFile(fn));
                         }
                   );
-    qDebug() << files.length() << " files submitted for asynchronous processing...";
+    // qDebug() << files.length() << " files submitted for asynchronous processing...";
 
     // ui->statusBar->showMessage(QString::number(files.length()) + " audio files submitted for segmentation...");
+}
+
+void MainWindow::on_darkSegmentButton_clicked()
+{
+    double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
+
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "LONG OPERATION: Segmentation for ALL Patter recordings",
+                                  QString("Calculating section info can take about ") + QString::number((int)secondsPerSong) + " seconds per song. You can keep working while it runs.\n\nOK to start it now?",
+                                  QMessageBox::Yes|QMessageBox::No);
+
+    if (reply == QMessageBox::No) {
+        return;
+    }
+
+    mp3FilenamesToProcess.clear();
+    mp3ResultsLock.lock();
+    mp3Results.clear();
+    mp3ResultsLock.unlock();
+
+    int numMP3files = 0;
+
+    QListIterator<QString> iter(*pathStack);
+    while (iter.hasNext()) {
+
+        QString s = iter.next();
+
+        int maxFiles = 99999;
+        QStringList s2 = s.split("#!#");
+        if (numMP3files < maxFiles && s2[0] == "patter") {
+            // qDebug() << "adding: " << s;
+            if (s2[1].endsWith(".mp3", Qt::CaseInsensitive)) {
+                mp3FilenamesToProcess.append(s2[1]);
+                numMP3files++;
+            }
+        }
+    }
+
+    // qDebug() << "mp3FilenamesToProcess:\n" << mp3FilenamesToProcess;
+
+    processFiles(mp3FilenamesToProcess);
+}
+
+
+void MainWindow::on_actionEstimate_for_this_song_triggered()
+{
+    EstimateSectionsForThisSong(currentMP3filenameWithPath);
+}
+
+
+void MainWindow::on_actionEstimate_for_all_songs_triggered()
+{
+    double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
+
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "LONG OPERATION: Segmentation for ALL Patter tracks",
+                                  QString("Section calculations average about ") + QString::number((int)secondsPerSong) + " seconds per patter track. You can keep working while it runs.\n\nOK to start it now?",
+                                  QMessageBox::Yes|QMessageBox::No);
+
+    if (reply == QMessageBox::No) {
+        return;
+    }
+
+    mp3FilenamesToProcess.clear();
+    mp3ResultsLock.lock();
+    mp3Results.clear();
+    mp3ResultsLock.unlock();
+
+    int numMP3files = 0;
+
+    QListIterator<QString> iter(*pathStack);
+    while (iter.hasNext()) {
+
+        QString s = iter.next();
+
+        int maxFiles = 99999;
+        QStringList s2 = s.split("#!#");
+        if (numMP3files < maxFiles && s2[0] == "patter") {
+            // qDebug() << "adding: " << s;
+            if (s2[1].endsWith(".mp3", Qt::CaseInsensitive)) {
+                mp3FilenamesToProcess.append(s2[1]);
+                numMP3files++;
+            }
+        }
+    }
+
+    // qDebug() << "mp3FilenamesToProcess:\n" << mp3FilenamesToProcess;
+
+    processFiles(mp3FilenamesToProcess);
+}
+
+
+void MainWindow::on_actionRemove_for_this_song_triggered()
+{
+    RemoveSectionsForThisSong(currentMP3filenameWithPath);
+}
+
+
+void MainWindow::on_actionRemove_for_all_songs_triggered()
+{
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Remove Segmentation for ALL Patter tracks",
+                                  QString("Removing section information for all songs can't be undone.\n\nOK to proceed?"),
+                                  QMessageBox::Yes|QMessageBox::No);
+
+    if (reply == QMessageBox::No) {
+        return;
+    }
+
+    QDir dir(musicRootPath + "/.squaredesk/bulk"); // BE VEWY VEWY CAREFUL
+
+    // qDebug() << "**** REMOVING ALL RESULTS FILES FROM: " << dir.absolutePath();
+
+    // remove files at top level
+    dir.setFilter( QDir::NoDotAndDotDot | QDir::Files );
+    foreach( QString dirItem, dir.entryList() ) {
+        dir.remove( dirItem );
+    }
+
+    // remove subdirectories recursively
+    dir.setFilter( QDir::NoDotAndDotDot | QDir::Dirs );
+    foreach( QString dirItem, dir.entryList() )
+    {
+        QDir subDir( dir.absoluteFilePath( dirItem ) );
+        subDir.removeRecursively();
+    }
+}
+
+void MainWindow::EstimateSectionsForThisSong(QString mp3Filename) {
+    // qDebug() << "EstimateSections for" << mp3Filename;
+
+    if (!QFile::exists(mp3Filename)) {
+        // qDebug() << "No file loaded, or file does not exist: " << mp3Filename;
+        QMessageBox msgBox;
+        msgBox.setText("Could not find: '" + mp3Filename + "'");
+        msgBox.exec();
+        return;
+    }
+
+    if (!mp3Filename.endsWith(".mp3")) {
+        // qDebug() << "Not an MP3 song: " << mp3Filename;
+        QMessageBox msgBox;
+        msgBox.setText("Only MP3 files are supported right now.");
+        msgBox.exec();
+        return;
+    }
+
+    double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
+
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "LONG OPERATION: Calculating section info for THIS Patter track",
+                                  QString("Section calculations for this track could take ") + QString::number((int)secondsPerSong) + " seconds or longer. You can keep working while it runs.\n\nOK to start it now?",
+                                  QMessageBox::Yes|QMessageBox::No);
+
+    if (reply == QMessageBox::No) {
+        return;
+    }
+
+    mp3FilenamesToProcess.clear();
+    mp3ResultsLock.lock();
+    mp3Results.clear();
+    mp3ResultsLock.unlock();
+
+    mp3FilenamesToProcess.append(mp3Filename);
+
+    // qDebug() << "mp3FilenamesToProcess:\n" << mp3FilenamesToProcess;
+
+    processFiles(mp3FilenamesToProcess);
+}
+
+void MainWindow::RemoveSectionsForThisSong(QString mp3Filename) {
+    // qDebug() << "RemoveSections for" << mp3Filename;
+
+    if (!mp3Filename.endsWith(".mp3", Qt::CaseInsensitive)) {
+        // qDebug() << "Not an MP3 song: " << mp3Filename;
+        QMessageBox msgBox;
+        msgBox.setText("Only MP3 files are supported right now.");
+        msgBox.exec();
+        return;
+    }
+
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Remove Section Info for ALL Patter tracks",
+                                  QString("Removing section info for this song can't be undone.\n\nOK to proceed?"),
+                                  QMessageBox::Yes|QMessageBox::No);
+
+    if (reply == QMessageBox::No) {
+        return;
+    }
+
+    if (mp3Filename.endsWith(".mp3", Qt::CaseInsensitive)) {
+        QString resultsFilename = mp3Filename;
+        QString bulkDirname = musicRootPath + "/.squaredesk/bulk";
+        resultsFilename.replace(musicRootPath, bulkDirname);
+        resultsFilename = resultsFilename + ".results.txt";
+
+        // qDebug() << "**** REMOVE: " << resultsFilename;
+        QFile::remove(resultsFilename);
+    }
 }
