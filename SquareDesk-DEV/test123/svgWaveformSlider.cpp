@@ -363,10 +363,13 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
 
         // show normal waveform ----
         if (currentPos != nullptr) currentPos->setVisible(true);
-        if (leftLoopMarker != nullptr) leftLoopMarker->setVisible(true);
-        if (rightLoopMarker != nullptr) rightLoopMarker->setVisible(true);
-        if (leftLoopCover != nullptr) leftLoopCover->setVisible(true);
-        if (rightLoopCover != nullptr) rightLoopCover->setVisible(true);
+
+        setLoop(drawLoopPoints);  // turn drawing of [ and ] etc ON/OFF
+
+        // if (leftLoopMarker != nullptr) leftLoopMarker->setVisible(true);
+        // if (rightLoopMarker != nullptr) rightLoopMarker->setVisible(true);
+        // if (leftLoopCover != nullptr) leftLoopCover->setVisible(true);
+        // if (rightLoopCover != nullptr) rightLoopCover->setVisible(true);
 
         if (loadingMessage != nullptr) loadingMessage->setVisible(false);
 
@@ -580,6 +583,7 @@ void svgWaveformSlider::setLoop(bool b) {
     drawLoopPoints = b;
 
     if (leftLoopMarker != nullptr && leftLoopMarker != nullptr) {
+        // qDebug() << "setLoop: " << drawLoopPoints;
         leftLoopCover->setVisible(drawLoopPoints);
         leftLoopMarker->setVisible(drawLoopPoints);
         rightLoopCover->setVisible(drawLoopPoints);
