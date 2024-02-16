@@ -43,8 +43,11 @@
 
 void MainWindow::setSongTableFont(QTableWidget *songTable, const QFont &currentFont)
 {
-    for (int row = 0; row < songTable->rowCount(); ++row)
-        dynamic_cast<QLabel*>(songTable->cellWidget(row,kTitleCol))->setFont(currentFont);
+    currentSongTableFont = currentFont;
+    if (!darkmode) {
+        for (int row = 0; row < songTable->rowCount(); ++row)
+            dynamic_cast<QLabel*>(songTable->cellWidget(row,kTitleCol))->setFont(currentFont);
+    }
 }
 
 int MainWindow::pointSizeToIndex(int pointSize) {
@@ -139,7 +142,10 @@ void MainWindow::adjustFontSizes()
     ui->songTable->resizeColumnToContents(kLabelCol);
     // kTitleCol = nope
 
-    QFont currentFont = ui->songTable->font();
+    // QFont currentFont = ui->songTable->font();
+
+    QFont currentFont = currentSongTableFont;
+
     int currentFontPointSize = currentFont.pointSize();  // platform-specific point size
 
     int index = pointSizeToIndex(currentMacPointSize);  // current index
@@ -446,12 +452,23 @@ void MainWindow::usePersistentFontSize() {
     int platformPS = indexToPointSize(pointSizeToIndex(newPointSize));  // convert to PLATFORM pointsize
 //    qDebug() << "platformPS: " << platformPS;
     currentFont.setPointSize(platformPS);
-    ui->songTable->setFont(currentFont);
+
+    int indexToCuesheetZoom[9] = {-4,0,4,8,12,16,20,24,24};
+    int index = pointSizeToIndex(newPointSize);
+    // qDebug() << "usePersistentFontSize: " << index << totalZoom;
+    totalZoom = indexToCuesheetZoom[index];
+    ui->textBrowserCueSheet->zoomIn(totalZoom);
+
+    if (!darkmode) {
+        ui->songTable->setFont(currentFont);
+    }
     currentMacPointSize = newPointSize;
 
     t.elapsed(__LINE__);
 
-    ui->songTable->setStyleSheet(QString("QTableWidget::item:selected{ color: #FFFFFF; background-color: #4C82FC } QHeaderView::section { font-size: %1pt; }").arg(platformPS));
+    if (!darkmode) {
+        ui->songTable->setStyleSheet(QString("QTableWidget::item:selected{ color: #FFFFFF; background-color: #4C82FC } QHeaderView::section { font-size: %1pt; }").arg(platformPS));
+    }
 
     t.elapsed(__LINE__);
 
@@ -471,28 +488,53 @@ void MainWindow::persistNewFontSize(int currentMacPointSize) {
 }
 
 void MainWindow::zoomInOut(int increment) {
-    QFont currentFont = ui->songTable->font();
+    PerfTimer t("zoomInOut", __LINE__);
+
+    // QFont currentFont = ui->songTable->font();
+
+    QFont currentFont = currentSongTableFont;
+
     int newPointSize = currentMacPointSize + increment;
 
+    t.elapsed(__LINE__);
     newPointSize = (newPointSize > BIGGESTZOOM ? BIGGESTZOOM : newPointSize);
     newPointSize = (newPointSize < SMALLESTZOOM ? SMALLESTZOOM : newPointSize);
 
+    t.elapsed(__LINE__);
     if (newPointSize > currentMacPointSize) {
         ui->textBrowserCueSheet->zoomIn(2*ZOOMINCREMENT);
         totalZoom += 2*ZOOMINCREMENT;
+    } else if (newPointSize < currentMacPointSize) {
+        ui->textBrowserCueSheet->zoomIn(-2*ZOOMINCREMENT);
+        totalZoom -= 2*ZOOMINCREMENT;
     }
 
+    // qDebug() << "totalZoom is now: " << totalZoom << ", and currentMacPointSize: " << currentMacPointSize;
+
+    t.elapsed(__LINE__);
     int platformPS = indexToPointSize(pointSizeToIndex(newPointSize));  // convert to PLATFORM pointsize
     currentFont.setPointSize(platformPS);
-    ui->songTable->setFont(currentFont);
+
+    if (!darkmode) {
+        ui->songTable->setFont(currentFont);
+    }
     currentMacPointSize = newPointSize;
 
+    t.elapsed(__LINE__);
     persistNewFontSize(currentMacPointSize);
 
-    ui->songTable->setStyleSheet(QString("QTableWidget::item:selected{ color: #FFFFFF; background-color: #4C82FC } QHeaderView::section { font-size: %1pt; }").arg(platformPS));
+    t.elapsed(__LINE__);
+    startLongSongTableOperation("zoomInOut");
+    if (!darkmode) {
+        ui->songTable->setStyleSheet(QString("QTableWidget::item:selected{ color: #FFFFFF; background-color: #4C82FC } QHeaderView::section { font-size: %1pt; }").arg(platformPS));
+    }
 
+    t.elapsed(__LINE__);
     setSongTableFont(ui->songTable, currentFont);
+    t.elapsed(__LINE__);
     adjustFontSizes();
+    stopLongSongTableOperation("zoomInOut");
+    t.elapsed(__LINE__);
 //    qDebug() << "currentMacPointSize:" << newPointSize << ", totalZoom:" << totalZoom;
 }
 
@@ -516,11 +558,11 @@ void MainWindow::on_actionReset_triggered()
     currentFont.setPointSize(platformPS);
     ui->songTable->setFont(currentFont);
 
-    ui->textBrowserCueSheet->zoomOut(totalZoom);  // undo all zooming in the lyrics pane
+    ui->textBrowserCueSheet->zoomOut(totalZoom);  // undo all zooming in the lyrics pane, by zooming OUT
     totalZoom = 0;
 
     persistNewFontSize(currentMacPointSize);
     setSongTableFont(ui->songTable, currentFont);
     adjustFontSizes();
-//    qDebug() << "currentMacPointSize:" << currentMacPointSize << ", totalZoom:" << totalZoom;
+    // qDebug() << "on_actionReset_triggered = currentMacPointSize:" << currentMacPointSize << ", totalZoom:" << totalZoom;
 }

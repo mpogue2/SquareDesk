@@ -908,6 +908,8 @@ private:
     int preferredWarningLabelFontSize;
     int preferredNowPlayingFontSize;
 
+    QFont currentSongTableFont;
+
     unsigned int oldTimerState, newTimerState;  // break and tip timer states from the analog clock
 
     QAction *closeAct;  // WINDOWS only
