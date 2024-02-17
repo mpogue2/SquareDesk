@@ -23,14 +23,24 @@
 **
 ****************************************************************************/
 
+#include "QtCore/qmimedata.h"
+#include "QtGui/qevent.h"
+#include "QtWidgets/qapplication.h"
+#include "QtWidgets/qlabel.h"
 #include "globaldefines.h"
+#include "songlistmodel.h"
 
 #include "mytablewidget.h"
 #include <QDebug>
+#include <QDrag>
+
+#include "mainwindow.h"
 
 MyTableWidget::MyTableWidget(QWidget *parent)
     : QTableWidget(parent)
 {
+    setAcceptDrops(true);
+    mw = nullptr;
 }
 
 // returns true, if one of the items in the table is being edited (in which case,
@@ -333,4 +343,124 @@ QString MyTableWidget::fullPathOfSelectedSong() {
     }
 //    qDebug() << "fullPath: " << fullPath;
     return(fullPath);
+}
+
+void MyTableWidget::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton) {
+        dragStartPosition = event->pos();
+    }
+    QTableWidget::mousePressEvent(event);
+}
+
+static QRegularExpression title_tags_remover2("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
+static QRegularExpression spanPrefixRemover2("<span style=\"color:.*\">(.*)</span>", QRegularExpression::InvertedGreedinessOption);
+
+void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    if (!(event->buttons() & Qt::LeftButton)) {
+        return; // return if not left button down and move
+    }
+    if ((event->pos() - dragStartPosition).manhattanLength() < QApplication::startDragDistance()) {
+        return; // return if haven't moved far enough with L mouse button down
+    }
+
+    if (objectName().startsWith("playlist")) {
+        return;  // no drag for you!  (yet)
+    }
+
+    QDrag *drag = new QDrag(this);
+    QMimeData *mimeData = new QMimeData;
+
+    int sourceRow = itemAt(dragStartPosition)->row();
+
+    QString title = dynamic_cast<QLabel*>(this->cellWidget(sourceRow, kTitleCol))->text();
+    title.replace(spanPrefixRemover2, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
+    int where = title.indexOf(title_tags_remover2);
+    if (where >= 0) {
+        title.truncate(where);
+    }
+    title.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if filename contains HTML encoded chars, put originals back
+
+    QString sourceName = objectName();
+
+    QString sourceTrackName = item(sourceRow, kLabelCol)->text() + " - " + title; // e.g. "ESP 1234 - Ricochet"
+    QString sourcePitch = item(sourceRow, kPitchCol)->text();
+    QString sourceTempo = item(sourceRow, kTempoCol)->text();
+    QString sourcePath = item(sourceRow, kPathCol)->data(Qt::UserRole).toString();
+
+    mimeData->setText(sourceTrackName + "                                    !#!" + // the spaces are so that the visible drag text is just the track name (hack!)
+                      sourceName + "!#!" +
+                      sourcePitch + "!#!" +
+                      sourceTempo + "!#!" +
+                      sourcePath ); // send all the info!
+    drag->setMimeData(mimeData);
+
+    Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);
+    Q_UNUSED(dropAction)
+}
+
+void MyTableWidget::dragEnterEvent(QDragEnterEvent *event)
+{
+    // qDebug() << "dragEnterEvent!" << this;
+    if (event->mimeData()->hasFormat("text/plain")) {
+        // qDebug() << "    event accepted." << event->mimeData()->text() << acceptDrops();
+        event->acceptProposedAction();
+    }
+}
+
+void MyTableWidget::dragMoveEvent(QDragMoveEvent *event)
+{
+    // qDebug() << "dragMoveEvent: " << event;
+    event->acceptProposedAction();
+}
+
+void MyTableWidget::dropEvent(QDropEvent *event)
+{
+    // qDebug() << "dropEvent!";
+    // qDebug() << this << " got this text: " << event->mimeData()->text();
+    event->acceptProposedAction();
+
+    QStringList fields = event->mimeData()->text().split("!#!");
+    QString sourceTrackName = fields[0].trimmed();
+    QString sourceName      = fields[1];
+    QString sourcePitch     = fields[2];
+    QString sourceTempo     = fields[3];
+    QString sourcePath      = fields[4];
+
+    QString destName = objectName();
+
+    int whichSlot = 0;
+
+    if (sourceName == "darkSongTable") {
+        if (destName == "darkSongTable") {
+            // ignore for now
+        } else {
+            // from darkSongTable to this playlist
+            if (destName == "playlist1Table") {
+                whichSlot = 0;
+            } else if (destName == "playlist2Table") {
+                whichSlot = 1;
+            } else if (destName == "playlist3Table") {
+                whichSlot = 2;
+            } else {
+                qDebug() << "SLOT ERROR";
+            }
+
+            // qDebug() << "***** DROP:" << sourceName << sourceTrackName << sourcePitch << sourceTempo << sourcePath;
+
+            // (MainWindow*)mw->darkAddPlaylistItemToBottom(whichSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, ""); // slot is 0 - 2
+
+            if (mw != nullptr) {
+                ((MainWindow *)mw)->darkAddPlaylistItemToBottom(whichSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "");
+            }
+        }
+    } else {
+        qDebug() << "dragging to darkSongTable is NOT IMPLEMENTED YET.";
+    }
+
+}
+
+void MyTableWidget::setMainWindow(void *m) {
+    mw = m; // save it.  MainWindow will cast it
 }

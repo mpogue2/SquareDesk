@@ -1834,6 +1834,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist1Label->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist1Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
 
+    ui->playlist1Table->setMainWindow(this);
     ui->playlist1Table->resizeColumnToContents(0); // number
     ui->playlist1Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
     ui->playlist1Table->setColumnWidth(2,20); // pitch
@@ -1942,6 +1943,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist2Label->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist2Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
 
+    ui->playlist2Table->setMainWindow(this);
     ui->playlist2Table->resizeColumnToContents(0); // number
     ui->playlist2Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
     ui->playlist2Table->setColumnWidth(2,20); // pitch
@@ -2045,6 +2047,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
             );
 
     // -----
+    ui->playlist3Table->setMainWindow(this);
     ui->playlist3Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
     ui->playlist3Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers_2023.09.20");
     ui->playlist3Label->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -10806,6 +10809,73 @@ void MainWindow::darkAddPlaylistItemToBottom(int whichSlot) { // slot is 0 - 2
     slotModified[whichSlot] = true;
     playlistSlotWatcherTimer->start(std::chrono::seconds(10));
 }
+
+// -----------------------------------------------
+void MainWindow::darkAddPlaylistItemToBottom(int whichSlot, QString title, QString thePitch, QString theTempo, QString theFullPath, QString isLoaded) { // slot is 0 - 2
+
+    Q_UNUSED(title)
+    Q_UNUSED(isLoaded)
+
+    MyTableWidget *theTableWidget;
+    QString PlaylistFileName = "foobar";
+    switch (whichSlot) {
+        default:
+        case 0: theTableWidget = ui->playlist1Table; break;
+        case 1: theTableWidget = ui->playlist2Table; break;
+        case 2: theTableWidget = ui->playlist3Table; break;
+    }
+
+    // make a new row, after all the other ones
+    theTableWidget->insertRow(theTableWidget->rowCount()); // always make a new row
+    int songCount = theTableWidget->rowCount();
+
+    // # column
+    QTableWidgetItem *num = new TableNumberItem(QString::number(songCount)); // use TableNumberItem so that it sorts numerically
+    theTableWidget->setItem(songCount-1, 0, num);
+
+    // TITLE column
+    QString theRelativePath = theFullPath;
+    QString absPath = theFullPath; // already is fully qualified
+
+    theRelativePath.replace(musicRootPath, "");
+    setTitleField(theTableWidget, songCount-1, theRelativePath, true, PlaylistFileName); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
+
+    // PITCH column
+    QTableWidgetItem *pit = new QTableWidgetItem(thePitch);
+    theTableWidget->setItem(songCount-1, 2, pit);
+
+    // TEMPO column
+    QTableWidgetItem *tem = new QTableWidgetItem(theTempo);
+    theTableWidget->setItem(songCount-1, 3, tem);
+
+    // PATH column
+    QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
+    theTableWidget->setItem(songCount-1, 4, fullPath);
+
+    // LOADED column
+    QTableWidgetItem *loaded = new QTableWidgetItem("");
+    theTableWidget->setItem(songCount-1, 5, loaded);
+
+    theTableWidget->resizeColumnToContents(0); // FIX: perhaps only if this is the first row?
+//    theTableWidget->resizeColumnToContents(2);
+//    theTableWidget->resizeColumnToContents(3);
+
+    QTimer::singleShot(250, [theTableWidget]{
+        // NOTE: We have to do it this way with a single-shot timer, because you can't scroll immediately to a new item, until it's been processed
+        //   after insertion by the table.  So, there's a delay.  Yeah, this is kludgey, but it works.
+
+        // theTableWidget->selectRow(songCount-1); // for some reason this has to be here, or it won't scroll all the way to the bottom.
+        // theTableWidget->scrollToItem(theTableWidget->item(songCount-1,1), QAbstractItemView::PositionAtCenter); // ensure that the new item is visible
+
+        // same thing, but without forcing us to select the last item in the playlist
+        theTableWidget->verticalScrollBar()->setSliderPosition(theTableWidget->verticalScrollBar()->maximum());
+        });
+
+    slotModified[whichSlot] = true;
+    playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+}
+
+
 
 // -----------------------------------------------
 void MainWindow::darkAddPlaylistItemToTop(int whichSlot) { // slot is 0 - 2

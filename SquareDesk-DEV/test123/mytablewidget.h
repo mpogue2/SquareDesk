@@ -46,6 +46,18 @@ public:
     void moveSelectionToBottom();
 
     QString fullPathOfSelectedSong();
+
+    // for Drag and Drop
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dragMoveEvent(QDragMoveEvent *event);
+    void dropEvent(QDropEvent *event);
+
+    QPoint dragStartPosition;
+
+    void setMainWindow(void *m);  // so we can do stuff
+    void *mw;
 };
 
 #endif // MYTABLEWIDGET_H
