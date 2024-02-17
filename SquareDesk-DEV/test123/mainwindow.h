@@ -859,6 +859,7 @@ public:
     QMap<QString, QString> abbrevs;
 
     QString musicRootPath; // needed by sd to do output_prefix
+    QString relPathInSlot[3]; // playlist slot 1 --> relPathInSlot[0], used also by MyTableWidgets to know what's inside themselves
 
 private:
 
@@ -901,8 +902,6 @@ private:
     QString lastSavedPlaylist;       // "" if no playlist was saved in this session
     QString lastFlashcardsUserFile;      // "" if no flashcard file currently
     QString lastFlashcardsUserDirectory;      // "" if no flashcard file currently
-
-    QString relPathInSlot[3]; // playlist slot 1 --> relPathInSlot[0]
 
     int preferredVerySmallFontSize;  // preferred font sizes for UI items
     int preferredSmallFontSize;

@@ -76,7 +76,7 @@
 #include "danceprograms.h"
 #include "startupwizard.h"
 #include "makeflashdrivewizard.h"
-#include "downloadmanager.h"
+// #include "downloadmanager.h"
 #include "songlistmodel.h"
 #include "mytablewidget.h"
 
@@ -124,9 +124,9 @@ bool InvisibleTableWidgetItem::operator< (const QTableWidgetItem &other) const
 //    And, the tab must have at least one widget on it already.
 // https://stackoverflow.com/questions/3492739/auto-expanding-layout-with-qt-designer
 
-#include <iostream>
-#include <sstream>
-#include <iomanip>
+// #include <iostream>
+// #include <sstream>
+// #include <iomanip>
 using namespace std;
 
 // TAGLIB stuff is MAC OS X and WIN32 only for now...
