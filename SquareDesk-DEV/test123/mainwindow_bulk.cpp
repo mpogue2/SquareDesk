@@ -24,7 +24,7 @@
 ****************************************************************************/
 // Disable warning, see: https://github.com/llvm/llvm-project/issues/48757
 
-#include "ui_mainwindow.h"
+// #include "ui_mainwindow.h"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Welaborated-enum-base"
 #include "mainwindow.h"
@@ -319,7 +319,7 @@ void MainWindow::processFiles(QStringList &files) {
 
 void MainWindow::on_darkSegmentButton_clicked()
 {
-    double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
+    // double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
 
     // QMessageBox::StandardButton reply;
     // reply = QMessageBox::question(this, "LONG OPERATION: Segmentation for ALL Patter recordings",
@@ -378,7 +378,7 @@ void MainWindow::on_actionEstimate_for_this_song_triggered()
 
 void MainWindow::on_actionEstimate_for_all_songs_triggered()
 {
-    double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
+    // double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
 
     // QMessageBox::StandardButton reply;
     // reply = QMessageBox::question(this, "LONG OPERATION: Segmentation for ALL Patter tracks",
