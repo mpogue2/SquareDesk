@@ -690,12 +690,23 @@ void PreferencesDialog::on_toolButtonSessionMoveItemUp_clicked()
 
 void PreferencesDialog::on_pushButtonResetHotkeysToDefaults_clicked()
 {
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "Reset Hotkeys To Defaults",
-                                  "Do you really want to reset all hotkeys back to their default? This operation cannot be undone.",
-                                  QMessageBox::Yes|QMessageBox::No);
-    if (reply == QMessageBox::Yes)
-    {
+    // QMessageBox::StandardButton reply;
+    // reply = QMessageBox::question(this, "Reset Hotkeys To Defaults",
+    //                               "Do you really want to reset all hotkeys back to their default? This operation cannot be undone.",
+    //                               QMessageBox::Yes|QMessageBox::No);
+    // if (reply == QMessageBox::Yes)
+    // {
+    //     setHotkeys(KeyAction::defaultKeyToActionMappings());
+    // }
+
+    QMessageBox msgBox;
+    msgBox.setText("Resetting all hotkeys back to their default cannot be undone.");
+    msgBox.setInformativeText("OK to proceed?");
+    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    int ret = msgBox.exec();
+
+    if (ret == QMessageBox::Yes) {
         setHotkeys(KeyAction::defaultKeyToActionMappings());
     }
 }

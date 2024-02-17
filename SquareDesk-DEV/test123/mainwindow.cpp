@@ -4035,18 +4035,29 @@ double timeToDouble(const QString &str, bool *ok)
 void MainWindow::on_pushButtonClearTaughtCalls_clicked()
 {
     QString danceProgram(ui->comboBoxCallListProgram->currentText());
-    QMessageBox::StandardButton reply;
 
-    reply = QMessageBox::question(this, "Clear Taught Calls",
-                                  "Do you really want to clear all taught calls for the " +
-                                   danceProgram +
-                                  " dance program for the current session?",
-                                  QMessageBox::Yes|QMessageBox::No);
-  if (reply == QMessageBox::Yes) {
-      songSettings.clearTaughtCalls(danceProgram);
-      on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());
-  } else {
-  }
+  //   QMessageBox::StandardButton reply;
+  //   reply = QMessageBox::question(this, "Clear Taught Calls",
+  //                                 "Do you really want to clear all taught calls for the " +
+  //                                  danceProgram +
+  //                                 " dance program for the current session?",
+  //                                 QMessageBox::Yes|QMessageBox::No);
+  // if (reply == QMessageBox::Yes) {
+  //     songSettings.clearTaughtCalls(danceProgram);
+  //     on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());
+  // } else {
+  // }
+
+    QMessageBox msgBox;
+    msgBox.setText("Do you really want to clear all calls taught for the " + danceProgram + " dance program for the current session?");
+    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    int ret = msgBox.exec();
+
+    if (ret == QMessageBox::Yes) {
+        //     songSettings.clearTaughtCalls(danceProgram);
+        //     on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());
+    }
 }
 
 // --------------------------------1--------------------------------------
@@ -9424,6 +9435,7 @@ void MainWindow::customMessageOutputQt(QtMsgType type, const QMessageLogContext 
 //            txt.contains("Warning: #") ||
             msg.startsWith("#") ||
             msg.startsWith("skipping QEventPoint") ||
+            msg.contains("Accessing QMediaDevices") ||
             msg.contains("GL Type: core_profile")) {
         return;
     }
@@ -10979,12 +10991,23 @@ void MainWindow::on_actionSwitch_to_Light_Mode_triggered()
         newMode = "Light";
     }
 
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "Switch to " + newMode + " Mode",
-                                  "Switching to " + newMode + " Mode requires restarting SquareDesk.\n\nOK to restart?",
-                                  QMessageBox::Yes|QMessageBox::No);
+    // QMessageBox::StandardButton reply;
+    // reply = QMessageBox::question(this, "Switch to " + newMode + " Mode",
+    //                               "Switching to " + newMode + " Mode requires restarting SquareDesk.\n\nOK to restart?",
+    //                               QMessageBox::Yes|QMessageBox::No);
 
-    if (reply == QMessageBox::No) {
+    // if (reply == QMessageBox::No) {
+    //     return;
+    // }
+
+    QMessageBox msgBox;
+    msgBox.setText("Switch to " + newMode + " Mode requires restarting SquareDesk.");
+    msgBox.setInformativeText("OK to restart SquareDesk now?");
+    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    int ret = msgBox.exec();
+
+    if (ret == QMessageBox::No) {
         return;
     }
 

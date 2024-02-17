@@ -321,12 +321,23 @@ void MainWindow::on_darkSegmentButton_clicked()
 {
     double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
 
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "LONG OPERATION: Segmentation for ALL Patter recordings",
-                                  QString("Calculating section info can take about ") + QString::number((int)secondsPerSong) + " seconds per song. You can keep working while it runs.\n\nOK to start it now?",
-                                  QMessageBox::Yes|QMessageBox::No);
+    // QMessageBox::StandardButton reply;
+    // reply = QMessageBox::question(this, "LONG OPERATION: Segmentation for ALL Patter recordings",
+    //                               QString("Calculating section info can take about ") + QString::number((int)secondsPerSong) + " seconds per song. You can keep working while it runs.\n\nOK to start it now?",
+    //                               QMessageBox::Yes|QMessageBox::No);
 
-    if (reply == QMessageBox::No) {
+    // if (reply == QMessageBox::No) {
+    //     return;
+    // }
+
+    QMessageBox msgBox;
+    msgBox.setText("Calculating section info can take about 30 seconds per song.  You can keep working while it runs.");
+    msgBox.setInformativeText("OK to start it now?");
+    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    int ret = msgBox.exec();
+
+    if (ret == QMessageBox::No) {
         return;
     }
 
@@ -369,12 +380,23 @@ void MainWindow::on_actionEstimate_for_all_songs_triggered()
 {
     double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
 
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "LONG OPERATION: Segmentation for ALL Patter tracks",
-                                  QString("Section calculations average about ") + QString::number((int)secondsPerSong) + " seconds per patter track. You can keep working while it runs.\n\nOK to start it now?",
-                                  QMessageBox::Yes|QMessageBox::No);
+    // QMessageBox::StandardButton reply;
+    // reply = QMessageBox::question(this, "LONG OPERATION: Segmentation for ALL Patter tracks",
+    //                               QString("Section calculations average about ") + QString::number((int)secondsPerSong) + " seconds per patter track. You can keep working while it runs.\n\nOK to start it now?",
+    //                               QMessageBox::Yes|QMessageBox::No);
 
-    if (reply == QMessageBox::No) {
+    // if (reply == QMessageBox::No) {
+    //     return;
+    // }
+
+    QMessageBox msgBox;
+    msgBox.setText("Calculating section info can take about 30 seconds per song.  You can keep working while it runs.");
+    msgBox.setInformativeText("OK to start it now?");
+    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    int ret = msgBox.exec();
+
+    if (ret == QMessageBox::No) {
         return;
     }
 
@@ -415,12 +437,23 @@ void MainWindow::on_actionRemove_for_this_song_triggered()
 
 void MainWindow::on_actionRemove_for_all_songs_triggered()
 {
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "Remove Segmentation for ALL Patter tracks",
-                                  QString("Removing section information for all songs can't be undone.\n\nOK to proceed?"),
-                                  QMessageBox::Yes|QMessageBox::No);
+    // QMessageBox::StandardButton reply;
+    // reply = QMessageBox::question(this, "Remove Segmentation for ALL Patter tracks",
+    //                               QString("Removing section information for all songs can't be undone.\n\nOK to proceed?"),
+    //                               QMessageBox::Yes|QMessageBox::No);
 
-    if (reply == QMessageBox::No) {
+    // if (reply == QMessageBox::No) {
+    //     return;
+    // }
+
+    QMessageBox msgBox;
+    msgBox.setText("Removing section information for all songs cannot be undone.");
+    msgBox.setInformativeText("OK to proceed?");
+    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    int ret = msgBox.exec();
+
+    if (ret == QMessageBox::No) {
         return;
     }
 
@@ -462,14 +495,25 @@ void MainWindow::EstimateSectionsForThisSong(QString mp3Filename) {
         return;
     }
 
-    double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
+    // double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
 
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "LONG OPERATION: Calculating section info for THIS Patter track",
-                                  QString("Section calculations for this track could take ") + QString::number((int)secondsPerSong) + " seconds or longer. You can keep working while it runs.\n\nOK to start it now?",
-                                  QMessageBox::Yes|QMessageBox::No);
+    // QMessageBox::StandardButton reply;
+    // reply = QMessageBox::question(this, "LONG OPERATION: Calculating section info for THIS Patter track",
+    //                               QString("Section calculations for this track could take ") + QString::number((int)secondsPerSong) + " seconds or longer. You can keep working while it runs.\n\nOK to start it now?",
+    //                               QMessageBox::Yes|QMessageBox::No);
 
-    if (reply == QMessageBox::No) {
+    // if (reply == QMessageBox::No) {
+    //     return;
+    // }
+
+    QMessageBox msgBox;
+    msgBox.setText("Calculating section info for this track could take up to 30 seconds. You can keep working while it runs.");
+    msgBox.setInformativeText("OK to start it now?");
+    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    int ret = msgBox.exec();
+
+    if (ret == QMessageBox::No) {
         return;
     }
 
@@ -496,12 +540,23 @@ void MainWindow::RemoveSectionsForThisSong(QString mp3Filename) {
         return;
     }
 
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "Remove Section Info for ALL Patter tracks",
-                                  QString("Removing section info for this song can't be undone.\n\nOK to proceed?"),
-                                  QMessageBox::Yes|QMessageBox::No);
+    // QMessageBox::StandardButton reply;
+    // reply = QMessageBox::question(this, "Remove Section Info for this track",
+    //                               QString("Removing section info for this song can't be undone.\n\nOK to proceed?"),
+    //                               QMessageBox::Yes|QMessageBox::No);
 
-    if (reply == QMessageBox::No) {
+    // if (reply == QMessageBox::No) {
+    //     return;
+    // }
+
+    QMessageBox msgBox;
+    msgBox.setText("Removing section info for this song cannot be undone.");
+    msgBox.setInformativeText("OK to proceed?");
+    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    int ret = msgBox.exec();
+
+    if (ret == QMessageBox::No) {
         return;
     }
 
