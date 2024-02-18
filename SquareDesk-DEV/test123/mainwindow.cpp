@@ -10758,7 +10758,7 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
 // -----------------------------------------------
 void MainWindow::darkAddPlaylistItemsToBottom(int whichSlot) { // slot is 0 - 2
 
-    qDebug() << "darkPlaylistItemToBottom:" << whichSlot;
+    // qDebug() << "darkPlaylistItemToBottom:" << whichSlot;
 
     MyTableWidget *theTableWidget;
     QString PlaylistFileName = "foobar";
@@ -10771,7 +10771,7 @@ void MainWindow::darkAddPlaylistItemsToBottom(int whichSlot) { // slot is 0 - 2
     // ------------------------------------------------------------------------------------
     foreach (const QModelIndex &mi, ui->darkSongTable->selectionModel()->selectedRows()) {
         int row = mi.row();  // this is the actual row number of each selected row
-        qDebug() << "ROW ADD TO BOTTOM:" << row;
+        // qDebug() << "ROW ADD TO BOTTOM:" << row;
 
         QString theFullPath = ui->darkSongTable->item(row, kPathCol)->data(Qt::UserRole).toString();
         // qDebug() << "darkPlaylistItemToBottom will add THIS: " << whichSlot << theFullPath;

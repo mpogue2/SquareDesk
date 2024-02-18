@@ -39,6 +39,7 @@
 #pragma clang diagnostic ignored "-Welaborated-enum-base"
 #include "mainwindow.h"
 #pragma clang diagnostic pop
+#include "ui_mainwindow.h"
 
 MyTableWidget::MyTableWidget(QWidget *parent)
     : QTableWidget(parent)
@@ -373,6 +374,8 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
     QMimeData *mimeData = new QMimeData;
 
     int sourceRow = itemAt(dragStartPosition)->row();
+    QString sourceInfo;
+    int rowNum = 0;
 
     if (objectName().startsWith("playlist")) {
         // the source is a playlist or track filter --------
@@ -402,29 +405,41 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
         Q_UNUSED(dropAction)
     } else {
         // the source is the darkSongTable --------
-        QString title = dynamic_cast<QLabel*>(this->cellWidget(sourceRow, kTitleCol))->text();
-        title.replace(spanPrefixRemover2, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
-        int where = title.indexOf(title_tags_remover2);
-        if (where >= 0) {
-            title.truncate(where);
+
+        foreach (const QModelIndex &mi, selectionModel()->selectedRows()) {
+            sourceRow = mi.row();  // this is the actual row number of each selected row, overriding the cursor-located row (just pick all selected rows)
+            // qDebug() << "DRAGGING THIS ROW NUMBER:" << sourceRow;
+
+            QString title = dynamic_cast<QLabel*>(this->cellWidget(sourceRow, kTitleCol))->text();
+            title.replace(spanPrefixRemover2, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
+            int where = title.indexOf(title_tags_remover2);
+            if (where >= 0) {
+                title.truncate(where);
+            }
+            title.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if filename contains HTML encoded chars, put originals back
+
+            QString sourceName = objectName();
+
+            QString sourceTrackName = item(sourceRow, kLabelCol)->text() + " - " + title; // e.g. "ESP 1234 - Ricochet"
+            QString sourcePitch = item(sourceRow, kPitchCol)->text();
+            QString sourceTempo = item(sourceRow, kTempoCol)->text();
+            QString sourcePath = item(sourceRow, kPathCol)->data(Qt::UserRole).toString();
+
+            QString sourceInfoForThisRow = (rowNum++ > 0 ? "!!&!!" : "") +
+                                           sourceTrackName + "                                    !#!" + // the spaces are so that the visible drag text is just the track name (hack!)
+                                           sourceName + "!#!" +
+                                           sourcePitch + "!#!" +
+                                           sourceTempo + "!#!" +
+                                           sourcePath;
+            sourceInfo.append(sourceInfoForThisRow);
         }
-        title.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if filename contains HTML encoded chars, put originals back
 
-        QString sourceName = objectName();
+        // qDebug() << "sourceInfo: " << sourceInfo;  // this has info on ALL the selected items
 
-        QString sourceTrackName = item(sourceRow, kLabelCol)->text() + " - " + title; // e.g. "ESP 1234 - Ricochet"
-        QString sourcePitch = item(sourceRow, kPitchCol)->text();
-        QString sourceTempo = item(sourceRow, kTempoCol)->text();
-        QString sourcePath = item(sourceRow, kPathCol)->data(Qt::UserRole).toString();
-
-        mimeData->setText(sourceTrackName + "                                    !#!" + // the spaces are so that the visible drag text is just the track name (hack!)
-                          sourceName + "!#!" +
-                          sourcePitch + "!#!" +
-                          sourceTempo + "!#!" +
-                          sourcePath ); // send all the info!
+        mimeData->setText(sourceInfo); // send all the info!
         drag->setMimeData(mimeData);
 
-        Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);
+        Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction); // TODO: should be just COPY, I think
         Q_UNUSED(dropAction)
     }
 }
@@ -450,120 +465,129 @@ void MyTableWidget::dropEvent(QDropEvent *event)
     // qDebug() << this << " got this text: " << event->mimeData()->text();
     event->acceptProposedAction();
 
-    QStringList fields = event->mimeData()->text().split("!#!");
-    QString sourceTrackName = fields[0].trimmed();
-    QString sourceName      = fields[1];
-    QString sourcePitch     = fields[2];
-    QString sourceTempo     = fields[3];
-    QString sourcePath      = fields[4];
+    QStringList rows = event->mimeData()->text().split("!!&!!");
 
-    QString destName = objectName();
+    foreach (const QString &r, rows) {
+        // qDebug() << "drop got this: " << r; // we get one per selected row in darkSongTable
 
-    // TODO: use a QMap here
-    int sourceSlot = 0;
-    if (sourceName == "playlist1Table") {
-        sourceSlot = 0;
-    } else if (sourceName == "playlist2Table") {
-        sourceSlot = 1;
-    } else if (sourceName == "playlist3Table") {
-        sourceSlot = 2;
-    } else if (sourceName == "darkSongTable") {
-        sourceSlot = -1;
-    } else {
-        qDebug() << "SLOT ERROR: " << sourceName;
-    }
+        QStringList fields = r.split("!#!"); // split the row into fields
+        QString sourceTrackName = fields[0].trimmed();
+        QString sourceName      = fields[1];
+        QString sourcePitch     = fields[2];
+        QString sourceTempo     = fields[3];
+        QString sourcePath      = fields[4];
 
-    int destSlot = 0;
-    if (destName == "playlist1Table") {
-        destSlot = 0;
-    } else if (destName == "playlist2Table") {
-        destSlot = 1;
-    } else if (destName == "playlist3Table") {
-        destSlot = 2;
-    } else if (destName == "darkSongTable") {
-        destSlot = -1;
-    } else {
-        qDebug() << "SLOT ERROR" << destName;
-    }
+        QString destName = objectName();
 
-    // source is playlist OR track filter
-    // qDebug() << "sourceSlot/destSlot: " << sourceSlot << destSlot;
-    QString sourceRelPath, destRelPath;
-    if (mw != nullptr) {
-        sourceRelPath = ((MainWindow *)mw)->relPathInSlot[sourceSlot];
-        destRelPath = ((MainWindow *)mw)->relPathInSlot[destSlot];
-    }
-    bool sourceIsTrackFilter = sourceRelPath.startsWith("/tracks/");
-    bool destIsTrackFilter   = destRelPath.startsWith("/tracks/");
-
-    if (sourceName == "darkSongTable") {
-        if (destName == "darkSongTable") {
-            // NOPE.  We don't allow reordering of the darkSongTable ever.
-            // qDebug() << "NO REORDERING OF DARKSONGTABLE";
+        // TODO: use a QMap here
+        int sourceSlot = 0;
+        if (sourceName == "playlist1Table") {
+            sourceSlot = 0;
+        } else if (sourceName == "playlist2Table") {
+            sourceSlot = 1;
+        } else if (sourceName == "playlist3Table") {
+            sourceSlot = 2;
+        } else if (sourceName == "darkSongTable") {
+            sourceSlot = -1;
         } else {
-            // from darkSongTable to this playlist, this is feature request #1018
-            // qDebug() << "***** DROP:" << sourceName << sourceTrackName << sourcePitch << sourceTempo << sourcePath;
-
-            // (MainWindow*)mw->darkAddPlaylistItemToBottom(whichSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, ""); // slot is 0 - 2
-
-            if (destIsTrackFilter) {
-                // qDebug() << "NO DROPPING FROM DARKSONGTABLE TO TRACK FILTERS";
-            } else {
-                if (mw != nullptr) {
-                    // playlists only, not track filters
-                    ((MainWindow *)mw)->darkAddPlaylistItemToBottom(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "");
-                } else {
-                    qDebug() << "ERROR: mw not valid";
-                }
-            }
-        }
-    } else {
-        if (destName == "darkSongTable") {
-            // qDebug() << "NO DROPPING OF ANYTHING ON DARKSONGTABLE (YET)";
-            // NOPE.  Not yet at least.
-            return;
+            qDebug() << "SLOT ERROR: " << sourceName;
         }
 
-        // qDebug() << "source is playlist or track filter:" << sourceIsTrackFilter << sourceRelPath << destIsTrackFilter << destRelPath;
-
-        if (sourceIsTrackFilter) {
-            // source is TRACK FILTER
-            if (destIsTrackFilter) {
-                // NOPE
-                // qDebug() << "NO DROPPING OF TRACK FILTER ON TRACK FILTER";
-            } else {
-                // source is Track Filter, dest is Playlist
-                // qDebug() << "***** DRAG N DROP from TRACK FILTER to PLAYLIST: " << sourceName << destName;
-                if (mw != nullptr) {
-                    // qDebug() << "TF2PL: " << destSlot << sourceTrackName << sourcePitch << sourceTempo << sourcePath;
-                    ((MainWindow *)mw)->darkAddPlaylistItemToBottom(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "");
-                } else {
-                    qDebug() << "ERROR: mw not valid";
-                }
-            }
+        int destSlot = 0;
+        if (destName == "playlist1Table") {
+            destSlot = 0;
+        } else if (destName == "playlist2Table") {
+            destSlot = 1;
+        } else if (destName == "playlist3Table") {
+            destSlot = 2;
+        } else if (destName == "darkSongTable") {
+            destSlot = -1;
         } else {
-            // source is PLAYLIST
-            if (destIsTrackFilter) {
-                // NOPE
-                // qDebug() << "NO DROPPING OF PLAYLIST ON TRACK FILTER";
+            qDebug() << "SLOT ERROR" << destName;
+        }
+
+        // source is playlist OR track filter
+        // qDebug() << "sourceSlot/destSlot: " << sourceSlot << destSlot;
+        QString sourceRelPath, destRelPath;
+        if (mw != nullptr) {
+            sourceRelPath = ((MainWindow *)mw)->relPathInSlot[sourceSlot];
+            destRelPath = ((MainWindow *)mw)->relPathInSlot[destSlot];
+        }
+        bool sourceIsTrackFilter = sourceRelPath.startsWith("/tracks/");
+        bool destIsTrackFilter   = destRelPath.startsWith("/tracks/");
+
+        if (sourceName == "darkSongTable") {
+            if (destName == "darkSongTable") {
+                // NOPE.  We don't allow reordering of the darkSongTable ever.
+                // qDebug() << "NO REORDERING OF DARKSONGTABLE";
             } else {
-                // source is Playlist, dest is Playlist
-                if (sourceName == destName) {
-                    // TODO: dragging within a playlist we want to support
-                    // qDebug() << "***** DRAG N DROP WITHIN A PLAYLIST: " << sourceName;
+                // from darkSongTable to this playlist, this is feature request #1018
+                // qDebug() << "***** DROP:" << sourceName << sourceTrackName << sourcePitch << sourceTempo << sourcePath;
+
+                // (MainWindow*)mw->darkAddPlaylistItemToBottom(whichSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, ""); // slot is 0 - 2
+
+                if (destIsTrackFilter) {
+                    // qDebug() << "NO DROPPING FROM DARKSONGTABLE TO TRACK FILTERS";
                 } else {
-                    // dragging between playlists we want to support
-                    // qDebug() << "***** DRAG N DROP BETWEEN PLAYLISTS, source:" << sourceName << ", destination:" << destName;
                     if (mw != nullptr) {
+                        // playlists only, not track filters
                         ((MainWindow *)mw)->darkAddPlaylistItemToBottom(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "");
                     } else {
                         qDebug() << "ERROR: mw not valid";
                     }
                 }
             }
+        } else {
+            if (destName == "darkSongTable") {
+                // qDebug() << "NO DROPPING OF ANYTHING ON DARKSONGTABLE (YET)";
+                // NOPE.  Not yet at least.
+                return;
+            }
+
+            // qDebug() << "source is playlist or track filter:" << sourceIsTrackFilter << sourceRelPath << destIsTrackFilter << destRelPath;
+
+            if (sourceIsTrackFilter) {
+                // source is TRACK FILTER
+                if (destIsTrackFilter) {
+                    // NOPE
+                    // qDebug() << "NO DROPPING OF TRACK FILTER ON TRACK FILTER";
+                } else {
+                    // source is Track Filter, dest is Playlist
+                    // qDebug() << "***** DRAG N DROP from TRACK FILTER to PLAYLIST: " << sourceName << destName;
+                    if (mw != nullptr) {
+                        // qDebug() << "TF2PL: " << destSlot << sourceTrackName << sourcePitch << sourceTempo << sourcePath;
+                        ((MainWindow *)mw)->darkAddPlaylistItemToBottom(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "");
+                    } else {
+                        qDebug() << "ERROR: mw not valid";
+                    }
+                }
+            } else {
+                // source is PLAYLIST
+                if (destIsTrackFilter) {
+                    // NOPE
+                    // qDebug() << "NO DROPPING OF PLAYLIST ON TRACK FILTER";
+                } else {
+                    // source is Playlist, dest is Playlist
+                    if (sourceName == destName) {
+                        // TODO: dragging within a playlist we want to support
+                        // qDebug() << "***** DRAG N DROP WITHIN A PLAYLIST: " << sourceName;
+                    } else {
+                        // dragging between playlists we want to support
+                        // qDebug() << "***** DRAG N DROP BETWEEN PLAYLISTS, source:" << sourceName << ", destination:" << destName;
+                        if (mw != nullptr) {
+                            ((MainWindow *)mw)->darkAddPlaylistItemToBottom(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "");
+                        } else {
+                            qDebug() << "ERROR: mw not valid";
+                        }
+                    }
+                }
+            }
+
         }
 
+
     }
+
 
 }
 
