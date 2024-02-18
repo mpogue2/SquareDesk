@@ -299,7 +299,7 @@ public slots:
     void PlaylistItemRemove();      // removes item from the playlist (must already be on the list)
 
 #ifdef DARKMODE
-    void darkAddPlaylistItemToTop(int slot);       // adds a darkSongTable item to the top of playlist in slot n
+    // void darkAddPlaylistItemToTop(int slot);       // adds a darkSongTable item to the top of playlist in slot n
     void darkAddPlaylistItemToBottom(int slot);    // adds a darkSongTable item to the bottom of playlist in slot n
     void darkAddPlaylistItemToBottom(int whichSlot, QString title, QString thePitch, QString theTempo, QString theFullPath, QString isLoaded); // alternate way
 
@@ -519,11 +519,11 @@ private slots:
     void on_menuLyrics_aboutToShow();
     void on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/);
 
-    void on_actionAt_TOP_triggered();
-    void on_actionAt_BOTTOM_triggered();
-    void on_actionUP_in_Playlist_triggered();
-    void on_actionDOWN_in_Playlist_triggered();
-    void on_actionRemove_from_Playlist_triggered();
+    // void on_actionAt_TOP_triggered();
+    // void on_actionAt_BOTTOM_triggered();
+    // void on_actionUP_in_Playlist_triggered();
+    // void on_actionDOWN_in_Playlist_triggered();
+    // void on_actionRemove_from_Playlist_triggered();
 
     void on_actionStartup_Wizard_triggered();
     void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);
@@ -830,7 +830,9 @@ public:
     QFuture<int> vampFuture; // cancel this at Quit time to stop more jobs from starting
     bool killAllVamps; // set to true at desstructor time, so that threads will kill their QProcesses ASAP
     void EstimateSectionsForThisSong(QString pathToMP3);
+    void EstimateSectionsForTheseSongs(QList<int> rowNumbers);
     void RemoveSectionsForThisSong(QString pathToMP3);
+    void RemoveSectionsForTheseSongs(QList<int>);
 
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);

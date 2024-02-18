@@ -24,7 +24,9 @@
 ****************************************************************************/
 // Disable warning, see: https://github.com/llvm/llvm-project/issues/48757
 
-// #include "ui_mainwindow.h"
+#include "ui_mainwindow.h"
+#include "songlistmodel.h"
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Welaborated-enum-base"
 #include "mainwindow.h"
@@ -475,6 +477,63 @@ void MainWindow::on_actionRemove_for_all_songs_triggered()
         subDir.removeRecursively();
     }
 }
+
+void MainWindow::EstimateSectionsForTheseSongs(QList<int> rows) {
+    qDebug() << "Estimate Sections for these rows in darkSongTable: " << rows;
+
+    QMessageBox msgBox;
+    msgBox.setText("Calculating section info can take about 30 seconds per song.  You can keep working while it runs.");
+    msgBox.setInformativeText("OK to start it now?");
+    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    int ret = msgBox.exec();
+
+    if (ret == QMessageBox::No) {
+        return;
+    }
+
+    mp3FilenamesToProcess.clear();
+    mp3ResultsLock.lock();
+    mp3Results.clear();
+    mp3ResultsLock.unlock();
+
+    foreach (const int &r, rows) {
+        mp3FilenamesToProcess.append(ui->darkSongTable->item(r, kPathCol)->data(Qt::UserRole).toString());
+    }
+
+    processFiles(mp3FilenamesToProcess);
+}
+
+void MainWindow::RemoveSectionsForTheseSongs(QList<int> rows) {
+    qDebug() << "Remove Sections for rows: " << rows;
+
+    QMessageBox msgBox;
+    msgBox.setText("Removing section info for these songs cannot be undone.");
+    msgBox.setInformativeText("OK to proceed?");
+    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    int ret = msgBox.exec();
+
+    if (ret == QMessageBox::No) {
+        return;
+    }
+
+    foreach (const int &r, rows) {
+        QString filenameToRemove = ui->darkSongTable->item(r, kPathCol)->data(Qt::UserRole).toString();
+
+        if (filenameToRemove.endsWith(".mp3", Qt::CaseInsensitive)) {
+            QString resultsFilename = filenameToRemove;
+            QString bulkDirname = musicRootPath + "/.squaredesk/bulk";
+            resultsFilename.replace(musicRootPath, bulkDirname);
+            resultsFilename = resultsFilename + ".results.txt";
+
+            QFile::remove(resultsFilename);
+            qDebug() << "**** REMOVED: " << resultsFilename;
+        }
+
+    }
+}
+
 
 void MainWindow::EstimateSectionsForThisSong(QString mp3Filename) {
     // qDebug() << "EstimateSections for" << mp3Filename;
