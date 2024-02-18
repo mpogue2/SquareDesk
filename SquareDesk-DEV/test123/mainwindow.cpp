@@ -1850,85 +1850,103 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist1Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
     ui->playlist1Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
 
+    // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST1 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
     ui->playlist1Table->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist1Table, &QTableWidget::customContextMenuRequested,
             this, [this](QPoint q) {
-                        if (this->ui->playlist1Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
+
+                        qDebug() << "***** PLAYLIST 1 CONTEXT MENU REQUESTED";
+                        // if (this->ui->playlist1Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
+
+                        int rowCount = this->ui->playlist1Table->selectionModel()->selectedRows().count();
+                        if (rowCount < 1) {
+                            return;  // if mouse clicked and nothing was selected (this should be impossible)
+                        }
 
                         QMenu *plMenu = new QMenu();
 
+                        // can only move slot items if they are playlists, NOT tracks
+                        QString plural;
+                        if (rowCount == 1) {
+                            plural = "item";
+                        } else {
+                            plural = QString::number(rowCount) + " items";
+                        }
+
                         // Move up/down/top/bottom in playlist
                         if (!relPathInSlot[0].contains("/tracks/")) {
-                            plMenu->addAction(QString("Move to TOP of playlist"),    [this]() { this->PlaylistItemToTop();    } );
-                            plMenu->addAction(QString("Move UP in playlist"),        [this]() { this->PlaylistItemMoveUp();   } );
-                            plMenu->addAction(QString("Move DOWN in playlist"),      [this]() { this->PlaylistItemMoveDown(); } );
-                            plMenu->addAction(QString("Move to BOTTOM of playlist"), [this]() { this->PlaylistItemToBottom(); } );
+                            plMenu->addAction(QString("Move " + plural + " to TOP of playlist"),    [this]() { this->PlaylistItemsToTop();    } );
+                            plMenu->addAction(QString("Move " + plural + " UP in playlist"),        [this]() { this->PlaylistItemsMoveUp();   } );
+                            plMenu->addAction(QString("Move " + plural + " DOWN in playlist"),      [this]() { this->PlaylistItemsMoveDown(); } );
+                            plMenu->addAction(QString("Move " + plural + " to BOTTOM of playlist"), [this]() { this->PlaylistItemsToBottom(); } );
                             plMenu->addSeparator();
-                            plMenu->addAction(QString("Remove from playlist"),       [this]() { this->PlaylistItemRemove(); } );
+                            plMenu->addAction(QString("Remove " + plural + " from playlist"),       [this]() { this->PlaylistItemsRemove(); } );
+                        }
+
+                        if (rowCount == 1) {
+                            // Reveal Audio File and Cuesheet in Finder
                             plMenu->addSeparator();
-                        }
+                            QString fullPath = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
+                            QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
+    //                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
 
-                        // Reveal Audio File and Cuesheet in Finder
-                        QString fullPath = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
-                        QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
-//                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
+                            QFileInfo fi(fullPath);
+                            QString menuString = "Reveal Audio File In Finder";
+                            QString thingToOpen = fullPath;
 
-                        QFileInfo fi(fullPath);
-                        QString menuString = "Reveal Audio File In Finder";
-                        QString thingToOpen = fullPath;
+                            if (!fi.exists()) {
+                                menuString = "Reveal Enclosing Folder In Finder";
+                                thingToOpen = enclosingFolderName;
+                            }
 
-                        if (!fi.exists()) {
-                            menuString = "Reveal Enclosing Folder In Finder";
-                            thingToOpen = enclosingFolderName;
-                        }
+                            plMenu->addAction(QString(menuString),
+                                              [thingToOpen]() {
+                                                // opens either the folder and highlights the file (if file exists), OR
+                                                // opens the folder where the file was SUPPOSED to exist.
+    #if defined(Q_OS_MAC)
+                                                  QStringList args;
+                                                  args << "-e";
+                                                  args << "tell application \"Finder\"";
+                                                  args << "-e";
+                                                  args << "activate";
+                                                  args << "-e";
+                                                  args << "select POSIX file \"" + thingToOpen + "\"";
+                                                  args << "-e";
+                                                  args << "end tell";
 
-                        plMenu->addAction(QString(menuString),
-                                          [thingToOpen]() {
-                                            // opens either the folder and highlights the file (if file exists), OR
-                                            // opens the folder where the file was SUPPOSED to exist.
-#if defined(Q_OS_MAC)
-                                              QStringList args;
-                                              args << "-e";
-                                              args << "tell application \"Finder\"";
-                                              args << "-e";
-                                              args << "activate";
-                                              args << "-e";
-                                              args << "select POSIX file \"" + thingToOpen + "\"";
-                                              args << "-e";
-                                              args << "end tell";
+                                                  //    QProcess::startDetached("osascript", args);
 
-                                              //    QProcess::startDetached("osascript", args);
+                                                  // same as startDetached, but suppresses output from osascript to console
+                                                  //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
+                                                  QProcess process;
+                                                  process.setProgram("osascript");
+                                                  process.setArguments(args);
+                                                  process.setStandardOutputFile(QProcess::nullDevice());
+                                                  process.setStandardErrorFile(QProcess::nullDevice());
+                                                  qint64 pid;
+                                                  process.startDetached(&pid);
+    #endif
 
-                                              // same as startDetached, but suppresses output from osascript to console
-                                              //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
-                                              QProcess process;
-                                              process.setProgram("osascript");
-                                              process.setArguments(args);
-                                              process.setStandardOutputFile(QProcess::nullDevice());
-                                              process.setStandardErrorFile(QProcess::nullDevice());
-                                              qint64 pid;
-                                              process.startDetached(&pid);
-#endif
+                                              });
 
-                                          });
+                            // if the current song has a cuesheet, offer to show it to the user -----
+                            QString fullMP3Path = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
+                            QString cuesheetPath;
 
-                        // if the current song has a cuesheet, offer to show it to the user -----
-                        QString fullMP3Path = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
-                        QString cuesheetPath;
+                            SongSetting settings1;
+                            if (songSettings.loadSettings(fullMP3Path, settings1)) {
+                                cuesheetPath = settings1.getCuesheetName();
+                            } else {
+                                qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
+                            }
 
-                        SongSetting settings1;
-                        if (songSettings.loadSettings(fullMP3Path, settings1)) {
-                            cuesheetPath = settings1.getCuesheetName();
-                        } else {
-                            qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
-                        }
-
-                        if (cuesheetPath != "") {
-                            plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
-                                              [this, cuesheetPath]() {
-                                                    showInFinderOrExplorer(cuesheetPath);
-                                              }
-                                              );
+                            if (cuesheetPath != "") {
+                                plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
+                                                  [this, cuesheetPath]() {
+                                                        showInFinderOrExplorer(cuesheetPath);
+                                                  }
+                                                  );
+                            }
                         }
 
                         plMenu->popup(QCursor::pos());
@@ -1959,91 +1977,107 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist2Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
     ui->playlist2Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
 
+    // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST2 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
     ui->playlist2Table->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist2Table, &QTableWidget::customContextMenuRequested,
             this, [this](QPoint q) {
-                if (this->ui->playlist2Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
 
-                QMenu *plMenu = new QMenu();
+                        // qDebug() << "***** PLAYLIST 2 CONTEXT MENU REQUESTED";
+                        // if (this->ui->playlist2Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
 
-                if (!relPathInSlot[1].contains("/tracks/")) {
-                    // Move up/down/top/bottom in playlist
-                    plMenu->addAction(QString("Move to TOP of playlist"),    [this]() { this->PlaylistItemToTop();    } );
-                    plMenu->addAction(QString("Move UP in playlist"),        [this]() { this->PlaylistItemMoveUp();   } );
-                    plMenu->addAction(QString("Move DOWN in playlist"),      [this]() { this->PlaylistItemMoveDown(); } );
-                    plMenu->addAction(QString("Move to BOTTOM of playlist"), [this]() { this->PlaylistItemToBottom(); } );
-                    plMenu->addSeparator();
-                    plMenu->addAction(QString("Remove from playlist"),       [this]() { this->PlaylistItemRemove(); } );
-                    plMenu->addSeparator();
-                }
+                        int rowCount = this->ui->playlist2Table->selectionModel()->selectedRows().count();
+                        if (rowCount < 1) {
+                            return;  // if mouse clicked and nothing was selected (this should be impossible)
+                        }
+                        QString plural;
+                        if (rowCount == 1) {
+                            plural = "item";
+                        } else {
+                            plural = QString::number(rowCount) + " items";
+                        }
 
-                // Reveal Audio File and Cuesheet in Finder
-                QString fullPath = this->ui->playlist2Table->item(this->ui->playlist2Table->itemAt(q)->row(), 4)->text();
-                QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
-//                qDebug() << "customContextMenu for playlist2Table" << fullPath << enclosingFolderName;
+                        QMenu *plMenu = new QMenu();
 
-                QFileInfo fi(fullPath);
-                QString menuString = "Reveal Audio File In Finder";
-                QString thingToOpen = fullPath;
+                        // Move up/down/top/bottom in playlist
+                        if (!relPathInSlot[1].contains("/tracks/")) {
+                            plMenu->addAction(QString("Move " + plural + " to TOP of playlist"),    [this]() { this->PlaylistItemsToTop();    } );
+                            plMenu->addAction(QString("Move " + plural + " UP in playlist"),        [this]() { this->PlaylistItemsMoveUp();   } );
+                            plMenu->addAction(QString("Move " + plural + " DOWN in playlist"),      [this]() { this->PlaylistItemsMoveDown(); } );
+                            plMenu->addAction(QString("Move " + plural + " to BOTTOM of playlist"), [this]() { this->PlaylistItemsToBottom(); } );
+                            plMenu->addSeparator();
+                            plMenu->addAction(QString("Remove " + plural + " from playlist"),       [this]() { this->PlaylistItemsRemove(); } );
+                        }
 
-                if (!fi.exists()) {
-                    menuString = "Reveal Enclosing Folder In Finder";
-                    thingToOpen = enclosingFolderName;
-                }
+                        if (rowCount == 1) {
+                            // Reveal Audio File and Cuesheet in Finder
+                            plMenu->addSeparator();
+                            QString fullPath = this->ui->playlist2Table->item(this->ui->playlist2Table->itemAt(q)->row(), 4)->text();
+                            QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
+    //                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
 
-                plMenu->addAction(QString(menuString),
-                                  [thingToOpen]() {
-        // opens either the folder and highlights the file (if file exists), OR
-        // opens the folder where the file was SUPPOSED to exist.
-#if defined(Q_OS_MAC)
-                                      QStringList args;
-                                      args << "-e";
-                                      args << "tell application \"Finder\"";
-                                      args << "-e";
-                                      args << "activate";
-                                      args << "-e";
-                                      args << "select POSIX file \"" + thingToOpen + "\"";
-                                      args << "-e";
-                                      args << "end tell";
+                            QFileInfo fi(fullPath);
+                            QString menuString = "Reveal Audio File In Finder";
+                            QString thingToOpen = fullPath;
 
-                                      //    QProcess::startDetached("osascript", args);
+                            if (!fi.exists()) {
+                                menuString = "Reveal Enclosing Folder In Finder";
+                                thingToOpen = enclosingFolderName;
+                            }
 
-                                      // same as startDetached, but suppresses output from osascript to console
-                                      //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
-                                      QProcess process;
-                                      process.setProgram("osascript");
-                                      process.setArguments(args);
-                                      process.setStandardOutputFile(QProcess::nullDevice());
-                                      process.setStandardErrorFile(QProcess::nullDevice());
-                                      qint64 pid;
-                                      process.startDetached(&pid);
-#endif
+                            plMenu->addAction(QString(menuString),
+                                              [thingToOpen]() {
+                                                // opens either the folder and highlights the file (if file exists), OR
+                                                // opens the folder where the file was SUPPOSED to exist.
+    #if defined(Q_OS_MAC)
+                                                  QStringList args;
+                                                  args << "-e";
+                                                  args << "tell application \"Finder\"";
+                                                  args << "-e";
+                                                  args << "activate";
+                                                  args << "-e";
+                                                  args << "select POSIX file \"" + thingToOpen + "\"";
+                                                  args << "-e";
+                                                  args << "end tell";
 
-                                  });
+                                                  //    QProcess::startDetached("osascript", args);
 
-                // if the current song has a cuesheet, offer to show it to the user -----
-                QString fullMP3Path = this->ui->playlist2Table->item(this->ui->playlist2Table->itemAt(q)->row(), 4)->text();
-                QString cuesheetPath;
+                                                  // same as startDetached, but suppresses output from osascript to console
+                                                  //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
+                                                  QProcess process;
+                                                  process.setProgram("osascript");
+                                                  process.setArguments(args);
+                                                  process.setStandardOutputFile(QProcess::nullDevice());
+                                                  process.setStandardErrorFile(QProcess::nullDevice());
+                                                  qint64 pid;
+                                                  process.startDetached(&pid);
+    #endif
 
-                SongSetting settings1;
-                if (songSettings.loadSettings(fullMP3Path, settings1)) {
-                    cuesheetPath = settings1.getCuesheetName();
-                } else {
-                    qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
-                }
+                                              });
 
-                if (cuesheetPath != "") {
-                    plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
-                                      [this, cuesheetPath]() {
-                                            showInFinderOrExplorer(cuesheetPath);
-                                      }
-                                      );
-                }
+                            // if the current song has a cuesheet, offer to show it to the user -----
+                            QString fullMP3Path = this->ui->playlist2Table->item(this->ui->playlist2Table->itemAt(q)->row(), 4)->text();
+                            QString cuesheetPath;
 
-                plMenu->popup(QCursor::pos());
-                plMenu->exec();
-                delete plMenu; // done with it
-            }
+                            SongSetting settings1;
+                            if (songSettings.loadSettings(fullMP3Path, settings1)) {
+                                cuesheetPath = settings1.getCuesheetName();
+                            } else {
+                                qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
+                            }
+
+                            if (cuesheetPath != "") {
+                                plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
+                                                  [this, cuesheetPath]() {
+                                                        showInFinderOrExplorer(cuesheetPath);
+                                                  }
+                                                  );
+                            }
+                        }
+
+                        plMenu->popup(QCursor::pos());
+                        plMenu->exec();
+                        delete plMenu; // done with it
+                  }
             );
 
     // -----
@@ -2068,91 +2102,107 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist3Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
     ui->playlist3Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
 
+    // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST3 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
     ui->playlist3Table->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist3Table, &QTableWidget::customContextMenuRequested,
             this, [this](QPoint q) {
-                if (this->ui->playlist3Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
 
-                QMenu *plMenu = new QMenu();
+                        // qDebug() << "***** PLAYLIST 3 CONTEXT MENU REQUESTED";
+                        // if (this->ui->playlist3Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
 
-                if (!relPathInSlot[2].contains("/tracks/")) {
-                    // Move up/down/top/bottom in playlist
-                    plMenu->addAction(QString("Move to TOP of playlist"),    [this]() { this->PlaylistItemToTop();    } );
-                    plMenu->addAction(QString("Move UP in playlist"),        [this]() { this->PlaylistItemMoveUp();   } );
-                    plMenu->addAction(QString("Move DOWN in playlist"),      [this]() { this->PlaylistItemMoveDown(); } );
-                    plMenu->addAction(QString("Move to BOTTOM of playlist"), [this]() { this->PlaylistItemToBottom(); } );
-                    plMenu->addSeparator();
-                    plMenu->addAction(QString("Remove from playlist"),       [this]() { this->PlaylistItemRemove(); } );
-                    plMenu->addSeparator();
-                }
+                        int rowCount = this->ui->playlist3Table->selectionModel()->selectedRows().count();
+                        if (rowCount < 1) {
+                            return;  // if mouse clicked and nothing was selected (this should be impossible)
+                        }
+                        QString plural;
+                        if (rowCount == 1) {
+                            plural = "item";
+                        } else {
+                            plural = QString::number(rowCount) + " items";
+                        }
 
-                // Reveal Audio File and Cuesheet in Finder
-                QString fullPath = this->ui->playlist3Table->item(this->ui->playlist3Table->itemAt(q)->row(), 4)->text();
-                QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
-//                qDebug() << "customContextMenu for playlist3Table" << fullPath << enclosingFolderName;
+                        QMenu *plMenu = new QMenu();
 
-                QFileInfo fi(fullPath);
-                QString menuString = "Reveal Audio File In Finder";
-                QString thingToOpen = fullPath;
+                        // Move up/down/top/bottom in playlist
+                        if (!relPathInSlot[2].contains("/tracks/")) {
+                            plMenu->addAction(QString("Move " + plural + " to TOP of playlist"),    [this]() { this->PlaylistItemsToTop();    } );
+                            plMenu->addAction(QString("Move " + plural + " UP in playlist"),        [this]() { this->PlaylistItemsMoveUp();   } );
+                            plMenu->addAction(QString("Move " + plural + " DOWN in playlist"),      [this]() { this->PlaylistItemsMoveDown(); } );
+                            plMenu->addAction(QString("Move " + plural + " to BOTTOM of playlist"), [this]() { this->PlaylistItemsToBottom(); } );
+                            plMenu->addSeparator();
+                            plMenu->addAction(QString("Remove " + plural + " from playlist"),       [this]() { this->PlaylistItemsRemove(); } );
+                        }
 
-                if (!fi.exists()) {
-                    menuString = "Reveal Enclosing Folder In Finder";
-                    thingToOpen = enclosingFolderName;
-                }
+                        if (rowCount == 1) {
+                            // Reveal Audio File and Cuesheet in Finder
+                            plMenu->addSeparator();
+                            QString fullPath = this->ui->playlist3Table->item(this->ui->playlist3Table->itemAt(q)->row(), 4)->text();
+                            QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
+    //                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
 
-                plMenu->addAction(QString(menuString),
-                                  [thingToOpen]() {
-        // opens either the folder and highlights the file (if file exists), OR
-        // opens the folder where the file was SUPPOSED to exist.
-#if defined(Q_OS_MAC)
-                                      QStringList args;
-                                      args << "-e";
-                                      args << "tell application \"Finder\"";
-                                      args << "-e";
-                                      args << "activate";
-                                      args << "-e";
-                                      args << "select POSIX file \"" + thingToOpen + "\"";
-                                      args << "-e";
-                                      args << "end tell";
+                            QFileInfo fi(fullPath);
+                            QString menuString = "Reveal Audio File In Finder";
+                            QString thingToOpen = fullPath;
 
-                                      //    QProcess::startDetached("osascript", args);
+                            if (!fi.exists()) {
+                                menuString = "Reveal Enclosing Folder In Finder";
+                                thingToOpen = enclosingFolderName;
+                            }
 
-                                      // same as startDetached, but suppresses output from osascript to console
-                                      //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
-                                      QProcess process;
-                                      process.setProgram("osascript");
-                                      process.setArguments(args);
-                                      process.setStandardOutputFile(QProcess::nullDevice());
-                                      process.setStandardErrorFile(QProcess::nullDevice());
-                                      qint64 pid;
-                                      process.startDetached(&pid);
-#endif
+                            plMenu->addAction(QString(menuString),
+                                              [thingToOpen]() {
+                                                // opens either the folder and highlights the file (if file exists), OR
+                                                // opens the folder where the file was SUPPOSED to exist.
+    #if defined(Q_OS_MAC)
+                                                  QStringList args;
+                                                  args << "-e";
+                                                  args << "tell application \"Finder\"";
+                                                  args << "-e";
+                                                  args << "activate";
+                                                  args << "-e";
+                                                  args << "select POSIX file \"" + thingToOpen + "\"";
+                                                  args << "-e";
+                                                  args << "end tell";
 
-                                  });
+                                                  //    QProcess::startDetached("osascript", args);
 
-                // if the current song has a cuesheet, offer to show it to the user -----
-                QString fullMP3Path = this->ui->playlist3Table->item(this->ui->playlist3Table->itemAt(q)->row(), 4)->text();
-                QString cuesheetPath;
+                                                  // same as startDetached, but suppresses output from osascript to console
+                                                  //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
+                                                  QProcess process;
+                                                  process.setProgram("osascript");
+                                                  process.setArguments(args);
+                                                  process.setStandardOutputFile(QProcess::nullDevice());
+                                                  process.setStandardErrorFile(QProcess::nullDevice());
+                                                  qint64 pid;
+                                                  process.startDetached(&pid);
+    #endif
 
-                SongSetting settings1;
-                if (songSettings.loadSettings(fullMP3Path, settings1)) {
-                    cuesheetPath = settings1.getCuesheetName();
-                } else {
-                    qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
-                }
+                                              });
 
-                if (cuesheetPath != "") {
-                    plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
-                                      [this, cuesheetPath]() {
-                                            showInFinderOrExplorer(cuesheetPath);
-                                      }
-                                      );
-                }
+                            // if the current song has a cuesheet, offer to show it to the user -----
+                            QString fullMP3Path = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
+                            QString cuesheetPath;
 
-                plMenu->popup(QCursor::pos());
-                plMenu->exec();
-                delete plMenu; // done with it
-            }
+                            SongSetting settings1;
+                            if (songSettings.loadSettings(fullMP3Path, settings1)) {
+                                cuesheetPath = settings1.getCuesheetName();
+                            } else {
+                                qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
+                            }
+
+                            if (cuesheetPath != "") {
+                                plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
+                                                  [this, cuesheetPath]() {
+                                                        showInFinderOrExplorer(cuesheetPath);
+                                                  }
+                                                  );
+                            }
+                        }
+
+                        plMenu->popup(QCursor::pos());
+                        plMenu->exec();
+                        delete plMenu; // done with it
+                  }
             );
 
     // VUMETER:
@@ -4873,13 +4923,13 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 
             if ((KeyEvent->modifiers() & Qt::ControlModifier) && (KeyEvent->modifiers() & Qt::ShiftModifier)) {
                 switch (theKey) {
-                    case Qt::Key_Up:        maybeMainWindow->PlaylistItemMoveUp();           return true; break;
-                    case Qt::Key_Down:      maybeMainWindow->PlaylistItemMoveDown();         return true; break;
-                    case Qt::Key_Left:      maybeMainWindow->PlaylistItemToTop();            return true; break;
-                    case Qt::Key_Right:     maybeMainWindow->PlaylistItemToBottom();         return true; break;
-                    case Qt::Key_Backspace: maybeMainWindow->PlaylistItemRemove();           return true; break;
+                    case Qt::Key_Up:        maybeMainWindow->PlaylistItemsMoveUp();           return true; break;
+                    case Qt::Key_Down:      maybeMainWindow->PlaylistItemsMoveDown();         return true; break;
+                    case Qt::Key_Left:      maybeMainWindow->PlaylistItemsToTop();            return true; break;
+                    case Qt::Key_Right:     maybeMainWindow->PlaylistItemsToBottom();         return true; break;
+                    case Qt::Key_Backspace: maybeMainWindow->PlaylistItemsRemove();           return true; break;
 #ifdef DARKMODE
-                    case Qt::Key_1:         maybeMainWindow->darkAddPlaylistItemsToBottom(0); return true; break;
+                    case Qt::Key_1:         maybeMainWindow->darkAddPlaylistItemsToBottom(0); return true; break; // THIS DOES NOT WORK YET except in certain contexts
                     case Qt::Key_2:         maybeMainWindow->darkAddPlaylistItemsToBottom(1); return true; break;
                     case Qt::Key_3:         maybeMainWindow->darkAddPlaylistItemsToBottom(2); return true; break;
 #endif

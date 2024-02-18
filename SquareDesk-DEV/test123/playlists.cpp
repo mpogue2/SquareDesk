@@ -763,17 +763,17 @@ int MainWindow::PlaylistItemCount() {
 }
 
 // ----------------------------------------------------------------------
-void MainWindow::PlaylistItemToTop() {
+void MainWindow::PlaylistItemsToTop() {
 
 #ifdef DARKMODE
     if (!relPathInSlot[0].startsWith("/tracks/")) {
-        slotModified[0] = ui->playlist1Table->moveSelectedItemToTop() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+        slotModified[0] = ui->playlist1Table->moveSelectedItemsToTop() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
     }
     if (!relPathInSlot[1].startsWith("/tracks/")) {
-        slotModified[1] = ui->playlist2Table->moveSelectedItemToTop() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+        slotModified[1] = ui->playlist2Table->moveSelectedItemsToTop() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
     }
     if (!relPathInSlot[2].startsWith("/tracks/")) {
-        slotModified[2] = ui->playlist3Table->moveSelectedItemToTop() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+        slotModified[2] = ui->playlist3Table->moveSelectedItemsToTop() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
     }
     if (slotModified[0] || slotModified[1] || slotModified[2]) {
         playlistSlotWatcherTimer->start(std::chrono::seconds(10));
@@ -857,16 +857,16 @@ void MainWindow::PlaylistItemToTop() {
 }
 
 // --------------------------------------------------------------------
-void MainWindow::PlaylistItemToBottom() {
+void MainWindow::PlaylistItemsToBottom() {
 #ifdef DARKMODE
     if (!relPathInSlot[0].startsWith("/tracks/")) {
-        slotModified[0] = ui->playlist1Table->moveSelectedItemToBottom() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+        slotModified[0] = ui->playlist1Table->moveSelectedItemsToBottom() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
     }
     if (!relPathInSlot[1].startsWith("/tracks/")) {
-        slotModified[1] = ui->playlist2Table->moveSelectedItemToBottom() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+        slotModified[1] = ui->playlist2Table->moveSelectedItemsToBottom() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
     }
     if (!relPathInSlot[2].startsWith("/tracks/")) {
-        slotModified[2] = ui->playlist3Table->moveSelectedItemToBottom() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+        slotModified[2] = ui->playlist3Table->moveSelectedItemsToBottom() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
     }
     if (slotModified[0] || slotModified[1] || slotModified[2]) {
         playlistSlotWatcherTimer->start(std::chrono::seconds(10));
@@ -934,18 +934,18 @@ void MainWindow::PlaylistItemToBottom() {
 }
 
 // --------------------------------------------------------------------
-void MainWindow::PlaylistItemMoveUp() {
+void MainWindow::PlaylistItemsMoveUp() {
 
 #ifdef DARKMODE
     // qDebug() << "relPathInSlot: " << relPathInSlot[0] << relPathInSlot[1] << relPathInSlot[2];
     if (!relPathInSlot[0].startsWith("/tracks/")) {
-        slotModified[0] = ui->playlist1Table->moveSelectedItemUp() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+        slotModified[0] = ui->playlist1Table->moveSelectedItemsUp() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
     }
     if (!relPathInSlot[1].startsWith("/tracks/")) {
-        slotModified[1] = ui->playlist2Table->moveSelectedItemUp() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+        slotModified[1] = ui->playlist2Table->moveSelectedItemsUp() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
     }
     if (!relPathInSlot[2].startsWith("/tracks/")) {
-        slotModified[2] = ui->playlist3Table->moveSelectedItemUp() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+        slotModified[2] = ui->playlist3Table->moveSelectedItemsUp() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
     }
     if (slotModified[0] || slotModified[1] || slotModified[2]) {
         playlistSlotWatcherTimer->start(std::chrono::seconds(10));
@@ -1008,16 +1008,16 @@ void MainWindow::PlaylistItemMoveUp() {
 }
 
 // --------------------------------------------------------------------
-void MainWindow::PlaylistItemMoveDown() {
+void MainWindow::PlaylistItemsMoveDown() {
 #ifdef DARKMODE
     if (!relPathInSlot[0].startsWith("/tracks/")) {
-        slotModified[0] = ui->playlist1Table->moveSelectedItemDown() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+        slotModified[0] = ui->playlist1Table->moveSelectedItemsDown() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
     }
     if (!relPathInSlot[1].startsWith("/tracks/")) {
-        slotModified[1] = ui->playlist2Table->moveSelectedItemDown() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+        slotModified[1] = ui->playlist2Table->moveSelectedItemsDown() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
     }
     if (!relPathInSlot[2].startsWith("/tracks/")) {
-        slotModified[2] = ui->playlist3Table->moveSelectedItemDown() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+        slotModified[2] = ui->playlist3Table->moveSelectedItemsDown() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
     }
     if (slotModified[0] || slotModified[1] || slotModified[2]) {
         playlistSlotWatcherTimer->start(std::chrono::seconds(10));
@@ -1083,20 +1083,20 @@ void MainWindow::PlaylistItemMoveDown() {
 }
 
 // --------------------------------------------------------------------
-void MainWindow::PlaylistItemRemove() {
+void MainWindow::PlaylistItemsRemove() {
 
 #ifdef DARKMODE
     if (!relPathInSlot[0].startsWith("/tracks/")) {
 //        ui->playlist1Table->removeSelectedItem();  // if nothing was selected in this slot, this call does nothing
-        slotModified[0] = ui->playlist1Table->removeSelectedItem() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+        slotModified[0] = ui->playlist1Table->removeSelectedItems() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
     }
     if (!relPathInSlot[1].startsWith("/tracks/")) {
 //        ui->playlist2Table->removeSelectedItem();  // if nothing was selected in this slot, this call does nothing
-        slotModified[1] = ui->playlist2Table->removeSelectedItem() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+        slotModified[1] = ui->playlist2Table->removeSelectedItems() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
     }
     if (!relPathInSlot[2].startsWith("/tracks/")) {
 //        ui->playlist3Table->removeSelectedItem();  // if nothing was selected in this slot, this call does nothing
-        slotModified[2] = ui->playlist3Table->removeSelectedItem() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+        slotModified[2] = ui->playlist3Table->removeSelectedItems() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
     }
 
     if (slotModified[0] || slotModified[1] || slotModified[2]) {
@@ -1105,46 +1105,46 @@ void MainWindow::PlaylistItemRemove() {
     }
 #endif
 
-    int selectedRow = selectedSongRow();  // get current row or -1
+//     int selectedRow = selectedSongRow();  // get current row or -1
 
-    if (selectedRow == -1) {
-        return;
-    }
+//     if (selectedRow == -1) {
+//         return;
+//     }
 
-    QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
-    int currentNumberInt = currentNumberText.toInt();
+//     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+//     int currentNumberInt = currentNumberText.toInt();
 
-//    ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
-    startLongSongTableOperation("PlaylistItemRemove");
+// //    ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
+//     startLongSongTableOperation("PlaylistItemRemove");
 
-    // already on the list
-    // Iterate over the entire songTable, decrementing items BELOW this item
-    for (int i=0; i<ui->songTable->rowCount(); i++) {
-        QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
-        QString playlistIndexText = theItem->text();  // this is the playlist #
-        if (playlistIndexText != "") {
-            int playlistIndexInt = playlistIndexText.toInt();
-            if (playlistIndexInt > currentNumberInt) {
-                // if a # was set and more, decrement it
-                QString newIndex = QString::number(playlistIndexInt-1);
-                ui->songTable->item(i,kNumberCol)->setText(newIndex);
-            }
-        }
-    }
-    // and then set this one to #LAST
-    ui->songTable->item(selectedRow, kNumberCol)->setText("");  // this one is off the list
+//     // already on the list
+//     // Iterate over the entire songTable, decrementing items BELOW this item
+//     for (int i=0; i<ui->songTable->rowCount(); i++) {
+//         QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+//         QString playlistIndexText = theItem->text();  // this is the playlist #
+//         if (playlistIndexText != "") {
+//             int playlistIndexInt = playlistIndexText.toInt();
+//             if (playlistIndexInt > currentNumberInt) {
+//                 // if a # was set and more, decrement it
+//                 QString newIndex = QString::number(playlistIndexInt-1);
+//                 ui->songTable->item(i,kNumberCol)->setText(newIndex);
+//             }
+//         }
+//     }
+//     // and then set this one to #LAST
+//     ui->songTable->item(selectedRow, kNumberCol)->setText("");  // this one is off the list
 
-//    ui->songTable->blockSignals(false); // done updating
-    stopLongSongTableOperation("PlaylistItemRemove");
+// //    ui->songTable->blockSignals(false); // done updating
+//     stopLongSongTableOperation("PlaylistItemRemove");
 
-    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+//     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 
-    // removed an item, so we must enable saving of the playlist
-    ui->actionSave->setEnabled(true);       // menu item Save is enabled now
-    ui->actionSave_As->setEnabled(true);    // menu item Save as... is also enabled now
+//     // removed an item, so we must enable saving of the playlist
+//     ui->actionSave->setEnabled(true);       // menu item Save is enabled now
+//     ui->actionSave_As->setEnabled(true);    // menu item Save as... is also enabled now
 
-    // mark playlist modified
-    markPlaylistModified(true); // turn ON the * in the status bar
+//     // mark playlist modified
+//     markPlaylistModified(true); // turn ON the * in the status bar
 }
 
 // LOAD RECENT PLAYLIST --------------------------------------------------------------------
@@ -1557,109 +1557,128 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
         title->setToolTip(QString("File '%1'\nin playlist '%2' does not exist.\n\nFIX: RIGHT CLICK in the playlist header, and select 'Edit %2 in text editor' to edit manually.\nWhen done editing, save it, and then reload the playlist.").arg(absPath, shortPlaylistName));
     }
 
-    // context menu for palette slot items that are PLAYLISTS -----
+    // context menu for the TITLE QLABEL palette slot item that is in a PLAYLIST -----
     title->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(title, &QLabel::customContextMenuRequested,
             this, [this, whichTable, isPlaylist](QPoint q) {
                 Q_UNUSED(q)
-                // qDebug() << "PLAYLIST CONTEXT MENU!";
+                // qDebug() << "PLAYLIST *QLABEL* CONTEXT MENU!";
+
+                int rowCount = whichTable->selectionModel()->selectedRows().count();
+                if (rowCount < 1) {
+                    return;  // if mouse clicked and nothing was selected (this should be impossible)
+                }
+                QString plural;
+                if (rowCount == 1) {
+                    plural = "item";
+                } else {
+                    plural = QString::number(rowCount) + " items";
+                }
+
+                // qDebug() << "QLABEL CONTEXT MENU: " << rowCount;
 
                 QMenu *plMenu = new QMenu();
 
                 // Move up/down/top/bottom in playlist
                 if (isPlaylist) {
-                    plMenu->addAction(QString("Move to TOP of playlist"),    [this]() { this->PlaylistItemToTop();    } );
-                    plMenu->addAction(QString("Move UP in playlist"),        [this]() { this->PlaylistItemMoveUp();   } );
-                    plMenu->addAction(QString("Move DOWN in playlist"),      [this]() { this->PlaylistItemMoveDown(); } );
-                    plMenu->addAction(QString("Move to BOTTOM of playlist"), [this]() { this->PlaylistItemToBottom(); } );
+                    plMenu->addAction(QString("Move " + plural + " to TOP of playlist"),    [this]() { this->PlaylistItemsToTop();    } );
+                    plMenu->addAction(QString("Move " + plural + " UP in playlist"),        [this]() { this->PlaylistItemsMoveUp();   } );
+                    plMenu->addAction(QString("Move " + plural + " DOWN in playlist"),      [this]() { this->PlaylistItemsMoveDown(); } );
+                    plMenu->addAction(QString("Move " + plural + " to BOTTOM of playlist"), [this]() { this->PlaylistItemsToBottom(); } );
                     plMenu->addSeparator();
-                    plMenu->addAction(QString("Remove from playlist"),       [this]() { this->PlaylistItemRemove(); } );
+                    plMenu->addAction(QString("Remove " + plural + " from playlist"),       [this]() { this->PlaylistItemsRemove(); } );
+                }
+
+                if (rowCount == 1) {
+                    // ONLY A SINGLE ROW SELECTED
+
+                    // Reveal Audio File and Cuesheet in Finder
+                    // First, let's figure out which row was clicked.  It's the row that is currently selected.
+                    //   NOTE: This is a kludge, but I don't know how better to get the row number of a double-clicked
+                    //   cellWidget inside a QTableWidget.
+
                     plMenu->addSeparator();
-                }
-                // Reveal Audio File and Cuesheet in Finder
-                // First, let's figure out which row was clicked.  It's the row that is currently selected.
-                //   NOTE: This is a kludge, but I don't know how better to get the row number of a double-clicked
-                //   cellWidget inside a QTableWidget.
 
-                QItemSelectionModel *selectionModel = whichTable->selectionModel();
-                QModelIndexList selected = selectionModel->selectedRows();
-                int theRow = -1;
+                    QItemSelectionModel *selectionModel = whichTable->selectionModel();
+                    QModelIndexList selected = selectionModel->selectedRows();
+                    int theRow = -1;
 
-                if (selected.count() == 1) {
-                    // exactly 1 row was selected (good)
-                    QModelIndex index = selected.at(0);
-                    theRow = index.row();
-                    // qDebug() << "the row was: " << theRow;
-                }
-
-                QString fullPath = whichTable->item(theRow,4)->text();
-                QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
-
-                // qDebug() << "customContextMenu: " << theRow << fullPath << enclosingFolderName;
-
-                QFileInfo fi(fullPath);
-                QString menuString = "Reveal Audio File In Finder";
-                QString thingToOpen = fullPath;
-
-                if (!fi.exists()) {
-                    menuString = "Reveal Enclosing Folder In Finder";
-                    thingToOpen = enclosingFolderName;
-                }
-
-                plMenu->addAction(QString(menuString),
-                                  [thingToOpen]() {
-        // opens either the folder and highlights the file (if file exists), OR
-        // opens the folder where the file was SUPPOSED to exist.
-#if defined(Q_OS_MAC)
-                                      QStringList args;
-                                      args << "-e";
-                                      args << "tell application \"Finder\"";
-                                      args << "-e";
-                                      args << "activate";
-                                      args << "-e";
-                                      args << "select POSIX file \"" + thingToOpen + "\"";
-                                      args << "-e";
-                                      args << "end tell";
-
-                                      //    QProcess::startDetached("osascript", args);
-
-                                      // same as startDetached, but suppresses output from osascript to console
-                                      //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
-                                      QProcess process;
-                                      process.setProgram("osascript");
-                                      process.setArguments(args);
-                                      process.setStandardOutputFile(QProcess::nullDevice());
-                                      process.setStandardErrorFile(QProcess::nullDevice());
-                                      qint64 pid;
-                                      process.startDetached(&pid);
-#endif
-
-                                  });
-
-                if (isPlaylist) {
-                    // if the current song has a cuesheet, offer to show it to the user -----
-                    // QString fullMP3Path = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
-                    QString fullMP3Path = fullPath;
-                    QString cuesheetPath;
-
-                    SongSetting settings1;
-                    if (songSettings.loadSettings(fullMP3Path, settings1)) {
-                        // qDebug() << "here are the settings: " << settings1;
-                        cuesheetPath = settings1.getCuesheetName();
-                    } else {
-                        qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << fullMP3Path;
+                    if (selected.count() == 1) {
+                        // exactly 1 row was selected (good)
+                        QModelIndex index = selected.at(0);
+                        theRow = index.row();
+                        // qDebug() << "the row was: " << theRow;
                     }
 
-                    // qDebug() << "cuesheetPath: " << cuesheetPath;
+                    QString fullPath = whichTable->item(theRow,4)->text();
+                    QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
 
-                    if (cuesheetPath != "") {
-                        plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
-                                          [this, cuesheetPath]() {
-                                              showInFinderOrExplorer(cuesheetPath);
-                                          }
-                                          );
+                    // qDebug() << "customContextMenu: " << theRow << fullPath << enclosingFolderName;
+
+                    QFileInfo fi(fullPath);
+                    QString menuString = "Reveal Audio File In Finder";
+                    QString thingToOpen = fullPath;
+
+                    if (!fi.exists()) {
+                        menuString = "Reveal Enclosing Folder In Finder";
+                        thingToOpen = enclosingFolderName;
                     }
-                }
+
+                    plMenu->addAction(QString(menuString),
+                                      [thingToOpen]() {
+            // opens either the folder and highlights the file (if file exists), OR
+            // opens the folder where the file was SUPPOSED to exist.
+    #if defined(Q_OS_MAC)
+                                          QStringList args;
+                                          args << "-e";
+                                          args << "tell application \"Finder\"";
+                                          args << "-e";
+                                          args << "activate";
+                                          args << "-e";
+                                          args << "select POSIX file \"" + thingToOpen + "\"";
+                                          args << "-e";
+                                          args << "end tell";
+
+                                          //    QProcess::startDetached("osascript", args);
+
+                                          // same as startDetached, but suppresses output from osascript to console
+                                          //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
+                                          QProcess process;
+                                          process.setProgram("osascript");
+                                          process.setArguments(args);
+                                          process.setStandardOutputFile(QProcess::nullDevice());
+                                          process.setStandardErrorFile(QProcess::nullDevice());
+                                          qint64 pid;
+                                          process.startDetached(&pid);
+    #endif
+
+                                      });
+
+                    if (isPlaylist) {
+                        // if the current song has a cuesheet, offer to show it to the user -----
+                        // QString fullMP3Path = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
+                        QString fullMP3Path = fullPath;
+                        QString cuesheetPath;
+
+                        SongSetting settings1;
+                        if (songSettings.loadSettings(fullMP3Path, settings1)) {
+                            // qDebug() << "here are the settings: " << settings1;
+                            cuesheetPath = settings1.getCuesheetName();
+                        } else {
+                            qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << fullMP3Path;
+                        }
+
+                        // qDebug() << "cuesheetPath: " << cuesheetPath;
+
+                        if (cuesheetPath != "") {
+                            plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
+                                              [this, cuesheetPath]() {
+                                                  showInFinderOrExplorer(cuesheetPath);
+                                              }
+                                              );
+                        }
+                    }
+                } // if there's just one row in the selection
 
                 plMenu->popup(QCursor::pos());
                 plMenu->exec();

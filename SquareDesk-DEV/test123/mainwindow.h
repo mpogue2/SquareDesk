@@ -292,16 +292,16 @@ public slots:
     void customLyricsMenuRequested(QPoint pos);
     void haveDuration2(void);
 
-    void PlaylistItemToTop();       // moves to top, or adds to the list and moves to top
-    void PlaylistItemToBottom();    // moves to bottom, or adds to the list and moves to bottom
-    void PlaylistItemMoveUp();          // moves up one position (must already be on the list)
-    void PlaylistItemMoveDown();        // moves down one position (must already be on the list)
-    void PlaylistItemRemove();      // removes item from the playlist (must already be on the list)
+    void PlaylistItemsToTop();       // moves to top, or adds to the list and moves to top
+    void PlaylistItemsToBottom();    // moves to bottom, or adds to the list and moves to bottom
+    void PlaylistItemsMoveUp();          // moves up one position (must already be on the list)
+    void PlaylistItemsMoveDown();        // moves down one position (must already be on the list)
+    void PlaylistItemsRemove();      // removes item from the playlist (must already be on the list)
 
 #ifdef DARKMODE
-    // void darkAddPlaylistItemToTop(int slot);     // adds a darkSongTable item to the top of playlist in slot n
-    void darkAddPlaylistItemsToBottom(int slot);    // adds a darkSongTable item to the bottom of playlist in slot n
-    void darkAddPlaylistItemToBottom(int whichSlot, QString title, QString thePitch, QString theTempo, QString theFullPath, QString isLoaded); // alternate way
+    // void darkAddPlaylistItemToTop(int slot);
+    void darkAddPlaylistItemsToBottom(int slot);    // adds multiple selected darkSongTable items to the bottom of playlist in slot n
+    void darkAddPlaylistItemToBottom(int whichSlot, QString title, QString thePitch, QString theTempo, QString theFullPath, QString isLoaded); // single item add
 
     void darkRevealInFinder();
     void darkRevealAttachedLyricsFileInFinder();

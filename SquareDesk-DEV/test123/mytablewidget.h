@@ -34,11 +34,11 @@ public:
     MyTableWidget(QWidget *parent);
     bool isEditing();
 
-    bool moveSelectedItemUp();
-    bool moveSelectedItemDown();
-    bool moveSelectedItemToTop();
-    bool moveSelectedItemToBottom(bool scrollWhenDone = true);
-    bool removeSelectedItem();
+    bool moveSelectedItemsUp();
+    bool moveSelectedItemsDown();
+    bool moveSelectedItemsToTop();
+    bool moveSelectedItemsToBottom(bool scrollWhenDone = true);
+    bool removeSelectedItems();
 
     void moveSelectionUp();
     void moveSelectionDown();

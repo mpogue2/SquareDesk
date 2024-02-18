@@ -56,91 +56,161 @@ bool MyTableWidget::isEditing()
 }
 
 // -----------------------------------------------
-bool MyTableWidget::moveSelectedItemUp() {
-#ifdef DARKMODE
+bool MyTableWidget::moveSelectedItemsUp() {
     QModelIndexList list = selectionModel()->selectedRows();
 
-    if (list.count() != 1) {
-        // if it's zero or >= 2 return
-        return false; // we did nothing, this was not meant for us
+    QList<int> rows;
+    foreach (const QModelIndex &m, list) {
+        rows.append(m.row());
     }
 
-    int row = list.at(0).row(); // only 1 row can ever be selected, this is its number 0 - N-1
+    std::sort(rows.begin(), rows.end()); // ascending sort intentionally
 
-    if (row == 0) {
-        // we are already at the top
-        return false; // we did what was requested, but no modifications FIX FIX FIX
-    }
+    // qDebug() << "***** MOVESELECTEDITEMS UP SORTED: " << rows;
 
-    // swap the numbers
-    QTableWidgetItem *theItem      = item(row,0);    // # column
-    QTableWidgetItem *theItemAbove = item(row - 1,0);
+    if (rows.count() == 0) {
+        return false; // we didn't handle it
+    } else if (rows.count() == 1) {
+        // SINGLE ROW CASE  TODO: this can be folded into the MULTI case
+        int row = list.at(0).row(); // only 1 row can ever be selected, this is its number 0 - N-1
 
-    QString t = theItem->text();
-    theItem->setText(theItemAbove->text());
-    theItemAbove->setText(t);
+        if (row == 0) {
+            // we are already at the top
+            return false; // we did what was requested, but no changes actually made
+        }
 
-    sortItems(0);  // resort, based on column 0 (the #)
+        // swap the numbers
+        QTableWidgetItem *theItem      = item(row,0);    // # column
+        QTableWidgetItem *theItemAbove = item(row - 1,0);
 
-    scrollToItem(item(row - 1, 0)); // EnsureVisible for the moved-up row
-#endif
+        QString t = theItem->text();
+        theItem->setText(theItemAbove->text());
+        theItemAbove->setText(t);
+
+        sortItems(0);  // resort, based on column 0 (the #)
+        return true;  // We did it!
+    } else {
+        // MULTI ROW CASE
+        // if we need to move 2,3, we move 2 up, so we get 2,1,3,4
+        //  then we move 3 up to get 2,3,1,4
+        foreach (const int & row, rows) {
+
+            // qDebug() << "moving up: " << row;
+            if (row == 0) {
+                // we are already at the top
+                // qDebug() << "already at the top: " << row;
+                continue; // skip this one and do the next one
+            }
+
+            // swap the numbers
+            QTableWidgetItem *theItem      = item(row,0);    // # column
+            QTableWidgetItem *theItemAbove = item(row - 1,0);
+
+            QString t = theItem->text();
+            theItem->setText(theItemAbove->text());
+            theItemAbove->setText(t);
+
+            sortItems(0);  // resort, based on column 0 (the #), moving row "row" to the bottom
+        }
+
+    // NOTE: the rows we moved will still be selected!
+    // scrollToItem(item(rowCount()-1, 0));      // EnsureVisible for the last row in the table NO NEED TO SCROLL
 
     return true; // we did it!
+    }
 }
 
 // -----------------------------------------------
-bool MyTableWidget::moveSelectedItemDown() {
-#ifdef DARKMODE
+bool MyTableWidget::moveSelectedItemsDown() {
     QModelIndexList list = selectionModel()->selectedRows();
 
-    if (list.count() != 1) {
-        // if it's zero or >= 2 return
-        return false; // we did nothing, this was not meant for us
+    QList<int> rows;
+    foreach (const QModelIndex &m, list) {
+        rows.append(m.row());
     }
 
-    int row = list.at(0).row(); // only 1 row can ever be selected, this is its number 0 - N-1
+    std::sort(rows.begin(), rows.end(), std::greater<int>()); // descending sort intentionally
 
-    if (row == rowCount()-1) {
-        // we are already at the bottom
-        return false; // we did what was requested, but no changes actually made FIX FIX FIX
+    // qDebug() << "***** MOVESELECTEDITEMS DOWN SORTED: " << rows;
+
+    if (rows.count() == 0) {
+        return false; // we didn't handle it
+    } else if (rows.count() == 1) {
+        // SINGLE ROW CASE  TODO: this can be folded into the MULTI case
+        int row = list.at(0).row(); // only 1 row can ever be selected, this is its number 0 - N-1
+
+        if (row == rowCount()-1) {
+            // we are already at the bottom
+            return false; // we did what was requested, but no changes actually made
+        }
+
+        // swap the numbers
+        QTableWidgetItem *theItem      = item(row,0);    // # column
+        QTableWidgetItem *theItemBelow = item(row + 1,0);
+
+        QString t = theItem->text();
+        theItem->setText(theItemBelow->text());
+        theItemBelow->setText(t);
+
+        sortItems(0);  // resort, based on column 0 (the #)
+        return true;  // We did it!
+    } else {
+        // MULTI ROW CASE
+        // if we need to move 1,2,3, we move 3 down, so we get 1,2,4,3
+        //  then we move 2 down to get 1,4,2,3
+        //  then we move 1 down to get 4,1,2,3, q.e.d.
+        foreach (const int & row, rows) {
+
+            // qDebug() << "moving down: " << row;
+            if (row == rowCount()-1) {
+                // we are already at the bottom
+                // qDebug() << "already at the bottom: " << row;
+                continue; // skip this one and do the next one
+            }
+
+            // swap the numbers
+            QTableWidgetItem *theItem      = item(row,0);    // # column
+            QTableWidgetItem *theItemBelow = item(row + 1,0);
+
+            QString t = theItem->text();
+            theItem->setText(theItemBelow->text());
+            theItemBelow->setText(t);
+
+            sortItems(0);  // resort, based on column 0 (the #), moving row "row" to the bottom
     }
 
-    // swap the numbers
-    QTableWidgetItem *theItem      = item(row,0);    // # column
-    QTableWidgetItem *theItemBelow = item(row + 1,0);
+        // NOTE: the rows we moved will still be selected!
+        // scrollToItem(item(rowCount()-1, 0));      // EnsureVisible for the last row in the table NO NEED TO SCROLL
 
-    QString t = theItem->text();
-    theItem->setText(theItemBelow->text());
-    theItemBelow->setText(t);
-
-    sortItems(0);  // resort, based on column 0 (the #)
-
-    scrollToItem(item(row + 1, 0)); // EnsureVisible for the moved-down row
-
-#endif
-    return true; // we did it!
+        return true; // we did it!
+    }
 }
 
 // -----------------------------------------------
-bool MyTableWidget::moveSelectedItemToTop() {
-// NOTE: If you can't move the selected item to the top by keyboard shortcut,
-//  check to make sure that songTable's selected row is NOT row 0.  I'll fix this soon... FIX FIX FIX
-#ifdef DARKMODE
-    QModelIndexList list = selectionModel()->selectedRows();
+bool MyTableWidget::moveSelectedItemsToTop() {
+QModelIndexList list = selectionModel()->selectedRows();
 
-    if (list.count() != 1) {
-        // if it's zero or >= 2 return
-        return false; // we did nothing, this was not meant for us
-    }
+QList<int> rows;
+foreach (const QModelIndex &m, list) {
+    rows.append(m.row());
+}
 
-    int row = list.at(0).row(); // only 1 row can ever be selected, this is its number 0 - N-1
+std::sort(rows.begin(), rows.end(), std::greater<int>()); // descending sort intentionally
+
+// qDebug() << "***** MOVESELECTEDITEMSTOTOP SORTED: " << rows;
+
+if (rows.count() == 0) {
+    return false; // we didn't handle it
+} else if (rows.count() == 1) {
+    // SINGLE ROW CASE, as before  TODO: this can be folded into the MULTI case
+    int row = list.at(0).row(); // only 1 row is selected, this is its number 0 - N-1
 
     if (row == 0) {
         // we are already at the top
-        return false; // we did what was requested
+        return false; // no need to scroll
     }
 
-    // Iterate over the entire songTable, incrementing items BELOW this item
+    // Iterate over the entire table, incrementing items BELOW this item
 
     // what's the number of THIS item?
     QTableWidgetItem *theItem1 = item(row,0);
@@ -155,7 +225,7 @@ bool MyTableWidget::moveSelectedItemToTop() {
 
         if (playlistIndexInt < currentNumberInt) {
             // if a # was less, increment it
-            QString newIndex = QString::number(playlistIndexInt+1);
+            QString newIndex = QString::number(playlistIndexInt + 1);
             item(i,0)->setText(newIndex);
         }
     }
@@ -164,96 +234,237 @@ bool MyTableWidget::moveSelectedItemToTop() {
 
     sortItems(0);  // resort, based on column 0 (the #)
 
-    scrollToTop();
+    // NOTE: the rows we moved to the top will still be selected!
+    scrollToItem(item(0, 0));      // EnsureVisible for the first row in the table
 
-#endif
-    return true;  // we did it!
-}
-
-// -----------------------------------------------
-bool MyTableWidget::moveSelectedItemToBottom(bool scrollWhenDone) { // defaults to scrollWhenDone == true
-#ifdef DARKMODE
-    QModelIndexList list = selectionModel()->selectedRows();
-
-    if (list.count() != 1) {
-        // if it's zero or >= 2 return
-        return false; // we did nothing, this was not meant for us
-    }
-
-    int row = list.at(0).row(); // only 1 row can ever be selected, this is its number 0 - N-1
-
-    if (row == rowCount()-1) {
-        // we are already at the bottom
-        return false || !scrollWhenDone; // no need to scroll, except return true when we're removing the last row
-    }
-
-    // Iterate over the entire songTable, incrementing items BELOW this item
-
-    // what's the number of THIS item?
-    QTableWidgetItem *theItem1 = item(row,0);
-    QString playlistIndexText1 = theItem1->text();  // this is the playlist #
-    int currentNumberInt = playlistIndexText1.toInt();
-
-    // iterate through the entire table, and if number is greater than THIS item's number, decrement it
-    for (int i=0; i<rowCount(); i++) {
-        QTableWidgetItem *theItem = item(i,0);
-        QString playlistIndexText = theItem->text();  // this is the playlist #
-        int playlistIndexInt = playlistIndexText.toInt();
-
-        if (playlistIndexInt > currentNumberInt) {
-            // if a # was less, decrement it
-            QString newIndex = QString::number(playlistIndexInt - 1);
-            item(i,0)->setText(newIndex);
-        }
-    }
-
-    int theLastNumber = rowCount();
-    theItem1->setText(QString::number(theLastNumber));  // this one becomes #<last>
-
-    sortItems(0);  // resort, based on column 0 (the #)
-
-    if (scrollWhenDone) {
-        scrollToBottom();
-    }
-
-#else
-    Q_UNUSED(scrollWhenDone)
-#endif
     return true; // we did it!
+} else {
+    // MULTI ROW CASE
+    int numMoved = 0;
+    // if we need to move 2,3,4 we move 4 to the top, then we have 4,1,2,3 and numMoved = 1
+    //  then we move 3 + numMoved = 4 (because it's now in the fourth row)
+    //  etc.
+    foreach (const int & row, rows) {
+
+        int rowToMove = row + numMoved;
+        // qDebug() << "moving to top: " << rowToMove;
+        if (rowToMove == 0) {
+            // we are already at the top
+            // qDebug() << "already at the top: " << rowToMove;
+            continue; // skip this one and do the next one (should not be one)
+        }
+
+        // Iterate over the entire songTable, incrementing items BELOW this item
+
+        // what's the number of THIS item?
+        QTableWidgetItem *theItem1 = item(rowToMove,0);
+        QString playlistIndexText1 = theItem1->text();  // this is the playlist #
+        int currentNumberInt = playlistIndexText1.toInt();
+
+        // iterate through the entire table, and if number is greater than THIS item's number, decrement it
+        for (int i=0; i<rowCount(); i++) {
+            QTableWidgetItem *theItem = item(i,0);
+            QString playlistIndexText = theItem->text();  // this is the playlist #
+            int playlistIndexInt = playlistIndexText.toInt();
+
+            if (playlistIndexInt < currentNumberInt) {
+                // if a # was less, increment it
+                QString newIndex = QString::number(playlistIndexInt + 1);
+                item(i,0)->setText(newIndex);
+            }
+        }
+
+        theItem1->setText("1");  // this one becomes #1
+
+        sortItems(0);  // resort, based on column 0 (the #), moving row "row" to the bottom
+
+        numMoved++;
+    }
+
+    // NOTE: the rows we moved to the top will still be selected!
+    scrollToItem(item(0, 0));      // EnsureVisible for the first row in the table
+
+    return true; // we did it!
+    }
 }
 
 // -----------------------------------------------
-bool MyTableWidget::removeSelectedItem() {
-#ifdef DARKMODE
+bool MyTableWidget::moveSelectedItemsToBottom(bool scrollWhenDone) { // defaults to scrollWhenDone == true
     QModelIndexList list = selectionModel()->selectedRows();
 
-    if (list.count() != 1) {
-        // if it's zero or >= 2 return
-        return false; // we did nothing, this was not meant for us
+    QList<int> rows;
+    foreach (const QModelIndex &m, list) {
+        rows.append(m.row());
     }
 
-    // OK, remember the row number, because we're going to restore it at the end...
-    int row = list.at(0).row(); // only 1 row can ever be selected, this is its number 0 - N-1
+    std::sort(rows.begin(), rows.end()); // ascending sort intentionally
 
-    if (moveSelectedItemToBottom(false)) { // do NOT scroll to the bottom
+    // qDebug() << "***** MOVESELECTEDITEMSTOBOTTOM SORTED: " << rows;
 
-        // if this call was meant for us, then we can remove the row; otherwise, ignore
-        removeRow(rowCount()-1);      // and remove the last row
+    if (rows.count() == 0) {
+        return false; // we didn't handle it
+    } else if (rows.count() == 1) {
+        // SINGLE ROW CASE  TODO: this can be folded into the MULTI case
+        int row = list.at(0).row(); // only 1 row is selected, this is its number 0 - N-1
 
-        if (row > rowCount()-1) {
-            // if we were removing the LAST row, we want to select the second-to-last row now
-            //   any other row, and we just redo the selection to that row
-            row = rowCount()-1;
+        if (row == rowCount()-1) {
+            // we are already at the bottom
+            return false || !scrollWhenDone; // no need to scroll, except return true when we're removing the last row
         }
 
-        // qDebug() << "SELECTING AND SCROLLING TO ROW:" << row;
-        selectRow(row);    // select it
-        scrollToItem(item(row-1, 0)); // EnsureVisible for the row that was deleted, OR last row in table
+        // Iterate over the entire songTable, incrementing items BELOW this item
 
-        return true;
+        // what's the number of THIS item?
+        QTableWidgetItem *theItem1 = item(row,0);
+        QString playlistIndexText1 = theItem1->text();  // this is the playlist #
+        int currentNumberInt = playlistIndexText1.toInt();
+
+        // iterate through the entire table, and if number is greater than THIS item's number, decrement it
+        for (int i=0; i<rowCount(); i++) {
+            QTableWidgetItem *theItem = item(i,0);
+            QString playlistIndexText = theItem->text();  // this is the playlist #
+            int playlistIndexInt = playlistIndexText.toInt();
+
+            if (playlistIndexInt > currentNumberInt) {
+                // if a # was less, decrement it
+                QString newIndex = QString::number(playlistIndexInt - 1);
+                item(i,0)->setText(newIndex);
+            }
+        }
+
+        int theLastNumber = rowCount();
+        theItem1->setText(QString::number(theLastNumber));  // this one becomes #<last>
+
+        sortItems(0);  // resort, based on column 0 (the #)
+
+        if (scrollWhenDone) {
+            scrollToBottom();
+        }
+
+        return true; // we did it!
+    } else {
+        // MULTI ROW CASE
+        int numMoved = 0;
+        // if we need to move 1,2,3, we move 1, then numMoved = 1
+        //  then we move 2 - numMoved = 1 (because it's now in the first row)
+        //  etc.
+        foreach (const int & row, rows) {
+
+            int rowToMove = row - numMoved;
+            // qDebug() << "moving to bottom: " << rowToMove;
+            if (rowToMove == rowCount()-1) {
+                // we are already at the bottom
+                // qDebug() << "already at the bottom: " << row;
+                continue; // skip this one and do the next one (should not be one)
+            }
+
+            // Iterate over the entire songTable, incrementing items BELOW this item
+
+            // what's the number of THIS item?
+            QTableWidgetItem *theItem1 = item(rowToMove,0);
+            QString playlistIndexText1 = theItem1->text();  // this is the playlist #
+            int currentNumberInt = playlistIndexText1.toInt();
+
+            // iterate through the entire table, and if number is greater than THIS item's number, decrement it
+            for (int i=0; i<rowCount(); i++) {
+                QTableWidgetItem *theItem = item(i,0);
+                QString playlistIndexText = theItem->text();  // this is the playlist #
+                int playlistIndexInt = playlistIndexText.toInt();
+
+                if (playlistIndexInt > currentNumberInt) {
+                    // if a # was less, decrement it
+                    QString newIndex = QString::number(playlistIndexInt - 1);
+                    item(i,0)->setText(newIndex);
+                }
+            }
+
+            int theLastNumber = rowCount();
+            theItem1->setText(QString::number(theLastNumber));  // this one becomes #<last>
+
+            sortItems(0);  // resort, based on column 0 (the #), moving row "row" to the bottom
+
+            numMoved++;
+        }
+
+        // NOTE: the rows we moved to the bottom will still be selected!
+        scrollToItem(item(rowCount()-1, 0));      // EnsureVisible for the last row in the table
+
+        return true; // we did it!
     }
-#endif
-    return false; // not meant for us
+}
+
+// -----------------------------------------------
+bool MyTableWidget::removeSelectedItems() {
+    QModelIndexList list = selectionModel()->selectedRows();
+
+    QList<int> rows;
+    foreach (const QModelIndex &m, list) {
+        rows.append(m.row());
+    }
+
+    std::sort(rows.begin(), rows.end(), std::greater<int>()); // descending sort
+
+    // qDebug() << "***** REMOVE SORTED: " << rows;
+
+    if (rows.count() == 0) {
+        return false;  // not meant for us, go try a different playlist slot
+    } else if (rows.count() == 1) {
+        // SINGLE ROW CASE    TODO: this can be folded into the MULTI case
+        // OK, remember the row number, because we're going to restore it at the end...
+        int row = list.at(0).row(); // only 1 row can ever be selected, this is its number 0 - N-1
+
+        if (moveSelectedItemsToBottom(false)) { // do NOT scroll to the bottom
+
+            // if this call was meant for us, then we can remove the row; otherwise, ignore
+            removeRow(rowCount()-1);      // and remove the last row
+
+            if (row > rowCount()-1) {
+                // if we were removing the LAST row, we want to select the second-to-last row now
+                //   any other row, and we just redo the selection to that row
+                row = rowCount()-1;
+            }
+
+            // qDebug() << "SELECTING AND SCROLLING TO ROW:" << row;
+            selectRow(row);    // select it
+            scrollToItem(item(row-1, 0)); // EnsureVisible for the row that was deleted, OR last row in table
+        }
+        return true;
+    } else {
+        // MULTI ROW CASE
+        // now delete, starting with the lowest down row in the list, going UP
+        foreach (const int &row, rows) {
+            // qDebug() << "REMOVING ROW:" << row;
+
+            // what's the number of THIS item?
+            QTableWidgetItem *theItem1 = item(row,0);
+            QString playlistIndexText1 = theItem1->text();  // this is the playlist #
+            int currentNumberInt = playlistIndexText1.toInt();
+
+            // iterate through the entire table, and if number is greater than THIS item's number, decrement it
+            for (int i=0; i<rowCount(); i++) {
+                QTableWidgetItem *theItem = item(i,0);
+                QString playlistIndexText = theItem->text();  // this is the playlist #
+                int playlistIndexInt = playlistIndexText.toInt();
+
+                if (playlistIndexInt > currentNumberInt) {
+                    // if a # was less, decrement it
+                    QString newIndex = QString::number(playlistIndexInt - 1);
+                    item(i,0)->setText(newIndex);
+                }
+            }
+
+            int theLastNumber = rowCount();
+            theItem1->setText(QString::number(theLastNumber));  // this one becomes #<last>
+
+            sortItems(0);  // resort, based on column 0 (the #), which moves row to the bottom
+
+            removeRow(rowCount()-1);      // and remove the last row
+        }
+        selectRow(0); // we are done deleting all the rows, so select first row (what would be better?)
+        scrollToItem(item(0, 0));     // EnsureVisible for the first row in the table
+
+        return true; // yeah, we handled this
+    }
 }
 
 // -----------------------------------------------
