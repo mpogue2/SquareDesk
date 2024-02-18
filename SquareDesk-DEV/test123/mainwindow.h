@@ -299,8 +299,8 @@ public slots:
     void PlaylistItemRemove();      // removes item from the playlist (must already be on the list)
 
 #ifdef DARKMODE
-    // void darkAddPlaylistItemToTop(int slot);       // adds a darkSongTable item to the top of playlist in slot n
-    void darkAddPlaylistItemToBottom(int slot);    // adds a darkSongTable item to the bottom of playlist in slot n
+    // void darkAddPlaylistItemToTop(int slot);     // adds a darkSongTable item to the top of playlist in slot n
+    void darkAddPlaylistItemsToBottom(int slot);    // adds a darkSongTable item to the bottom of playlist in slot n
     void darkAddPlaylistItemToBottom(int whichSlot, QString title, QString thePitch, QString theTempo, QString theFullPath, QString isLoaded); // alternate way
 
     void darkRevealInFinder();

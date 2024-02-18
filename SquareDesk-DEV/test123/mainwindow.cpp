@@ -4879,9 +4879,9 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                     case Qt::Key_Right:     maybeMainWindow->PlaylistItemToBottom();         return true; break;
                     case Qt::Key_Backspace: maybeMainWindow->PlaylistItemRemove();           return true; break;
 #ifdef DARKMODE
-                    case Qt::Key_1:         maybeMainWindow->darkAddPlaylistItemToBottom(0); return true; break;
-                    case Qt::Key_2:         maybeMainWindow->darkAddPlaylistItemToBottom(1); return true; break;
-                    case Qt::Key_3:         maybeMainWindow->darkAddPlaylistItemToBottom(2); return true; break;
+                    case Qt::Key_1:         maybeMainWindow->darkAddPlaylistItemsToBottom(0); return true; break;
+                    case Qt::Key_2:         maybeMainWindow->darkAddPlaylistItemsToBottom(1); return true; break;
+                    case Qt::Key_3:         maybeMainWindow->darkAddPlaylistItemsToBottom(2); return true; break;
 #endif
                     default: break;
                 }
@@ -10627,29 +10627,36 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
     int rowCount = selectedRows.count();
     // qDebug() << "rows selected: " << selectedRows;
 
+    QString plural;
+    if (rowCount <= 1) {
+        plural = "track";
+    } else {
+        plural = QString::number(rowCount) + " tracks";
+    }
+
     // ------------------------------------------------------------------------------------
     QMenu menu(this);
 
     // ADD TO BOTTOM OF SLOT {1,2,3} = allows multiple selections
     if (!relPathInSlot[0].contains("/tracks/")) {
         if (relPathInSlot[0] == "") {
-            menu.addAction ( "Add to BOTTOM of Untitled playlist in slot #1" , this , [this]{ darkAddPlaylistItemToBottom(0); } );
+            menu.addAction ( "Add " + plural + " to BOTTOM of Untitled playlist in slot #1" , this , [this]{ darkAddPlaylistItemsToBottom(0); } );
         } else {
-            menu.addAction ( QString("Add to BOTTOM of playlist '") + relPathInSlot[0] + "'" , this , [this]{ darkAddPlaylistItemToBottom(0); } );
+            menu.addAction ( QString("Add " + plural + " to BOTTOM of playlist '") + relPathInSlot[0] + "'" , this , [this]{ darkAddPlaylistItemsToBottom(0); } );
         }
     }
     if (!relPathInSlot[1].contains("/tracks/")) {
         if (relPathInSlot[1] == "") {
-            menu.addAction ( "Add to BOTTOM of Untitled playlist in slot #2" , this , [this]{ darkAddPlaylistItemToBottom(1); } );
+            menu.addAction ( "Add " + plural + " to BOTTOM of Untitled playlist in slot #2" , this , [this]{ darkAddPlaylistItemsToBottom(1); } );
         } else {
-            menu.addAction ( QString("Add to BOTTOM of playlist '") + relPathInSlot[1] + "'" , this , [this]{ darkAddPlaylistItemToBottom(1); } );
+            menu.addAction ( QString("Add " + plural + " to BOTTOM of playlist '") + relPathInSlot[1] + "'" , this , [this]{ darkAddPlaylistItemsToBottom(1); } );
         }
     }
     if (!relPathInSlot[2].contains("/tracks/")) {
         if (relPathInSlot[2] == "") {
-            menu.addAction ( "Add to BOTTOM of Untitled playlist in slot #3" , this , [this]{ darkAddPlaylistItemToBottom(2); } );
+            menu.addAction ( "Add " + plural + " to BOTTOM of Untitled playlist in slot #3" , this , [this]{ darkAddPlaylistItemsToBottom(2); } );
         } else {
-            menu.addAction ( QString("Add to BOTTOM of playlist '") + relPathInSlot[2] + "'" , this , [this]{ darkAddPlaylistItemToBottom(2); } );
+            menu.addAction ( QString("Add " + plural + " to BOTTOM of playlist '") + relPathInSlot[2] + "'" , this , [this]{ darkAddPlaylistItemsToBottom(2); } );
         }
     }
 
@@ -10749,9 +10756,9 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
 }
 
 // -----------------------------------------------
-void MainWindow::darkAddPlaylistItemToBottom(int whichSlot) { // slot is 0 - 2
+void MainWindow::darkAddPlaylistItemsToBottom(int whichSlot) { // slot is 0 - 2
 
-//    qDebug() << "darkPlaylistItemToBottom:" << whichSlot;
+    qDebug() << "darkPlaylistItemToBottom:" << whichSlot;
 
     MyTableWidget *theTableWidget;
     QString PlaylistFileName = "foobar";
@@ -10761,54 +10768,51 @@ void MainWindow::darkAddPlaylistItemToBottom(int whichSlot) { // slot is 0 - 2
         case 2: theTableWidget = ui->playlist3Table; break;
     }
 
-    QModelIndexList list = ui->darkSongTable->selectionModel()->selectedRows();
+    // ------------------------------------------------------------------------------------
+    foreach (const QModelIndex &mi, ui->darkSongTable->selectionModel()->selectedRows()) {
+        int row = mi.row();  // this is the actual row number of each selected row
+        qDebug() << "ROW ADD TO BOTTOM:" << row;
 
-    if (list.count() != 1) {
-            // if it's zero or >= 2 return
-            return; // we did nothing, this was not meant for us
+        QString theFullPath = ui->darkSongTable->item(row, kPathCol)->data(Qt::UserRole).toString();
+        // qDebug() << "darkPlaylistItemToBottom will add THIS: " << whichSlot << theFullPath;
+
+        // make a new row, after all the other ones
+        theTableWidget->insertRow(theTableWidget->rowCount()); // always make a new row
+        int songCount = theTableWidget->rowCount();
+
+        // # column
+        QTableWidgetItem *num = new TableNumberItem(QString::number(songCount)); // use TableNumberItem so that it sorts numerically
+        theTableWidget->setItem(songCount-1, 0, num);
+
+        // TITLE column
+        QString theRelativePath = theFullPath;
+        QString absPath = theFullPath; // already is fully qualified
+
+        theRelativePath.replace(musicRootPath, "");
+        setTitleField(theTableWidget, songCount-1, theRelativePath, true, PlaylistFileName); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
+
+        // PITCH column
+        QString thePitch = ui->darkSongTable->item(row, kPitchCol)->text();
+        QTableWidgetItem *pit = new QTableWidgetItem(thePitch);
+        theTableWidget->setItem(songCount-1, 2, pit);
+
+        // TEMPO column
+        QString theTempo = ui->darkSongTable->item(row, kTempoCol)->text();
+        QTableWidgetItem *tem = new QTableWidgetItem(theTempo);
+        theTableWidget->setItem(songCount-1, 3, tem);
+
+        // PATH column
+        QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
+        theTableWidget->setItem(songCount-1, 4, fullPath);
+
+        // LOADED column
+        QTableWidgetItem *loaded = new QTableWidgetItem("");
+        theTableWidget->setItem(songCount-1, 5, loaded);
+
+        theTableWidget->resizeColumnToContents(0); // FIX: perhaps only if this is the first row?
+    //    theTableWidget->resizeColumnToContents(2);
+    //    theTableWidget->resizeColumnToContents(3);
     }
-
-    int row = list.at(0).row(); // only 1 row can ever be selected, this is its number 0 - N-1
-
-    QString theFullPath = ui->darkSongTable->item(row, kPathCol)->data(Qt::UserRole).toString();
-//    qDebug() << "darkPlaylistItemToBottom: " << whichSlot << theFullPath;
-
-    // make a new row, after all the other ones
-    theTableWidget->insertRow(theTableWidget->rowCount()); // always make a new row
-    int songCount = theTableWidget->rowCount();
-
-    // # column
-    QTableWidgetItem *num = new TableNumberItem(QString::number(songCount)); // use TableNumberItem so that it sorts numerically
-    theTableWidget->setItem(songCount-1, 0, num);
-
-    // TITLE column
-    QString theRelativePath = theFullPath;
-    QString absPath = theFullPath; // already is fully qualified
-
-    theRelativePath.replace(musicRootPath, "");
-    setTitleField(theTableWidget, songCount-1, theRelativePath, true, PlaylistFileName); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
-
-    // PITCH column
-    QString thePitch = ui->darkSongTable->item(row, kPitchCol)->text();
-    QTableWidgetItem *pit = new QTableWidgetItem(thePitch);
-    theTableWidget->setItem(songCount-1, 2, pit);
-
-    // TEMPO column
-    QString theTempo = ui->darkSongTable->item(row, kTempoCol)->text();
-    QTableWidgetItem *tem = new QTableWidgetItem(theTempo);
-    theTableWidget->setItem(songCount-1, 3, tem);
-
-    // PATH column
-    QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
-    theTableWidget->setItem(songCount-1, 4, fullPath);
-
-    // LOADED column
-    QTableWidgetItem *loaded = new QTableWidgetItem("");
-    theTableWidget->setItem(songCount-1, 5, loaded);
-
-    theTableWidget->resizeColumnToContents(0); // FIX: perhaps only if this is the first row?
-//    theTableWidget->resizeColumnToContents(2);
-//    theTableWidget->resizeColumnToContents(3);
 
     QTimer::singleShot(250, [theTableWidget]{
         // NOTE: We have to do it this way with a single-shot timer, because you can't scroll immediately to a new item, until it's been processed
