@@ -373,35 +373,45 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
     QDrag *drag = new QDrag(this);
     QMimeData *mimeData = new QMimeData;
 
-    int sourceRow = itemAt(dragStartPosition)->row();
+    int sourceRow; // = itemAt(dragStartPosition)->row();
     QString sourceInfo;
     int rowNum = 0;
 
     if (objectName().startsWith("playlist")) {
         // the source is a playlist or track filter --------
-        QString title = dynamic_cast<QLabel*>(this->cellWidget(sourceRow, 1))->text();
-        title.replace(spanPrefixRemover2, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
-        int where = title.indexOf(title_tags_remover2);
-        if (where >= 0) {
-            title.truncate(where);
-        }
-        title.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if filename contains HTML encoded chars, put originals back
 
-        QString sourceName = objectName();
+        foreach (const QModelIndex &mi, selectionModel()->selectedRows()) {
+            sourceRow = mi.row();  // this is the actual row number of each selected row, overriding the cursor-located row (just pick all selected rows)
+            // qDebug() << "DRAGGING THIS PLAYLIST ROW NUMBER:" << sourceRow;
 
-        QString sourceTrackName = title; // e.g. "ESP 1234 - Ricochet"
-        QString sourcePitch = item(sourceRow, 2)->text();
-        QString sourceTempo = item(sourceRow, 3)->text();
-        QString sourcePath = item(sourceRow, 4)->text();
+            QString title = dynamic_cast<QLabel*>(this->cellWidget(sourceRow, 1))->text();
+            title.replace(spanPrefixRemover2, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
+            int where = title.indexOf(title_tags_remover2);
+            if (where >= 0) {
+                title.truncate(where);
+            }
+            title.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if filename contains HTML encoded chars, put originals back
 
-        mimeData->setText(sourceTrackName + "                                    !#!" + // the spaces are so that the visible drag text is just the track name (hack!)
+            QString sourceName = objectName();
+
+            QString sourceTrackName = title; // e.g. "ESP 1234 - Ricochet"
+            QString sourcePitch = item(sourceRow, 2)->text();
+            QString sourceTempo = item(sourceRow, 3)->text();
+            QString sourcePath = item(sourceRow, 4)->text();
+            QString sourceInfoForThisRow = (rowNum++ > 0 ? "!!&!!" : "") +  // row separator
+                          sourceTrackName + "                                    !#!" + // the spaces are so that the visible drag text is just the track name (hack!)
                           sourceName + "!#!" +
                           sourcePitch + "!#!" +
                           sourceTempo + "!#!" +
-                          sourcePath ); // send all the info!
+                          sourcePath; // send all the info!
+            sourceInfo.append(sourceInfoForThisRow);
+        }
+        // qDebug() << "playlist sourceInfo: " << sourceInfo;  // this has info on ALL the selected items
+
+        mimeData->setText(sourceInfo);
         drag->setMimeData(mimeData);
 
-        Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);
+        Qt::DropAction dropAction = drag->exec(Qt::CopyAction);
         Q_UNUSED(dropAction)
     } else {
         // the source is the darkSongTable --------
@@ -439,7 +449,7 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
         mimeData->setText(sourceInfo); // send all the info!
         drag->setMimeData(mimeData);
 
-        Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction); // TODO: should be just COPY, I think
+        Qt::DropAction dropAction = drag->exec(Qt::CopyAction);
         Q_UNUSED(dropAction)
     }
 }
@@ -463,6 +473,7 @@ void MyTableWidget::dropEvent(QDropEvent *event)
 {
     // qDebug() << "***** dropEvent *****";
     // qDebug() << this << " got this text: " << event->mimeData()->text();
+
     event->acceptProposedAction();
 
     QStringList rows = event->mimeData()->text().split("!!&!!");
@@ -586,7 +597,7 @@ void MyTableWidget::dropEvent(QDropEvent *event)
         }
 
 
-    }
+    } // foreach selected row in the source table
 
 
 }
