@@ -3410,7 +3410,14 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
 //    qDebug() << "loadFrame: " << theFile.fileName();
 
     if(!theFile.open(QIODevice::ReadOnly)) {
-        QMessageBox::information(0, "ERROR", QString("loadFrame: the file\n\"") + theFile.fileName() + "\" could not be opened."); // if file does not exist...
+        // QMessageBox::information(0, "ERROR", QString("loadFrame: the file\n\"") + theFile.fileName() + "\" could not be opened."); // if file does not exist...
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Information);
+        msgBox.setText(QString("ERROR loadFrame: the file\n\"") + theFile.fileName() + "\" could not be opened.");
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setDefaultButton(QMessageBox::Ok);
+        int ret = msgBox.exec();
+        Q_UNUSED(ret)
     } else {
         // now read in the lines of the file, looking for the sequence we want
         QTextStream in(&theFile);

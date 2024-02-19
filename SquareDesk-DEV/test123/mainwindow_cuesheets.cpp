@@ -1064,20 +1064,47 @@ bool MainWindow::maybeSaveCuesheet(int optionCount) {
 
 //    qDebug() << "maybeSaveCuesheet continuing with the save (ask the user):" << shortCuesheetName;
 
-    QMessageBox::StandardButton ret;
+    // QMessageBox::StandardButton ret;
+
+    // if (optionCount == 3) {
+    //     ret = QMessageBox::warning(this, "SquareDesk",
+    //                                QString("The cuesheet '") + shortCuesheetName + "' is being edited.\n\nDo you want to save your changes?",
+    //                                QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+    // } else if (optionCount == 2) {
+    //     ret = QMessageBox::warning(this, "SquareDesk",
+    //                                QString("The cuesheet '") + shortCuesheetName + "' is being edited.\n\nDo you want to save your changes?",
+    //                                QMessageBox::Save | QMessageBox::Discard );
+    // } else {
+    //     qDebug() << "maybeSaveCuesheet::optionCount error";
+    //     return false;
+    // }
+
+    QMessageBox msgBox;
 
     if (optionCount == 3) {
-        ret = QMessageBox::warning(this, "SquareDesk",
-                                   QString("The cuesheet '") + shortCuesheetName + "' is being edited.\n\nDo you want to save your changes?",
-                                   QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        // ret = QMessageBox::warning(this, "SquareDesk",
+        //                            QString("The cuesheet '") + shortCuesheetName + "' is being edited.\n\nDo you want to save your changes?",
+        //                            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        msgBox.setText(QString("The cuesheet '") + shortCuesheetName + "' is being edited.");
+        msgBox.setIcon(QMessageBox::Question);
+        msgBox.setInformativeText("Do you want to save your changes?");
+        msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Save);
     } else if (optionCount == 2) {
-        ret = QMessageBox::warning(this, "SquareDesk",
-                                   QString("The cuesheet '") + shortCuesheetName + "' is being edited.\n\nDo you want to save your changes?",
-                                   QMessageBox::Save | QMessageBox::Discard );
+        // ret = QMessageBox::warning(this, "SquareDesk",
+        //                            QString("The cuesheet '") + shortCuesheetName + "' is being edited.\n\nDo you want to save your changes?",
+        //                            QMessageBox::Save | QMessageBox::Discard );
+        msgBox.setText(QString("The cuesheet '") + shortCuesheetName + "' is being edited.");
+        msgBox.setIcon(QMessageBox::Question);
+        msgBox.setInformativeText("Do you want to save your changes?");
+        msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Save);
     } else {
         qDebug() << "maybeSaveCuesheet::optionCount error";
         return false;
     }
+
+    int ret = msgBox.exec();
 
     switch (ret) {
         case QMessageBox::Save:

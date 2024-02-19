@@ -334,6 +334,7 @@ void MainWindow::on_darkSegmentButton_clicked()
 
     QMessageBox msgBox;
     msgBox.setText("Calculating section info can take about 30 seconds per song.  You can keep working while it runs.");
+    msgBox.setIcon(QMessageBox::Question);
     msgBox.setInformativeText("OK to start it now?");
     msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
     msgBox.setDefaultButton(QMessageBox::Yes);
@@ -393,6 +394,7 @@ void MainWindow::on_actionEstimate_for_all_songs_triggered()
 
     QMessageBox msgBox;
     msgBox.setText("Calculating section info can take about 30 seconds per song.  You can keep working while it runs.");
+    msgBox.setIcon(QMessageBox::Question);
     msgBox.setInformativeText("OK to start it now?");
     msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
     msgBox.setDefaultButton(QMessageBox::Yes);
@@ -450,6 +452,7 @@ void MainWindow::on_actionRemove_for_all_songs_triggered()
 
     QMessageBox msgBox;
     msgBox.setText("Removing section information for all songs cannot be undone.");
+    msgBox.setIcon(QMessageBox::Question);
     msgBox.setInformativeText("OK to proceed?");
     msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
     msgBox.setDefaultButton(QMessageBox::Yes);
@@ -567,6 +570,7 @@ void MainWindow::EstimateSectionsForThisSong(QString mp3Filename) {
 
     QMessageBox msgBox;
     msgBox.setText("Calculating section info for this track could take up to 30 seconds. You can keep working while it runs.");
+    msgBox.setIcon(QMessageBox::Question);
     msgBox.setInformativeText("OK to start it now?");
     msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
     msgBox.setDefaultButton(QMessageBox::Yes);
@@ -610,6 +614,7 @@ void MainWindow::RemoveSectionsForThisSong(QString mp3Filename) {
 
     QMessageBox msgBox;
     msgBox.setText("Removing section info for this song cannot be undone.");
+    msgBox.setIcon(QMessageBox::Question);
     msgBox.setInformativeText("OK to proceed?");
     msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
     msgBox.setDefaultButton(QMessageBox::Yes);

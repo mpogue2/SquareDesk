@@ -4100,6 +4100,7 @@ void MainWindow::on_pushButtonClearTaughtCalls_clicked()
 
     QMessageBox msgBox;
     msgBox.setText("Do you really want to clear all calls taught for the " + danceProgram + " dance program for the current session?");
+    msgBox.setIcon(QMessageBox::Question);
     msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
     msgBox.setDefaultButton(QMessageBox::Yes);
     int ret = msgBox.exec();
@@ -4516,10 +4517,19 @@ bool MainWindow::maybeSavePlaylist(int whichSlot) {
     }
 
     // unnamed playlist that has been modified, that needs saving and naming
-    const QMessageBox::StandardButton ret
-        = QMessageBox::warning(this, "SquareDesk",
-                               QString("The 'Untitled playlist' in slot ") + QString::number(whichSlot + 1) + " has been modified.\n\nDo you want to save your changes?",
-                               QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+    // const QMessageBox::StandardButton ret
+    //     = QMessageBox::warning(this, "SquareDesk",
+    //                            QString("The 'Untitled playlist' in slot ") + QString::number(whichSlot + 1) + " has been modified.\n\nDo you want to save your changes?",
+    //                            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+
+
+    QMessageBox msgBox;
+    msgBox.setText(QString("The 'Untitled playlist' in slot ") + QString::number(whichSlot + 1) + " has been modified.");
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.setInformativeText("Do you want to save your changes?");
+    msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Save);
+    int ret = msgBox.exec();
 
     switch (ret) {
 
@@ -4564,10 +4574,18 @@ bool MainWindow::maybeSave() {
 
     QString playlistName = getShortPlaylistName();
 
-    const QMessageBox::StandardButton ret
-        = QMessageBox::warning(this, "SquareDesk",
-                               QString("The playlist '") + playlistName + "' has been modified.\n\nDo you want to save your changes?",
-                               QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+    // const QMessageBox::StandardButton ret
+    //     = QMessageBox::warning(this, "SquareDesk",
+    //                            QString("The playlist '") + playlistName + "' has been modified.\n\nDo you want to save your changes?",
+    //                            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+
+    QMessageBox msgBox;
+    msgBox.setText(QString("The playlist '") + playlistName + "' has been modified.");
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.setInformativeText("Do you want to save your changes?");
+    msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Save);
+    int ret = msgBox.exec();
 
     switch (ret) {
 
@@ -11079,6 +11097,7 @@ void MainWindow::on_actionSwitch_to_Light_Mode_triggered()
 
     QMessageBox msgBox;
     msgBox.setText("Switch to " + newMode + " Mode requires restarting SquareDesk.");
+    msgBox.setIcon(QMessageBox::Question);
     msgBox.setInformativeText("OK to restart SquareDesk now?");
     msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
     msgBox.setDefaultButton(QMessageBox::Yes);

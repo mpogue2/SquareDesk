@@ -701,6 +701,7 @@ void PreferencesDialog::on_pushButtonResetHotkeysToDefaults_clicked()
 
     QMessageBox msgBox;
     msgBox.setText("Resetting all hotkeys back to their default cannot be undone.");
+    msgBox.setIcon(QMessageBox::Question);
     msgBox.setInformativeText("OK to proceed?");
     msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
     msgBox.setDefaultButton(QMessageBox::Yes);
