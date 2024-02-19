@@ -42,25 +42,31 @@ public:
 };
 
 #ifdef DARKMODE
+// ================================================================
 class darkSongTitleLabel : public QLabel {
 private:
     MainWindow *mw;
+    QPoint dragStartPosition;
 public:
     darkSongTitleLabel(MainWindow *mw) : QLabel(), mw(mw) {}
     void mouseDoubleClickEvent(QMouseEvent *) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
     QString textColor;  // saved so that we can restore it when not selected
 };
 
+// ================================================================
 // when a MyTableWidget is in a palette slot, we need different handling for double-clicking
 class darkPaletteSongTitleLabel : public QLabel {
 private:
     MainWindow *mw;
-    // MyTableWidget *mtw;
+    QPoint dragStartPosition;
 public:
     darkPaletteSongTitleLabel(MainWindow *mw) : QLabel(), mw(mw) {}
-    // darkPaletteSongTitleLabel(int slot) : QLabel(), slotNumber(slot) {}
     void mouseDoubleClickEvent(QMouseEvent *) override;
-//    QString textColor;  // saved so that we can restore it when not selected
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    QString textColor;  // saved so that we can restore it when not selected
 };
 #endif
 
