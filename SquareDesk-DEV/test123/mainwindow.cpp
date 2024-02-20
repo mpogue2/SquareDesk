@@ -1235,11 +1235,45 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     songSettings.setDefaultTagColors( prefsManager.GettagsBackgroundColorString(), prefsManager.GettagsForegroundColorString());
 
-    // this is no longer needed here, because it's checked once per second, and updated once per minute
+    // this is still needed here for the initial setup
     // setCurrentSessionIdReloadSongAgesCheckMenu(
     //     static_cast<SessionDefaultType>(prefsManager.GetSessionDefault() == SessionDefaultDOW)
-    //     ? songSettings.currentSessionIDByTime() : 1); // on app entry, ages must show current session
-    populateMenuSessionOptions();
+    //     ? songSettings.currentSessionIDByTime() : 1); // on app entry, ages must show current session, but 1 is wrong
+
+    // what session are we in to start with?
+    SessionDefaultType sessionDefault =
+        static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()); // preference setting
+
+    if (sessionDefault == SessionDefaultDOW) {
+        int currentSessionID = songSettings.currentSessionIDByTime(); // what session are we in?
+        setCurrentSessionId(currentSessionID); // save it in songSettings
+        populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
+        reloadSongAges(ui->actionShow_All_Ages->isChecked());
+        lastSessionID = currentSessionID;
+        currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
+        currentSongSecondsPlayedRecorded = false; // not reported yet, because this is a new session
+    } else {
+        // do this once at startup, and never again.  I think that was the intent of this mode.
+        int practiceID = 1; // wrong, if there are deleted rows in Sessions table
+        QList<SessionInfo> sessions = songSettings.getSessionInfo();
+        foreach (const SessionInfo &s, sessions) {
+            // qDebug() << s.day_of_week << s.id << s.name << s.order_number << s.start_minutes;
+            if (s.order_number == 0) { // 0 is the first non-deleted row where order_number == 0
+                // qDebug() << "Found it: " << s.name << "row:" << s.id;
+                practiceID = s.id; // now it's right!
+            }
+        }
+        setCurrentSessionId(practiceID); // save it in songSettings
+        reloadSongAges(ui->actionShow_All_Ages->isChecked());
+        populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
+        lastSessionID = practiceID;
+        currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
+        currentSongSecondsPlayedRecorded = false; // not reported yet, because this is a new session
+        // qDebug() << "***** We are now in Practice Session, id =" << practiceID;
+    }
+
+    // qDebug() << "Constructor sets initial session to:" << songSettings.getCurrentSession();
+    populateMenuSessionOptions();  // update the Session menu
 
     // mutually exclusive items in Flash Call Timing menu
     flashCallTimingActionGroup = new QActionGroup(this);
@@ -2584,30 +2618,50 @@ QString MainWindow::ageToRecent(QString ageInDaysFloatString) {
 // SONGTABLEREFACTOR
 void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent columns entries
 {
-    // qDebug() << "================ reloadSongAges" << show_all_ages;
+    // qDebug() << "================ reloadSongAges" << show_all_ages << songSettings.getCurrentSession();
     PerfTimer t("reloadSongAges", __LINE__);
     QHash<QString,QString> ages;
     songSettings.getSongAges(ages, show_all_ages);
 
+    // qDebug() << "***** ages *****";
+    // for (auto [key, value] : ages.asKeyValueRange()) {
+    //     if (key.contains("Ireland")) {
+    //         qDebug() << qPrintable(key) << ": " << value;
+    //     }
+    // }
+
+    MyTableWidget *thisTable;
+
     if (darkmode) {
         ui->darkSongTable->setSortingEnabled(false);
         ui->darkSongTable->hide();
+        thisTable = ui->darkSongTable;
     } else {
         ui->songTable->setSortingEnabled(false);
         ui->songTable->hide();
+        thisTable = ui->songTable;
     }
 
-    for (int i=0; i<ui->songTable->rowCount(); i++) {
-        QString origPath = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+    for (int i = 0; i < thisTable->rowCount(); i++) {
+        QString origPath = thisTable->item(i,kPathCol)->data(Qt::UserRole).toString();
         QString path = songSettings.removeRootDirs(origPath);
         QHash<QString,QString>::const_iterator age = ages.constFind(path);
-        // qDebug() << "reloadSongAges age.value()" << (age == ages.constEnd() ? "" : ageToIntString(age.value()));
+
+        QString theAgeString    = (age == ages.constEnd() ? "" : ageToIntString(age.value()));
+        QString theRecentString = (age == ages.constEnd() ? "" : ageToRecent(age.value()));
 
         if (darkmode) {
-            ui->darkSongTable->item(i,kAgeCol)->setText(age == ages.constEnd() ? "" : ageToIntString(age.value()));
+            // if (path.contains("Ireland")) {
+            //     if (age == ages.constEnd()) {
+            //         qDebug() << "NO VALUE" << theAgeString << theRecentString << path;
+            //     } else {
+            //         qDebug() << age.value() << theAgeString << theRecentString << path;
+            //     }
+            // }
+            ui->darkSongTable->item(i,kAgeCol)->setText(theAgeString);
             ui->darkSongTable->item(i,kAgeCol)->setTextAlignment(Qt::AlignCenter);
 
-            ui->darkSongTable->item(i,kRecentCol)->setText(age == ages.constEnd() ? "" : ageToRecent(age.value()));
+            ui->darkSongTable->item(i,kRecentCol)->setText(theRecentString);
             ui->darkSongTable->item(i,kRecentCol)->setTextAlignment(Qt::AlignCenter);
         } else {
             ui->songTable->item(i,kAgeCol)->setText(age == ages.constEnd() ? "" : ageToIntString(age.value()));
@@ -2890,6 +2944,7 @@ void MainWindow::action_session_change_triggered()
             {
                 if (name == session.name)
                 {
+                    // qDebug() << "action_session_change_triggered -- setCurrentSessionIdReloadSongAges: " << session.id << action->text();
                     setCurrentSessionIdReloadSongAges(session.id);
                     break;
                 }
@@ -3273,28 +3328,28 @@ void MainWindow::on_playButton_clicked()
                 ui->songTable->setSortingEnabled(false);
 
 // SONGTABLEREFACTOR
-                int row;
-                if (darkmode) {
-                    row = darkGetSelectionRowForFilename(currentMP3filenameWithPath);
-                } else {
-                    row = getSelectionRowForFilename(currentMP3filenameWithPath);
-                }
-                if (row != -1)
-                {
-                    if (darkmode) {
-                        ui->darkSongTable->item(row, kAgeCol)->setText("0");
-                        ui->darkSongTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
+                // int row;
+                // if (darkmode) {
+                //     row = darkGetSelectionRowForFilename(currentMP3filenameWithPath);
+                // } else {
+                //     row = getSelectionRowForFilename(currentMP3filenameWithPath);
+                // }
+                // if (row != -1)
+                // {
+                //     if (darkmode) {
+                //         ui->darkSongTable->item(row, kAgeCol)->setText("0");
+                //         ui->darkSongTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
 
-                        ui->darkSongTable->item(row, kRecentCol)->setText(ageToRecent("0"));
-                        ui->darkSongTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
-                    } else {
-                        ui->songTable->item(row, kAgeCol)->setText("0");
-                        ui->songTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
+                //         ui->darkSongTable->item(row, kRecentCol)->setText(ageToRecent("0"));
+                //         ui->darkSongTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
+                //     } else {
+                //         ui->songTable->item(row, kAgeCol)->setText("0");
+                //         ui->songTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
 
-                        ui->songTable->item(row, kRecentCol)->setText(ageToRecent("0"));
-                        ui->songTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
-                    }
-                }
+                //         ui->songTable->item(row, kRecentCol)->setText(ageToRecent("0"));
+                //         ui->songTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
+                //     }
+                // }
             }
 
             if (switchToLyricsOnPlay &&
@@ -4522,23 +4577,25 @@ void MainWindow::on_UIUpdateTimerTick(void)
         }
     } else if (sessionDefault == SessionDefaultPractice) {
         if (lastSessionID == -2) {
-            // do this once at startup, and never again.  I think that was the intent of this mode.
-            int practiceID = 1; // wrong, if there are deleted rows in Sessions table
-            QList<SessionInfo> sessions = songSettings.getSessionInfo();
-            foreach (const SessionInfo &s, sessions) {
-                // qDebug() << s.day_of_week << s.id << s.name << s.order_number << s.start_minutes;
-                if (s.order_number == 0) { // 0 is the first non-deleted row where order_number == 0
-                    // qDebug() << "Found it: " << s.name << "row:" << s.id;
-                    practiceID = s.id; // now it's right!
-                }
-            }
-            setCurrentSessionId(practiceID); // save it in songSettings
-            reloadSongAges(ui->actionShow_All_Ages->isChecked());
-            populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
-            lastSessionID = practiceID;
-            currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
-            currentSongSecondsPlayedRecorded = false; // not reported yet, because this is a new session
-            // qDebug() << "***** We are now in Practice Session, id =" << practiceID;
+            // NOTE: this is now done in the constructor, because it's done only once, it's not needed here.
+            //
+            // // do this once at startup, and never again.  I think that was the intent of this mode.
+            // int practiceID = 1; // wrong, if there are deleted rows in Sessions table
+            // QList<SessionInfo> sessions = songSettings.getSessionInfo();
+            // foreach (const SessionInfo &s, sessions) {
+            //     // qDebug() << s.day_of_week << s.id << s.name << s.order_number << s.start_minutes;
+            //     if (s.order_number == 0) { // 0 is the first non-deleted row where order_number == 0
+            //         // qDebug() << "Found it: " << s.name << "row:" << s.id;
+            //         practiceID = s.id; // now it's right!
+            //     }
+            // }
+            // setCurrentSessionId(practiceID); // save it in songSettings
+            // reloadSongAges(ui->actionShow_All_Ages->isChecked());
+            // populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
+            // lastSessionID = practiceID;
+            // currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
+            // currentSongSecondsPlayedRecorded = false; // not reported yet, because this is a new session
+            // // qDebug() << "***** We are now in Practice Session, id =" << practiceID;
         }
     }
 
@@ -4554,6 +4611,16 @@ void MainWindow::on_UIUpdateTimerTick(void)
             // qDebug() << "Marking PLAYED:" << currentMP3filename << " in session" << lastSessionID;
             songSettings.markSongPlayed(currentMP3filename, currentMP3filenameWithPath);  // this call is session-aware
             currentSongSecondsPlayedRecorded = true; // not reported yet, because this is a new session
+        }
+        // now update the darkSongTable because we have now "played" the song
+        int row = darkGetSelectionRowForFilename(currentMP3filenameWithPath);
+        if (row != -1)
+        {
+            ui->darkSongTable->item(row, kAgeCol)->setText("0");
+            ui->darkSongTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
+
+            ui->darkSongTable->item(row, kRecentCol)->setText(ageToRecent("0"));
+            ui->darkSongTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
         }
     }
 }
@@ -6385,7 +6452,7 @@ QString MainWindow::FormatTitlePlusTags(const QString &title, bool setTags, cons
 // --------------------------------------------------------------------------------
 void MainWindow::loadMusicList()
 {
-//    qDebug() << "LOAD MUSIC LIST()";
+    // qDebug() << "LOAD MUSIC LIST()" << songSettings.getCurrentSession();
 //    ui->songTable->clearSelection();  // DEBUG DEBUG
 
     PerfTimer t("loadMusicList", __LINE__);

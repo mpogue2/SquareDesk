@@ -808,9 +808,9 @@ QString SongSettings::getSongAge(const QString &filename, const QString &filenam
     Q_UNUSED(filenameWithPath)
     Q_UNUSED(show_all_sessions)
 
-    return(QString("999")); // I don't think the return value is actually used anywhere nowadays, so let's avoid making 2 sqlite queries per songTable entry
-                            // Using "999" in case this shows up somewhere.  (So far, I don't see any...)
-#if 0
+    // return(QString("999")); // I don't think the return value is actually used anywhere nowadays, so let's avoid making 2 sqlite queries per songTable entry
+    //                         // Using "999" in case this shows up somewhere.  (So far, I don't see any...)
+#if 1
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
     // qDebug() << "getSongAge" << filename << filenameWithPath << show_all_sessions << filenameWithPathNormalized;
     QString sql = "SELECT julianday('now') - julianday(played_on) FROM song_plays JOIN songs ON songs.rowid = song_plays.song_rowid WHERE ";
