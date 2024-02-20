@@ -312,7 +312,20 @@ void SongSettings::setDefaultTagColors( const QString &background, const QString
 
 int SongSettings::currentSessionIDByTime()
 {
-    int session_id = 1;
+    // find the first non-deleted row where order_number == 0
+    int practiceID = 1; // wrong, if there are deleted rows in Sessions table
+    QList<SessionInfo> sessions = getSessionInfo();
+    foreach (const SessionInfo &s, sessions) {
+        // qDebug() << s.day_of_week << s.id << s.name << s.order_number << s.start_minutes;
+        if (s.order_number == 0) { // 0 is the first non-deleted row where order_number == 0
+            // qDebug() << "Found it: " << s.name << "row:" << s.id;
+            practiceID = s.id; // now it's right!
+        }
+    }
+
+    // int session_id = 1;
+    int session_id = practiceID;  // If we're in Automatic mode, and NOTHING matches, default to the first non-deleted session
+
     QDate date(QDate::currentDate());
     QTime time(QTime::currentTime());
     int day_of_week = date.dayOfWeek();

@@ -354,7 +354,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     sd_redo_stack(new SDRedoStack())
 {
     lastMinuteInHour = -1;
-    lastSessionID = -1;
+    lastSessionID = -2; // initial startup
 
     darkmode = dark; // true if we're using the new dark UX
 
@@ -2630,8 +2630,10 @@ void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent colu
 void MainWindow::setCurrentSessionIdReloadSongAges(int id)
 {
     setCurrentSessionId(id);
+    lastSessionID = id;
+    // qDebug() << "***** manual change of session id to:" << id;
     reloadSongAges(ui->actionShow_All_Ages->isChecked());
-    on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());
+//    on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex()); // this tab is gone now
 }
 
 void MainWindow::setCurrentSessionIdReloadSongAgesCheckMenu(int id)
@@ -2899,6 +2901,10 @@ void MainWindow::action_session_change_triggered()
 
 void MainWindow::populateMenuSessionOptions()
 {
+    // what mode are we in right now?
+    SessionDefaultType sessionDefault =
+        static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()); // preference setting
+
     QList<QAction *> oldActions(sessionActionGroup->actions());
     for (auto action : oldActions)
     {
@@ -2910,6 +2916,8 @@ void MainWindow::populateMenuSessionOptions()
     QAction *topSeparator = sessionActions[0];
     
     int id = songSettings.getCurrentSession();
+    // qDebug() << "populateMenuSessionOptions, currentSessionID:" << id;
+
     QList<SessionInfo> sessions(songSettings.getSessionInfo());
     
     for (const auto &session : sessions)
@@ -2919,8 +2927,12 @@ void MainWindow::populateMenuSessionOptions()
         ui->menuSession->insertAction(topSeparator, action);
         connect(action, SIGNAL(triggered()), this, SLOT(action_session_change_triggered()));
         sessionActionGroup->addAction(action);
-        if (session.id == id)
+        // qDebug() << "   populating sessions menu:" << session.name << session.id;
+        if (session.id == id) {
+            // qDebug() << "      setting it to CHECKED";
             action->setChecked(true);
+        }
+        action->setEnabled(sessionDefault == SessionDefaultPractice); // automatic mode disables these menu items, manual mode enables
     }
 }
 
@@ -4488,13 +4500,14 @@ void MainWindow::on_UIUpdateTimerTick(void)
     if (sessionDefault == SessionDefaultDOW) {
         int currentMinuteInHour = time.minute();
         // qDebug() << "Tick: " << sessionDefault << currentMinuteInHour << lastMinuteInHour;
-        if (currentMinuteInHour != lastMinuteInHour) {
+        if ((currentMinuteInHour != lastMinuteInHour) || (lastSessionID < 0)) { // or cached sessionID is invalid
             // this code is executed once per minute, we're now in a new minute
             int currentSessionID = songSettings.currentSessionIDByTime(); // what session are we in?
             // qDebug() << "Tock: " << currentSessionID << lastSessionID;
             if (currentSessionID != lastSessionID) {
                 // only happens at session boundaries, we're now in a new Session, so update Ages column
                 setCurrentSessionId(currentSessionID); // save it in songSettings
+                populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
                 reloadSongAges(ui->actionShow_All_Ages->isChecked());
                 // on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex()); // removed this tab a while ago
                 lastSessionID = currentSessionID;
@@ -4503,23 +4516,20 @@ void MainWindow::on_UIUpdateTimerTick(void)
             lastMinuteInHour = currentMinuteInHour;
         }
     } else if (sessionDefault == SessionDefaultPractice) {
-        // BUG: needs to find the first NON-DELETED row in the sessions table, see #961
-        //   for now, we'll do the WRONG thing, which is what it does now
-        //   This SHOULD be the row number of Practice, but if you have deleted sessions, it's NOT
-        int practiceID = 1; // wrong, if there are deleted rows in Sessions table
-        QList<SessionInfo> sessions = songSettings.getSessionInfo();
-        foreach (const SessionInfo &s, sessions) {
-            // qDebug() << s.day_of_week << s.id << s.name << s.order_number << s.start_minutes;
-            if (s.order_number == 0) { // 0 is the first non-deleted order_number
-                // qDebug() << "Found it: " << s.name << "row:" << s.id;
-                practiceID = s.id;
+        if (lastSessionID == -2) {
+            // do this once at startup, and never again.  I think that was the intent of this mode.
+            int practiceID = 1; // wrong, if there are deleted rows in Sessions table
+            QList<SessionInfo> sessions = songSettings.getSessionInfo();
+            foreach (const SessionInfo &s, sessions) {
+                // qDebug() << s.day_of_week << s.id << s.name << s.order_number << s.start_minutes;
+                if (s.order_number == 0) { // 0 is the first non-deleted row where order_number == 0
+                    // qDebug() << "Found it: " << s.name << "row:" << s.id;
+                    practiceID = s.id; // now it's right!
+                }
             }
-        }
-
-        if (lastSessionID != practiceID) {
-            // only happens at session boundaries, we're now in a new Session, so update Ages column
             setCurrentSessionId(practiceID); // save it in songSettings
             reloadSongAges(ui->actionShow_All_Ages->isChecked());
+            populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
             lastSessionID = practiceID;
             // qDebug() << "***** We are now in Practice Session, id =" << practiceID;
         }
@@ -7238,6 +7248,7 @@ void MainWindow::on_actionPreferences_triggered()
         musicRootPath = prefsManager.GetmusicPath();
 
         songSettings.setSessionInfo(prefDialog->getSessionInfoList());
+        // qDebug() << "preferences set lastsessionid to -1";
         lastSessionID = -1;  // invalidate the lastSessionID cached value, forcing reevaluation of which session we are in...
 
         if (previousSessionDefaultType != static_cast<SessionDefaultType>(prefsManager.GetSessionDefault())
