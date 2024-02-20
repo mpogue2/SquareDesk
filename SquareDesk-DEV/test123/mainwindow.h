@@ -1156,6 +1156,8 @@ private:
 
     int lastMinuteInHour; // for updating sessions
     int lastSessionID;    // for updating sessions
+    int currentSongSecondsPlayed; // for tracking 15 seconds before marking played
+    bool currentSongSecondsPlayedRecorded; // true if it was recorded in DB
 
     bool firstTimeSongIsPlayed;
     bool loadingSong; // guard to prevent text setting stuff from munging settings

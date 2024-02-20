@@ -2897,6 +2897,9 @@ void MainWindow::action_session_change_triggered()
             break;
         }
     }
+    // qDebug() << "manual session change triggered!";
+    currentSongSecondsPlayed = 0;
+    currentSongSecondsPlayedRecorded = false;
 }
 
 void MainWindow::populateMenuSessionOptions()
@@ -3263,7 +3266,7 @@ void MainWindow::on_playButton_clicked()
             saveCurrentSongSettings();
             if (!ui->actionDon_t_Save_Plays->isChecked())
             {
-                songSettings.markSongPlayed(currentMP3filename, currentMP3filenameWithPath);
+                // songSettings.markSongPlayed(currentMP3filename, currentMP3filenameWithPath); // this is done in the UI update tick now
 //                QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
 //                QModelIndexList selected = selectionModel->selectedRows();
 
@@ -4511,6 +4514,8 @@ void MainWindow::on_UIUpdateTimerTick(void)
                 reloadSongAges(ui->actionShow_All_Ages->isChecked());
                 // on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex()); // removed this tab a while ago
                 lastSessionID = currentSessionID;
+                currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
+                currentSongSecondsPlayedRecorded = false; // not reported yet, because this is a new session
                 // qDebug() << "***** We are now in Session " << currentSessionID;
             }
             lastMinuteInHour = currentMinuteInHour;
@@ -4531,7 +4536,24 @@ void MainWindow::on_UIUpdateTimerTick(void)
             reloadSongAges(ui->actionShow_All_Ages->isChecked());
             populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
             lastSessionID = practiceID;
+            currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
+            currentSongSecondsPlayedRecorded = false; // not reported yet, because this is a new session
             // qDebug() << "***** We are now in Practice Session, id =" << practiceID;
+        }
+    }
+
+    if (cBass->currentStreamState() == BASS_ACTIVE_PLAYING) {
+            currentSongSecondsPlayed++;  // goes from 0 to Inf, but only increments if we're playing
+            // qDebug() << "currentSongSecondsPlayed:" << currentSongSecondsPlayed;
+    }
+
+    if (!currentSongSecondsPlayedRecorded && (currentSongSecondsPlayed >= 15)) { // GEMA compliance is 15 seconds
+        if (!ui->actionDon_t_Save_Plays->isChecked())
+        {
+            // marking song "played", because it's been 15 or more seconds of playback in this session
+            // qDebug() << "Marking PLAYED:" << currentMP3filename << " in session" << lastSessionID;
+            songSettings.markSongPlayed(currentMP3filename, currentMP3filenameWithPath);  // this call is session-aware
+            currentSongSecondsPlayedRecorded = true; // not reported yet, because this is a new session
         }
     }
 }
@@ -5650,6 +5672,10 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 void MainWindow::secondHalfOfLoad(QString songTitle) {
     // This function is called when the files is actually loaded into memory, and the filelength is known.
 //    qDebug() << "***** secondHalfOfLoad()";
+
+    // qDebug() << "secondHalfOfLoad: clearing the secondsPlayed for the loaded song";
+    currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
+    currentSongSecondsPlayedRecorded = false; // not reported yet, because this is a new session
 
     // We are NOT doing automatic start-of-song finding right now.
     startOfSong_sec = 0.0;
