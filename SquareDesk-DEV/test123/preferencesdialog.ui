@@ -70,7 +70,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>5</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tab_3">
         <attribute name="title">
@@ -637,17 +637,17 @@ Click on a color square to change the color associated with that Music Type.  Se
             <widget class="QTableWidget" name="tableWidgetSessionsList">
              <column>
               <property name="text">
-               <string>Name</string>
+               <string>Session name</string>
               </property>
              </column>
              <column>
               <property name="text">
-               <string>Day</string>
+               <string>Day-of-week</string>
               </property>
              </column>
              <column>
               <property name="text">
-               <string>From</string>
+               <string>Start time</string>
               </property>
              </column>
              <column>
@@ -724,12 +724,12 @@ Click on a color square to change the color associated with that Music Type.  Se
               <widget class="QComboBox" name="comboBoxSessionDefault">
                <item>
                 <property name="text">
-                 <string>Default to first session</string>
+                 <string>Manual: set to first session at startup</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Set session on startup to specific day and time</string>
+                 <string>Automatic: session will change based on day and time</string>
                 </property>
                </item>
               </widget>
