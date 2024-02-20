@@ -298,7 +298,7 @@ SongSettings::SongSettings() :
     tagsBackgroundColorString(DEFAULTTAGSBACKGROUNDCOLOR),
     tagsForegroundColorString(DEFAULTTAGSFOREGROUNDCOLOR),
     databaseOpened(false),
-    current_session_id(0),
+    current_session_id(0), // NOTE: invalid current_session_id (this is supposed to be a row number in the sessions table)
     tagColorCacheSet(false)
 {
 }
@@ -318,7 +318,7 @@ int SongSettings::currentSessionIDByTime()
     int day_of_week = date.dayOfWeek();
     int start_minutes = time.hour() * 60 + time.minute();
     QSqlQuery q(m_db);
-    q.prepare("SELECT rowid FROM sessions WHERE day_of_week = :day_of_week AND start_minutes < :start_minutes AND NOT deleted ORDER BY start_minutes DESC LIMIT 1");
+    q.prepare("SELECT rowid FROM sessions WHERE day_of_week = :day_of_week AND start_minutes <= :start_minutes AND NOT deleted ORDER BY start_minutes DESC LIMIT 1");
     q.bindValue(":day_of_week", day_of_week);
     q.bindValue(":start_minutes", start_minutes);
 
@@ -327,7 +327,7 @@ int SongSettings::currentSessionIDByTime()
     {
         session_id = q.value(0).toInt();
     }
-    q.prepare("SELECT rowid FROM sessions WHERE day_of_week = :day_of_week AND start_minutes < :start_minutes AND NOT deleted ORDER BY start_minutes DESC LIMIT 1");
+    // q.prepare("SELECT rowid FROM sessions WHERE day_of_week = :day_of_week AND start_minutes < :start_minutes AND NOT deleted ORDER BY start_minutes DESC LIMIT 1");
     
     return session_id;
 }

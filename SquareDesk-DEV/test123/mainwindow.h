@@ -1154,6 +1154,9 @@ private:
     SongSettings songSettings;
     PreferencesManager prefsManager;
 
+    int lastMinuteInHour; // for updating sessions
+    int lastSessionID;    // for updating sessions
+
     bool firstTimeSongIsPlayed;
     bool loadingSong; // guard to prevent text setting stuff from munging settings
     bool cuesheetEditorReactingToCursorMovement;

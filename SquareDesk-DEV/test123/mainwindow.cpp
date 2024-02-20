@@ -353,6 +353,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     shortcutSDCurrentSequenceCopy(nullptr),
     sd_redo_stack(new SDRedoStack())
 {
+    lastMinuteInHour = -1;
+    lastSessionID = -1;
+
     darkmode = dark; // true if we're using the new dark UX
 
 //    sdtest();
@@ -1231,9 +1234,11 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     t.elapsed(__LINE__);
 
     songSettings.setDefaultTagColors( prefsManager.GettagsBackgroundColorString(), prefsManager.GettagsForegroundColorString());
-    setCurrentSessionIdReloadSongAgesCheckMenu(
-        static_cast<SessionDefaultType>(prefsManager.GetSessionDefault() == SessionDefaultDOW)
-        ? songSettings.currentSessionIDByTime() : 1); // on app entry, ages must show current session
+
+    // this is no longer needed here, because it's checked once per second, and updated once per minute
+    // setCurrentSessionIdReloadSongAgesCheckMenu(
+    //     static_cast<SessionDefaultType>(prefsManager.GetSessionDefault() == SessionDefaultDOW)
+    //     ? songSettings.currentSessionIDByTime() : 1); // on app entry, ages must show current session
     populateMenuSessionOptions();
 
     // mutually exclusive items in Flash Call Timing menu
@@ -4472,6 +4477,53 @@ void MainWindow::on_UIUpdateTimerTick(void)
         microphoneStatusUpdate();  // now also updates the audioOutputDevice status
 //        ui->statusBar->showMessage("Audio output: " + lastAudioDeviceName);
     }
+
+    // figure out what Session we are in, once per minute
+
+    // either SessionDefaultDOW or SessionDefaultPractice
+    SessionDefaultType sessionDefault =
+        static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()); // preference setting
+
+    // qDebug() << "Ding: " << sessionDefault << SessionDefaultDOW << SessionDefaultPractice;
+    if (sessionDefault == SessionDefaultDOW) {
+        int currentMinuteInHour = time.minute();
+        // qDebug() << "Tick: " << sessionDefault << currentMinuteInHour << lastMinuteInHour;
+        if (currentMinuteInHour != lastMinuteInHour) {
+            // this code is executed once per minute, we're now in a new minute
+            int currentSessionID = songSettings.currentSessionIDByTime(); // what session are we in?
+            // qDebug() << "Tock: " << currentSessionID << lastSessionID;
+            if (currentSessionID != lastSessionID) {
+                // only happens at session boundaries, we're now in a new Session, so update Ages column
+                setCurrentSessionId(currentSessionID); // save it in songSettings
+                reloadSongAges(ui->actionShow_All_Ages->isChecked());
+                // on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex()); // removed this tab a while ago
+                lastSessionID = currentSessionID;
+                // qDebug() << "***** We are now in Session " << currentSessionID;
+            }
+            lastMinuteInHour = currentMinuteInHour;
+        }
+    } else if (sessionDefault == SessionDefaultPractice) {
+        // BUG: needs to find the first NON-DELETED row in the sessions table, see #961
+        //   for now, we'll do the WRONG thing, which is what it does now
+        //   This SHOULD be the row number of Practice, but if you have deleted sessions, it's NOT
+        int practiceID = 1; // wrong, if there are deleted rows in Sessions table
+        QList<SessionInfo> sessions = songSettings.getSessionInfo();
+        foreach (const SessionInfo &s, sessions) {
+            // qDebug() << s.day_of_week << s.id << s.name << s.order_number << s.start_minutes;
+            if (s.order_number == 0) { // 0 is the first non-deleted order_number
+                // qDebug() << "Found it: " << s.name << "row:" << s.id;
+                practiceID = s.id;
+            }
+        }
+
+        if (lastSessionID != practiceID) {
+            // only happens at session boundaries, we're now in a new Session, so update Ages column
+            setCurrentSessionId(practiceID); // save it in songSettings
+            reloadSongAges(ui->actionShow_All_Ages->isChecked());
+            lastSessionID = practiceID;
+            // qDebug() << "***** We are now in Practice Session, id =" << practiceID;
+        }
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -7186,10 +7238,12 @@ void MainWindow::on_actionPreferences_triggered()
         musicRootPath = prefsManager.GetmusicPath();
 
         songSettings.setSessionInfo(prefDialog->getSessionInfoList());
+        lastSessionID = -1;  // invalidate the lastSessionID cached value, forcing reevaluation of which session we are in...
+
         if (previousSessionDefaultType != static_cast<SessionDefaultType>(prefsManager.GetSessionDefault())
             && static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()) == SessionDefaultDOW)
         {
-            setCurrentSessionIdReloadSongAgesCheckMenu(songSettings.currentSessionIDByTime());
+            setCurrentSessionIdReloadSongAgesCheckMenu(songSettings.currentSessionIDByTime()); // TODO: Do we need this now?
         }
         populateMenuSessionOptions();
 
