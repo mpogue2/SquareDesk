@@ -356,6 +356,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     lastMinuteInHour = -1;
     lastSessionID = -2; // initial startup
 
+    pathsOfCalledSongs.clear(); // no songs (that we know of) have been used recently
+
     darkmode = dark; // true if we're using the new dark UX
 
 //    sdtest();
@@ -2663,6 +2665,14 @@ void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent colu
 
             ui->darkSongTable->item(i,kRecentCol)->setText(theRecentString);
             ui->darkSongTable->item(i,kRecentCol)->setTextAlignment(Qt::AlignCenter);
+
+            ((darkSongTitleLabel *)(ui->darkSongTable->cellWidget(i, kTitleCol)))->setSongUsed(theRecentString != ""); // rewrite the song's title to be strikethrough and/or green background
+            QString thePath = ui->darkSongTable->item(i, kPathCol)->data(Qt::UserRole).toString();
+            if (theRecentString != "") {
+                pathsOfCalledSongs.insert(thePath);
+            } else {
+                pathsOfCalledSongs.remove(thePath);
+            }
         } else {
             ui->songTable->item(i,kAgeCol)->setText(age == ages.constEnd() ? "" : ageToIntString(age.value()));
             ui->songTable->item(i,kAgeCol)->setTextAlignment(Qt::AlignCenter);
@@ -2678,6 +2688,31 @@ void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent colu
     } else {
         ui->songTable->show();
         ui->songTable->setSortingEnabled(true);
+    }
+
+    // now that we know what's strikethrough and what's not, update the palette slots, too
+    // TODO: THIS IS DUPLICATED CODE, FACTOR IT OUT
+    // qDebug() << "TIMERTICK pathsOfCalledSongs:" << pathsOfCalledSongs;
+    for (int r = 0; r < ui->playlist1Table->rowCount(); r++) {
+        if (ui->playlist1Table->item(r,4) != nullptr) {
+            QString pathToMP3 = ui->playlist1Table->item(r,4)->text();
+            // qDebug() << "TIMERTICK playlist1Table thePath:" << pathToMP3;
+            ((darkPaletteSongTitleLabel *)(ui->playlist1Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
+        }
+    }
+    for (int r = 0; r < ui->playlist2Table->rowCount(); r++) {
+        if (ui->playlist2Table->item(r,4) != nullptr) {
+            QString pathToMP3 = ui->playlist2Table->item(r,4)->text();
+            // qDebug() << "TIMERTICK playlist2Table thePath:" << pathToMP3;
+            ((darkPaletteSongTitleLabel *)(ui->playlist2Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
+        }
+    }
+    for (int r = 0; r < ui->playlist3Table->rowCount(); r++) {
+        if (ui->playlist3Table->item(r,4) != nullptr) {
+            QString pathToMP3 = ui->playlist3Table->item(r,4)->text();
+            // qDebug() << "TIMERTICK playlist3Table thePath:" << pathToMP3;
+            ((darkPaletteSongTitleLabel *)(ui->playlist3Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
+        }
     }
 }
 
@@ -4607,20 +4642,51 @@ void MainWindow::on_UIUpdateTimerTick(void)
     if (!currentSongSecondsPlayedRecorded && (currentSongSecondsPlayed >= 15)) { // GEMA compliance is 15 seconds
         if (!ui->actionDon_t_Save_Plays->isChecked())
         {
+            // qDebug() << "actionDon_t_Save_Plays was NOT checked.";
             // marking song "played", because it's been 15 or more seconds of playback in this session
             // qDebug() << "Marking PLAYED:" << currentMP3filename << " in session" << lastSessionID;
             songSettings.markSongPlayed(currentMP3filename, currentMP3filenameWithPath);  // this call is session-aware
             currentSongSecondsPlayedRecorded = true; // not reported yet, because this is a new session
-        }
-        // now update the darkSongTable because we have now "played" the song
-        int row = darkGetSelectionRowForFilename(currentMP3filenameWithPath);
-        if (row != -1)
-        {
-            ui->darkSongTable->item(row, kAgeCol)->setText("0");
-            ui->darkSongTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
 
-            ui->darkSongTable->item(row, kRecentCol)->setText(ageToRecent("0"));
-            ui->darkSongTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
+            // now update the darkSongTable because we have now "played" the song
+            int row = darkGetSelectionRowForFilename(currentMP3filenameWithPath);
+            if (row != -1)
+            {
+                // update darkSongTable with Recent * and Age 0, because it's been played!
+                ui->darkSongTable->item(row, kAgeCol)->setText("0");
+                ui->darkSongTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
+
+                ui->darkSongTable->item(row, kRecentCol)->setText(ageToRecent("0"));
+                ui->darkSongTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
+
+                pathsOfCalledSongs.insert(ui->darkSongTable->item(row, kPathCol)->data(Qt::UserRole).toString());
+                ((darkSongTitleLabel *)(ui->darkSongTable->cellWidget(row,kTitleCol)))->setSongUsed(true);
+
+                // TODO: THIS IS DUPLICATED CODE, FACTOR IT OUT
+                // qDebug() << "TIMERTICK pathsOfCalledSongs:" << pathsOfCalledSongs;
+                for (int r = 0; r < ui->playlist1Table->rowCount(); r++) {
+                    if (ui->playlist1Table->item(r,4) != nullptr) {
+                        QString pathToMP3 = ui->playlist1Table->item(r,4)->text();
+                        // qDebug() << "TIMERTICK playlist1Table thePath:" << pathToMP3;
+                        ((darkPaletteSongTitleLabel *)(ui->playlist1Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
+                    }
+                }
+                for (int r = 0; r < ui->playlist2Table->rowCount(); r++) {
+                    if (ui->playlist2Table->item(r,4) != nullptr) {
+                        QString pathToMP3 = ui->playlist2Table->item(r,4)->text();
+                        // qDebug() << "TIMERTICK playlist2Table thePath:" << pathToMP3;
+                        ((darkPaletteSongTitleLabel *)(ui->playlist2Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
+                    }
+                }
+                for (int r = 0; r < ui->playlist3Table->rowCount(); r++) {
+                    if (ui->playlist3Table->item(r,4) != nullptr) {
+                        QString pathToMP3 = ui->playlist3Table->item(r,4)->text();
+                        // qDebug() << "TIMERTICK playlist3Table thePath:" << pathToMP3;
+                        ((darkPaletteSongTitleLabel *)(ui->playlist3Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
+                    }
+                }
+
+            }
         }
     }
 }
@@ -6829,6 +6895,8 @@ void MainWindow::darkLoadMusicList()
         twi4b->setTextAlignment(Qt::AlignCenter);
         twi4b->setFlags(twi4b->flags() & ~Qt::ItemIsEditable);      // not editable
         ui->darkSongTable->setItem(i, kRecentCol, twi4b);
+
+        ((darkSongTitleLabel *)(ui->darkSongTable->cellWidget(i, kTitleCol)))->setSongUsed(true || recentString != ""); // rewrite the song's title to be strikethrough and/or green background
 
         // PITCH FIELD -----
         int pitch = 0;
@@ -9604,6 +9672,7 @@ void MainWindow::on_actionClear_Recent_triggered()
                                     //   even though it was already loaded and played once before the Clear Recents.
 
     // update the song table
+    pathsOfCalledSongs.clear(); // no songs have been played at this point
     reloadSongAges(ui->actionShow_All_Ages->isChecked());
 }
 

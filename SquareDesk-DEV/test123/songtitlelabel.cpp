@@ -193,4 +193,63 @@ void darkPaletteSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
     Q_UNUSED(dropAction)
 }
 
+// true = song was used recently (Recent == "*")
+void darkSongTitleLabel::setSongUsed(bool b) {
+    // qDebug() << "setSongUsed: current text =" << this->text() << songUsed << b;
+
+    // QString strikethrough("text-decoration:line-through;background-color:#00FF00;");
+    QString strikethrough("text-decoration:line-through;text-decoration-color: #00FF00;");
+
+    if (songUsed & !b) {
+        // turning off used marker
+        // typical text: <span style="color: #a364dc;text-decoration:line-through;background-color:#00FF00;">Gobs Of Guitars</span>
+        // typical text with tags: <span style="color: #a364dc;text-decoration:line-through;background-color:#00FF00;">Tango Burlesque</span>&nbsp;&nbsp;<span style="background-color:#ffffff; color: #c64434;"> NEW </span>
+        QString currentText = this->text();
+        currentText.replace(strikethrough, "");
+        this->setText(currentText); // revised text, WITHOUT strikethrough
+    } else if (!songUsed & b) {
+        // turning on used marker
+        // typical text: <span style="color: #a364dc;">Gobs Of Guitars</span>
+        // typical text with tags: <span style="color: #a364dc;">Tango Burlesque</span>&nbsp;&nbsp;<span style="background-color:#ffffff; color: #c64434;"> NEW </span>
+        QString currentText = this->text();
+        int endOfFirstTag = currentText.indexOf("\">"); // end of the title's span
+        if (endOfFirstTag != -1) {
+            currentText.insert(endOfFirstTag, strikethrough);
+        }
+        this->setText(currentText); // revised text, WITH strikethrough
+    }
+
+    songUsed = b;
+}
+
+// true = song was used recently (Recent == "*")
+void darkPaletteSongTitleLabel::setSongUsed(bool b) {
+    // qDebug() << "PALETTE setSongUsed: current text =" << text() << songUsed << b;
+
+    // QString strikethrough("text-decoration:line-through;background-color:#00FF00;");
+    QString strikethrough("text-decoration:line-through;text-decoration-color: #00FF00;text-decoration-style: wavy;");
+
+    if (songUsed & !b) {
+        // turning off used marker
+        // typical text: <span style="color: #a364dc;text-decoration:line-through;background-color:#00FF00;">Gobs Of Guitars</span>
+        // typical text with tags: <span style="color: #a364dc;text-decoration:line-through;background-color:#00FF00;">Tango Burlesque</span>&nbsp;&nbsp;<span style="background-color:#ffffff; color: #c64434;"> NEW </span>
+        QString currentText = text();
+        currentText.replace(strikethrough, "");
+        setText(currentText); // revised text, WITHOUT strikethrough
+    } else if (!songUsed & b) {
+        // turning on used marker
+        // typical text: <span style="color: #a364dc;">Gobs Of Guitars</span>
+        // typical text with tags: <span style="color: #a364dc;">Tango Burlesque</span>&nbsp;&nbsp;<span style="background-color:#ffffff; color: #c64434;"> NEW </span>
+        QString currentText = text();
+        int endOfFirstTag = currentText.indexOf("\">"); // end of the title's span
+        if (endOfFirstTag != -1) {
+            currentText.insert(endOfFirstTag, strikethrough);
+        }
+        setText(currentText); // revised text, WITH strikethrough
+    }
+
+    songUsed = b;
+}
+
+
 #endif

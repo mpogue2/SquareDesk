@@ -47,11 +47,13 @@ class darkSongTitleLabel : public QLabel {
 private:
     MainWindow *mw;
     QPoint dragStartPosition;
+    bool songUsed;
 public:
-    darkSongTitleLabel(MainWindow *mw) : QLabel(), mw(mw) {}
+    darkSongTitleLabel(MainWindow *mw) : QLabel(), mw(mw), songUsed(false) {}
     void mouseDoubleClickEvent(QMouseEvent *) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    void setSongUsed(bool b);  // true = song was used recently (Recent == "*")
     QString textColor;  // saved so that we can restore it when not selected
 };
 
@@ -61,11 +63,13 @@ class darkPaletteSongTitleLabel : public QLabel {
 private:
     MainWindow *mw;
     QPoint dragStartPosition;
+    bool songUsed;
 public:
-    darkPaletteSongTitleLabel(MainWindow *mw) : QLabel(), mw(mw) {}
+    darkPaletteSongTitleLabel(MainWindow *mw) : QLabel(), mw(mw), songUsed(false) {}
     void mouseDoubleClickEvent(QMouseEvent *) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    void setSongUsed(bool b);  // true = song was used recently (Recent == "*")
     QString textColor;  // saved so that we can restore it when not selected
 };
 #endif

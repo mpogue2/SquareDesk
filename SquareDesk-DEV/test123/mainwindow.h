@@ -1118,6 +1118,8 @@ private:
 
     QString patterColorString, singingColorString, calledColorString, extrasColorString;  // current values
 
+    QSet<QString> pathsOfCalledSongs; // full path is in this set, if the song has been used (Recent == "*")
+
     // experimental break and patter timers
     bool tipLengthTimerEnabled, breakLengthTimerEnabled, tipLength30secEnabled;
     int tipLengthTimerLength, breakLengthTimerLength;

@@ -1924,6 +1924,10 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                     QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
                     theTableWidget->setItem(songCount-1, 4, fullPath);
 
+                    if (pathsOfCalledSongs.contains(absPath)) {
+                        ((darkPaletteSongTitleLabel *)(theTableWidget->cellWidget(songCount-1, 1)))->setSongUsed(true);
+                    }
+
                     // LOADED column
                     QTableWidgetItem *loaded = new QTableWidgetItem("");
                     theTableWidget->setItem(songCount-1, 5, loaded);
