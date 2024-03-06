@@ -5226,23 +5226,38 @@ void MainWindow::actionSwitchToTab(const char *tabname)
 
 void MainWindow::actionFilterSongsPatterSingersToggle()
 {
-    QString currentFilter(ui->typeSearch->text());
+    QString darkFilter = ui->darkSearch->text();
+    qsizetype doubleColonIndex = darkFilter.indexOf("::");
+    
+    QString currentFilter(doubleColonIndex >= 0 ? darkFilter.mid(0, doubleColonIndex) : "");
 
     if (songTypeToggleList.length() > 1)
     {
         int nextToggle = 0;
-
+        QList<QTreeWidgetItem *> trackItems = ui->treeWidget->findItems("Tracks", Qt::MatchExactly);
+        QTreeWidgetItem *trackItem = trackItems[0];
+        
         for (int i = 0; i < songTypeToggleList.length(); ++i)
         {
             QString s = songTypeToggleList[i];
-            if (0 == s.compare(currentFilter, Qt::CaseInsensitive))
+            if (currentFilter.contains(s, Qt::CaseInsensitive))
             {
                 nextToggle = i + 1;
             }
         }
-        if (nextToggle >= songTypeToggleList.length())
+        if (nextToggle >= songTypeToggleList.length()) {
             nextToggle = 0;
-        ui->typeSearch->setText(songTypeToggleList[nextToggle]);
+        }
+        QString nextSearch = songTypeToggleList[nextToggle];
+        for (int i = 0; i < trackItem->childCount(); ++i) {
+            QTreeWidgetItem *item = trackItem->child(i);
+            QString t = item->text(0);
+            if (t.contains(nextSearch, Qt::CaseInsensitive)) {
+                ui->treeWidget->setCurrentItem(item);
+                break;
+            }
+        }
+        
         return;
     }
     else
