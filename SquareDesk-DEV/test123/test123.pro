@@ -25,6 +25,10 @@ macx {
   #  otherwise, this command issued by <QtDir>/macos/mkspecs/features/macos/sdk.prf
   #   "/usr/bin/xcrun --sdk macosx14.0 --show-sdk-version" will fail.  If it fails,
   #   we'll get an error message like: "Could not resolve SDK SDKVersion for 'MacOSX14.0' using --show-sdk-version"
+  # To fix this, make the QMAKE_MAC_SDK number match the latest SDK version in:
+  #   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs
+  # NOTE: We can't just say "macosx14", it has to be something like "macosx14.4", fully spelled out.
+  #
   contains(QMAKE_HOST.arch, x86_64) {
     message("X86_64 BUILD MACHINE DETECTED!")
     ARCHDIR = "x86_64"
@@ -33,7 +37,7 @@ macx {
   contains(QMAKE_HOST.arch, arm64) {
     message("ARM64 BUILD MACHINE DETECTED!")
     ARCHDIR = "arm64"
-    QMAKE_MAC_SDK = macosx14.2
+    QMAKE_MAC_SDK = macosx14.4
   }
   message("ARCHDIR = " $${ARCHDIR} ", QMAKE_MAC_SDK = " $${QMAKE_MAC_SDK})
 }
@@ -417,7 +421,8 @@ copydata0c.commands = $(COPY) $$PWD/patter.template.html $$OUT_PWD/SquareDesk.ap
 # Also copy the PDF file into the Resources folder, so we can stick it into the Reference folder
 # This way, it's easy for SDP to find the executable for sd, and it's easy for SDP to start up sd.
 # MAKE SURE THAT MACOS DIRECTORY EXISTS BEFORE TRYING TO COPY
-copydata1dir.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS
+# copydata1dir.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS
+copydata1dir.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/MacOS || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS
 copydata1.commands = $(COPY) $$PWD/sd_calls.dat     $$OUT_PWD/SquareDesk.app/Contents/MacOS
 copydata2.commands = $(COPY) $$PWD/../sdlib/sd_doc.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata3.commands = $(COPY) $$PWD/allcalls.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
@@ -433,7 +438,7 @@ copydata2b.commands = $(COPY) $$PWD/docs/SquareDeskManual.0.9.1.pdf $$OUT_PWD/Sq
 #  create a folder called MacOS in Contents.  Then, the build should finish properly.
 
 # SOUNDFX STARTER SET --------------------------------------------
-copydata10.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/soundfx
+copydata10.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/soundfx || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/soundfx
 copydata11a.commands = $(COPY_DIR) $$PWD/soundfx/1.whistle.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
 copydata11b.commands = $(COPY_DIR) $$PWD/soundfx/2.clown_honk.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
 copydata11c.commands = $(COPY_DIR) $$PWD/soundfx/3.submarine.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
@@ -468,7 +473,8 @@ QMAKE_EXTRA_TARGETS += copydata10 copydata11a copydata11b copydata11c copydata11
 installer1.commands = $(COPY) $$PWD/PackageIt.command $$OUT_PWD/PackageIt.command          # INTEL
 installer2.commands = $(COPY) $$PWD/images/Installer3.png $$OUT_PWD/Installer3.png
 installer3.commands = $(COPY) $$PWD/PackageIt_M1.command $$OUT_PWD/PackageIt_M1.command    # Apple Silicon M1
-first.depends += $(first) installer1 installer2 installer3
+# first.depends += $(first) installer1 installer2 installer3
+first.depends += installer1 installer2 installer3
 export(first.depends)
 export(installer1.commands)
 export(installer2.commands)
@@ -483,7 +489,8 @@ macx {
     DEFINES += M1MAC=1
     QT += multimedia
 
-    first.depends = $(first) copydata0a copydata0b copydata0c copydata1dir copydata1 copydata2 copydata2b copydata3 copydata4s installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
+    # first.depends = $(first) copydata1dir copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4s installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
+    first.depends += copydata1dir copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4s installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
 
     # lyrics and patter templates
     export(copydata0a.commands)
@@ -501,7 +508,7 @@ macx {
     QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1dir copydata1 copydata2 copydata2b copydata3 copydata4s
 
     # For the PDF viewer -----------------
-    copydata1p.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
+    copydata1p.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
     copydata2p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/web   $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
     copydata3p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/build $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
     copydata4p.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web/compressed.*.pdf
@@ -515,8 +522,8 @@ macx {
     QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p copydata4p
 
     # SVG Resources for sliders and knobs -----------------
-    copydata1sk.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/knobs
-    copydata2sk.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/sliders
+    copydata1sk.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/Resources/knobs || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/knobs
+    copydata2sk.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/Resources/sliders || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/sliders
     copydata3sk.commands = $(COPY_DIR) $$PWD/graphics/knobs   $$OUT_PWD/SquareDesk.app/Contents/Resources
     copydata4sk.commands = $(COPY_DIR) $$PWD/graphics/sliders $$OUT_PWD/SquareDesk.app/Contents/Resources
 
