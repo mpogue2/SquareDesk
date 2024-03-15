@@ -543,12 +543,29 @@ macx {
     copydata2vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/qm-vamp-plugins.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS
     copydata3vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/segmentino.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS
 
-    first.depends += copydata1vamp copydata2vamp copydata3vamp
+    copydata4vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/libFLAC.12.dylib        $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata5vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/libmp3lame.0.dylib      $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata6vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/libmpg123.0.dylib       $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata7vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/libogg.0.8.5.dylib      $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata8vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/libopus.0.dylib         $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata9vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/libsndfile.1.0.37.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata10vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/libvorbis.0.dylib       $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata11vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/libvorbisenc.2.dylib    $$OUT_PWD/SquareDesk.app/Contents/MacOS
+
+    first.depends += copydata1vamp copydata2vamp copydata3vamp copydata4vamp copydata5vamp copydata6vamp copydata7vamp copydata8vamp copydata9vamp copydata10vamp copydata11vamp
     export(first.depends)
     export(copydata1vamp.commands)
     export(copydata2vamp.commands)
     export(copydata3vamp.commands)
-    QMAKE_EXTRA_TARGETS += copydata1vamp copydata2vamp copydata3vamp
+    export(copydata4vamp.commands)
+    export(copydata5vamp.commands)
+    export(copydata6vamp.commands)
+    export(copydata7vamp.commands)
+    export(copydata8vamp.commands)
+    export(copydata9vamp.commands)
+    export(copydata10vamp.commands)
+    export(copydata11vamp.commands)
+    QMAKE_EXTRA_TARGETS += copydata1vamp copydata2vamp copydata3vamp copydata4vamp copydata5vamp copydata6vamp copydata7vamp copydata8vamp copydata9vamp copydata10vamp copydata11vamp
 
     # For the Beat/Bar Detector (Vamp): modify the VAMPPATH according to where you built the executable and dylib --------------
     #  FIX: THIS PATH IS TEMPORARY AND SPECIFIC TO MY MACHINE (this will change when VAMP is checked into our repo)

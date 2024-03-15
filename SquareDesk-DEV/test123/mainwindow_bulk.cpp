@@ -202,12 +202,14 @@ int MainWindow::processOneFile(const QString &fn) {
     // qDebug() << "VAMP path: " << pathNameToVamp;
 
     if (!QFileInfo::exists(pathNameToVamp) ) {
+        qDebug() << "Vamp does not exist";
         return(-3); // ERROR, VAMP DOES NOT EXIST
     }
 
     QTemporaryFile tempResultsfile;           // use a temporary file for results, then copy to resultsFilename, if all goes well
     bool errOpen2 = tempResultsfile.open();   // this creates the results file in the temp directory
     tempResultsfile.setAutoRemove(true);      // remove it when we leave scope
+    // tempResultsfile.setAutoRemove(false);      // DEBUG remove it when we leave scope
 
     if (!errOpen2) {
         free(info.buffer); // done with that memory, so free it
@@ -217,6 +219,7 @@ int MainWindow::processOneFile(const QString &fn) {
     // qDebug() << "tempResultsFile: " << tempResultsfile.fileName();
 
     QProcess vampSegment;
+    // qDebug() << "EXECUTING: " << pathNameToVamp << "segmentino::segmentino" << WAVfilename << "-o" << tempResultsfile.fileName();
     vampSegment.start(pathNameToVamp, QStringList() << "segmentino:segmentino" << WAVfilename << "-o" << tempResultsfile.fileName()); // intentionally no "-s", to get results as float seconds
     // vampSegment.waitForFinished(5*60000);  // SYNCHRONOUS -- wait for process to be done, max 5 minutes.  Don't start another one until this one is done.
 
