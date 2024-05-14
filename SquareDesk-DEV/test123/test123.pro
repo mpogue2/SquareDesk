@@ -20,13 +20,17 @@ macx {
 
 macx {
   # VARIABLE REFERENCE: https://doc.qt.io/qt-6/qmake-variable-reference.html
-  # NOTE: Right now, use 12.3 for Monterey M1, use 12.1 for Big Sur X86 laptop
+  #
+  # NOTE: Right now, use 14.5 for ARM M1, use 12.1 for Big Sur X86 laptop
+  #
   # NOTE:  The QMAKE_MAC_SDK MUST MUST MUST BE ALL LOWER CASE.
   #  otherwise, this command issued by <QtDir>/macos/mkspecs/features/macos/sdk.prf
   #   "/usr/bin/xcrun --sdk macosx14.0 --show-sdk-version" will fail.  If it fails,
   #   we'll get an error message like: "Could not resolve SDK SDKVersion for 'MacOSX14.0' using --show-sdk-version"
+  #
   # To fix this, make the QMAKE_MAC_SDK number match the latest SDK version in:
   #   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs
+  #
   # NOTE: We can't just say "macosx14", it has to be something like "macosx14.4", fully spelled out.
   #
   contains(QMAKE_HOST.arch, x86_64) {
@@ -37,7 +41,7 @@ macx {
   contains(QMAKE_HOST.arch, arm64) {
     message("ARM64 BUILD MACHINE DETECTED!")
     ARCHDIR = "arm64"
-    QMAKE_MAC_SDK = macosx14.4
+    QMAKE_MAC_SDK = macosx14.5
   }
   message("ARCHDIR = " $${ARCHDIR} ", QMAKE_MAC_SDK = " $${QMAKE_MAC_SDK})
 }
