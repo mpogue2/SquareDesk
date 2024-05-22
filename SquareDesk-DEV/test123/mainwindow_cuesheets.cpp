@@ -559,6 +559,7 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
                 } else {
                     ui->textBrowserCueSheet->setHtml(patterTemplate);
                     loadedCuesheetNameWithPath = "patter.template.html";  // as a special case, this is allowed to not be the full path
+                    hasLyrics = true;   // so the "Save as" action is enabled
                 }
             }
 

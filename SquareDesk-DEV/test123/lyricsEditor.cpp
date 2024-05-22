@@ -590,8 +590,10 @@ void MainWindow::on_pushButtonCueSheetEditSaveAs_clicked()
 //    QTextCursor tc = ui->textBrowserCueSheet->textCursor();  // save text cursor
 
     //    qDebug() << "on_pushButtonCueSheetEditSaveAs_clicked";
+    // saveLyricsAs sets cueSheetLoaded true which isn't what we want if creating patter lyrics
+    bool prevCueSheetLoaded = cueSheetLoaded;
     saveLyricsAs();  // we probably want to save with a different name, so unlike "Save", this is always called here.
-
+    cueSheetLoaded = prevCueSheetLoaded;
     lockForEditing();
     setInOutButtonState();
 
