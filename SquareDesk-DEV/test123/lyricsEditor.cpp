@@ -993,6 +993,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
         QTextStream in(&f1);
         QString html = txtToHTMLlyrics(in.readAll(), cuesheetFilename);
         ui->textBrowserCueSheet->setText(html);
+        cueSheetLoaded = true;
         loadedCuesheetNameWithPath = cuesheetFilename;
         f1.close();
     }
@@ -1004,6 +1005,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
             QString html(HTMLlyrics);  // embed CSS, if found, since USLT is plain text
             ui->textBrowserCueSheet->setHtml(html);
             loadedCuesheetNameWithPath = cuesheetFilename;
+            cueSheetLoaded = true;
         }
     } else {
         // regular HTML cuesheet -------------
@@ -1029,6 +1031,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 
             // set the HTML for the cuesheet itself (must set CSS first)
             ui->textBrowserCueSheet->setHtml(cuesheet);
+            cueSheetLoaded = true;
             loadedCuesheetNameWithPath = cuesheetFilename;
             f1.close();
 //            showHTML(__FUNCTION__);  // DEBUG DEBUG DEBUG

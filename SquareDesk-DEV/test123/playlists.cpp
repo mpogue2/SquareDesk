@@ -1984,6 +1984,13 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
         return;  // can't load a file that doesn't exist
     }
 
+    QString nextFile = "";
+    if (row+1 < ui->playlist1Table->rowCount()) {
+        nextFile = ui->playlist1Table->item(row+1,4)->text();
+        // qDebug() << "on_playlist1Table_itemDoubleClicked:  nextFile = " << nextFile;
+        // } else {
+        // qDebug() << "on_playlist1Table_itemDoubleClicked: no nextFile";
+    }
     QString songTitle = pathToMP3.split('/').last().replace(".mp3","");
 
     // parse the filename into parts, so we can use the shortTitle -----
@@ -2020,7 +2027,7 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
 
     t.elapsed(__LINE__);
 
-    loadMP3File(pathToMP3, songTitle, songType, songLabel);
+    loadMP3File(pathToMP3, songTitle, songType, songLabel, nextFile);
 
     t.elapsed(__LINE__);
 
@@ -2105,6 +2112,14 @@ void MainWindow::on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item)
         return;  // can't load a file that doesn't exist
     }
 
+    QString nextFile = "";
+    if (row+1 < ui->playlist2Table->rowCount()) {
+        nextFile = ui->playlist2Table->item(row+1,4)->text();
+        // qDebug() << "on_playlist2Table_itemDoubleClicked:  nextFile = " << nextFile;
+        // } else {
+        // qDebug() << "on_playlist2Table_itemDoubleClicked: no nextFile";
+    }
+
     QString songTitle = pathToMP3.split('/').last().replace(".mp3","");
 
     // parse the filename into parts, so we can use the shortTitle -----
@@ -2141,7 +2156,7 @@ void MainWindow::on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item)
 
     t.elapsed(__LINE__);
 
-    loadMP3File(pathToMP3, songTitle, songType, songLabel);
+    loadMP3File(pathToMP3, songTitle, songType, songLabel, nextFile);
 
     t.elapsed(__LINE__);
 
@@ -2225,6 +2240,13 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
         return;  // can't load a file that doesn't exist
     }
 
+    QString nextFile = "";
+    if (row+1 < ui->playlist3Table->rowCount()) {
+        nextFile = ui->playlist3Table->item(row+1,4)->text();
+        // qDebug() << "on_playlist3Table_itemDoubleClicked:  nextFile = " << nextFile;
+        // } else {
+        // qDebug() << "on_playlist3Table_itemDoubleClicked: no nextFile";
+    }
     QString songTitle = pathToMP3.split('/').last().replace(".mp3","");
 
     // parse the filename into parts, so we can use the shortTitle -----
@@ -2261,7 +2283,7 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
 
     t.elapsed(__LINE__);
 
-    loadMP3File(pathToMP3, songTitle, songType, songLabel);
+    loadMP3File(pathToMP3, songTitle, songType, songLabel, nextFile);
 
     t.elapsed(__LINE__);
 

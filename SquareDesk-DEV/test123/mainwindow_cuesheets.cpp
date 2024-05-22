@@ -439,10 +439,12 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         }
 }
 
-bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCuesheet)
+
+bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCuesheet, QString nextFilename)
 {
     // if we're loading cuesheets, check to make sure we were not in the process
     //  of editing one already, and if so, ask what to do.
+    // qDebug() << "loadCuesheets: nextFilename = " << nextFilename;
     if (!maybeSaveCuesheet(3))
     {
 //            qDebug() << "USER CANCELLED LOAD, returning FALSE";
@@ -517,15 +519,11 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
             if (hasLyrics || !isPatter) {
                 break;
             }
-            // Patter, no lyrics -- if next song is a Singer then get its lyrics.
-            int row = nextVisibleSongRow();
-            if (row < 0) {
+            if (nextFilename == "") {
                 break;          // no next song
             }
-            filenameToCheck = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
-            QString nextSongType = ui->songTable->item(row,kTypeCol)->text();
-            
-            if (songTypeNamesForSinging.contains(nextSongType)) {
+            filenameToCheck = nextFilename;
+            if (filenameToCheck.contains("/singing/")) {
                 // Try this song
 //              qDebug() << "loadCuesheets: now trying " << filenameToCheck;
             } else {
@@ -549,16 +547,19 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
 
         if (!hasLyrics || lyricsTabNumber == -1) {
 
-            // ------------------------------------------------------------------
-            // get pre-made patter.template.html file, if it exists
-            QString patterTemplate = getResourceFile("patter.template.html");
-//            qDebug() << "patterTemplate: " << patterTemplate;
-            if (patterTemplate.isEmpty()) {
-                ui->textBrowserCueSheet->setHtml("No patter found for this song.");
-                loadedCuesheetNameWithPath = "";
-            } else {
-                ui->textBrowserCueSheet->setHtml(patterTemplate);
-                loadedCuesheetNameWithPath = "patter.template.html";  // as a special case, this is allowed to not be the full path
+            // if there is a cuesheet loaded, leave it alone
+            if (!cueSheetLoaded) {
+                // ------------------------------------------------------------------
+                // get pre-made patter.template.html file, if it exists
+                QString patterTemplate = getResourceFile("patter.template.html");
+//              qDebug() << "patterTemplate: " << patterTemplate;
+                if (patterTemplate.isEmpty()) {
+                    ui->textBrowserCueSheet->setHtml("No patter found for this song.");
+                    loadedCuesheetNameWithPath = "";
+                } else {
+                    ui->textBrowserCueSheet->setHtml(patterTemplate);
+                    loadedCuesheetNameWithPath = "patter.template.html";  // as a special case, this is allowed to not be the full path
+                }
             }
 
         } // else (sequence could not be found)
