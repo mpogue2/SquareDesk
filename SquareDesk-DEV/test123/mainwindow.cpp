@@ -373,6 +373,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     lyricsCopyIsAvailable = false;
     lyricsTabNumber = 2;
     lyricsForDifferentSong = false;
+    cueSheetLoaded = false;
 
     lastSavedPlaylist = "";  // no playlists saved yet in this session
     playlistHasBeenModified = false; // playlist hasn't been modified yet
@@ -5658,13 +5659,16 @@ void MainWindow::reloadCurrentMP3File() {
     }
 }
 
-void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType, QString songLabel)
+void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType, QString songLabel, QString nextFilename)
 {
+    // qDebug() << "loadMP3File: nextFilename = " << nextFilename;
     ui->darkSegmentButton->setHidden(true);
 
     PerfTimer t("loadMP3File", __LINE__);
 
-    if (!loadCuesheets(MP3FileName)) {
+    currentSongType = songType;     // save it for session coloring on the analog clock later...
+    // currentSongType is referenced in loadCuesheets
+    if (!loadCuesheets(MP3FileName, "", nextFilename)) {
         // load cuesheets up here first, so that the original pathname is used, rather than the pointed-to (rewritten) pathname.
         //   A symlink or alias in the Singing folder pointing at the real file in the Patter folder should work now.
         //   A symlink or alias in the Patter folder pointing at the real file in the Singing folder should also work now.
@@ -5687,7 +5691,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     currentMP3filenameWithPath = MP3FileName;
 
-    currentSongType = songType;     // save it for session coloring on the analog clock later...
     currentSongLabel = songLabel;   // remember it, in case we need it later
 
     // resolve aliases at load time, rather than findFilesRecursively time, because it's MUCH faster
@@ -7179,7 +7182,15 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
 
     int row = item->row();
     QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
-
+    QString nextFilename = "";
+    int nextRow = nextVisibleSongRow();
+    if (nextRow >= 0 && nextRow != row) {
+        nextFilename = ui->songTable->item(nextRow,kPathCol)->data(Qt::UserRole).toString();
+        // qDebug() << "on_songTable_itemDoubleClicked: nextFilename = " << nextFilename;
+        // } else {
+        // qDebug() << "on_songTable_itemDoubleClicked: no next filename";
+    }
+    
     QString songTitle = getTitleColTitle(ui->songTable, row);
     // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
 
@@ -7199,7 +7210,7 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
 
     t.elapsed(__LINE__);
 
-    loadMP3File(pathToMP3, songTitle, songType, songLabel);
+    loadMP3File(pathToMP3, songTitle, songType, songLabel, nextFilename);
 
     t.elapsed(__LINE__);
 

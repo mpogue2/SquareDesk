@@ -926,6 +926,7 @@ private:
     QString lastCuesheetSavePath;
     QString loadedCuesheetNameWithPath;
     enum SongFilenameMatchingType songFilenameFormat;
+    bool cueSheetLoaded;
 
     QFileSystemWatcher musicRootWatcher;  // watch for add/deletes in musicRootPath
     QFileSystemWatcher lyricsWatcher;     // watch for add/deletes in musicRootPath/lyrics
@@ -989,12 +990,12 @@ private:
     double getID3BPM(QString MP3FileName);
 
     void reloadCurrentMP3File();
-    void loadMP3File(QString filepath, QString songTitle, QString songType, QString songLabel);
+    void loadMP3File(QString filepath, QString songTitle, QString songType, QString songLabel, QString nextFilename="");
     void secondHalfOfLoad(QString songTitle);  // after we have duration and BPM, execute this
 
     void maybeLoadCSSfileIntoTextBrowser();
     void loadCuesheet(const QString &cuesheetFilename);
-    bool loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet = QString());
+    bool loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet = QString(), QString nextFilename="");
     void findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets);
     bool breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &labenum_extra,
                                 QString &title, QString &shortTitle );
