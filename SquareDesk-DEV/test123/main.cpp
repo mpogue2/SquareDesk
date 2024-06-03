@@ -118,6 +118,17 @@ int main(int argc, char *argv[])
 
     w.show();
 
+    w.setVisible(false);  // This works around a bug (not sure when introduced) whereby the first selection
+    w.setVisible(true);   //   of an item in a context menu does NOT call the lambda, UNLESS the app is started, then the app focus
+                          //   is changed to another non-SquareDesk window, and then back to SquareDesk.  The second selection
+                          //   always seems to work, no matter what.  This change seems to put the window into a good state again,
+                          //   such that the first selection of a context menu item actually calls the lambda.
+                          //  ALSO NOTE: The bad behavior is never seen when running from within QtCreator, OR
+                          //   when executing ./squaredesk in CLI.  It is ONLY seen when double-clicking the final application,
+                          //   e.g. in /test123 .  This made it very hard to track down!
+                          //  Not showing the splash screen also fixes the problem, but I wanted to keep that, so this seems like a
+                          //   simple workaround.  I have no idea why this works, but it seems to solve the problem 100% of the time.
+
     // http://stackoverflow.com/questions/6516299/qt-c-icons-not-showing-up-when-program-is-run-under-windows-o-s
     QString sDir = QCoreApplication::applicationDirPath();
     a.addLibraryPath(sDir + "/plugins");
