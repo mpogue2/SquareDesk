@@ -441,6 +441,10 @@ void flexible_audio::StopVolumeDucking() {
 void flexible_audio::FXChannelStartPlaying(const char *filename) {
 //    qDebug() << "FXChannelStartPlaying():" << filename;
     soundEffect.setSource(QUrl::fromLocalFile(filename));
+
+    QAudioOutput *audioOutput = new QAudioOutput; // always update the output device, based on the CURRENT default audio device
+    soundEffect.setAudioOutput(audioOutput);
+
 //    soundEffect.setVolume(1.0f);
     soundEffect.play();
 }
