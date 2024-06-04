@@ -10694,6 +10694,14 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
                               [this, whichSlot]() {
                                   saveSlotNow(whichSlot);  // save contents of that slot, if it was modified
                                   clearSlot(whichSlot);    // then clear out the slot, mark not modified, and no relPathInSlot
+
+                                  // and do NOT reload this slot when app starts
+                                  switch (whichSlot) {
+                                      case 0: prefsManager.SetlastPlaylistLoaded(""); break;
+                                      case 1: prefsManager.SetlastPlaylistLoaded2(""); break;
+                                      case 2: prefsManager.SetlastPlaylistLoaded3(""); break;
+                                      default: break;
+                                  }
                               }
                               );
         }
