@@ -2350,7 +2350,9 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
 
 
 // ========================
-// TODO: strip off the root directory before saving...
+// DARK MODE: file dialog to ask for a file name, then save slot to that file
+// TODO: much of this code is same as saveSlotAsPlaylist(whichSlot), which just opens a file dialog
+//   so this should be factored.
 void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
 {
     MyTableWidget *theTableWidget;
@@ -2422,10 +2424,11 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
 
         for (int i = 0; i < theTableWidget->rowCount(); i++) {
             QString path = theTableWidget->item(i, 4)->text();
-            path = path.replace(musicRootPath,"");
+            path = path.replace(musicRootPath,"").replace("\"","\"\""); // if path contains a QUOTE, it needs to be changed to DOUBLE QUOTE in CSV
+
             QString pitch = theTableWidget->item(i, 2)->text();
             QString tempo = theTableWidget->item(i, 3)->text();
-//            qDebug() << path + "," + pitch + "," + tempo;
+            // qDebug() << path + "," + pitch + "," + tempo;
             stream << "\"" + path + "\"," + pitch + "," + tempo << ENDL; // relative path with quotes, then pitch then tempo (% or bpm)
         }
 
@@ -2459,6 +2462,7 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
 }
 
 // -----------
+// DARK MODE: NO file dialog, just save slot to that same file where it came from
 // SAVE a playlist in a slot to a CSV file
 void MainWindow::saveSlotNow(int whichSlot) {
 
@@ -2502,10 +2506,11 @@ void MainWindow::saveSlotNow(int whichSlot) {
 
         for (int i = 0; i < theTableWidget->rowCount(); i++) {
             QString path = theTableWidget->item(i, 4)->text();
-            path = path.replace(musicRootPath,"");
+            path = path.replace(musicRootPath,"").replace("\"","\"\""); // if path contains a QUOTE, it needs to be changed to DOUBLE QUOTE in CSV
+
             QString pitch = theTableWidget->item(i, 2)->text();
             QString tempo = theTableWidget->item(i, 3)->text();
-//            qDebug() << path + "," + pitch + "," + tempo;
+            // qDebug() << path + "," + pitch + "," + tempo;
             stream << "\"" + path + "\"," + pitch + "," + tempo << ENDL; // relative path with quotes, then pitch then tempo (% or bpm)
         }
 
