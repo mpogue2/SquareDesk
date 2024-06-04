@@ -1843,12 +1843,15 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
     if (relPath == relPathInSlot[0]) {
         saveSlotNow(0);  // save it, if it has something in there
         clearSlot(0);    // clear the table and the label
+        prefsManager.SetlastPlaylistLoaded("");
     } else if (relPath == relPathInSlot[1]) {
         saveSlotNow(1);  // save it, if it has something in there
         clearSlot(1);    // clear the table and the label
+        prefsManager.SetlastPlaylistLoaded2("");
     } else if (relPath == relPathInSlot[2]) {
         saveSlotNow(2);  // save it, if it has something in there
         clearSlot(2);    // clear the table and the label
+        prefsManager.SetlastPlaylistLoaded3("");
     }
 
     QString firstBadSongLine = "";
