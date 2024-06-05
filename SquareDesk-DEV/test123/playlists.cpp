@@ -325,7 +325,8 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
     ui->actionSave_Playlist_2->setText(QString("Save Playlist '") + shortPlaylistName + "'"); // and now Playlist > Save Playlist 'name' has a name, because it was loaded (possibly with errors)
 
 //    QString msg1 = QString("Loaded playlist with ") + QString::number(songCount) + QString(" items.");
-    QString msg1 = QString("Playlist: ") + shortPlaylistName;
+    // QString msg1 = QString("Playlist: ") + shortPlaylistName;
+    QString msg1;
 
     int currentTab = ui->tabWidget->currentIndex();
     QString currentTabName = ui->tabWidget->tabText(currentTab);
@@ -340,6 +341,10 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
         } else {
             ui->statusBar->setStyleSheet("color: black");
         }
+    }
+    if (!darkmode) {
+        shortPlaylistName = shortPlaylistName.replace("playlists/", "");
+        msg1 = QString("Playlist: ") + shortPlaylistName;
         ui->statusBar->showMessage(msg1);
     }
 
@@ -1103,48 +1108,54 @@ void MainWindow::PlaylistItemsRemove() {
         playlistSlotWatcherTimer->start(std::chrono::seconds(10));
         return; // we changed something, no need to check songTable
     }
+
+    if (darkmode) {
+        return;
+    }
 #endif
 
-//     int selectedRow = selectedSongRow();  // get current row or -1
+    // This is only required for lightmode
 
-//     if (selectedRow == -1) {
-//         return;
-//     }
+    int selectedRow = selectedSongRow();  // get current row or -1
 
-//     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
-//     int currentNumberInt = currentNumberText.toInt();
+    if (selectedRow == -1) {
+        return;
+    }
 
-// //    ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
-//     startLongSongTableOperation("PlaylistItemRemove");
+    QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+    int currentNumberInt = currentNumberText.toInt();
 
-//     // already on the list
-//     // Iterate over the entire songTable, decrementing items BELOW this item
-//     for (int i=0; i<ui->songTable->rowCount(); i++) {
-//         QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
-//         QString playlistIndexText = theItem->text();  // this is the playlist #
-//         if (playlistIndexText != "") {
-//             int playlistIndexInt = playlistIndexText.toInt();
-//             if (playlistIndexInt > currentNumberInt) {
-//                 // if a # was set and more, decrement it
-//                 QString newIndex = QString::number(playlistIndexInt-1);
-//                 ui->songTable->item(i,kNumberCol)->setText(newIndex);
-//             }
-//         }
-//     }
-//     // and then set this one to #LAST
-//     ui->songTable->item(selectedRow, kNumberCol)->setText("");  // this one is off the list
+//    ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
+    startLongSongTableOperation("PlaylistItemRemove");
 
-// //    ui->songTable->blockSignals(false); // done updating
-//     stopLongSongTableOperation("PlaylistItemRemove");
+    // already on the list
+    // Iterate over the entire songTable, decrementing items BELOW this item
+    for (int i=0; i<ui->songTable->rowCount(); i++) {
+        QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+        QString playlistIndexText = theItem->text();  // this is the playlist #
+        if (playlistIndexText != "") {
+            int playlistIndexInt = playlistIndexText.toInt();
+            if (playlistIndexInt > currentNumberInt) {
+                // if a # was set and more, decrement it
+                QString newIndex = QString::number(playlistIndexInt-1);
+                ui->songTable->item(i,kNumberCol)->setText(newIndex);
+            }
+        }
+    }
+    // and then set this one to #LAST
+    ui->songTable->item(selectedRow, kNumberCol)->setText("");  // this one is off the list
 
-//     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+//    ui->songTable->blockSignals(false); // done updating
+    stopLongSongTableOperation("PlaylistItemRemove");
 
-//     // removed an item, so we must enable saving of the playlist
-//     ui->actionSave->setEnabled(true);       // menu item Save is enabled now
-//     ui->actionSave_As->setEnabled(true);    // menu item Save as... is also enabled now
+    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 
-//     // mark playlist modified
-//     markPlaylistModified(true); // turn ON the * in the status bar
+    // removed an item, so we must enable saving of the playlist
+    ui->actionSave->setEnabled(true);       // menu item Save is enabled now
+    ui->actionSave_As->setEnabled(true);    // menu item Save as... is also enabled now
+
+    // mark playlist modified
+    markPlaylistModified(true); // turn ON the * in the status bar
 }
 
 // LOAD RECENT PLAYLIST --------------------------------------------------------------------

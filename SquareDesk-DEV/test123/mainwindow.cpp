@@ -353,6 +353,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     shortcutSDCurrentSequenceCopy(nullptr),
     sd_redo_stack(new SDRedoStack())
 {
+    QString darkTextColor = "black";
     lastMinuteInHour = -1;
     lastSessionID = -2; // initial startup
 
@@ -1726,8 +1727,11 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     connect(ui->theSVGClock, SIGNAL(customContextMenuRequested(QPoint)), ui->theSVGClock, SLOT(customMenuRequested(QPoint)));
 
     // ============= DARKMODE INIT ================
-    QString darkTextColor = "#C0C0C0";
-
+    // QString darkTextColor = "#C0C0C0";
+    if (darkmode) {
+        darkTextColor = "#C0C0C0";
+    }
+    
     // DARK MODE UI TESTING --------------------
 
     ui->darkWarningLabel->setToolTip("Shows Time-in-Tip (Patter) in MM:SS, and Section-in-Tip (Singer).");
@@ -4973,6 +4977,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         QKeyEvent *KeyEvent = dynamic_cast<QKeyEvent *>(Event);
         int theKey = KeyEvent->key();
 
+        // qDebug() << "eventFilter: theKey is " << theKey;
         MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
         if (maybeMainWindow == nullptr) {
             // if the PreferencesDialog is open, for example, do not dereference the NULL pointer (duh!).
@@ -5158,6 +5163,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             // THEN HANDLE IT AS A SPECIAL KEY
 
             if ((KeyEvent->modifiers() & Qt::ControlModifier) && (KeyEvent->modifiers() & Qt::ShiftModifier)) {
+                // qDebug() << "Control + Shift:  theKey = " << theKey;
                 switch (theKey) {
                     case Qt::Key_Up:        maybeMainWindow->PlaylistItemsMoveUp();           return true; break;
                     case Qt::Key_Down:      maybeMainWindow->PlaylistItemsMoveDown();         return true; break;
@@ -5172,7 +5178,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                     default: break;
                 }
             }
-
+            // qDebug() << "KeyEvent->text() is " << KeyEvent->text();
             return (maybeMainWindow->handleKeypress(KeyEvent->key(), KeyEvent->text()));
         }
 
@@ -7587,10 +7593,10 @@ void MainWindow::on_songTable_itemSelectionChanged()
         // we've clicked on a real row, which needs its Title text to be highlighted
 
 #ifdef DARKMODE
-        if (!darkmode && darkSelectedSongRow() != selectedRow) {
-            qDebug() << "bad selectRow 2";
-            ui->darkSongTable->selectRow(selectedRow);
-        }
+// if (!darkmode && darkSelectedSongRow() != selectedRow) {
+//     qDebug() << "bad selectRow 2";
+//     ui->darkSongTable->selectRow(selectedRow);
+// }
 
 //        ui->playlist1Table->clearSelection();
 //        ui->playlist2Table->clearSelection();
@@ -7874,7 +7880,6 @@ int MainWindow::darkNextVisibleSongRow() {
 void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
 {
     Q_UNUSED(pos)
-#ifndef DARKMODE
     QStringList currentTags;
 
     if (ui->songTable->selectionModel()->hasSelection()) {
@@ -7899,10 +7904,10 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
 
             if (currentNumberText == "") {
                 if (playlistItemCount == 0) {
-                    menu.addAction ( "Add to playlist" , this , SLOT (PlaylistItemToTop()) );
+                    menu.addAction ( "Add to playlist" , this , SLOT (PlaylistItemsToTop()) );
                 } else {
-                    menu.addAction ( "Add to TOP of playlist" , this , SLOT (PlaylistItemToTop()) );
-                    menu.addAction ( "Add to BOTTOM of playlist" , this , SLOT (PlaylistItemToBottom()) );
+                    menu.addAction ( "Add to TOP of playlist" , this , SLOT (PlaylistItemsToTop()) );
+                    menu.addAction ( "Add to BOTTOM of playlist" , this , SLOT (PlaylistItemsToBottom()) );
                 }
             } else {
                 // currently on the playlist
@@ -7910,25 +7915,25 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
                     // more than one item
                     if (currentNumberInt == 1) {
                         // already the first item, and there's more than one item on the list, so moves make sense
-                        menu.addAction ( "Move DOWN in playlist" , this , SLOT (PlaylistItemMoveDown()) );
-                        menu.addAction ( "Move to BOTTOM of playlist" , this , SLOT (PlaylistItemToBottom()) );
+                        menu.addAction ( "Move DOWN in playlist" , this , SLOT (PlaylistItemsMoveDown()) );
+                        menu.addAction ( "Move to BOTTOM of playlist" , this , SLOT (PlaylistItemsToBottom()) );
                     } else if (currentNumberInt == playlistItemCount) {
                         // already the last item, and there's more than one item on the list, so moves make sense
-                        menu.addAction ( "Move to TOP of playlist" , this , SLOT (PlaylistItemToTop()) );
-                        menu.addAction ( "Move UP in playlist" , this , SLOT (PlaylistItemMoveUp()) );
+                        menu.addAction ( "Move to TOP of playlist" , this , SLOT (PlaylistItemsToTop()) );
+                        menu.addAction ( "Move UP in playlist" , this , SLOT (PlaylistItemsMoveUp()) );
                     } else {
                         // somewhere in the middle, and there's more than one item on the list, so moves make sense
-                        menu.addAction ( "Move to TOP of playlist" , this , SLOT (PlaylistItemToTop()) );
-                        menu.addAction ( "Move UP in playlist" , this , SLOT (PlaylistItemMoveUp()) );
-                        menu.addAction ( "Move DOWN in playlist" , this , SLOT (PlaylistItemMoveDown()) );
-                        menu.addAction ( "Move to BOTTOM of playlist" , this , SLOT (PlaylistItemToBottom()) );
+                        menu.addAction ( "Move to TOP of playlist" , this , SLOT (PlaylistItemsToTop()) );
+                        menu.addAction ( "Move UP in playlist" , this , SLOT (PlaylistItemsMoveUp()) );
+                        menu.addAction ( "Move DOWN in playlist" , this , SLOT (PlaylistItemsMoveDown()) );
+                        menu.addAction ( "Move to BOTTOM of playlist" , this , SLOT (PlaylistItemsToBottom()) );
                     }
                 } else {
                     // exactly one item, and this is it.
                 }
                 // this item is on the playlist, so it can be removed.
                 menu.addSeparator();
-                menu.addAction ( "Remove from playlist" , this , SLOT (PlaylistItemRemove()) );
+                menu.addAction ( "Remove from playlist" , this , SLOT (PlaylistItemsRemove()) );
             }
         }
         menu.addSeparator();
@@ -7985,7 +7990,6 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
         menu.popup(QCursor::pos());
         menu.exec();
     }
-#endif
 }
 
 void MainWindow::changeTagOnCurrentSongSelection(QString tag, bool add)
