@@ -446,6 +446,8 @@ private slots:
     void on_actionLoad_Playlist_triggered();
     void on_actionSave_Playlist_triggered();
 
+    void reloadPaletteSlots(); // called twice, once at constructor time, once after changing preferences colors
+
 #ifdef DARKMODE
     void saveSlotAsPlaylist(int whichSlot); // SAVE AS a playlist in a slot to a CSV file
     void saveSlotNow(int whichSlot);           // SAVE a playlist in a slot to a CSV file

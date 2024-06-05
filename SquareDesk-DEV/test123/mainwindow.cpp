@@ -2422,67 +2422,69 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
         ui->actionSave_Playlist->setEnabled(false); // Playlist > Save Playlist As...
         ui->actionPrint_Playlist->setEnabled(false);  // Playlist > Print Playlist...
 
-        // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
-        QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
-        // qDebug() << "MainWindow constructor, load playlist and palette slot 0: " << loadThisPlaylist;
+        reloadPaletteSlots();  // reload all the palette slots, based on the last time we ran SquareDesk
 
-        if (loadThisPlaylist != "") {
-            if (loadThisPlaylist.startsWith("tracks/")) {
-                // it's a TRACK FILTER
-                QString fullPlaylistPath = musicRootPath + "/" + loadThisPlaylist + ".csv";
-                fullPlaylistPath.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
-                int songCount;
-                loadPlaylistFromFileToPaletteSlot(fullPlaylistPath, 0, songCount);
-            } else {
-                // it's a PLAYLIST
-                QString fullPlaylistPath = musicRootPath + "/";
-                if (!loadThisPlaylist.startsWith("playlists/")) {
-                    // probably older version of SquareDesk, which doesn't prepend "playlists/"
-                    fullPlaylistPath += "playlists/";
-                }
-                fullPlaylistPath += loadThisPlaylist + ".csv";
-                finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 0
-                // this also auto-upgrades the prefsManager.GetlastPlaylistLoaded to prepend "playlists/", which then works the next time the app is started, too.
-            }
-        }
+    //     // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
+    //     QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
+    //     // qDebug() << "MainWindow constructor, load playlist and palette slot 0: " << loadThisPlaylist;
 
-        // Load up second slot -----
-        QString loadThisPlaylist2 = prefsManager.GetlastPlaylistLoaded2(); // "" if no playlist was loaded
-    //    qDebug() << "MainWindow constructor, load playlist and palette slot 1: " << loadThisPlaylist2;
+    //     if (loadThisPlaylist != "") {
+    //         if (loadThisPlaylist.startsWith("tracks/")) {
+    //             // it's a TRACK FILTER
+    //             QString fullPlaylistPath = musicRootPath + "/" + loadThisPlaylist + ".csv";
+    //             fullPlaylistPath.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
+    //             int songCount;
+    //             loadPlaylistFromFileToPaletteSlot(fullPlaylistPath, 0, songCount);
+    //         } else {
+    //             // it's a PLAYLIST
+    //             QString fullPlaylistPath = musicRootPath + "/";
+    //             if (!loadThisPlaylist.startsWith("playlists/")) {
+    //                 // probably older version of SquareDesk, which doesn't prepend "playlists/"
+    //                 fullPlaylistPath += "playlists/";
+    //             }
+    //             fullPlaylistPath += loadThisPlaylist + ".csv";
+    //             finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 0
+    //             // this also auto-upgrades the prefsManager.GetlastPlaylistLoaded to prepend "playlists/", which then works the next time the app is started, too.
+    //         }
+    //     }
 
-        if (loadThisPlaylist2 != "") {
-            if (loadThisPlaylist2.startsWith("tracks/")) {
-                // it's a TRACK FILTER
-                QString fullPlaylistPath2 = musicRootPath + "/" + loadThisPlaylist2 + ".csv";
-                fullPlaylistPath2.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
-                int songCount;
-                loadPlaylistFromFileToPaletteSlot(fullPlaylistPath2, 1, songCount);
-            } else {
-                // it's a PLAYLIST
-                QString fullPlaylistPath2 = musicRootPath + "/" + loadThisPlaylist2 + ".csv";
-                int songCount;
-                loadPlaylistFromFileToPaletteSlot(fullPlaylistPath2, 1, songCount); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 1
-            }
-        }
+    //     // Load up second slot -----
+    //     QString loadThisPlaylist2 = prefsManager.GetlastPlaylistLoaded2(); // "" if no playlist was loaded
+    // //    qDebug() << "MainWindow constructor, load playlist and palette slot 1: " << loadThisPlaylist2;
 
-        // Load up third slot -----
-        QString loadThisPlaylist3 = prefsManager.GetlastPlaylistLoaded3(); // "" if no playlist was loaded
-    //    qDebug() << "MainWindow constructor, load playlist and palette slot 2: " << loadThisPlaylist3;
+    //     if (loadThisPlaylist2 != "") {
+    //         if (loadThisPlaylist2.startsWith("tracks/")) {
+    //             // it's a TRACK FILTER
+    //             QString fullPlaylistPath2 = musicRootPath + "/" + loadThisPlaylist2 + ".csv";
+    //             fullPlaylistPath2.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
+    //             int songCount;
+    //             loadPlaylistFromFileToPaletteSlot(fullPlaylistPath2, 1, songCount);
+    //         } else {
+    //             // it's a PLAYLIST
+    //             QString fullPlaylistPath2 = musicRootPath + "/" + loadThisPlaylist2 + ".csv";
+    //             int songCount;
+    //             loadPlaylistFromFileToPaletteSlot(fullPlaylistPath2, 1, songCount); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 1
+    //         }
+    //     }
 
-        if (loadThisPlaylist3 != "") {
-            if (loadThisPlaylist3.startsWith("tracks/")) {
-                // it's a TRACK FILTER
-                QString fullPlaylistPath3 = musicRootPath + "/" + loadThisPlaylist3 + ".csv";
-                fullPlaylistPath3.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
-                int songCount;
-                loadPlaylistFromFileToPaletteSlot(fullPlaylistPath3, 2, songCount);
-            } else {
-                // it's a PLAYLIST
-                QString fullPlaylistPath3 = musicRootPath + "/" + loadThisPlaylist3 + ".csv";
-                int songCount;
-                loadPlaylistFromFileToPaletteSlot(fullPlaylistPath3, 2, songCount); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 2
-            }
-        }
+    //     // Load up third slot -----
+    //     QString loadThisPlaylist3 = prefsManager.GetlastPlaylistLoaded3(); // "" if no playlist was loaded
+    // //    qDebug() << "MainWindow constructor, load playlist and palette slot 2: " << loadThisPlaylist3;
+
+    //     if (loadThisPlaylist3 != "") {
+    //         if (loadThisPlaylist3.startsWith("tracks/")) {
+    //             // it's a TRACK FILTER
+    //             QString fullPlaylistPath3 = musicRootPath + "/" + loadThisPlaylist3 + ".csv";
+    //             fullPlaylistPath3.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
+    //             int songCount;
+    //             loadPlaylistFromFileToPaletteSlot(fullPlaylistPath3, 2, songCount);
+    //         } else {
+    //             // it's a PLAYLIST
+    //             QString fullPlaylistPath3 = musicRootPath + "/" + loadThisPlaylist3 + ".csv";
+    //             int songCount;
+    //             loadPlaylistFromFileToPaletteSlot(fullPlaylistPath3, 2, songCount); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 2
+    //         }
+    //     }
 
         for (int i = 0; i < 3; i++) {
             slotModified[i] = false;
@@ -2521,6 +2523,71 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     stopLongSongTableOperation("MainWindow");
 }
 
+// ----------------------------------------------------------------------
+// load up the palette slots from what was in those slots before...
+void MainWindow::reloadPaletteSlots() {
+    // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
+    QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
+    // qDebug() << "MainWindow constructor, load playlist and palette slot 0: " << loadThisPlaylist;
+
+    if (loadThisPlaylist != "") {
+        if (loadThisPlaylist.startsWith("tracks/")) {
+            // it's a TRACK FILTER
+            QString fullPlaylistPath = musicRootPath + "/" + loadThisPlaylist + ".csv";
+            fullPlaylistPath.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
+            int songCount;
+            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath, 0, songCount);
+        } else {
+            // it's a PLAYLIST
+            QString fullPlaylistPath = musicRootPath + "/";
+            if (!loadThisPlaylist.startsWith("playlists/")) {
+                // probably older version of SquareDesk, which doesn't prepend "playlists/"
+                fullPlaylistPath += "playlists/";
+            }
+            fullPlaylistPath += loadThisPlaylist + ".csv";
+            finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 0
+            // this also auto-upgrades the prefsManager.GetlastPlaylistLoaded to prepend "playlists/", which then works the next time the app is started, too.
+        }
+    }
+
+    // Load up second slot -----
+    QString loadThisPlaylist2 = prefsManager.GetlastPlaylistLoaded2(); // "" if no playlist was loaded
+//    qDebug() << "MainWindow constructor, load playlist and palette slot 1: " << loadThisPlaylist2;
+
+    if (loadThisPlaylist2 != "") {
+        if (loadThisPlaylist2.startsWith("tracks/")) {
+            // it's a TRACK FILTER
+            QString fullPlaylistPath2 = musicRootPath + "/" + loadThisPlaylist2 + ".csv";
+            fullPlaylistPath2.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
+            int songCount;
+            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath2, 1, songCount);
+        } else {
+            // it's a PLAYLIST
+            QString fullPlaylistPath2 = musicRootPath + "/" + loadThisPlaylist2 + ".csv";
+            int songCount;
+            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath2, 1, songCount); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 1
+        }
+    }
+
+    // Load up third slot -----
+    QString loadThisPlaylist3 = prefsManager.GetlastPlaylistLoaded3(); // "" if no playlist was loaded
+//    qDebug() << "MainWindow constructor, load playlist and palette slot 2: " << loadThisPlaylist3;
+
+    if (loadThisPlaylist3 != "") {
+        if (loadThisPlaylist3.startsWith("tracks/")) {
+            // it's a TRACK FILTER
+            QString fullPlaylistPath3 = musicRootPath + "/" + loadThisPlaylist3 + ".csv";
+            fullPlaylistPath3.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
+            int songCount;
+            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath3, 2, songCount);
+        } else {
+            // it's a PLAYLIST
+            QString fullPlaylistPath3 = musicRootPath + "/" + loadThisPlaylist3 + ".csv";
+            int songCount;
+            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath3, 2, songCount); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 2
+        }
+    }
+}
 
 void MainWindow::fileWatcherTriggered() {
 //    qDebug() << "fileWatcherTriggered()";
@@ -7526,6 +7593,7 @@ void MainWindow::on_actionPreferences_triggered()
 
             if (darkmode) {
                 darkLoadMusicList();
+                reloadPaletteSlots();
             } else {
                 loadMusicList();
             }
