@@ -21,5 +21,6 @@
         <file>graphics/darkClock3.png</file>
         <file>graphics/icons8-menu-64.png</file>
         <file>graphics/icons8-musical-note-60.png</file>
+        <file>graphics/SplashScreen2024.png</file>
     </qresource>
 </RCC>
