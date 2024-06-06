@@ -10968,18 +10968,26 @@ void MainWindow::clearSlot(int slotNumber) {
 void MainWindow::on_treeWidget_itemDoubleClicked(QTreeWidgetItem *treeItem, int column)
 {
     // if treeView Playlist or Track Filter is double-clicked, it will be loaded into the first empty palette slot
-    // if they are all full, it will be loaded into the last palette slot
+    // if they are all full, it will be loaded into the last palette slot (only if no unsaved items in that last slot)
     Q_UNUSED(column)
 
     // which slot is the first empty one? -----
     int firstEmptySlot; // no empty slots, load into slot #2 (0-2)
 
-    if (relPathInSlot[0] == "") {
+    if (relPathInSlot[0] == "" && (ui->playlist1Table->rowCount() == 0) ) {
         firstEmptySlot = 0;
-    } else if (relPathInSlot[1] == "") {
+    } else if (relPathInSlot[1] == "" && (ui->playlist2Table->rowCount() == 0) ) {
         firstEmptySlot = 1;
-    } else {
+    } else if ( (relPathInSlot[2] == "" && ui->playlist3Table->rowCount() == 0) ||
+                (relPathInSlot[2] != "")
+              ) {
         firstEmptySlot = 2;
+    } else {
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setText("Can't load, because slots are full, and the last slot has unsaved items.");
+        msgBox.exec();
+        return;
     }
 
     // what did the user double-click on? ---------
