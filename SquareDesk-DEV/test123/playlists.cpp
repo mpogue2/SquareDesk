@@ -2449,13 +2449,13 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
         file.close(); // OK, we're done saving the file, so...
         slotModified[whichSlot] = false;
 
-        // now the playlist slot has a name, so update the label on the slot
-        theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">%1").arg(playlistShortName));
-
         // and update the QString array (for later use)
         QString rel = fullFilePath;
         relPathInSlot[whichSlot] = rel.replace(musicRootPath + "/playlists/", "").replace(".csv",""); // relative to musicDir/playlists
 //        qDebug() << "relPathInSlot set to: " << relPathInSlot[whichSlot];
+
+        // update the label with the partial path, e.g. "Jokers/2024/playlist_06.05"
+        theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">%1").arg(relPathInSlot[whichSlot]));
 
         // and refresh the TreeWidget, because we have a new playlist now...
         updateTreeWidget();
