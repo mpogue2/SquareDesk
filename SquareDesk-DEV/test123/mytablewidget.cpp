@@ -88,7 +88,8 @@ bool MyTableWidget::moveSelectedItemsUp() {
         theItemAbove->setText(t);
 
         sortItems(0);  // resort, based on column 0 (the #)
-        return true;  // We did it!
+
+        // return true;  // We did it! NOTE: FALL THROUGH TO BOTTOM
     } else {
         // MULTI ROW CASE
         // if we need to move 2,3, we move 2 up, so we get 2,1,3,4
@@ -113,11 +114,17 @@ bool MyTableWidget::moveSelectedItemsUp() {
             sortItems(0);  // resort, based on column 0 (the #), moving row "row" to the bottom
         }
 
-    // NOTE: the rows we moved will still be selected!
+    // NOTE: the rows we moved will still be selected
     // scrollToItem(item(rowCount()-1, 0));      // EnsureVisible for the last row in the table NO NEED TO SCROLL
-
-    return true; // we did it!
+    // return true; // we did it! // NOTE: FALL THROUGH TO BOTTOM
     }
+
+    // NOTE: the rows we moved will still be selected
+    // scrollToItem(item(rowCount()-1, 0));      // EnsureVisible for the last row in the table NO NEED TO SCROLL
+    list = selectionModel()->selectedRows(); // update, because row order has changed
+    int firstRow = list.at(0).row();
+    scrollToItem(item(firstRow, 0));      // EnsureVisible for the last row in the table NO NEED TO SCROLL
+    return true; // return true from single row and multi-row cases
 }
 
 // -----------------------------------------------
@@ -153,7 +160,7 @@ bool MyTableWidget::moveSelectedItemsDown() {
         theItemBelow->setText(t);
 
         sortItems(0);  // resort, based on column 0 (the #)
-        return true;  // We did it!
+        // return true;  // We did it! // FALL THROUGH TO BOTTOM
     } else {
         // MULTI ROW CASE
         // if we need to move 1,2,3, we move 3 down, so we get 1,2,4,3
@@ -182,8 +189,15 @@ bool MyTableWidget::moveSelectedItemsDown() {
         // NOTE: the rows we moved will still be selected!
         // scrollToItem(item(rowCount()-1, 0));      // EnsureVisible for the last row in the table NO NEED TO SCROLL
 
-        return true; // we did it!
+        // return true; // we did it! // FALL THROUGH TO BOTTOM
     }
+
+    // NOTE: the rows we moved will still be selected
+    // scrollToItem(item(rowCount()-1, 0));      // EnsureVisible for the last row in the table NO NEED TO SCROLL
+    list = selectionModel()->selectedRows(); // update, because row order has changed
+    int firstRow = list.at(0).row();
+    scrollToItem(item(firstRow, 0));      // EnsureVisible for the last row in the table NO NEED TO SCROLL
+    return true; // return true from single row and multi-row cases
 }
 
 // -----------------------------------------------
