@@ -5474,6 +5474,11 @@ bool MainWindow::handleKeypress(int key, QString text)
                     return true;
                 }
 
+                if (ui->songTable->isRowHidden(row)) {
+                    // if the selected row isn't even visible on the screen, ENTER has no effect.
+                    return true;
+                }
+
                 on_songTable_itemDoubleClicked(ui->songTable->item(row,1)); // note: alters focus
 
 //                lastWidget->setFocus(); // restore focus to widget that had it before
@@ -5485,6 +5490,11 @@ bool MainWindow::handleKeypress(int key, QString text)
                 int row = darkSelectedSongRow();
                 if (row < 0) {
                     // more than 1 row or no rows at all selected (BAD)
+                    return true;
+                }
+
+                if (ui->darkSongTable->isRowHidden(row)) {
+                    // if the selected row isn't even visible on the screen, ENTER has no effect.
                     return true;
                 }
 
