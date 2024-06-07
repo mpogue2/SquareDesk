@@ -487,6 +487,10 @@ void MainWindow::on_actionRemove_for_all_songs_triggered()
         QDir subDir( dir.absoluteFilePath( dirItem ) );
         subDir.removeRecursively();
     }
+
+    // We definitely cleared the section info for the currently loaded song, so get rid of the coloring in the waveform display
+    //   in case there was any...
+    ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, since we no longer have section info for this song
 }
 
 void MainWindow::EstimateSectionsForTheseSongs(QList<int> rows) {
@@ -539,7 +543,13 @@ void MainWindow::RemoveSectionsForTheseSongs(QList<int> rows) {
             resultsFilename = resultsFilename + ".results.txt";
 
             QFile::remove(resultsFilename);
-            qDebug() << "**** REMOVED: " << resultsFilename;
+            // qDebug() << "**** REMOVED: " << resultsFilename;
+            // qDebug() << "Removing section info for THIS:" << filenameToRemove << currentMP3filenameWithPath;
+            if (filenameToRemove == currentMP3filenameWithPath) {
+                // if we just cleared the section info for the currently loaded song, get rid of the coloring in the waveform display
+                ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, since we no longer have section info for this song
+            }
+
         }
 
     }
@@ -640,5 +650,10 @@ void MainWindow::RemoveSectionsForThisSong(QString mp3Filename) {
 
         // qDebug() << "**** REMOVE: " << resultsFilename;
         QFile::remove(resultsFilename);
+    }
+    // qDebug() << "Removing section info for THIS:" << mp3Filename << currentMP3filenameWithPath;
+    if (mp3Filename == currentMP3filenameWithPath) {
+        // if we just cleared the section info for the currently loaded song, get rid of the coloring in the waveform display
+        ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, since we no longer have section info for this song
     }
 }
