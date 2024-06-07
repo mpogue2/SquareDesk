@@ -220,6 +220,11 @@ int MainWindow::processOneFile(const QString &fn) {
 
     QProcess vampSegment;
     // qDebug() << "EXECUTING: " << pathNameToVamp << "segmentino::segmentino" << WAVfilename << "-o" << tempResultsfile.fileName();
+
+    vampSegment.setWorkingDirectory(QCoreApplication::applicationDirPath()); // MUST set this, or it won't run
+    // vampSegment.setStandardOutputFile("/Users/mpogue/segmentDetect.so.txt");   // DEBUG
+    // vampSegment.setStandardErrorFile("/Users/mpogue/segmentDetect.se.txt");    // DEBUG
+
     vampSegment.start(pathNameToVamp, QStringList() << "segmentino:segmentino" << WAVfilename << "-o" << tempResultsfile.fileName()); // intentionally no "-s", to get results as float seconds
     // vampSegment.waitForFinished(5*60000);  // SYNCHRONOUS -- wait for process to be done, max 5 minutes.  Don't start another one until this one is done.
 

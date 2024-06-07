@@ -1206,7 +1206,7 @@ QString AudioDecoder::makeExternalAudioFile(QString WAVfilename) {
 
 // ========================================================================================================================
 QString AudioDecoder::runVamp(QString whichModule, QString WAVfilename, QString resultsFilename) {
-    // qDebug() << "runVamp" << WAVfilename << resultsFilename;
+    // qDebug() << "runVamp" << whichModule << WAVfilename << resultsFilename;
 
     QString pathNameToVamp(QCoreApplication::applicationDirPath());
     pathNameToVamp.append("/vamp-simple-host");
@@ -1228,19 +1228,55 @@ QString AudioDecoder::runVamp(QString whichModule, QString WAVfilename, QString 
 
     if (whichModule == "beatbardetect") {
         vamp.disconnect();  // disconnect all previous connections, so we can start up a new one below (just one)
+
+        QString workDir = QCoreApplication::applicationDirPath();
+        vamp.setWorkingDirectory(workDir);
+        // qDebug() << "working dir: " << workDir;
+
+        // vamp.setStandardOutputFile("/Users/mpogue/beatDetect.so.txt"); // DEBUG
+        // vamp.setStandardErrorFile("/Users/mpogue/beatDetect.se.txt");  // DEBUG
+
         vamp.start(pathNameToVamp, QStringList() << "-s" << "qm-vamp-plugins:qm-barbeattracker" << WAVfilename << "-o" << resultsFilename);
 
-        // // SYNCHRONOUS: wait for vamp to finish
-        // if (!vamp.waitForFinished()) {
-        //     return;
-        // }
-    } else if (whichModule == "segmentdetect") {
-        vampSegment.disconnect();  // disconnect all previous connections, so we can start up a new one below (just one)
-        vampSegment.start(pathNameToVamp, QStringList() << "-s" << "segmentino:segmentino" << WAVfilename << "-o" << resultsFilename);
+        if (vamp.waitForStarted()) {
+            qDebug() << "beatbardetect process started successfully.";
+        } else {
+            qDebug() << "beatbardetect process didn't start successfully.";
+        }
 
         // // SYNCHRONOUS: wait for vamp to finish
-        // if (!vamp.waitForFinished()) {
-        //     return;
+        // if (vamp.waitForFinished()) {
+        //     qDebug() << "beatbardetect FINISHED";
+        // } else {
+        //     qDebug() << "beatbardetect ERROR"; // timed out, or error, or already finished
+        //     return("noResultsAvailable");
+        // }
+        // qDebug() << "Process finished.";
+    } else if (whichModule == "segmentdetect") {
+        // NOTE this code is not used anymore, I think.  The mainwindow_bulk code is now what does this, even if just one file.
+        vampSegment.disconnect();  // disconnect all previous connections, so we can start up a new one below (just one)
+
+        QString workDir = QCoreApplication::applicationDirPath();
+        vampSegment.setWorkingDirectory(workDir);
+        // qDebug() << "SEGMENT working dir: " << workDir;
+
+        // vampSegment.setStandardOutputFile("/Users/mpogue/beatDetect.so.txt");  // DEBUG
+        // vampSegment.setStandardErrorFile("/Users/mpogue/beatDetect.se.txt");   // DEBUG
+
+        vampSegment.start(pathNameToVamp, QStringList() << "-s" << "segmentino:segmentino" << WAVfilename << "-o" << resultsFilename);
+
+        if (vamp.waitForStarted()) {
+            qDebug() << "segmentdetect process started successfully.";
+        } else {
+            qDebug() << "segmentdetect process didn't start successfully.";
+        }
+
+        // // SYNCHRONOUS: wait for vamp to finish
+        // if (vamp.waitForFinished()) {
+        //     qDebug() << "segmentdetect FINISHED";
+        // } else {
+        //     qDebug() << "segmentdetect ERROR"; // timed out, or error, or already finished
+        //     return("noResultsAvailable");
         // }
     }
 
