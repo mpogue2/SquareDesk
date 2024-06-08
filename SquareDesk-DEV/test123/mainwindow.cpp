@@ -1891,10 +1891,15 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist1Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter);
     ui->playlist1Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist1Table->verticalHeader()->setMaximumSectionSize(28);
-    ui->playlist1Table->horizontalHeader()->setSectionHidden(2, true); // hide pitch
-    ui->playlist1Table->horizontalHeader()->setSectionHidden(3, true); // hide tempo
+
+    // ui->playlist1Table->horizontalHeader()->setSectionHidden(2, true); // hide pitch
+    // ui->playlist1Table->horizontalHeader()->setSectionHidden(3, true); // hide tempo
     ui->playlist1Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
     ui->playlist1Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(2, false); // hide pitch
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(3, false); // hide tempo
+    // ui->playlist1Table->horizontalHeader()->setSectionHidden(4, false); // hide fullpath
+    // ui->playlist1Table->horizontalHeader()->setSectionHidden(5, false); // hide loaded
 
     // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST1 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
     ui->playlist1Table->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -2018,10 +2023,15 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist2Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter );
     ui->playlist2Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist2Table->verticalHeader()->setMaximumSectionSize(28);
-    ui->playlist2Table->horizontalHeader()->setSectionHidden(2, true); // hide pitch
-    ui->playlist2Table->horizontalHeader()->setSectionHidden(3, true); // hide tempo
+
+    // ui->playlist2Table->horizontalHeader()->setSectionHidden(2, true); // hide pitch
+    // ui->playlist2Table->horizontalHeader()->setSectionHidden(3, true); // hide tempo
     ui->playlist2Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
     ui->playlist2Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(2, false); // hide pitch
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(3, false); // hide tempo
+    // ui->playlist2Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
+    // ui->playlist2Table->horizontalHeader()->setSectionHidden(5, false); // hide loaded
 
     // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST2 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
     ui->playlist2Table->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -2143,10 +2153,15 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist3Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter );
     ui->playlist3Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist3Table->verticalHeader()->setMaximumSectionSize(28);
-    ui->playlist3Table->horizontalHeader()->setSectionHidden(2, true); // hide pitch
-    ui->playlist3Table->horizontalHeader()->setSectionHidden(3, true); // hide tempo
+
+    // ui->playlist3Table->horizontalHeader()->setSectionHidden(2, true); // hide pitch
+    // ui->playlist3Table->horizontalHeader()->setSectionHidden(3, true); // hide tempo
     ui->playlist3Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
     ui->playlist3Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(2, false); // hide pitch
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(3, false); // hide tempo
+    // ui->playlist3Table->horizontalHeader()->setSectionHidden(4, false); // hide fullpath
+    // ui->playlist3Table->horizontalHeader()->setSectionHidden(5, false); // hide loaded
 
     // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST3 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
     ui->playlist3Table->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -3261,8 +3276,16 @@ void MainWindow::updateSongTableColumnView()
 #ifdef DARKMODE
     ui->darkSongTable->setColumnHidden(kRecentCol,!prefsManager.GetshowRecentColumn());
     ui->darkSongTable->setColumnHidden(kAgeCol,!prefsManager.GetshowAgeColumn());
+
     ui->darkSongTable->setColumnHidden(kPitchCol,!prefsManager.GetshowPitchColumn());
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(2, !prefsManager.GetshowPitchColumn()); // as the View > Columns > Pitch changes
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(2, !prefsManager.GetshowPitchColumn()); //   so does visibility of the pitch column in the playlists
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(2, !prefsManager.GetshowPitchColumn());
+
     ui->darkSongTable->setColumnHidden(kTempoCol,!prefsManager.GetshowTempoColumn());
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(3, !prefsManager.GetshowTempoColumn()); // as the View > Columns > Tempo changes
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(3, !prefsManager.GetshowTempoColumn()); //   so does visibility of the tempo column in the playlists
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(3, !prefsManager.GetshowTempoColumn());
 
     // http://www.qtcentre.org/threads/3417-QTableWidget-stretch-a-column-other-than-the-last-one
     QHeaderView *darkHeaderView = ui->darkSongTable->horizontalHeader();
@@ -3584,6 +3607,17 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
             if (sourceForLoadedSong->item(i, 5)->text() == "1") {
                 // second, update the pitch in the playlist
                 sourceForLoadedSong->item(i,2)->setText(QString::number(currentPitch));
+
+                // and mark the playlist modified ---------------
+                int whichSlot = 0;
+                if (sourceForLoadedSong == ui->playlist2Table) {
+                    whichSlot = 1;
+                } else if (sourceForLoadedSong == ui->playlist3Table) {
+                    whichSlot = 2;
+                }
+                slotModified[whichSlot] = true; // this playlist was modified
+                playlistSlotWatcherTimer->start(std::chrono::seconds(10)); // 10 secs after last change, playlist will be written onto disk
+
                 break; // and break out of the loop (because we found the one item we were looking for)
             }
         }
@@ -3639,8 +3673,9 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
 
     // special checking for playlist ------
     if (targetNumber != "" && !loadingSong) {
+        // THIS IS FOR THE LIGHT MODE SONGTABLE ONLY
         // current song is on a playlist, AND we're not doing the initial load
-//        qDebug() << "current song is on playlist, and PITCH changed!" << targetNumber << loadingSong;
+        // qDebug() << "current song is on playlist, and PITCH changed!" << targetNumber << loadingSong;
         markPlaylistModified(true); // turn ON the * in the status bar, because a playlist entry changed its tempo
     }
 
@@ -3787,6 +3822,17 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
             if (sourceForLoadedSong->item(i, 5)->text() == "1") {
                 // second, update the pitch in the playlist
                 sourceForLoadedSong->item(i,3)->setText(tempoText);
+
+                // and mark the playlist modified ---------------
+                int whichSlot = 0;
+                if (sourceForLoadedSong == ui->playlist2Table) {
+                    whichSlot = 1;
+                } else if (sourceForLoadedSong == ui->playlist3Table) {
+                    whichSlot = 2;
+                }
+                slotModified[whichSlot] = true; // this playlist was modified
+                playlistSlotWatcherTimer->start(std::chrono::seconds(10)); // 10 secs after last change, playlist will be written onto disk
+
                 break; // and break out of the loop (because we found the one item we were looking for)
             }
         }
@@ -3843,6 +3889,7 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
 
     // special checking for playlist ------
     if (targetNumber != "" && !loadingSong) {
+        // THIS IS JUST FOR THE LIGHT MODE SONGTABLE
         // current song is on a playlist, AND we're not doing the initial load
 //        qDebug() << "current song is on playlist, and TEMPO changed!" << targetNumber << loadingSong;
         markPlaylistModified(true); // turn ON the * in the status bar, because a playlist entry changed its tempo
@@ -10719,12 +10766,16 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
 #endif
                           });
 
-        plMenu->addAction(QString("Reload '%1'").arg(relPathInSlot[whichSlot]),
-                          [this, playlistFilePath, whichSlot]() {
-//                              qDebug() << "RELOAD PLAYLIST: " << playlistFilePath;
-                              int songCount;
-                              this->loadPlaylistFromFileToPaletteSlot(playlistFilePath, whichSlot, songCount);
-                          });
+        // NOTE: RELOAD DOESN'T GET BACK TO THE ORIGINAL STATE, IF A SONG WAS LOADED FROM THAT PLAYLIST.
+        //  SO, I AM DISABLING THIS FOR NOW.  IT WAS ONLY USED FOR ONE USE CASE:
+        //  MANUAL EDITING THE FILE VIA "EDIT IN TEXT EDITOR", and THEN HIT RELOAD.
+        //  SINCE MANUAL EDITING IS INFREQUENT, JUST RESTART THE APP TO GET BACK TO A KNOWN STATE.
+//         plMenu->addAction(QString("Reload '%1'").arg(relPathInSlot[whichSlot]),
+//                           [this, playlistFilePath, whichSlot]() {
+// //                              qDebug() << "RELOAD PLAYLIST: " << playlistFilePath;
+//                               int songCount;
+//                               this->loadPlaylistFromFileToPaletteSlot(playlistFilePath, whichSlot, songCount);
+//                           });
 
         plMenu->addSeparator();
 

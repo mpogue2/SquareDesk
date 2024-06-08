@@ -1239,7 +1239,7 @@ QString AudioDecoder::runVamp(QString whichModule, QString WAVfilename, QString 
         vamp.start(pathNameToVamp, QStringList() << "-s" << "qm-vamp-plugins:qm-barbeattracker" << WAVfilename << "-o" << resultsFilename);
 
         if (vamp.waitForStarted()) {
-            qDebug() << "beatbardetect process started successfully.";
+            // qDebug() << "beatbardetect process started successfully.";
         } else {
             qDebug() << "beatbardetect process didn't start successfully.";
         }
