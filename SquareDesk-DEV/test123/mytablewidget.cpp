@@ -438,9 +438,12 @@ bool MyTableWidget::removeSelectedItems() {
                 row = rowCount()-1;
             }
 
-            // qDebug() << "SELECTING AND SCROLLING TO ROW:" << row;
-            selectRow(row);    // select it
+            qDebug() << "SELECTING AND SCROLLING TO ROW:" << row;
+            qDebug() << "BEFORE selected rows: " << selectionModel()->selectedRows() << row;
+            // selectRow(row);    // select it
+            setCurrentIndex(model()->index(row, 0));
             scrollToItem(item(row-1, 0)); // EnsureVisible for the row that was deleted, OR last row in table
+            qDebug() << "AFTER selected rows: " << selectionModel()->selectedRows() << row;
         }
         return true;
     } else {
@@ -474,8 +477,14 @@ bool MyTableWidget::removeSelectedItems() {
 
             removeRow(rowCount()-1);      // and remove the last row
         }
-        selectRow(0); // we are done deleting all the rows, so select first row (what would be better?)
-        scrollToItem(item(0, 0));     // EnsureVisible for the first row in the table
+
+        int firstrowaffected = rows.at(rows.count()-1);
+        qDebug() << "firstrowaffected: " << firstrowaffected;
+        setCurrentIndex(model()->index(firstrowaffected, 0));
+        scrollToItem(item(firstrowaffected, 0));     // EnsureVisible for the first row in the table
+
+        // selectRow(0); // we are done deleting all the rows, so select first row (what would be better?)
+        // scrollToItem(item(0, 0));     // EnsureVisible for the first row in the table
 
         return true; // yeah, we handled this
     }
