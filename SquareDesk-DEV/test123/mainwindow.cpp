@@ -11041,7 +11041,9 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
     //  let's find the row numbers
     QList<int> selectedRows;
     foreach (const QModelIndex &mi, ui->darkSongTable->selectionModel()->selectedRows()) {
-        selectedRows.append(mi.row());
+        if (!ui->darkSongTable->isRowHidden(mi.row())) {
+            selectedRows.append(mi.row());
+        }
     }
     int rowCount = selectedRows.count();
     // qDebug() << "rows selected: " << selectedRows;
@@ -11194,6 +11196,13 @@ void MainWindow::darkAddPlaylistItemsToBottom(int whichSlot) { // slot is 0 - 2
 
         QString theFullPath = ui->darkSongTable->item(row, kPathCol)->data(Qt::UserRole).toString();
         // qDebug() << "darkPlaylistItemToBottom will add THIS: " << whichSlot << theFullPath;
+
+        if (ui->darkSongTable->isRowHidden(row)) {
+            // qDebug() << "SLOT " << whichSlot << ", ROW" << row << "IS HIDDEN: " << theFullPath;
+            continue;
+        } else {
+            // qDebug() << "SLOT " << whichSlot << ", ROW" << row << "WILL BE ADDED: " << theFullPath;
+        }
 
         // make a new row, after all the other ones
         theTableWidget->insertRow(theTableWidget->rowCount()); // always make a new row

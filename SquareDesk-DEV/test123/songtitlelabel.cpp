@@ -88,6 +88,14 @@ void darkSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
         }
         title.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if filename contains HTML encoded chars, put originals back
 
+        if (theTable->isRowHidden(sourceRow)) {
+            // don't allow drag and drop for rows that are not visible!  This only is a problem for darkSongTable, which may have filters applied.
+            // qDebug() << "no drag and drop for you: " << sourceRow << title;
+            continue;
+        } else {
+            // qDebug() << "drag and drop is OK for you: " << sourceRow << title;
+        }
+
         QString sourceName = "darkSongTable";
 
         QString sourceTrackName = theTable->item(sourceRow, kLabelCol)->text() + " - " + title; // e.g. "ESP 1234 - Ricochet"

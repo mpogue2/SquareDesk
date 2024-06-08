@@ -479,7 +479,7 @@ bool MyTableWidget::removeSelectedItems() {
         }
 
         int firstrowaffected = rows.at(rows.count()-1);
-        qDebug() << "firstrowaffected: " << firstrowaffected;
+        // qDebug() << "firstrowaffected: " << firstrowaffected;
         setCurrentIndex(model()->index(firstrowaffected, 0));
         scrollToItem(item(firstrowaffected, 0));     // EnsureVisible for the first row in the table
 
@@ -656,11 +656,20 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
 
             QString title = dynamic_cast<QLabel*>(this->cellWidget(sourceRow, kTitleCol))->text();
             title.replace(spanPrefixRemover2, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
+
             int where = title.indexOf(title_tags_remover2);
             if (where >= 0) {
                 title.truncate(where);
             }
             title.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if filename contains HTML encoded chars, put originals back
+
+            if (isRowHidden(sourceRow)) {
+                // don't allow drag and drop for rows that are not visible!  This only is a problem for darkSongTable, which may have filters applied.
+                // qDebug() << "no drag and drop for you: " << sourceRow << title;
+                continue;
+            } else {
+                // qDebug() << "drag and drop is OK for you: " << sourceRow << title;
+            }
 
             QString sourceName = objectName();
 
