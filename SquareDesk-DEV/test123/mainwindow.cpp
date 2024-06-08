@@ -2496,7 +2496,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     }
 
     // Hide the Dance Programs tab (we might do something else later) -----
-    ui->tabWidget->setTabVisible(4, false);  // hide the DANCE PROGRAMS tab for now
+    // ui->tabWidget->setTabVisible(4, false);  // hide the DANCE PROGRAMS tab for now
 
     // -------------------------------
     if (!darkmode) {
