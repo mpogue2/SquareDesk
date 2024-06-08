@@ -2537,6 +2537,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 #ifdef NOPLAYLISTMENU
         ui->menuPlaylist->menuAction()->setVisible(false); // Menu Bar > Playlist not relevant in Dark Mode
 #endif
+        updateSongTableColumnView();
     }
 
     stopLongSongTableOperation("MainWindow");
@@ -3289,7 +3290,7 @@ void MainWindow::updateSongTableColumnView()
 
     // http://www.qtcentre.org/threads/3417-QTableWidget-stretch-a-column-other-than-the-last-one
     QHeaderView *darkHeaderView = ui->darkSongTable->horizontalHeader();
-    darkHeaderView->setSectionResizeMode(kNumberCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kNumberCol, QHeaderView::Fixed);
     darkHeaderView->setSectionResizeMode(kTypeCol, QHeaderView::Interactive);
     darkHeaderView->setSectionResizeMode(kLabelCol, QHeaderView::Interactive);
     darkHeaderView->setSectionResizeMode(kTitleCol, QHeaderView::Stretch);
