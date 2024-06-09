@@ -433,7 +433,7 @@ copydata3.commands = $(COPY) $$PWD/allcalls.csv     $$OUT_PWD/SquareDesk.app/Con
 copydata4s.commands = $(COPY) $$PWD/abbrevs.txt     $$OUT_PWD/SquareDesk.app/Contents/Resources
 
 # SquareDesk Manual (PDF)
-copydata2b.commands = $(COPY) $$PWD/docs/SquareDeskManual.0.9.1.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources/squaredesk.pdf
+# copydata2b.commands = $(COPY) $$PWD/docs/SquareDeskManual.0.9.1.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources/squaredesk.pdf
 
 # NOTE: If we get an error here, that MacOS already exists, it's probably because we just switched to a new version of
 #  Qt, and we have a new build directory, and within that build directory we have a new squaredesk.app/Contents,
@@ -494,7 +494,7 @@ macx {
     QT += multimedia
 
     # first.depends = $(first) copydata1dir copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4s installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
-    first.depends += copydata1dir copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4s installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
+    first.depends += copydata1dir copydata0a copydata0b copydata0c copydata1 copydata2 copydata3 copydata4s installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
 
     # lyrics and patter templates
     export(copydata0a.commands)
@@ -505,11 +505,11 @@ macx {
     export(copydata1dir.commands)
     export(copydata1.commands)
     export(copydata2.commands)
-    export(copydata2b.commands)
+    # export(copydata2b.commands)
     export(copydata3.commands)
     export(copydata4s.commands)
 
-    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1dir copydata1 copydata2 copydata2b copydata3 copydata4s
+    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1dir copydata1 copydata2 copydata3 copydata4s
 
     # For the PDF viewer -----------------
     copydata1p.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified

@@ -9341,26 +9341,26 @@ void MainWindow::maybeInstallReferencefiles() {
             QFile::copy(source, destination);
         }
 
-        // ---------------
-        // and populate it with the SquareDesk doc, if it didn't exist (somewhere) already
-        bool hasSDESKpdf = false;
-        QDirIterator it2(referenceDir);
-        while(it2.hasNext()) {
-            QString s2 = it2.next();
-            QString s1 = it2.fileName();
-            // if 123.SDESK.pdf or SDESK.pdf, then do NOT copy one in as 190.SDESK.pdf
-            static QRegularExpression re12("^[0-9]+\\.SDESK.pdf");
-            static QRegularExpression re13("^SDESK.pdf");
-            if (s1.contains(re12) || s1.contains(re13)) {
-               hasSDESKpdf = true;
-            }
-        }
+        // // ---------------
+        // // and populate it with the SquareDesk doc, if it didn't exist (somewhere) already
+        // bool hasSDESKpdf = false;
+        // QDirIterator it2(referenceDir);
+        // while(it2.hasNext()) {
+        //     QString s2 = it2.next();
+        //     QString s1 = it2.fileName();
+        //     // if 123.SDESK.pdf or SDESK.pdf, then do NOT copy one in as 190.SDESK.pdf
+        //     static QRegularExpression re12("^[0-9]+\\.SDESK.pdf");
+        //     static QRegularExpression re13("^SDESK.pdf");
+        //     if (s1.contains(re12) || s1.contains(re13)) {
+        //        hasSDESKpdf = true;
+        //     }
+        // }
 
-        if (!hasSDESKpdf) {
-            QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToResources + "/squaredesk.pdf";
-            QString destination = referenceDir + "/190.SDESK.pdf";
-            QFile::copy(source, destination);
-        }
+        // if (!hasSDESKpdf) {
+        //     QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToResources + "/squaredesk.pdf";
+        //     QString destination = referenceDir + "/190.SDESK.pdf";
+        //     QFile::copy(source, destination);
+        // }
     #endif
 
 }
@@ -10291,32 +10291,8 @@ void MainWindow::handleDurationBPM() {
 
 void MainWindow::on_actionSquareDesk_Help_triggered()
 {
-    QString musicDirPath = prefsManager.GetmusicPath();
-    QString referenceDir = musicDirPath + "/reference";
-
-    // ---------------
-    // Find something that looks like the SquareDesk doc (we probably copied it there)
-    bool hasSDESKpdf = false;
-    QString pathToSquareDeskDoc;
-
-    QDirIterator it2(referenceDir);
-    while(it2.hasNext()) {
-        it2.next();
-        QString s1 = it2.fileName();
-        // if 123.SDESK.pdf or SDESK.pdf, then do NOT copy one in as 190.SDESK.pdf
-        static QRegularExpression re12("^[0-9]+\\.SDESK.pdf");
-        static QRegularExpression re13("^SDESK.pdf");
-        if (s1.contains(re12) || s1.contains(re13)) {
-           hasSDESKpdf = true;
-           pathToSquareDeskDoc = QString("file://") + referenceDir + "/" + s1;
-           break;
-        }
-    }
-
-    if (hasSDESKpdf) {
-//        qDebug() << "FOUND SQUAREDESK DOC:" << pathToSquareDeskDoc;
-        QDesktopServices::openUrl(QUrl(pathToSquareDeskDoc, QUrl::TolerantMode));
-    }
+    QString linkToQuickReference = "https://github.com/mpogue2/SquareDesk/wiki/SquareDesk-Quick-Reference-Manual";
+    QDesktopServices::openUrl(QUrl(linkToQuickReference));
 }
 
 void MainWindow::on_actionSD_Help_triggered()
