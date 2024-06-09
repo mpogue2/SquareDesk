@@ -597,6 +597,14 @@ static QRegularExpression spanPrefixRemover2("<span style=\"color:.*\">(.*)</spa
 
 void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
 {
+    // qDebug() << "mouseMoveEvent";
+    if (mw != nullptr) {
+        // qDebug() << "auditionInProgress: " << ((MainWindow *)mw)->auditionInProgress;
+        if (((MainWindow *)mw)->auditionInProgress) {
+            return;  // return, if one of the audition buttons is being held down, do NOT do drag and drop in this case
+        }
+    }
+
     if (!(event->buttons() & Qt::LeftButton)) {
         return; // return if not left button down and move
     }

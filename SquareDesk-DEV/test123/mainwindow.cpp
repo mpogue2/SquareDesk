@@ -1874,6 +1874,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkSongTable->resizeColumnToContents(kPitchCol);
     ui->darkSongTable->resizeColumnToContents(kTempoCol);
 
+    ui->darkSongTable->setMainWindow(this);
+
     // PLAYLISTS:
     ui->playlist1Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
     ui->playlist1Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers_2023.09.20");
@@ -2539,6 +2541,15 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 #endif
         updateSongTableColumnView();
     }
+
+    auditionInProgress = false;
+    auditionSingleShotTimer.setSingleShot(true);
+    connect(&auditionSingleShotTimer, &QTimer::timeout, this,
+            [this]() {
+        // if the timer ever times out, it will set auditionInProgress to false;
+        // qDebug() << "setting auditionInProgress to false";
+        auditionInProgress = false;
+    });
 
     stopLongSongTableOperation("MainWindow");
 }
@@ -5534,6 +5545,7 @@ bool MainWindow::handleKeypress(int key, QString text)
             }
 #ifdef DARKMODE
             else if (ui->darkSearch->hasFocus() || ui->darkSongTable->hasFocus()) {
+            // else if (ui->darkSearch->hasFocus() || (darkSelectedSongRow() > 0)) {
                 // also now allow pressing Return to load, if darkSongTable or darkSearch field have focus
                 int row = darkSelectedSongRow();
                 if (row < 0) {
@@ -6905,7 +6917,7 @@ void MainWindow::darkLoadMusicList()
     ui->darkSongTable->setColumnCount(8);
 
     QStringList m_TableHeader;
-    m_TableHeader << "#" << "Type" << "Label" << "Title" << "Recent" << "Age" << "Pitch" << "Tempo";
+    m_TableHeader << "" << "Type" << "Label" << "Title" << "Recent" << "Age" << "Pitch" << "Tempo";
     ui->darkSongTable->setHorizontalHeaderLabels(m_TableHeader);
     ui->darkSongTable->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
     ui->darkSongTable->horizontalHeader()->setVisible(true);
@@ -6980,17 +6992,64 @@ void MainWindow::darkLoadMusicList()
         QBrush textBrush(textCol); // make a brush for most of the widgets
 
         // PLAYLIST HANDLING -----
+        // NOTE: PLAYLISTS NOT IN DARK SONG TABLE!
         // look up origPath in the path2playlistNum map, and reset the s2 text to the user's playlist # setting (if any)
-        QString s2("");
-        if (path2playlistNum.contains(origPath)) {
-            s2 = path2playlistNum[origPath];
-        }
-        TableNumberItem *newTableItem4 = new TableNumberItem(s2);
+        // QString s2("");
+        // if (path2playlistNum.contains(origPath)) {
+        //     s2 = path2playlistNum[origPath];
+        // }
+        // TableNumberItem *newTableItem4 = new TableNumberItem(s2);
 
-        newTableItem4->setTextAlignment(Qt::AlignCenter);
-        newTableItem4->setForeground(textCol);
-        // # items are editable by default
-        ui->darkSongTable->setItem(i, kNumberCol, newTableItem4);
+        // newTableItem4->setTextAlignment(Qt::AlignCenter);
+        // newTableItem4->setForeground(textCol);
+        // // # items are editable by default
+        // ui->darkSongTable->setItem(i, kNumberCol, newTableItem4);
+
+        // # COLUMN IS NOW USED FOR AUDITION BUTTONS -----
+        QTableWidgetItem *auditionItem = new QTableWidgetItem();
+
+        QPushButton *auditionButton = new QPushButton();
+        auditionButton->setFlat(true);
+
+        connect(auditionButton, &QPushButton::pressed, this,
+                [this]() {
+                    auditionSingleShotTimer.stop();
+                    auditionInProgress = true;
+                    // qDebug() << "setting auditionInProgress to true";
+                    QModelIndexList list = this->ui->darkSongTable->selectionModel()->selectedRows();
+                    int row = list.at(0).row();
+                    QString origPath = this->ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+                    // qDebug() << "QPushButton pressed, row:" << row << origPath;
+
+                    this->auditionPlayer.setSource(QUrl::fromLocalFile(origPath));
+                    QAudioOutput *audioOutput = new QAudioOutput; // always update the output device, based on the CURRENT default audio device
+                    this->auditionPlayer.setAudioOutput(audioOutput);
+                    this->auditionPlayer.play();
+                });
+
+        connect(auditionButton, &QPushButton::released, this,
+                [this]() {
+                    // QModelIndexList list = this->ui->darkSongTable->selectionModel()->selectedRows();
+                    // int row = list.at(0).row();
+                    // QString origPath = this->ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+                    // qDebug() << "QPushButton released, row:" << row << origPath;
+                    this->auditionPlayer.stop();
+                    this->ui->darkSongTable->setFocus(); // just released a button, so set focus back to the darkSongTable
+
+                    auditionSingleShotTimer.start(1000);
+                    // qDebug() << "KLUDGE: setting auditionInProgress to false 1000 ms in the future";
+                    //  While this is kludgey, I'm not sure that there's an alternative.  If you press an audition button,
+                    //  and move off the button (with Left Mouse Button still down), it will initiate a drag and drop, which
+                    //  we do not want.  This timer gives you one second to let the left button up, before a drag and drop is inferred.
+                    //  In my testing, that seemed about right.  No false drag and drops, but normal drag and drop still works as expected.
+                });
+
+        // auditionButton->setMaximumSize(QSize(14,14));
+        QIcon playbackIcon = QIcon::fromTheme(QIcon::ThemeIcon::MultimediaPlayer);
+        auditionButton->setIcon(playbackIcon);
+
+        ui->darkSongTable->setItem(i, kNumberCol, auditionItem);
+        ui->darkSongTable->setCellWidget(i, kNumberCol, auditionButton);
 
         // TYPE FIELD -----
         QTableWidgetItem *twi1 = new QTableWidgetItem(type);

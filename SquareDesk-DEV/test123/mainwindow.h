@@ -244,6 +244,10 @@ public:
     void stopSFX();
     void playSFX(QString which);
 
+    QMediaPlayer auditionPlayer;
+    bool auditionInProgress;
+    QTimer auditionSingleShotTimer;
+
     // ERROR LOGGING...
     static void customMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
     static void customMessageOutputQt(QtMsgType type, const QMessageLogContext &context, const QString &msg);
