@@ -1700,6 +1700,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     if (darkmode) {
         if (ui->darkSongTable->rowCount() >= 1) {
             ui->darkSongTable->selectRow(0); // select row 1 after initial load of the songTable (if there are rows)
+            ui->darkSearch->setFocus();
         }
     } else {
         if (ui->songTable->rowCount() >= 1) {
@@ -5608,6 +5609,7 @@ bool MainWindow::handleKeypress(int key, QString text)
             }
 #ifdef DARKMODE
             else if (ui->darkSearch->hasFocus() || ui->darkSongTable->hasFocus()) {
+                bool searchHasFocus = ui->darkSearch->hasFocus();
                 if (key == Qt::Key_Up) {
                     int row = darkPreviousVisibleSongRow();
                     if (row < 0) {
@@ -5623,6 +5625,13 @@ bool MainWindow::handleKeypress(int key, QString text)
                     }
                     ui->darkSongTable->selectRow(row); // select new row!
                 }
+                // now restore focus after selectRow()
+                if (searchHasFocus) {
+                    ui->darkSearch->setFocus();
+                } else {
+                    ui->darkSongTable->setFocus();
+                }
+
             } else if (ui->playlist1Table->hasFocus() || ui->playlist2Table->hasFocus() || ui->playlist3Table->hasFocus()) {
 //                qDebug() << "PLAYLIST HAS FOCUS, and UP/DOWN pressed...";
                 if (key == Qt::Key_Up) {
@@ -6639,6 +6648,7 @@ void MainWindow::darkFilterMusic()
         // qDebug() << "good select row!";
         ui->darkSongTable->selectRow(firstVisibleRow);
     }
+    ui->darkSearch->setFocus();  // restore focus after selectRow
 
     t.stop();
 
@@ -7172,7 +7182,14 @@ void MainWindow::darkLoadMusicList()
 
     ui->darkSongTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->darkSongTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    bool searchHasFocus = ui->darkSearch->hasFocus();
+    bool darkSongTableHasFocus = ui->darkSongTable->hasFocus();
     ui->darkSongTable->selectRow(0);
+    if (searchHasFocus) {
+        ui->darkSearch->setFocus();
+    } else if (darkSongTableHasFocus) {
+        ui->darkSongTable->setFocus();
+    }
 
     ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
 
