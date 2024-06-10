@@ -99,6 +99,9 @@ int MainWindow::processOneFile(const QString &fn) {
     QFileInfo finfo(WAVfilename);
     QString WAVfiledir = finfo.absolutePath();
 
+    // qDebug() << "WAVfiledir (results go here): " << WAVfiledir;
+    QDir().mkpath(WAVfiledir); // make sure that the results folder exists, e.g. .squaredesk/bulk/patter/RIV 123 - foo.results.txt
+
     QFileInfo resultsFileinfo(resultsFilename);
     if (resultsFileinfo.exists() && resultsFileinfo.size() > 10) {
         // file needs to exist AND it needs to have stuff in it, otherwise we're going to reprocess it.
@@ -117,7 +120,6 @@ int MainWindow::processOneFile(const QString &fn) {
     if (resolvedFilePath != "") {
         // qDebug() << "REAL FILE IS HERE:" << fn << resolvedFilePath;
     }
-
 
     // LOAD TO MEMORY -----------
     mp3dec_t mp3d;
@@ -209,21 +211,23 @@ int MainWindow::processOneFile(const QString &fn) {
     QTemporaryFile tempResultsfile;           // use a temporary file for results, then copy to resultsFilename, if all goes well
     bool errOpen2 = tempResultsfile.open();   // this creates the results file in the temp directory
     tempResultsfile.setAutoRemove(true);      // remove it when we leave scope
-    // tempResultsfile.setAutoRemove(false);      // DEBUG remove it when we leave scope
+    // tempResultsfile.setAutoRemove(false);      // DEBUG DO NOT remove it when we leave scope
 
     if (!errOpen2) {
         free(info.buffer); // done with that memory, so free it
         return(-4);
     }
 
-    // qDebug() << "tempResultsFile: " << tempResultsfile.fileName();
+     // qDebug() << "tempResultsFile: " << tempResultsfile.fileName();
 
     QProcess vampSegment;
     // qDebug() << "EXECUTING: " << pathNameToVamp << "segmentino::segmentino" << WAVfilename << "-o" << tempResultsfile.fileName();
 
     vampSegment.setWorkingDirectory(QCoreApplication::applicationDirPath()); // MUST set this, or it won't run
-    // vampSegment.setStandardOutputFile("/Users/mpogue/segmentDetect.so.txt");   // DEBUG
-    // vampSegment.setStandardErrorFile("/Users/mpogue/segmentDetect.se.txt");    // DEBUG
+    // // vampSegment.setStandardOutputFile("/Users/mpogue/segmentDetect.so.txt");   // DEBUG
+    // // vampSegment.setStandardErrorFile("/Users/mpogue/segmentDetect.se.txt");    // DEBUG
+    // vampSegment.setStandardOutputFile(musicRootPath + "/.squaredesk/bulk/segmentDetect.so.txt");   // DEBUG
+    // vampSegment.setStandardErrorFile(musicRootPath + "/.squaredesk/bulk/segmentDetect.se.txt");   // DEBUG
 
     vampSegment.start(pathNameToVamp, QStringList() << "segmentino:segmentino" << WAVfilename << "-o" << tempResultsfile.fileName()); // intentionally no "-s", to get results as float seconds
     // vampSegment.waitForFinished(5*60000);  // SYNCHRONOUS -- wait for process to be done, max 5 minutes.  Don't start another one until this one is done.
@@ -269,6 +273,8 @@ int MainWindow::processOneFile(const QString &fn) {
 
     QFile::copy(tempResultsfile.fileName(), resultsFilename);  // copy it (source file will be auto-deleted
 
+    // qDebug() << "Copy done.";
+
     // CLEANUP -----------
     free(info.buffer); // done with that memory, so free it
 
@@ -284,7 +290,6 @@ int MainWindow::processOneFile(const QString &fn) {
     mp3ResultsLock.unlock();
 
     // qDebug() << "mp3Results WITH ADD: " << mp3Results;
-
     // qDebug() << "finished: " << fn;
 
     return(resultCode);

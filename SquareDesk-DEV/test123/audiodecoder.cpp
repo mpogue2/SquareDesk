@@ -1470,17 +1470,17 @@ int AudioDecoder::beatBarDetection() {
             t->elapsed(__LINE__);
 
 #if USETEMPFILES==1
-            // // delete the temp files
-            // QFile WAVfile(WAVfilename);
-            // if (!WAVfile.remove()) {
-            //     qDebug() << "ERROR: Had trouble removing the WAV file:" << WAVfile.fileName();
-            //     return; // ERROR from lambda
-            // }
+            // delete the temp files
+            QFile WAVfile(WAVfilename);
+            if (!WAVfile.remove()) {
+                qDebug() << "ERROR: Had trouble removing the WAV file:" << WAVfile.fileName();
+                return; // ERROR from lambda
+            }
 
-            // if (!resultsFile.remove()) {
-            //     qDebug() << "ERROR: Had trouble removing the RESULTS file:" << resultsFile.fileName();
-            //     return; // ERROR from lambda
-            // }
+            if (!resultsFile.remove()) {
+                qDebug() << "ERROR: Had trouble removing the RESULTS file:" << resultsFile.fileName();
+                return; // ERROR from lambda
+            }
 #endif
             t->elapsed(__LINE__);
         } else {
