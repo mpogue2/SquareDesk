@@ -167,11 +167,11 @@ int MainWindow::processOneFile(const QString &fn) {
 
     // qDebug() << "path,dir" << WAVfilename << WAVfiledir;
 
-    // if the bulk directory doesn't exist, create it
-    QDir dir(WAVfiledir);
-    if (!dir.exists()) {
-        dir.mkpath(".");
-    }
+    // // if the bulk directory doesn't exist, create it
+    // QDir dir(WAVfiledir);
+    // if (!dir.exists()) {
+    //     dir.mkpath(".");
+    // }
 
     // write WAV file to .squaredesk/bulk folder (e.g. .../patter/filename.wav)
 

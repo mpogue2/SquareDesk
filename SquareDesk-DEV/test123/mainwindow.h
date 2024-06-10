@@ -1201,6 +1201,9 @@ private:
     void maybeInstallSoundFX();
     void maybeInstallReferencefiles();
 
+    void maybeMakeRequiredFolder(QString folderName);  // make it, if it doesn't already exist
+    void maybeMakeAllRequiredFolders();                // make them all, if they doesn't already exist
+
     int totalZoom;  // total zoom for Lyrics pane, so it can be undone with a Reset Zoom
 
 //    QElapsedTimer t1; //, t2;  // used for simple timing operations

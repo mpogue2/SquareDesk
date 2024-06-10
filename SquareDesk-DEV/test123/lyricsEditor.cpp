@@ -939,15 +939,15 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
 }
 
 void MainWindow::maybeLoadCSSfileIntoTextBrowser() {
-    // makes the /lyrics directory, if it doesn't exist already
-    QString musicDirPath = prefsManager.GetmusicPath();
-    QString lyricsDir = musicDirPath + "/lyrics";
+    // // makes the /lyrics directory, if it doesn't exist already
+    // QString musicDirPath = prefsManager.GetmusicPath();
+    // QString lyricsDir = musicDirPath + "/lyrics";
 
-    // if the lyrics directory doesn't exist, create it
-    QDir dir(lyricsDir);
-    if (!dir.exists()) {
-        dir.mkpath(".");
-    }
+    // // if the lyrics directory doesn't exist, create it
+    // QDir dir(lyricsDir);
+    // if (!dir.exists()) {
+    //     dir.mkpath(".");
+    // }
 
     // ------------------------------------------------------------------
     // NOTE: For correct operation of the Lyrics editor, the colors must be distinct from each other

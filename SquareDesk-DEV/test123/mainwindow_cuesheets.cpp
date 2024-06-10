@@ -832,8 +832,8 @@ void MainWindow::downloadCuesheetFileIfNeeded(QString cuesheetFilename) {
     //    QString tempDirPath = "/Users/mpogue/clean4";
     QString destinationFolder = musicDirPath + "/lyrics/downloaded/";
 
-    QDir dir(musicDirPath);
-    dir.mkpath("lyrics/downloaded");    // make sure that the destination path exists (including intermediates)
+    // QDir dir(musicDirPath);
+    // dir.mkpath("lyrics/downloaded");    // make sure that the destination path exists (including intermediates)
 
     QFile file(destinationFolder + cuesheetFilename);
     QFileInfo fileinfo(file);

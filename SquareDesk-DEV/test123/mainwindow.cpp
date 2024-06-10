@@ -685,6 +685,11 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     musicRootPath = prefsManager.GetmusicPath();      // defaults to ~/squareDeskMusic at very first startup
 
+    // make required folders in the MusicDir, if and only if they are not there already --------
+    t.elapsed(__LINE__);
+    maybeMakeAllRequiredFolders();
+    t.elapsed(__LINE__);
+
     // SD ------
     readAbbreviations();
 
@@ -737,10 +742,10 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    QDir dir(musicRootPath + "/lyrics/downloaded");
-    if (!dir.exists()) {
-        dir.mkpath(".");
-    }
+    // QDir dir(musicRootPath + "/lyrics/downloaded");
+    // if (!dir.exists()) {
+    //     dir.mkpath(".");
+    // }
 
     // ---------------------------------------
     t2.elapsed(__LINE__);
@@ -7289,10 +7294,10 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
     {
         QString referencePath = musicRootPath + "/reference";
         QDir outputDir(referencePath);
-        if (!outputDir.exists())
-        {
-            outputDir.mkpath(".");
-        }
+        // if (!outputDir.exists())
+        // {
+        //     outputDir.mkpath(".");
+        // }
 
         addToProgramsAndWriteTextFile(programs, outputDir, "010.basic1.txt",    danceprogram_basic1);
         addToProgramsAndWriteTextFile(programs, outputDir, "020.basic2.txt",    danceprogram_basic2);
@@ -7627,15 +7632,42 @@ void MainWindow::on_actionPreferences_triggered()
 //            qDebug() << "MUSIC ROOT PATH CHANGED!";
             // before we actually make the change to the music root path,
 
+#ifdef DARKMODE
+            // check for unsaved playlists that have been modified, and ask to Save As... each one in turn
+            for (int i = 0; i < 3; i++) {
+                if (!maybeSavePlaylist(i)) {
+                    //        qDebug() << "closeEvent ignored, because user cancelled.";
+                    continue; // even if CANCELed, we'll ask for each one (this is non-optimal, but OK for this use case, which is rare)
+                }
+            }
+#endif
+            clearSlot(0);    // then clear out the slot, mark not modified, and no relPathInSlot
+            clearSlot(1);    // then clear out the slot, mark not modified, and no relPathInSlot
+            clearSlot(2);    // then clear out the slot, mark not modified, and no relPathInSlot
+
+            // and do NOT reload these slots when app restarts
+            prefsManager.SetlastPlaylistLoaded("");
+            prefsManager.SetlastPlaylistLoaded2("");
+            prefsManager.SetlastPlaylistLoaded3("");
+
+            // if the cuesheet was edited, allow last minute save
+            maybeSaveCuesheet(2);  // 2 options: don't save or save, no cancel
+
             // 1) release the lock on the old music directory (if it exists), before we change the music root path
             clearLockFile(oldMusicRootPath);
+
+            musicRootPath = prefsManager.GetmusicPath(); // FROM HERE ON IN, IT'S THE NEW MUSICDIR ---------
 
             // 2) take a lock on the new music directory
             checkLockFile();
 
-            // 3) TODO: clear out the lyrics
-            // 4) TODO: clear out the reference tab
-            // 5) TODO: load the reference material from the new musicDirectory
+            maybeMakeAllRequiredFolders(); // make all the required folders (if needed) in the NEW musicDir
+
+            maybeInstallSoundFX();
+            maybeInstallReferencefiles();
+
+            // 3) TODO: clear out the cuesheet from the UI
+            // 4) TODO: clear out the reference tab from the UI and reload
         }
 
         // USER SAID "OK", SO HANDLE THE UPDATED PREFS ---------------
@@ -9314,11 +9346,11 @@ void MainWindow::maybeInstallReferencefiles() {
         QString musicDirPath = prefsManager.GetmusicPath();
         QString referenceDir = musicDirPath + "/reference";
 
-        // if the reference directory doesn't exist, create it (always, automatically)
-        QDir dir(referenceDir);
-        if (!dir.exists()) {
-            dir.mkpath(".");  // make it
-        }
+        // // if the reference directory doesn't exist, create it (always, automatically)
+        // QDir dir(referenceDir);
+        // if (!dir.exists()) {
+        //     dir.mkpath(".");  // make it
+        // }
 
         // ---------------
         // and populate it with the SD doc, if it didn't exist (somewhere) already
@@ -9381,11 +9413,11 @@ void MainWindow::maybeInstallSoundFX() {
     QString musicDirPath = prefsManager.GetmusicPath();
     QString soundfxDir = musicDirPath + "/soundfx";
 
-    // if the soundfx directory doesn't exist, create it (always, automatically)
-    QDir dir(soundfxDir);
-    if (!dir.exists()) {
-        dir.mkpath(".");  // make it
-    }
+    // // if the soundfx directory doesn't exist, create it (always, automatically)
+    // QDir dir(soundfxDir);
+    // if (!dir.exists()) {
+    //     dir.mkpath(".");  // make it
+    // }
 
     // and populate it with the starter set, if it didn't exist already
     // check for break_over.mp3 and copy it in, if it doesn't exist already
@@ -11605,4 +11637,39 @@ void MainWindow::on_actionNormalize_Track_Audio_toggled(bool checked)
     if (cBass->GetWholeTrackPeak() != 1.0) {
         ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case it was a singing call
     }
+}
+
+// ===================================================================================================
+// make folderName as a subfolder of musicRootPath, if and only if it doesn't already exist
+//  NOTE: folderName does NOT have a leading slash
+void MainWindow::maybeMakeRequiredFolder(QString folderName) {
+    if (musicRootPath == "") {
+        // a bit of error checking, just in case...
+        return;
+    }
+
+    QString fullPathToDir = musicRootPath + "/" + folderName;
+
+    // if the directory doesn't exist, create it)
+    QDir dir(fullPathToDir);
+    if (!dir.exists()) {
+        qDebug() << "Required folder created: " << folderName;
+        dir.mkpath(".");  // make it
+    }
+}
+
+void MainWindow::maybeMakeAllRequiredFolders() {
+    maybeMakeRequiredFolder(".squaredesk");
+    maybeMakeRequiredFolder(".squaredesk/bulk");
+    maybeMakeRequiredFolder("lyrics");
+    maybeMakeRequiredFolder("lyrics/downloaded");
+    maybeMakeRequiredFolder("patter");
+    maybeMakeRequiredFolder("playlists");
+    maybeMakeRequiredFolder("reference");
+    maybeMakeRequiredFolder("sd");
+    maybeMakeRequiredFolder("sd/dances");
+    maybeMakeRequiredFolder("singing");
+    maybeMakeRequiredFolder("soundfx");
+    maybeMakeRequiredFolder("vocals");
+    maybeMakeRequiredFolder("xtras");
 }
