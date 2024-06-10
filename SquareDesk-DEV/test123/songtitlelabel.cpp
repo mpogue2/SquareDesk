@@ -201,8 +201,11 @@ void darkPaletteSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
     Q_UNUSED(dropAction)
 }
 
+#define ENABLESTRIKETHROUGH 0
+
 // true = song was used recently (Recent == "*")
 void darkSongTitleLabel::setSongUsed(bool b) {
+#if ENABLESTRIKETHROUGH==1
     // qDebug() << "setSongUsed: current text =" << this->text() << songUsed << b;
 
     // QString strikethrough("text-decoration:line-through;background-color:#00FF00;");
@@ -226,12 +229,13 @@ void darkSongTitleLabel::setSongUsed(bool b) {
         }
         this->setText(currentText); // revised text, WITH strikethrough
     }
-
+#endif
     songUsed = b;
 }
 
 // true = song was used recently (Recent == "*")
 void darkPaletteSongTitleLabel::setSongUsed(bool b) {
+#if ENABLESTRIKETHROUGH==1
     // qDebug() << "PALETTE setSongUsed: current text =" << text() << songUsed << b;
 
     // QString strikethrough("text-decoration:line-through;background-color:#00FF00;");
@@ -255,7 +259,7 @@ void darkPaletteSongTitleLabel::setSongUsed(bool b) {
         }
         setText(currentText); // revised text, WITH strikethrough
     }
-
+#endif
     songUsed = b;
 }
 
