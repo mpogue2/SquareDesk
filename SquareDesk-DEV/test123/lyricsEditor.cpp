@@ -1009,12 +1009,12 @@ QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
 }
 
 // LOAD A CUESHEET INTO THE EDITOR -------------------------------------------
-void MainWindow::loadCuesheet(const QString &cuesheetFilename)
+void MainWindow::loadCuesheet(const QString cuesheetFilename)
 {
-//    qDebug() << "loadCuesheet: " << cuesheetFilename;
-    loadedCuesheetNameWithPath = ""; // nothing loaded yet
+    qDebug() << "loadCuesheet: " << cuesheetFilename;
+    //loadedCuesheetNameWithPath = ""; // nothing loaded yet
 
-    QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));
+    // QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));
     if (cuesheetFilename.endsWith(".txt", Qt::CaseInsensitive)) {
         // text files are read in, converted to HTML, and sent to the Lyrics tab --------
         QFile f1(cuesheetFilename);
@@ -1064,6 +1064,10 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
             loadedCuesheetNameWithPath = cuesheetFilename;
             f1.close();
 //            showHTML(__FUNCTION__);  // DEBUG DEBUG DEBUG
+        } else {
+            cueSheetLoaded = false;
+            loadedCuesheetNameWithPath = cuesheetFilename;
+            qDebug() << "COULD NOT LOAD THE CUESHEET" << cuesheetFilename;
         }
 
     }
