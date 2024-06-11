@@ -1061,6 +1061,8 @@ private:
     void addFilenameToRecentPlaylist(QString filename);
     QString getShortPlaylistName();
 
+    void refreshAllPlaylists();  // used when View > TAGS changes
+
     // Lyrics stuff ----------
     QString loadLyrics(QString MP3FileName);
     int lyricsTabNumber;

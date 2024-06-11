@@ -1539,6 +1539,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     // format the title string -----
     QString titlePlusTags(FormatTitlePlusTags(shortTitle, settings.isSetTags(), settings.getTags(), textCol.name()));
 
+    // qDebug() << "setTitleField:" << shortTitle << titlePlusTags;
     title->setText(titlePlusTags);
 
     QTableWidgetItem *blankItem = new QTableWidgetItem;
@@ -1924,6 +1925,7 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 
                     // TITLE column
                     QString absPath = musicRootPath + list1[0];
+                    // qDebug() << "loading playlist:" << list1[0] << PlaylistFileName;
                     setTitleField(theTableWidget, songCount-1, list1[0], true, PlaylistFileName); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
 
                     // PITCH column
@@ -2698,6 +2700,37 @@ void MainWindow::darkPaletteTitleLabelDoubleClicked(QMouseEvent * e)
 
             break; // break out of the for loop, because we found what was clicked on
         } // else more than 1 row or no rows, just return -1
+
+    }
+}
+
+void MainWindow::refreshAllPlaylists() {
+    // qDebug() << "Refreshing playlist views, because TAGS visibility changed.";
+    // bool tagsAreVisible = ui->actionViewTags->isChecked();
+
+    QTableWidget *theTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+
+    for (int i = 0; i < 3; i++) {
+        // qDebug() << "LOOK AT SLOT:" << i;
+        QTableWidget *theTable = theTables[i];
+
+        for (int j = 0; j < theTable->rowCount(); j++) {
+            // for each title in the table
+            QString relativePath;
+            QString PlaylistFileName;
+            if (dynamic_cast<QLabel*>(theTable->cellWidget(j, 1)) != nullptr) {
+                // QString title = dynamic_cast<QLabel*>(theTable->cellWidget(j, 1))->text(); // don't need this right now...
+                relativePath = theTable->item(j,4)->text();
+                relativePath.replace(musicRootPath, "");
+
+                PlaylistFileName = musicRootPath + "/playlists/" + relPathInSlot[i] + ".csv";
+                // qDebug() << "playlist title:" << relativePath << PlaylistFileName;
+
+                // this is what we want: "/patter/RIV 1180 - Sea Chanty.mp3" "/Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/playlists/Jokers/2024/Jokers_2024.06.05.csv"
+                setTitleField(theTable, j, relativePath, true, PlaylistFileName);
+            }
+
+        }
 
     }
 }

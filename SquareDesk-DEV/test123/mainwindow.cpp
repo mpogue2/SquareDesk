@@ -822,6 +822,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
+    ui->actionViewTags->setChecked(prefsManager.GetshowSongTags()); // tags setting must persist
     on_actionViewTags_toggled(prefsManager.GetshowSongTags()); // THIS WILL CALL loadMusicList().  Doing it this way to avoid loading twice at startup.
 
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
@@ -9500,14 +9501,25 @@ void MainWindow::on_actionStop_Sound_FX_triggered()
 }
 
 
-void MainWindow::on_actionViewTags_toggled(bool /* checked */)
+void MainWindow::on_actionViewTags_toggled(bool checked)
 {
-//    qDebug() << "VIEW TAGS TOGGLED";
-    prefsManager.SetshowSongTags(ui->actionViewTags->isChecked());
-    loadMusicList();
-#ifdef DARKMODE
-    darkLoadMusicList();
-#endif
+    // qDebug() << "VIEW TAGS TOGGLED, and isChecked:" << ui->actionViewTags->isChecked() << checked;
+
+    // prefsManager.SetshowSongTags(ui->actionViewTags->isChecked());
+    prefsManager.SetshowSongTags(checked);
+
+//     loadMusicList();
+// #ifdef DARKMODE
+//     refreshAllPlaylists(); // tags changed, so update the playlist views based on ui->actionViewTags->isChecked()
+//     darkLoadMusicList();
+// #endif
+
+    if (darkmode) {
+            refreshAllPlaylists(); // tags changed, so update the playlist views based on ui->actionViewTags->isChecked()
+            darkLoadMusicList();
+    } else {
+            loadMusicList();
+    }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
