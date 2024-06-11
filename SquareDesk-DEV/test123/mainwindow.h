@@ -288,6 +288,9 @@ public:
     QWebEngineView* webview[MAX_WEB_VIEWS];  // max of 16 tabs
     QTabWidget *documentsTab;
 
+    QStringList patterTemplateCuesheets; // of the form "patter.template*.html"
+    QStringList lyricsTemplateCuesheets; // of the form "lyrics.template*.html"
+
 public slots:
 
     void changeApplicationState(Qt::ApplicationState state);
