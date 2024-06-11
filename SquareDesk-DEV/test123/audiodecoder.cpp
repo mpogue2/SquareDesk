@@ -1471,7 +1471,7 @@ int AudioDecoder::beatBarDetection() {
 
 #if USETEMPFILES==1
             // delete the temp files
-            QFile WAVfile(WAVfilename);
+            QFile WAVfile(infile);
             if (!WAVfile.remove()) {
                 qDebug() << "ERROR: Had trouble removing the WAV file:" << WAVfile.fileName();
                 return; // ERROR from lambda
