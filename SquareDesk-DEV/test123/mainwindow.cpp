@@ -404,9 +404,6 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     soundFXfilenames.clear();
     soundFXname.clear();
 
-    maybeInstallSoundFX();
-    maybeInstallReferencefiles();
-
     t.elapsed(__LINE__);
 
 //    qDebug() << "preferences recentFenceDateTime: " << prefsManager.GetrecentFenceDateTime();
@@ -685,9 +682,14 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     musicRootPath = prefsManager.GetmusicPath();      // defaults to ~/squareDeskMusic at very first startup
 
-    // make required folders in the MusicDir, if and only if they are not there already --------
     t.elapsed(__LINE__);
+
+    // make required folders in the MusicDir, if and only if they are not there already --------
     maybeMakeAllRequiredFolders();
+    maybeInstallSoundFX();
+    maybeInstallReferencefiles();
+    maybeInstallTemplates();
+
     t.elapsed(__LINE__);
 
     // SD ------
@@ -11675,6 +11677,7 @@ void MainWindow::maybeMakeAllRequiredFolders() {
     maybeMakeRequiredFolder(".squaredesk/bulk");
     maybeMakeRequiredFolder("lyrics");
     maybeMakeRequiredFolder("lyrics/downloaded");
+    maybeMakeRequiredFolder("lyrics/templates");
     maybeMakeRequiredFolder("patter");
     maybeMakeRequiredFolder("playlists");
     maybeMakeRequiredFolder("reference");
@@ -11684,4 +11687,28 @@ void MainWindow::maybeMakeAllRequiredFolders() {
     maybeMakeRequiredFolder("soundfx");
     maybeMakeRequiredFolder("vocals");
     maybeMakeRequiredFolder("xtras");
+}
+
+void MainWindow::maybeInstallTemplates() {
+    qDebug() << "maybeInstallTemplates()";
+
+#if defined(Q_OS_MAC)
+        QString pathFromAppDirPathToResources = "/../Resources";
+        QString templatesDir = musicRootPath + "/lyrics/templates";
+
+        QStringList templateNames = {"lyrics.template.html", "lyrics.template.2col.html", "patter.template.html"};
+
+        foreach (const QString &templateName, templateNames)
+        {
+            QString theName = templateName;
+            QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToResources + "/" + theName;
+            QString destination = templatesDir + "/" + theName;
+
+            QFile dest(destination);
+            if (!dest.exists()) {
+                QFile::copy(source, destination);
+            }
+
+        }
+#endif
 }

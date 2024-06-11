@@ -418,6 +418,7 @@ DISTFILES += $$PWD/allcalls.csv  # RESOURCE: list of calls, and which level they
 copydata0a.commands = $(COPY) $$PWD/lyrics.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata0b.commands = $(COPY) $$PWD/cuesheet2.css        $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata0c.commands = $(COPY) $$PWD/patter.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
+copydata0d.commands = $(COPY) $$PWD/lyrics.template.2col.html $$OUT_PWD/SquareDesk.app/Contents/Resources
 
 # SD --------------------------------------------
 # Copy the sd executable and the sd_calls.dat data file to the same place as the sd executable
@@ -494,12 +495,13 @@ macx {
     QT += multimedia
 
     # first.depends = $(first) copydata1dir copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4s installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
-    first.depends += copydata1dir copydata0a copydata0b copydata0c copydata1 copydata2 copydata3 copydata4s installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
+    first.depends += copydata1dir copydata0a copydata0b copydata0c copydata0d copydata1 copydata2 copydata3 copydata4s installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
 
     # lyrics and patter templates
     export(copydata0a.commands)
     export(copydata0b.commands)
     export(copydata0c.commands)
+    export(copydata0d.commands)
 
     # sd_calls.dat, allcalls.csv, sd_doc.pdf
     export(copydata1dir.commands)
@@ -509,7 +511,7 @@ macx {
     export(copydata3.commands)
     export(copydata4s.commands)
 
-    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1dir copydata1 copydata2 copydata3 copydata4s
+    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata0d copydata1dir copydata1 copydata2 copydata3 copydata4s
 
     # For the PDF viewer -----------------
     copydata1p.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
@@ -909,8 +911,10 @@ DISTFILES += \
     PackageIt_M1.command \
     abbrevs.txt \
     cuesheet2.css \
+    lyrics.template.2col.html \
     lyrics.template.html \
     PackageIt.command \
+    patter.template.html \
     soundtouch/include/soundtouch_config.h.in
 
 CONFIG += c++11

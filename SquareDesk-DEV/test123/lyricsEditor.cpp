@@ -37,18 +37,25 @@ QString MainWindow::getResourceFile(QString s) {
 #if defined(Q_OS_MAC)
     // path of the template embedded in the App itself -------
     QString appPath = QApplication::applicationFilePath();
-    QString patterTemplatePath = appPath + "/Contents/Resources/" + s;
-    patterTemplatePath.replace("Contents/MacOS/SquareDesk/","");
+    QString resourcePath = appPath + "/Contents/Resources/" + s;
+    resourcePath.replace("Contents/MacOS/SquareDesk/",""); // this is now the SECOND place to try
 
-    // path of the optional user-specified template, which overrides the default template --------
-    // s is of the form "<type>.template.html", so first we split it into its component parts
-    QStringList parts = s.split(".");
-    QString userTemplateOverridePath = musicRootPath + "/" + parts[0] + "/" + s;
+    // first let's look in the lyrics/templates folder, if present, use that one -----
+    QString firstTryPath = musicRootPath + "/lyrics/templates/" + s;
+    QFileInfo firstTryCheck(firstTryPath);
+    if (firstTryCheck.exists()) {
+        resourcePath = firstTryPath; // use this one
+    } // else use the one in the app itself
 
-    QFileInfo checkFile(userTemplateOverridePath);
-    if (checkFile.exists()) {
-        patterTemplatePath = userTemplateOverridePath;  // use user-specified template instead of default
-    }
+    // // path of the optional user-specified template, which overrides the default template --------
+    // // s is of the form "<type>.template.html", so first we split it into its component parts
+    // QStringList parts = s.split(".");
+    // QString userTemplateOverridePath = musicRootPath + "/" + parts[0] + "/" + s;
+
+    // QFileInfo checkFile(userTemplateOverridePath);
+    // if (checkFile.exists()) {
+    //     patterTemplatePath = userTemplateOverridePath;  // use user-specified template instead of default
+    // }
 
 #elif defined(Q_OS_WIN32)
     QString appPath = QApplication::applicationFilePath();
@@ -95,11 +102,11 @@ QString MainWindow::getResourceFile(QString s) {
 
     QString fileContents;
 
-    QFile file(patterTemplatePath);
+    QFile file(resourcePath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug() << "Could not open '" + s + "' file.";
-        qDebug() << "looked here:" << patterTemplatePath;
-        return("");  // NOTE: early return, couldn't find template file
+        qDebug() << "looked here:" << resourcePath;
+        return("");  // NOTE: early return, couldn't find file we wanted
     } else {
         fileContents = file.readAll();
         file.close();
@@ -576,6 +583,26 @@ void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 //    if (ui->textBrowserCueSheet->document()->isModified()) {  // FIX: document is always modified.
 //        ui->textBrowserCueSheet->document()->setModified(false);  // has not been modified now
 //    }
+
+    QString cuesheetFilename = loadedCuesheetNameWithPath;
+    // qDebug() << "******** on_pushButtonCueSheetEditSave_clicked is saving to:" << cuesheetFilename;
+
+    // check for template editing, and make darn sure the user wants this!
+    if (cuesheetFilename.contains(".template.")) {
+        QMessageBox msgBox;
+
+        msgBox.setText(QString("You are editing an existing template."));
+        msgBox.setIcon(QMessageBox::Question);
+        msgBox.setInformativeText("Are you SURE you want to save these changes, and overwrite the template?");
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+
+        int ret = msgBox.exec();
+
+        if (ret == QMessageBox::Cancel) {
+            return;
+        }
+    }
 
     lockForEditing();    
     setInOutButtonState();
@@ -1071,7 +1098,24 @@ void MainWindow::saveLyrics()
 
 //    QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(ui->comboBoxCuesheetSelector->currentIndex()).toString();
     QString cuesheetFilename = loadedCuesheetNameWithPath;
-//    qDebug() << "******** saveLyrics is saving to:" << cuesheetFilename;
+    // qDebug() << "******** saveLyrics is saving to:" << cuesheetFilename;
+
+    // check for template editing, and make darn sure the user wants this!
+    // if (cuesheetFilename.contains(".template.")) {
+    //     QMessageBox msgBox;
+
+    //     msgBox.setText(QString("You are editing an existing template."));
+    //     msgBox.setIcon(QMessageBox::Question);
+    //     msgBox.setInformativeText("Are you SURE you want to save these changes, and overwrite the template?");
+    //     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+    //     msgBox.setDefaultButton(QMessageBox::Cancel);
+
+    //     int ret = msgBox.exec();
+
+    //     if (ret == QMessageBox::Cancel) {
+    //         return;
+    //     }
+    // }
 
     if (!cuesheetFilename.isNull())
     {

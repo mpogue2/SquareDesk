@@ -1202,6 +1202,7 @@ private:
     QMap<int, QString> soundFXname;         // e.g. "9.foo.mp3" --> [9,"foo"]
     void maybeInstallSoundFX();
     void maybeInstallReferencefiles();
+    void maybeInstallTemplates();
 
     void maybeMakeRequiredFolder(QString folderName);  // make it, if it doesn't already exist
     void maybeMakeAllRequiredFolders();                // make them all, if they doesn't already exist
