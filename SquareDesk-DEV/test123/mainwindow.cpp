@@ -9508,18 +9508,18 @@ void MainWindow::on_actionViewTags_toggled(bool checked)
     // prefsManager.SetshowSongTags(ui->actionViewTags->isChecked());
     prefsManager.SetshowSongTags(checked);
 
-//     loadMusicList();
-// #ifdef DARKMODE
-//     refreshAllPlaylists(); // tags changed, so update the playlist views based on ui->actionViewTags->isChecked()
-//     darkLoadMusicList();
-// #endif
+    loadMusicList();
+#ifdef DARKMODE
+    refreshAllPlaylists(); // tags changed, so update the playlist views based on ui->actionViewTags->isChecked()
+    darkLoadMusicList();
+#endif
 
-    if (darkmode) {
-            refreshAllPlaylists(); // tags changed, so update the playlist views based on ui->actionViewTags->isChecked()
-            darkLoadMusicList();
-    } else {
-            loadMusicList();
-    }
+    // if (darkmode) {
+    //         refreshAllPlaylists(); // tags changed, so update the playlist views based on ui->actionViewTags->isChecked()
+    //         darkLoadMusicList();
+    // } else {
+    //         loadMusicList();
+    // }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
