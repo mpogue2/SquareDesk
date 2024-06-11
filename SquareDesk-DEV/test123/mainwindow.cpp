@@ -3058,6 +3058,14 @@ void MainWindow::on_comboBoxCallListProgram_currentIndexChanged(int currentIndex
 
 void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex)
 {
+    // if (loadedCuesheetNameWithPath.contains(".template.")) {
+    //     // template case, where revert brings us here
+    //     // revert cuesheet changes by reloading, then return
+    //     qDebug() << "REVERT CASE: " << loadedCuesheetNameWithPath;
+    //     loadCuesheet(loadedCuesheetNameWithPath);
+    //     return;
+    // }
+
 //    qDebug() << "on_comboBoxCuesheetSelector_currentIndexChanged currentIndex = " << currentIndex;
     if (currentIndex != -1 && !cuesheetEditorReactingToCursorMovement) {
         if (currentIndex < 100) {
@@ -11690,7 +11698,7 @@ void MainWindow::maybeMakeAllRequiredFolders() {
 }
 
 void MainWindow::maybeInstallTemplates() {
-    qDebug() << "maybeInstallTemplates()";
+    // qDebug() << "maybeInstallTemplates()";
 
 #if defined(Q_OS_MAC)
         QString pathFromAppDirPathToResources = "/../Resources";

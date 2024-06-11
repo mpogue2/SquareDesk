@@ -591,10 +591,12 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
                     ui->textBrowserCueSheet->setHtml("No patter found for this song.");
                     loadedCuesheetNameWithPath = "";
                 } else {
-                    ui->textBrowserCueSheet->setHtml(patterTemplate);
-                    loadedCuesheetNameWithPath = "patter.template.html";  // as a special case, this is allowed to not be the full path
+                    // ui->textBrowserCueSheet->setHtml(patterTemplate);
+                    loadedCuesheetNameWithPath = musicRootPath + "/lyrics/templates/patter.template.html";  // this is now allowed to be the full path
+                    loadCuesheet(loadedCuesheetNameWithPath);
                     hasLyrics = true;   // so the "Save as" action is enabled
                 }
+                templateLoaded = true;
             }
 
         } // else (sequence could not be found)
@@ -613,10 +615,11 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
                 ui->textBrowserCueSheet->setHtml("No cuesheet found for this song.");
                 loadedCuesheetNameWithPath = "";
             } else {
-                ui->textBrowserCueSheet->setHtml(lyricsTemplate);
-                loadedCuesheetNameWithPath = "lyrics.template.html";  // as a special case, this is allowed to not be the full path
+                // ui->textBrowserCueSheet->setHtml(lyricsTemplate);
+                loadedCuesheetNameWithPath = musicRootPath + "/lyrics/templates/lyrics.template.html";  // this is now allowed to be the full path
+                loadCuesheet(loadedCuesheetNameWithPath);
             }
-
+            templateLoaded = true;
         } // else (lyrics could not be found)
     } // isPatter
 
