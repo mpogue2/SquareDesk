@@ -5334,30 +5334,32 @@ void MainWindow::actionTempoPlus()
     ui->tempoSlider->setValue(ui->tempoSlider->value() + 1);
     on_tempoSlider_valueChanged(ui->tempoSlider->value());
 }
+
 void MainWindow::actionTempoMinus()
 {
     ui->tempoSlider->setValue(ui->tempoSlider->value() - 1);
     on_tempoSlider_valueChanged(ui->tempoSlider->value());
 }
+
 void MainWindow::actionFadeOutAndPause()
 {
     cBass->FadeOutAndPause();
 }
+
 void MainWindow::actionNextTab()
 {
-    int currentTab = ui->tabWidget->currentIndex();
-    if (currentTab == 0) {
-        // if Music tab active, go to Lyrics tab
+    int currentTabNumber = ui->tabWidget->currentIndex();
+
+    if (currentTabNumber == 0 || currentTabNumber == 1) {
         ui->tabWidget->setCurrentIndex(lyricsTabNumber);
-    } else if (currentTab == lyricsTabNumber) {
-        // if Lyrics tab active, go to Music tab
-        ui->tabWidget->setCurrentIndex(0);
     } else {
-        // if currently some other tab, just go to the Music tab
-        ui->tabWidget->setCurrentIndex(0);
+        if (darkmode) {
+            ui->tabWidget->setCurrentIndex(0); // Dark Music tab (name: "Music")
+        } else {
+            ui->tabWidget->setCurrentIndex(1); // Light Music tab (name: "Music")
+        }
     }
 }
-
 
 void MainWindow::actionSwitchToTab(const char *tabname)
 {
