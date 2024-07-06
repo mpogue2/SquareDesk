@@ -7348,28 +7348,30 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
 
 void MainWindow::on_labelSearch_textChanged()
 {
-#ifdef DARKMODE
-    darkFilterMusic();
-#endif
-    filterMusic();
+    if (darkmode) {
+        darkFilterMusic();
+    } else {
+        filterMusic();
+    }
 }
 
 void MainWindow::on_typeSearch_textChanged()
 {
-#ifdef DARKMODE
-    darkFilterMusic();
-#endif
-    filterMusic();
+    if (darkmode) {
+        darkFilterMusic();
+    } else {
+        filterMusic();
+    }
 }
 
 void MainWindow::on_titleSearch_textChanged()
 {
-#ifdef DARKMODE
-    darkFilterMusic();
-#endif
-    filterMusic();
+    if (darkmode) {
+        darkFilterMusic();
+    } else {
+        filterMusic();
+    }
 }
-
 
 void MainWindow::titleLabelDoubleClicked(QMouseEvent * /* event */)
 {
