@@ -155,7 +155,12 @@ void SDThread::set_dance_program(dance_level dance_program)
 
 dance_level SDThread::find_dance_program(QString call)
 {
-    return iofull->find_dance_program(call);
+    if (iofull != nullptr) {
+        return iofull->find_dance_program(call);
+    }
+
+    qDebug() << "ERROR: find_dance_program: iofull was NULL.";
+    return l_dontshow; // returning valid but useless value
 }
 
 dance_level SquareDesk_iofull::find_dance_program(QString call)
@@ -189,7 +194,11 @@ dance_level SquareDesk_iofull::find_dance_program(QString call)
 
 SDThread::CurrentInputState SDThread::currentInputState()
 {
-    return iofull->currentInputState;
+    if (iofull != nullptr) {
+        return iofull->currentInputState;
+    }
+    qDebug() << "ERROR: currentInputState iofull was NULL";
+    return InputStateNormal; // something is wrong, returning valid but useless state
 }
 
 bool SDThread::do_user_input(QString str)
@@ -1101,13 +1110,19 @@ void SDThread::resetSDState() {
         }
     //    mutexSDAwaitingInput.unlock();
     } else {
-        qDebug() << "warning: iofull was null";
+        qDebug() << "ERROR: resetSDState iofull was NULL";
     }
 }
 
 void SDThread::resetAndExecute(QStringList &commands)
 {
     resetSDState();
+
+    if (iofull == nullptr) {
+        qDebug() << "ERROR: resetAndExecute iofull was NULL.";
+        return;  // something bad happened
+    }
+
     iofull->answerYesToEverything = false;
     abort = false;
     if (iofull->seenAFormation)
@@ -1145,11 +1160,18 @@ SDThread::~SDThread()
 {
     mutexSDAwaitingInput.unlock();
     mutexAckToMainThread.unlock();
-    QMutexLocker locker(&mutexThreadRunning);
-    if (!wait(250))
-    {
-        qWarning() << "Thread unable to stop, calling terminate";
-        terminate();
+
+    // NOTE: we should NOT try to acquire this lock, because we might not be able to get it here,
+    //   because SD is in a bad state, and trying to get the lock will cause a hang at shutdown time.
+    // QMutexLocker locker(&mutexThreadRunning);
+
+    // Instead, if the thread is running, we'll wait 250ms, and then terminate it.
+    if (isRunning()) {
+        if (!wait(250))
+        {
+            qWarning() << "SD thread has not stopped after 250ms, will attempt to terminate().";
+            terminate();
+        }
     }
     numberOfSDThreadsActive--;
 }

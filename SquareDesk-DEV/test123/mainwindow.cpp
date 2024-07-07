@@ -353,6 +353,10 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     shortcutSDCurrentSequenceCopy(nullptr),
     sd_redo_stack(new SDRedoStack())
 {
+#ifdef TESTRESTARTINGSQUAREDESK
+    testRestartingSquareDesk = true;  // set to false for NORMAL operation, TRUE to test restarting
+#endif
+
     QString darkTextColor = "black";
     lastMinuteInHour = -1;
     lastSessionID = -2; // initial startup
@@ -2561,6 +2565,20 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     });
 
     stopLongSongTableOperation("MainWindow");
+
+#ifdef TESTRESTARTINGSQUAREDESK
+    if (testRestartingSquareDesk) {
+        qDebug() << "test restarting of SquareDesk in 5 seconds...CMD-Q to stop this.";
+        testRestartingSquareDeskTimer.setSingleShot(true);
+        testRestartingSquareDeskTimer.start(5000);  // 5 seconds
+        connect(&testRestartingSquareDeskTimer, &QTimer::timeout, this,
+                [this]() {
+                qDebug() << "TOGGLING...";
+                on_actionSwitch_to_Light_Mode_triggered();  // this will toggle us indefinitely, until manually stopped
+        });
+    }
+#endif
+
 }
 
 // ----------------------------------------------------------------------
@@ -3207,6 +3225,12 @@ void MainWindow::on_actionShow_All_Ages_triggered(bool checked)
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
+    // clearing the database lock as soon as possible, so that we don't put up scary messages later,
+    //   if SD couldn't be killed.
+    QString currentMusicRootPath = prefsManager.GetmusicPath();
+    clearLockFile(currentMusicRootPath); // release the lock that we took (other locks were thrown away)
+
+    // kill all the vamp subprocesses
     if (vampFuture.isRunning()) {
         vampFuture.cancel();  // ASAP stop any more Vamp jobs from starting
         killAllVamps = true;  // tell the running Vamps to kill themselves
@@ -3232,7 +3256,8 @@ MainWindow::~MainWindow()
 
     if (sdthread)
     {
-        sdthread->finishAndShutdownSD();
+        sdthread->finishAndShutdownSD(); // try to kill it nicely
+        delete sdthread; // call the destructor explicitly, which will terminate the thread, if it is not stopped in 250ms
     }
 //    if (ps) {
 //        ps->kill();
@@ -3271,8 +3296,6 @@ MainWindow::~MainWindow()
     delete sessionActionGroup;
     delete sdActionGroupDanceProgram;
     delete cBass;
-    QString currentMusicRootPath = prefsManager.GetmusicPath();
-    clearLockFile(currentMusicRootPath); // release the lock that we took (other locks were thrown away)
 }
 
 // ----------------------------------------------------------------------
@@ -11608,26 +11631,23 @@ void MainWindow::on_actionSwitch_to_Light_Mode_triggered()
         newMode = "Light";
     }
 
-    // QMessageBox::StandardButton reply;
-    // reply = QMessageBox::question(this, "Switch to " + newMode + " Mode",
-    //                               "Switching to " + newMode + " Mode requires restarting SquareDesk.\n\nOK to restart?",
-    //                               QMessageBox::Yes|QMessageBox::No);
+#ifdef TESTRESTARTINGSQUAREDESK
+    if (!testRestartingSquareDesk) {
+#endif
+        QMessageBox msgBox;
+        msgBox.setText("Switch to " + newMode + " Mode requires restarting SquareDesk.");
+        msgBox.setIcon(QMessageBox::Question);
+        msgBox.setInformativeText("OK to restart SquareDesk now?");
+        msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+        msgBox.setDefaultButton(QMessageBox::Yes);
+        int ret = msgBox.exec();
 
-    // if (reply == QMessageBox::No) {
-    //     return;
-    // }
-
-    QMessageBox msgBox;
-    msgBox.setText("Switch to " + newMode + " Mode requires restarting SquareDesk.");
-    msgBox.setIcon(QMessageBox::Question);
-    msgBox.setInformativeText("OK to restart SquareDesk now?");
-    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
-    msgBox.setDefaultButton(QMessageBox::Yes);
-    int ret = msgBox.exec();
-
-    if (ret == QMessageBox::No) {
-        return;
+        if (ret == QMessageBox::No) {
+            return;
+        }
+#ifdef TESTRESTARTINGSQUAREDESK
     }
+#endif
 
     // OK to switch!
     // set prefs so we come up in the right mode next time ----

@@ -97,6 +97,9 @@
 
 #include "sdinterface.h"
 
+// uncomment this to force a Light <-> Dark mode toggle every 5 seconds, checking for crashes
+// #define TESTRESTARTINGSQUAREDESK 1
+
 class SDDancer
 {
 public:
@@ -1406,6 +1409,11 @@ public:
 
 //    QString editingArrowStart = "✏";  // indicates that this item can have pitch/tempo edited
     QString editingArrowStart = "➡";   // U+27A1
+
+#ifdef TESTRESTARTINGSQUAREDESK
+    bool testRestartingSquareDesk;
+    QTimer testRestartingSquareDeskTimer;
+#endif
 };
 
 // currentState:
