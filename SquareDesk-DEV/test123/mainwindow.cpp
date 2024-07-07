@@ -1029,7 +1029,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 //    analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet);  // tell the clock which label to use for the patter timer
-    analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet, ui->warningLabelSD, ui->darkWarningLabel);  // tell the clock which labels to use for the main patter timer
+    analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet, ui->warningLabelSD, ui->darkWarningLabel, darkmode);  // tell the clock which labels to use for the main patter timer, and what mode we are in
 
     t.elapsed(__LINE__);
 

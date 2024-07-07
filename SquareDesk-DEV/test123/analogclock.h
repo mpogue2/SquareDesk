@@ -118,7 +118,7 @@ public:
 
     unsigned int currentTimerState;  // contains bits for the LONG TIP timer and the BREAK TIMER
 
-    void setTimerLabel(clickableLabel *theLabel, QLabel *theLabelCuesheet, QLabel *theLabelSD, QLabel *theLabelDark);
+    void setTimerLabel(clickableLabel *theLabel, QLabel *theLabelCuesheet, QLabel *theLabelSD, QLabel *theLabelDark, bool darkmode);
     void setSDEditMode(bool e);
     void setSingingCallSection(QString s);
     QString singingCallSection;
@@ -129,6 +129,7 @@ public:
     QLabel *timerLabelCuesheet;
 
 #ifdef DARKMODE
+    bool darkmode;  // what mode we are currently in
     QLabel *timerLabelDark;
 #endif
 

@@ -64,11 +64,9 @@ void AnalogClock::setTimerLabelColor(QString col1) {
         // only change it, if it is actually changing
 
         QString col = col1;
-#ifdef DARKMODE
-        if (col == "red") {
+        if (darkmode && col == "red") {
             col = "#F04040"; // dark mode "red" is more muted, so as not to blind the user
         }
-#endif
 
 //        qDebug() << "setting TimerLabelColors to: " << col;
         QString style = "QLabel { color : " + col + "; }";
@@ -183,11 +181,11 @@ void AnalogClock::redrawTimerExpired()
 
                 timerLabelCuesheet->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
 
-#ifdef DARKMODE
-                setTimerLabelColor("#8080FF");
-#else
-                setTimerLabelColor("blue");
-#endif
+                if (darkmode) {
+                    setTimerLabelColor("#8080FF");
+                } else {
+                    setTimerLabelColor("blue");
+                }
 
                 currentTimerState &= ~LONGTIPTIMEREXPIRED;  // clear
                 currentTimerState &= ~BREAKTIMEREXPIRED;  // clear
@@ -241,11 +239,12 @@ void AnalogClock::redrawTimerExpired()
 
             timerLabelCuesheet->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 
-#ifdef DARKMODE
-            setTimerLabelColor("#D0D0D0");
-#else
-            setTimerLabelColor("black");
-#endif
+            if (darkmode) {
+                setTimerLabelColor("#D0D0D0");
+            } else {
+                setTimerLabelColor("black");
+            }
+
             currentTimerState &= ~LONGTIPTIMEREXPIRED;  // clear
             currentTimerState &= ~BREAKTIMEREXPIRED;    // clear
 
@@ -502,8 +501,10 @@ void AnalogClock::setSDEditMode(bool e) {
     editModeSD = e; // tell the analog clock whether we're in SD edit or playback mode
 }
 
-void AnalogClock::setTimerLabel(clickableLabel *theLabel, QLabel *theCuesheetLabel, QLabel *theSDLabel, QLabel *theDarkWarningLabel)
+void AnalogClock::setTimerLabel(clickableLabel *theLabel, QLabel *theCuesheetLabel, QLabel *theSDLabel, QLabel *theDarkWarningLabel, bool darkmode1)
 {
+    darkmode = darkmode1; // remember what mode we are in
+
 #ifndef DARKMODE
     Q_UNUSED(theDarkWarningLabel)
 #endif
