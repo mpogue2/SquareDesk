@@ -1735,7 +1735,6 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     }
 
     // CLOCK COLORING =============
-    // FIX: THIS DOES NOT WORK
     ui->theSVGClock->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->theSVGClock, SIGNAL(customContextMenuRequested(QPoint)), ui->theSVGClock, SLOT(customMenuRequested(QPoint)));
 
