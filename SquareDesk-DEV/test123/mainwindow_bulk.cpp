@@ -376,7 +376,7 @@ void MainWindow::on_darkSegmentButton_clicked()
 
         // if (numMP3files < maxFiles && s2[0] == "patter") {
         if (numMP3files < maxFiles && songTypeNamesForPatter.contains(s2[0])) {
-            // qDebug() << "adding: " << s;
+            // qDebug() << "adding: " << s2[0] << s;
             if (s2[1].endsWith(".mp3", Qt::CaseInsensitive)) {
                 mp3FilenamesToProcess.append(s2[1]);
                 numMP3files++;
@@ -440,7 +440,7 @@ void MainWindow::on_actionEstimate_for_all_songs_triggered()
 
         // if (numMP3files < maxFiles && s2[0] == "patter") {
         if (numMP3files < maxFiles && songTypeNamesForPatter.contains(s2[0])) {
-            // qDebug() << "adding: " << s;
+            // qDebug() << "adding: " << s << s2[0];
             if (s2[1].endsWith(".mp3", Qt::CaseInsensitive)) {
                 mp3FilenamesToProcess.append(s2[1]);
                 numMP3files++;
@@ -588,6 +588,14 @@ void MainWindow::EstimateSectionsForThisSong(QString mp3Filename) {
         return;
     }
 
+    QString theCategory = filepath2SongCategoryName(mp3Filename);
+    if (theCategory != "patter") {
+        QMessageBox msgBox;
+        msgBox.setText("Only patter files are supported right now.");
+        msgBox.exec();
+        return;
+    }
+
     // double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
 
     // QMessageBox::StandardButton reply;
@@ -630,6 +638,14 @@ void MainWindow::RemoveSectionsForThisSong(QString mp3Filename) {
         // qDebug() << "Not an MP3 song: " << mp3Filename;
         QMessageBox msgBox;
         msgBox.setText("Only MP3 files are supported right now.");
+        msgBox.exec();
+        return;
+    }
+
+    QString theCategory = filepath2SongCategoryName(mp3Filename);
+    if (theCategory != "patter") {
+        QMessageBox msgBox;
+        msgBox.setText("Only patter files are supported right now.");
         msgBox.exec();
         return;
     }
