@@ -50,7 +50,7 @@ echo WHICH is $WHICH
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDesk"
-VERSION="1.0.8X"  # <-- THIS IS THE ONE TO CHANGE (X = X86)
+VERSION="1.0.9X"  # <-- THIS IS THE ONE TO CHANGE (X = X86)
 
 QT_VERSION=$(echo $PWD | sed -e 's/.*Qt_//' -e 's/_for.*//')
 QTVERSION=$(echo $QT_VERSION | sed -e 's/_/./g')

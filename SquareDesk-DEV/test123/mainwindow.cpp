@@ -5096,7 +5096,7 @@ void MainWindow::aboutBox()
     msgBox.setText("SquareDesk, V" + QString(VERSIONSTRING) + QString(" (Qt") + QString(QT_VERSION_STR) + QString(")"));
     msgBox.setInformativeText(QString("Visit our website at\n") +
                               "http://squaredesk.net\n\n" +
-                              "Uses: sd, wpdfjs, minibpm, Vamp (Queen Mary University of London & Segmentino), Icons8, kfr, and SoundTouch.\n\n" +
+                              "Uses: sd, wpdfjs, minibpm, minimp3, Vamp (Queen Mary University of London & Segmentino), Icons8, kfr, and SoundTouch.\n\n" +
                               "Thanks to: all8.com"
                              );
 #else
