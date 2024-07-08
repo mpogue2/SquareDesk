@@ -1054,7 +1054,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    currentSongType = "";
+    currentSongTypeName = "";
+    currentSongCategoryName = "";
     currentSongTitle = "";
     currentSongLabel = "";
 
@@ -3204,7 +3205,7 @@ void MainWindow::on_actionCompact_triggered(bool checked)
         }
     }
 
-    ui->pushButtonTestLoop->setHidden(!songTypeNamesForPatter.contains(currentSongType)); // this button is PATTER ONLY
+    ui->pushButtonTestLoop->setHidden(!currentSongIsPatter); // this button is PATTER ONLY
 
 #ifdef DARKMODE
 //    ui->darkTestLoopButton->setHidden(!songTypeNamesForPatter.contains(currentSongType)); // this button is PATTER ONLY
@@ -3533,14 +3534,12 @@ void MainWindow::on_playButton_clicked()
                 // }
             }
 
-            if (switchToLyricsOnPlay &&
-                    (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType)))
+            // qDebug() << "on_playButton_clicked(): " << switchToLyricsOnPlay << songTypeNamesForSinging << currentSongTypeName;
+
+            if (switchToLyricsOnPlay && (currentSongIsSinger || currentSongIsVocal))
             {
                 // switch to Lyrics tab ONLY for singing calls or vocals
-              if (currentSongType == "singing")  // do not switch if patter (using Cuesheet tab for written Patter)
-                    {
-                      ui->tabWidget->setCurrentIndex(lyricsTabNumber);
-                    }
+                ui->tabWidget->setCurrentIndex(lyricsTabNumber);
             }
             ui->songTable->setSortingEnabled(true);
         }
@@ -4181,7 +4180,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         ui->songLengthLabel2->setText(position2String(fileLen_i));          // no padding, intentionally no prefix "/"
 
         // singing call sections
-        if (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType)) {
+        // if (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType)) {
+        if (currentSongIsSinger || currentSongIsVocal) {
             double introLength = static_cast<double>(ui->seekBar->GetIntro()) * cBass->FileLength; // seconds
             double outroTime = static_cast<double>(ui->seekBar->GetOutro()) * cBass->FileLength; // seconds
 //            qDebug() << "InfoSeekbar()::introLength: " << introLength << ", " << outroTime;
@@ -4210,8 +4210,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
                         << "Break" << "Figure 3" << "Figure 4" << "Closer" << "Tag";
 
 //            if (cBass->Stream_State == BASS_ACTIVE_PLAYING &&
-            if (//cBass->currentStreamState() == BASS_ACTIVE_PLAYING &&
-                    (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType))) {
+            if (cBass->currentStreamState() == BASS_ACTIVE_PLAYING && (currentSongIsSinger || currentSongIsVocal)) {
+                    // (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType))) {
                 // if singing call OR called, then tell the clock to show the section type
                 analogClock->setSingingCallSection(sectionName[section]);
             } else {
@@ -4240,7 +4240,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         if (flashCalls.length() != 0) {
             // if there are flash calls on the list, then Flash Calls are enabled.
 //            if (cBass->Stream_State == BASS_ACTIVE_PLAYING && songTypeNamesForPatter.contains(currentSongType)) {
-            if (cBass->currentStreamState() == BASS_ACTIVE_PLAYING && songTypeNamesForPatter.contains(currentSongType)) {
+            if (cBass->currentStreamState() == BASS_ACTIVE_PLAYING && currentSongIsPatter) {
                  // if playing, and Patter type
                  // TODO: don't show any random calls until at least the end of the first N seconds
                  setNowPlayingLabelWithColor(flashCalls[randCallIndex], true);
@@ -4464,8 +4464,12 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
         // SHIFT-[ also sets the end point of the loop to:
         //   singer: position + 7 * 64 beats = 448 beats later
 
-        bool isSingingCall = songTypeNamesForSinging.contains(currentSongType) ||
-                             songTypeNamesForCalled.contains(currentSongType);
+        // bool isSingingCall = songTypeNamesForSinging.contains(currentSongType) ||
+        //                      songTypeNamesForCalled.contains(currentSongType);
+
+        bool isSingingCall = currentSongIsSinger || currentSongIsVocal;
+
+        // qDebug() << "on_pushButtonSetIntroTime_clicked(): isSingingCall = " << isSingingCall;
 
         if (!isSingingCall) {
             qDebug() << "***** INFO: We have not implemented SHIFT-[ for Patter yet.";
@@ -4639,16 +4643,16 @@ void MainWindow::on_UIUpdateTimerTick(void)
     if (Stream_State == BASS_ACTIVE_PLAYING) {
         // if it's currently playing (checked once per second), then color this segment
         //   with the current segment type
-        if (songTypeNamesForPatter.contains(currentSongType)) {
+        if (currentSongIsPatter) {
             theType = PATTER;
         }
-        else if (songTypeNamesForSinging.contains(currentSongType)) {
+        else if (currentSongIsSinger) {
             theType = SINGING;
         }
-        else if (songTypeNamesForCalled.contains(currentSongType)) {
+        else if (currentSongIsVocal) {
             theType = SINGING_CALLED;
         }
-        else if (songTypeNamesForExtras.contains(currentSongType)) {
+        else if (currentSongIsExtra) {
             theType = XTRAS;
         }
         else {
@@ -5451,14 +5455,18 @@ void MainWindow::actionFilterSongsPatterSingersToggle()
 
 void MainWindow::actionFilterSongsToPatter()
 {
-    if (songTypeNamesForPatter.length() > 0)
-        ui->typeSearch->setText(songTypeNamesForPatter[0]);
+    if (songTypeNamesForPatter.length() > 0) {
+        // ui->typeSearch->setText(songTypeNamesForPatter[0]);
+        ui->typeSearch->setText("patter"); // FIX: make sure the find code uses this as a Category, not as a String
+    }
 }
 
 void MainWindow::actionFilterSongsToSingers()
 {
-    if (songTypeNamesForSinging.length() > 0)
-        ui->typeSearch->setText(songTypeNamesForSinging[0]);
+    if (songTypeNamesForSinging.length() > 0) {
+        // ui->typeSearch->setText(songTypeNamesForSinging[0]);
+        ui->typeSearch->setText("singing");
+    }
 }
 
 void MainWindow::actionToggleCuesheetAutoscroll()
@@ -5845,9 +5853,9 @@ double MainWindow::getID3BPM(QString MP3FileName) {
 
 void MainWindow::reloadCurrentMP3File() {
     // if there is a song loaded, reload it (to pick up, e.g. new cuesheets)
-    if ((currentMP3filenameWithPath != "")&&(currentSongTitle != "")&&(currentSongType != "")) {
+    if ((currentMP3filenameWithPath != "") && (currentSongTitle != "") && (currentSongTypeName != "")) {
 //        qDebug() << "reloading song: " << currentMP3filename;
-        loadMP3File(currentMP3filenameWithPath, currentSongTitle, currentSongType, currentSongLabel);
+        loadMP3File(currentMP3filenameWithPath, currentSongTitle, currentSongTypeName, currentSongLabel);
     }
 }
 
@@ -5858,7 +5866,9 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     PerfTimer t("loadMP3File", __LINE__);
 
-    currentSongType = songType;     // save it for session coloring on the analog clock later...
+    setCurrentSongMetadata(songType); // set current* based on the type extracted from the pathname, for later use all over the place
+
+    //currentSongTypeName = songType;     // save it for session coloring on the analog clock later...
     // currentSongType is referenced in loadCuesheets
     if (!loadCuesheets(MP3FileName, "", nextFilename)) {
         // load cuesheets up here first, so that the original pathname is used, rather than the pointed-to (rewritten) pathname.
@@ -9640,9 +9650,9 @@ void MainWindow::stopLongSongTableOperation(QString s) {
 }
 
 
-QString MainWindow::filepath2SongType(QString MP3Filename)
+QString MainWindow::filepath2SongCategoryName(QString MP3Filename)
 {
-    // returns the type (as a string).  patter, hoedown -> "patter", as per user prefs
+    // returns the category name (as a string).  patter, hoedown -> "patter", as per user prefs
 
     MP3Filename.replace(QRegularExpression("^" + musicRootPath),"");  // delete the <path to musicDir> from the front of the pathname
     QStringList parts = MP3Filename.split("/");
@@ -9849,8 +9859,12 @@ QList<QString> MainWindow::getListOfMusicFiles()
         QString type = sl1[0];      // the type (of original pathname, before following aliases)
         QString filename = sl1[1];  // everything else
 
+        // qDebug() << "getListOfMusicFiles(): type = " << type;
+
         // TODO: should we allow "patter" to match cuesheets?
-        if ((type == "singing" || type == "vocals") && (filename.endsWith("mp3", Qt::CaseInsensitive) ||
+        // if ((type == "singing" || type == "vocals") &&
+        if ((songTypeNamesForSinging.contains(type) || songTypeNamesForCalled.contains(type)) &&
+                                                        (filename.endsWith("mp3", Qt::CaseInsensitive) ||
                                                         filename.endsWith("m4a", Qt::CaseInsensitive) ||
                                                         filename.endsWith("wav", Qt::CaseInsensitive))) {
             QFileInfo fi(filename);
@@ -10008,7 +10022,9 @@ void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &c
 
     if (msg.contains("js:") ||
         txt.contains("minified/web/pdf.viewer.js") ||
-        txt.contains("Warning: Populating font family aliases")
+        txt.contains("Warning: Populating font family aliases") ||
+        txt.contains("Warning: Path override") ||
+        txt.contains("Warning: #thumb_page_title")
         ) {
 //         Suppressing lots of javascript noise from the debug.log file.
         return;
@@ -10045,7 +10061,8 @@ void MainWindow::customMessageOutputQt(QtMsgType type, const QMessageLogContext 
             msg.startsWith("#") ||
             msg.startsWith("skipping QEventPoint") ||
             msg.contains("Accessing QMediaDevices") ||
-            msg.contains("GL Type: core_profile")) {
+            msg.contains("GL Type: core_profile")
+        ) {
         return;
     }
 
@@ -10255,10 +10272,15 @@ void MainWindow::handleDurationBPM() {
     int songBPM = static_cast<int>(round(cBass->Stream_BPM));  // libbass's idea of the BPM
 //    qDebug() << "***** handleDurationBPM(): " << songBPM;
 
-    bool isSingingCall = songTypeNamesForSinging.contains(currentSongType) ||
-                         songTypeNamesForCalled.contains(currentSongType);
+    // bool isSingingCall = songTypeNamesForSinging.contains(currentSongType) ||
+    //                      songTypeNamesForCalled.contains(currentSongType);
 
-    bool isPatter = songTypeNamesForPatter.contains(currentSongType);
+    // bool isPatter = songTypeNamesForPatter.contains(currentSongType);
+
+    bool isSingingCall = currentSongIsSinger || currentSongIsVocal;
+    bool isPatter = currentSongIsPatter;
+
+    // qDebug() << "handleDurationBPM: isPatter = " << isPatter << ", isSingingCall = " << isSingingCall;
 
 // If the MP3 file has an embedded TBPM frame in the ID3 tag, then it overrides the libbass auto-detect of BPM
     double songBPM_ID3 = getID3BPM(currentMP3filenameWithPath);  // returns 0.0, if not found or not understandable
@@ -10275,7 +10297,7 @@ void MainWindow::handleDurationBPM() {
     // Also, turn off BPM for xtras (they are all over the place, including round dance cues, which have no BPM at all).
     //
     // TODO: make the types for turning off BPM detection a preference
-    if ((songBPM>=125-15) && (songBPM<=125+15) && currentSongType != "xtras") {
+    if ((songBPM>=125-15) && (songBPM<=125+15) && currentSongCategoryName != "extras") {
         tempoIsBPM = true;
         ui->currentTempoLabel->setText(QString::number(songBPM) + " BPM (100%)"); // initial load always at 100%
 
@@ -10763,8 +10785,10 @@ void MainWindow::on_darkStartLoopTime_timeChanged(const QTime &time)
     QTime otherTime = (const QTime)(ui->dateTimeEditIntroTime->time());
     qint64 dTime_ms = abs(otherTime.msecsTo(time));
 
-    bool isSingingCall = songTypeNamesForSinging.contains(currentSongType) ||
-                         songTypeNamesForCalled.contains(currentSongType);
+    // bool isSingingCall = songTypeNamesForSinging.contains(currentSongType) ||
+    //                      songTypeNamesForCalled.contains(currentSongType);
+
+    bool isSingingCall = currentSongIsSinger || currentSongIsVocal;
 
     if (dTime_ms != 0) {
         on_dateTimeEditIntroTime_timeChanged(time); // just call over there to set the times on both
@@ -10780,8 +10804,10 @@ void MainWindow::on_darkEndLoopTime_timeChanged(const QTime &time)
     QTime otherTime = (const QTime)(ui->dateTimeEditOutroTime->time());
     qint64 dTime_ms = abs(otherTime.msecsTo(time));
 
-    bool isSingingCall = songTypeNamesForSinging.contains(currentSongType) ||
-                         songTypeNamesForCalled.contains(currentSongType);
+    // bool isSingingCall = songTypeNamesForSinging.contains(currentSongType) ||
+    //                      songTypeNamesForCalled.contains(currentSongType);
+
+    bool isSingingCall = currentSongIsSinger || currentSongIsVocal;
 
     if (dTime_ms != 0) {
         on_dateTimeEditOutroTime_timeChanged(time); // just call over there to set the times on both
@@ -11742,4 +11768,31 @@ void MainWindow::maybeInstallTemplates() {
 
         }
 #endif
+}
+
+// sets the current* from the pathname
+void MainWindow::setCurrentSongMetadata(QString type) {
+    currentSongTypeName = type;  // e.g "hoedown"
+
+    currentSongIsPatter = songTypeNamesForPatter.contains(currentSongTypeName);
+    currentSongIsSinger = songTypeNamesForSinging.contains(currentSongTypeName);
+    currentSongIsVocal  = songTypeNamesForCalled.contains(currentSongTypeName);
+    currentSongIsExtra  = songTypeNamesForExtras.contains(currentSongTypeName);
+    currentSongIsUndefined = !(currentSongIsPatter || currentSongIsSinger || currentSongIsVocal || currentSongIsExtra); // none of the existing categories
+
+    // now set the category name, e.g. "hoedown", et.al. --> "patter"
+    // NOTE: this must match filepath2SongCategoryName()
+    if (currentSongIsPatter) {
+        currentSongCategoryName = "patter";
+    } else if (currentSongIsSinger) {
+        currentSongCategoryName = "singing";
+    } else if (currentSongIsVocal) {
+        currentSongCategoryName = "called";
+    } else if (currentSongIsExtra) {
+        currentSongCategoryName = "extras";
+    } else {
+        currentSongCategoryName = "unknown";
+    }
+
+    // qDebug() << "setCurrentSongMetadata(): " << currentSongTypeName  << currentSongCategoryName << currentSongIsPatter << currentSongIsSinger << currentSongIsVocal << currentSongIsExtra << currentSongIsUndefined;
 }

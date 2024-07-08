@@ -371,7 +371,11 @@ void MainWindow::on_darkSegmentButton_clicked()
 
         int maxFiles = 99999;
         QStringList s2 = s.split("#!#");
-        if (numMP3files < maxFiles && s2[0] == "patter") {
+
+        // qDebug() << "on_darkSegmentButton_clicked(): s2[0] = " << s2[0];
+
+        // if (numMP3files < maxFiles && s2[0] == "patter") {
+        if (numMP3files < maxFiles && songTypeNamesForPatter.contains(s2[0])) {
             // qDebug() << "adding: " << s;
             if (s2[1].endsWith(".mp3", Qt::CaseInsensitive)) {
                 mp3FilenamesToProcess.append(s2[1]);
@@ -431,7 +435,11 @@ void MainWindow::on_actionEstimate_for_all_songs_triggered()
 
         int maxFiles = 99999;
         QStringList s2 = s.split("#!#");
-        if (numMP3files < maxFiles && s2[0] == "patter") {
+
+        // qDebug() << "on_actionEstimate_for_all_songs_triggered(): s2[0] = " << s2[0];
+
+        // if (numMP3files < maxFiles && s2[0] == "patter") {
+        if (numMP3files < maxFiles && songTypeNamesForPatter.contains(s2[0])) {
             // qDebug() << "adding: " << s;
             if (s2[1].endsWith(".mp3", Qt::CaseInsensitive)) {
                 mp3FilenamesToProcess.append(s2[1]);

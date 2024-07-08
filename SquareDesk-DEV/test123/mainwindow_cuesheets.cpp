@@ -285,9 +285,11 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 {
     PerfTimer t("findPossibleCuesheets", __LINE__);
 
-    QString fileType = filepath2SongType(MP3Filename);
-    bool fileTypeIsPatter = (fileType == "patter");
-    bool fileTypeIsSinging = (fileType == "singing");
+    QString fileCategory = filepath2SongCategoryName(MP3Filename); // get the CATEGORY name
+    bool fileCategoryIsPatter = (fileCategory == "patter");
+    // bool fileCategoryIsSinging = (fileCategory == "singing");
+
+    // qDebug() << "findPossibleCuesheets: fileTypeIsPatter = " << fileTypeIsPatter << ", fileTypeIsSinging = " << fileTypeIsSinging;
 
     t.elapsed(__LINE__);
 
@@ -347,7 +349,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         } // else do nothing
 
 //        qDebug() << "possibleCuesheets(): " << fileTypeIsPatter << filename << filepath2SongType(filename) << type;
-        if (fileTypeIsPatter && (type=="lyrics")) {
+        if (fileCategoryIsPatter && (type=="lyrics")) {
             // if it's a patter MP3, then do NOT match it against anything in the lyrics folder
             continue;
         }
@@ -545,8 +547,13 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
         // }
 
 
+        // THIS IS THE "PEEK" CODE ----------
+        //
         // be careful here.  The Lyrics tab can now be the Patter tab.
-        isPatter = songTypeNamesForPatter.contains(currentSongType);
+        // isPatter = songTypeNamesForPatter.contains(currentSongType);
+        isPatter = currentSongIsPatter;
+
+        // qDebug() << "loadCuesheets2: isPatter = " << isPatter;
 
         if (attempt == 0) {
             // Checking the real file;  continue if have lyrics or not patter
@@ -557,7 +564,10 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
                 break;          // no next song
             }
             filenameToCheck = nextFilename;
-            if (filenameToCheck.contains("/singing/")) {
+
+            QString theCategory = filepath2SongCategoryName(filenameToCheck); // get the CATEGORY, e.g. "singing" for all singing call types (e.g. "singer", "singing", "Singing Call", etc.)
+            // if (filenameToCheck.contains("/singing/")) {
+            if (theCategory == "singing") {
                 // Try this song
 //              qDebug() << "loadCuesheets: now trying " << filenameToCheck;
             } else {
@@ -1059,8 +1069,11 @@ void MainWindow::on_actionPrint_Cuesheet_triggered()
     QPrinter printer;
     QPrintDialog printDialog(&printer, this);
 
+    // qDebug() << "on_actionPrint_Cuesheet_triggered(): currentSongTypeName = " << currentSongTypeName;
+
     // PRINT CUESHEET FOR PATTER OR SINGER -------------------------------------------------------
-    if (currentSongType == "singing") {
+    // if (currentSongType == "singing") {
+    if (currentSongIsSinger || currentSongIsVocal) {
         printDialog.setWindowTitle("Print Cuesheet");
     } else {
         printDialog.setWindowTitle("Print Patter");

@@ -975,15 +975,24 @@ private:
 
     bool closeEventHappened;
 
-    QString currentMP3filename;
-    QString currentMP3filenameWithPath;
     bool songLoaded;
     bool fileModified;
     bool lyricsForDifferentSong;
 
-    QString currentSongType;
-    QString currentSongTitle;
-    QString currentSongLabel;  // record label, e.g. RIV
+    // SONG METADATA ------------------
+    QString currentMP3filename;
+    QString currentMP3filenameWithPath;
+
+    QString currentSongTypeName;     // string extracted from the filename, e.g. "Patter" or "Singing call"
+    QString currentSongCategoryName; // e.g. "patter"
+    bool currentSongIsPatter;    // categories; note that "Patter" and "hoedown" both map to currentSongIsPatter, etc.
+    bool currentSongIsSinger;
+    bool currentSongIsVocal;
+    bool currentSongIsExtra;
+    bool currentSongIsUndefined; // doesn't match any of the 4 known categories
+
+    QString currentSongTitle;    // song title, e.g. "Appalachian Joy"
+    QString currentSongLabel;    // record label, e.g. RIV
 
     int randCallIndex;     // for Flash Calls
 
@@ -995,14 +1004,14 @@ private:
 
     void randomizeFlashCall();
 
-    QString filepath2SongType(QString MP3Filename);  // returns the type (as a string).  patter, hoedown -> "patter", as per user prefs
+    QString filepath2SongCategoryName(QString MP3Filename);  // returns the CATEGORY name (as a string).  patter, hoedown -> "patter", as per user prefs
 
     int getRsyncFileCount(QString sourceDir, QString destDir);
 
     double getID3BPM(QString MP3FileName);
 
     void reloadCurrentMP3File();
-    void loadMP3File(QString filepath, QString songTitle, QString songType, QString songLabel, QString nextFilename="");
+    void loadMP3File(QString filepath, QString songTitle, QString songCategory, QString songLabel, QString nextFilename="");
     void secondHalfOfLoad(QString songTitle);  // after we have duration and BPM, execute this
 
     void maybeLoadCSSfileIntoTextBrowser();
@@ -1414,6 +1423,9 @@ public:
     bool testRestartingSquareDesk;
     QTimer testRestartingSquareDeskTimer;
 #endif
+
+    // new type stuff
+    void setCurrentSongMetadata(QString type);  // sets all the current* from the pathname
 };
 
 // currentState:

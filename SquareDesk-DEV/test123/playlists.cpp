@@ -1468,6 +1468,9 @@ void MainWindow::on_actionPrint_Playlist_triggered()
 
         QStringList parts = baseName.split("/");
         QString folderTypename = parts[1]; // /patter/foo.mp3 --> "patter"
+
+        // qDebug() << "on_actionPrint_playlist_triggered(): folderTypename = " << folderTypename;
+
         QString colorString("black");
         if (songTypeNamesForPatter.contains(folderTypename)) {
             colorString = patterColorString;
@@ -1984,6 +1987,14 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
 {
     PerfTimer t("on_playlist1Table_itemDoubleClicked", __LINE__);
 
+    // playlist format -------
+    // col 0: number
+    // col 1: short title
+    // col 2: pitch
+    // col 3: tempo
+    // col 4: full path to MP3
+    // col 5:
+
     on_stopButton_clicked();  // if we're loading a new MP3 file, stop current playback
     saveCurrentSongSettings();
 
@@ -2021,14 +2032,10 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
         songTitle = realShortTitle;
     }
 
-    //    QString songType = ui->songTable->item(row,kTypeCol)->text().toLower();
-    //    QString songLabel = ui->songTable->item(row,kLabelCol)->text().toLower();
-
-    QString songType = "patter";
-    if (pathToMP3.contains("/singing/")) {  // FIX THIS: NEEDS TO LOOK AT ALL THE POSSIBLE TYPE NAMES AND TYPES (THIS IS TEMPORARY)
-        songType = "singing";
-    }
+    QString songType = (fi.path().replace(musicRootPath + "/","").split("/"))[0]; // e.g. "hoedown" or "patter"
     QString songLabel = "RIV 123";
+
+    // qDebug() << "***** on_playlist1Table_itemDoubleClicked(): songType = " << songType << songLabel;
 
     // these must be up here to get the correct values...
     QString pitch  = ui->playlist1Table->item(row, 2)->text();
@@ -2150,14 +2157,10 @@ void MainWindow::on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item)
         songTitle = realShortTitle;
     }
 
-    //    QString songType = ui->songTable->item(row,kTypeCol)->text().toLower();
-    //    QString songLabel = ui->songTable->item(row,kLabelCol)->text().toLower();
-
-    QString songType = "patter";
-    if (pathToMP3.contains("/singing/")) {  // FIX THIS: NEEDS TO LOOK AT ALL THE POSSIBLE TYPE NAMES AND TYPES (THIS IS TEMPORARY)
-        songType = "singing";
-    }
+    QString songType = (fi.path().replace(musicRootPath + "/","").split("/"))[0]; // e.g. "hoedown" or "patter"
     QString songLabel = "RIV 123";
+
+    // qDebug() << "***** on_playlist2Table_itemDoubleClicked(): songType = " << songType << songLabel;
 
     // these must be up here to get the correct values...
     QString pitch  = ui->playlist2Table->item(row, 2)->text();
@@ -2277,14 +2280,10 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
         songTitle = realShortTitle;
     }
 
-    //    QString songType = ui->songTable->item(row,kTypeCol)->text().toLower();
-    //    QString songLabel = ui->songTable->item(row,kLabelCol)->text().toLower();
-
-    QString songType = "patter";
-    if (pathToMP3.contains("/singing/")) {  // FIX THIS: NEEDS TO LOOK AT ALL THE POSSIBLE TYPE NAMES AND TYPES (THIS IS TEMPORARY)
-        songType = "singing";
-    }
+    QString songType = (fi.path().replace(musicRootPath + "/","").split("/"))[0]; // e.g. "hoedown" or "patter"
     QString songLabel = "RIV 123";
+
+    // qDebug() << "***** on_playlist3Table_itemDoubleClicked(): songType = " << songType << songLabel;
 
     // these must be up here to get the correct values...
     QString pitch  = ui->playlist3Table->item(row, 2)->text();
