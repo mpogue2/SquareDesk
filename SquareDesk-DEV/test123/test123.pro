@@ -36,7 +36,7 @@ macx {
   contains(QMAKE_HOST.arch, x86_64) {
     message("X86_64 BUILD MACHINE DETECTED!")
     ARCHDIR = "x86_64"
-    QMAKE_MAC_SDK = macosx12.1
+    QMAKE_MAC_SDK = macosx13.3
   }
   contains(QMAKE_HOST.arch, arm64) {
     message("ARM64 BUILD MACHINE DETECTED!")
