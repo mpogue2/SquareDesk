@@ -148,6 +148,7 @@ void MainWindow::lockForEditing() {
     ui->actionPrint_Cuesheet->setEnabled(hasLyrics); // we can Cuesheet > Print Cuesheet if there are lyrics
 
     ui->pushButtonEditLyrics->show();        // and the "unlock for editing" button is now visible
+    ui->pushButtonNewFromTemplate->show();   // and the "New..." button is now visible
 //    ui->actionSave->setEnabled(false);      // save is disabled now
 //    ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
 
@@ -199,7 +200,9 @@ void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
 
         ui->actionPrint_Cuesheet->setEnabled(hasLyrics); // we can Cuesheet > Print Cuesheet if there are lyrics
 
-        ui->pushButtonEditLyrics->hide();  // and this button goes away!
+        ui->pushButtonEditLyrics->hide();       // and this button goes away, because we're editing now
+        ui->pushButtonNewFromTemplate->hide();  // and this button goes away, because we're editing now
+
 //        ui->actionSave->setEnabled(haveCuesheet);  // save is enabled if there is a cuesheet
 //        ui->actionSave_As->setEnabled(true);  // save as... is enabled now
 
@@ -1128,6 +1131,7 @@ void MainWindow::saveLyrics()
         ui->pushButtonCueSheetEditSaveAs->hide();
         ui->pushButtonRevertEdits->hide();
         ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
+        ui->pushButtonNewFromTemplate->show();  // and the "New..." button shows up again!
 
 //        ui->actionSave->setEnabled(false);  // save is disabled to start out
         ui->actionSave_Cuesheet->setEnabled(false);  // if locked, we can't Cuesheet > Save Cuesheet

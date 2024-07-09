@@ -1380,6 +1380,13 @@
              </spacer>
             </item>
             <item>
+             <widget class="QPushButton" name="pushButtonNewFromTemplate">
+              <property name="text">
+               <string>New...</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QPushButton" name="pushButtonEditLyrics">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Minimum">

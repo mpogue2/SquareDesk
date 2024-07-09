@@ -1426,6 +1426,10 @@ public:
 
     // new type stuff
     void setCurrentSongMetadata(QString type);  // sets all the current* from the pathname
+
+    // template menu for cuesheet
+    QMenu *templateMenu;
+    void newFromTemplate();
 };
 
 // currentState:

@@ -2577,7 +2577,114 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
                 on_actionSwitch_to_Light_Mode_triggered();  // this will toggle us indefinitely, until manually stopped
         });
     }
+
+    QMenu templateMenu;
 #endif
+
+    // set up Template menu ---------
+    templateMenu = new QMenu();
+
+    // find all template HTML files, and add to the menu
+    QString templatesDir = musicRootPath + "/lyrics/templates";
+    QString templatePattern = "*template*html";
+    QDir currentDir(templatesDir);
+    // const QString prefix = templatesDir + "/";
+    foreach (const QString &match, currentDir.entryList(QStringList(templatePattern), QDir::Files | QDir::NoSymLinks)) {
+        // qDebug() << "FOUND ONE: " << match;
+        QString s = match;
+        s.replace(".html", "");
+        QAction *a = templateMenu->addAction(s, this, [this] { newFromTemplate(); });
+        a->setProperty("name", s); // e.g. "lyrics.template"
+    }
+
+    ui->pushButtonNewFromTemplate->setMenu(templateMenu);
+}
+
+void MainWindow::newFromTemplate() {
+    QString templateName = sender()->property("name").toString();
+    // qDebug() << "newFromTemplate()" << templateName;
+
+    // Ask me where to save it...
+    RecursionGuard dialog_guard(inPreferencesDialog);
+    QFileInfo fi(currentMP3filenameWithPath);
+
+    if (lastCuesheetSavePath.isEmpty()) {
+        lastCuesheetSavePath = musicRootPath + "/lyrics";
+    }
+
+    loadedCuesheetNameWithPath = lastCuesheetSavePath + "/" + fi.baseName() + ".html";
+
+    QString maybeFilename = loadedCuesheetNameWithPath;
+    QFileInfo fi2(loadedCuesheetNameWithPath);
+    if (fi2.exists()) {
+        // choose the next name in the series (this won't be done, if we came from a template)
+        QString cuesheetExt = loadedCuesheetNameWithPath.split(".").last();
+        QString cuesheetBase = loadedCuesheetNameWithPath
+                .replace(QRegularExpression(cuesheetExt + "$"),"")  // remove extension, e.g. ".html"
+                .replace(QRegularExpression("[0-9]+\\.$"),"");      // remove .<number>, e.g. ".2"
+
+        // find an appropriate not-already-used filename to save to
+        bool done = false;
+        int which = 2;  // I suppose we could be smarter than this at some point.
+        while (!done) {
+            maybeFilename = cuesheetBase + QString::number(which) + "." + cuesheetExt;
+            QFileInfo maybeFile(maybeFilename);
+            done = !maybeFile.exists();  // keep going until a proposed filename does not exist (don't worry -- it won't spin forever)
+            which++;
+        }
+    }
+
+    // qDebug() << "newFromTemplate proposed cuesheet filename: " << maybeFilename;
+
+    QString filename = QFileDialog::getSaveFileName(this,
+                                                    tr("Save"), // TODO: this could say Lyrics or Patter
+                                                    maybeFilename,
+                                                    tr("HTML (*.html *.htm)"));
+    if (!filename.isNull())
+    {
+        // this needs to be done BEFORE the actual write, because the reload will cause a bogus "are you sure" message
+        // lockForEditing();
+
+        // filewatcherShouldIgnoreOneFileSave = true;  // set flag so that Filewatcher is NOT triggered (one time)
+        QString fromFilename = musicRootPath + "/lyrics/templates" + "/" + templateName + ".html";
+        QString toFilename   = maybeFilename;
+
+        // qDebug() << "newFromTemplate from/to = " << fromFilename << toFilename;
+
+        QFile::copy(fromFilename, toFilename);
+
+        // is it in the pathstack?
+        QListIterator<QString> iter(*pathStack);
+        bool foundInPathStack = false;
+        while (iter.hasNext()) {
+            QString s = iter.next();
+            // qDebug() << "looking at: " << s;
+            QStringList sl1 = s.split("#!#");
+            //QString type = sl1[0];  // the type (of original pathname, before following aliases)
+            QString filename = sl1[1];  // everything else
+            if (filename == toFilename) {
+                // qDebug() << "FOUND IT IN PATHSTACK: " << toFilename;
+                foundInPathStack = true;
+            }
+
+        }
+
+        // if not already in there, stick it into the pathstack, so it will be found at loadCuesheets time
+        if (!foundInPathStack)
+        {
+            // qDebug() << "NOT FOUND. So, adding it to the pathStack: " << toFilename;
+            QFileInfo fi(filename);
+            QStringList section = fi.path().split("/");
+            QString type = section[section.length()-1];  // must be the last item in the path
+            // qDebug() << "    Adding " + type + "#!#" + filename + " to pathStack";
+            pathStack->append(type + "#!#" + filename);
+        }
+
+        // and reload the cuesheets, to pick up the new one from the updated pathStack
+        loadCuesheets(currentMP3filenameWithPath, filename); // ignoring return value
+
+        saveCurrentSongSettings();
+    }
 
 }
 
@@ -5915,7 +6022,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->pushButtonRevertEdits->hide();   // the revert edits buttons is also now invisible
 
     ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
-    
+    ui->pushButtonNewFromTemplate->show(); // allow creating new cuesheets from templates in the "lyrics" directory
 
     QStringList pieces = MP3FileName.split( "/" );
     QString filebase = pieces.value(pieces.length()-1);
