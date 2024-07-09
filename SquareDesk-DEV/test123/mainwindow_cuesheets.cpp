@@ -521,7 +521,8 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
                                                       cuesheet);
         }
 
-        if (ui->comboBoxCuesheetSelector->count() > 0)
+        bool hasCuesheets = ui->comboBoxCuesheetSelector->count() > 0;
+        if (hasCuesheets)
         {
             ui->comboBoxCuesheetSelector->setCurrentIndex(defaultCuesheetIndex);
             // if it was zero, we didn't load it because the index didn't change,
@@ -530,6 +531,10 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
                 on_comboBoxCuesheetSelector_currentIndexChanged(0);
             hasLyrics = true;
         }
+
+        // only allow editing (and show the Unlock button), or creating a New cuesheet from template,
+        //  when there actually is a cuesheet in the dropdown menu (which means that some cuesheet will be loaded).
+        ui->pushButtonEditLyrics->setVisible(hasCuesheets);
 
         // NOTE: This code does not work yet.
         // if (0 == defaultCuesheetIndex) {

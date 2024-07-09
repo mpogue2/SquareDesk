@@ -2598,6 +2598,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     }
 
     ui->pushButtonNewFromTemplate->setMenu(templateMenu);
+
+    ui->pushButtonEditLyrics->setVisible(false); // don't show this button until there are cuesheets available to edit
+    ui->pushButtonNewFromTemplate->setVisible(false); // don't show this button until there is a song loaded
 }
 
 void MainWindow::newFromTemplate() {
