@@ -2255,7 +2255,7 @@ void MainWindow::restartSDThread(dance_level dance_program)
     {
         sdthread->finishAndShutdownSD();
         sdthread->wait(250);
-        
+        delete sdthread;
         sdthread = nullptr; // NULL;
     }
     startSDThread(dance_program);
