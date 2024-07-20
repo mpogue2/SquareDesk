@@ -10420,6 +10420,10 @@ void MainWindow::handleDurationBPM() {
 #endif
 
         ui->tempoSlider->setValue(songBPM);  // qDebug() << "handleDurationBPM set tempo slider to: " << songBPM;
+#ifdef DARKMODE
+        // Necessary because we've changed the minimum and maximum, but haven't forced a redraw, and the on_... only changes the value if it's changed. This forces a redraw.
+        ui->darkTempoSlider->setValue(songBPM);
+#endif
         emit ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
 
         ui->tempoSlider->SetOrigin(songBPM);    // when double-clicked, goes here (MySlider function)
@@ -10445,6 +10449,10 @@ void MainWindow::handleDurationBPM() {
 #endif
 
         ui->tempoSlider->setValue(100);
+#ifdef DARKMODE
+        // see comment above about forcing a redraw
+        ui->darkTempoSlider->setValue(100);
+#endif
         emit ui->tempoSlider->valueChanged(100);  // fixes bug where second song with same 100% doesn't update songtable::tempo
         ui->tempoSlider->SetOrigin(100);  // when double-clicked, goes here
 
