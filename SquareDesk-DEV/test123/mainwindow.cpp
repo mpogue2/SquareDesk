@@ -397,8 +397,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     flashCallsVisible = false;
 
-    for (size_t i = 0; i < sizeof(webview) / sizeof(*webview); ++i)
-        webview[i] = nullptr;
+    // Reference tab ---
+    webViews.clear();
     
     linesInCurrentPlaylist = 0;
 
@@ -5232,21 +5232,13 @@ void MainWindow::aboutBox()
 }
 
 bool MainWindow::someWebViewHasFocus() {
-#define WEBVIEWSWORK
-#ifdef WEBVIEWSWORK
-//    qDebug() << "numWebviews: " << numWebviews;
     bool hasFocus = false;
-    for (unsigned int i=0; i<numWebviews && !hasFocus; i++) {
-//        qDebug() << "     checking: " << i;
-        hasFocus = hasFocus || ((numWebviews > i) && (webview[i] != nullptr) && (webview[i]->hasFocus()));
+    QListIterator<QWebEngineView*> i(webViews);
+    while (!hasFocus && i.hasNext()) {
+        hasFocus = hasFocus || (i.next()->hasFocus());
     }
-//    qDebug() << "     returning: " << hasFocus;
     return(hasFocus);
-#else
-    return(false);
-#endif
 }
-
 
 // ------------------------------------------------------------------------
 // http://www.codeprogress.com/cpp/libraries/qt/showQtExample.php?key=QApplicationInstallEventFilter&index=188
@@ -5378,7 +5370,6 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                ui->lineEditChoreographySearch->hasFocus() ||
 #endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
                ui->songTable->isEditing() ||
-//               maybeMainWindow->webview[0]->hasFocus() ||      // EXPERIMENTAL FIX FIX FIX, will crash if webview[n] not exist yet
                maybeMainWindow->someWebViewHasFocus() ) ||           // safe now (won't crash, if there are no webviews!)
 
              ( (ui->labelSearch->hasFocus() ||          // OR IF A TEXT HANDLING WIDGET HAS FOCUS AND ESC/` IS PRESSED
@@ -9018,8 +9009,6 @@ void MainWindow::microphoneStatusUpdate() {
 void MainWindow::initReftab() {
     static QRegularExpression re1("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", QRegularExpression::CaseInsensitiveOption);
 
-    numWebviews = 0;
-    
     documentsTab = new QTabWidget();
 
     // Items in the Reference tab are sorted, and are ordered by an optional 3 digits: 1 X X then a dot, then the tabname, then .txt/pdf
@@ -9061,20 +9050,20 @@ void MainWindow::initReftab() {
                 }
             }
             if (HTMLfolderExists) {
-                webview[numWebviews] = new QWebEngineView();
-//                QString indexFileURL = "file://" + filename + whichHTM;
+                QWebEngineView *newView = new QWebEngineView();
+                webViews.append(newView);
+
 #if defined(Q_OS_WIN32)
                 QString indexFileURL = "file:///" + filename + whichHTM;  // Yes, Windows is special
 #else
                 QString indexFileURL = "file://" + filename + whichHTM;   // UNIX-like OS's only need one slash.
 #endif
-//                qDebug() << "    indexFileURL:" << indexFileURL;
-                webview[numWebviews]->setUrl(QUrl(indexFileURL));
-                webview[numWebviews]->page()->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);  // allow index.html to access 3P remote website
 
-                documentsTab->addTab(webview[numWebviews], tabname);
-                numWebviews++;
+                newView->setUrl(QUrl(indexFileURL));
+                newView->page()->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);  // allow index.html to access 3P remote website
+                documentsTab->addTab(newView, tabname);
             }
+
         } else if (filename.endsWith(".txt") &&   // ends in .txt, AND
 //                   QRegExp("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", Qt::CaseInsensitive).indexIn(filename) == -1) {  // is not a Dance Program file in /reference
             filename.indexOf(re1) == -1) {
@@ -9086,7 +9075,8 @@ void MainWindow::initReftab() {
 
 //                qDebug() << "    tabname:" << tabname;
 
-                webview[numWebviews] = new QWebEngineView();
+                QWebEngineView *newView = new QWebEngineView();
+                webViews.append(newView);
 
 #if defined(Q_OS_WIN32)
                 QString indexFileURL = "file:///" + filename;  // Yes, Windows is special: file:///Y:/Dropbox/__squareDanceMusic/reference/100.Broken Hearts.txt
@@ -9094,22 +9084,26 @@ void MainWindow::initReftab() {
                 QString indexFileURL = "file://" + filename;   // UNIX-like OS's only need one slash.
 #endif
 //                qDebug() << "    indexFileURL:" << indexFileURL;
-                webview[numWebviews]->setUrl(QUrl(indexFileURL));
-                documentsTab->addTab(webview[numWebviews], tabname);
-                numWebviews++;
+
+                newView->setUrl(QUrl(indexFileURL));
+                documentsTab->addTab(newView, tabname);
+
         } else if (filename.endsWith(".md", Qt::CaseInsensitive)) {  // is not a Dance Program file in /reference
                 static QRegularExpression re4(".[Mm][Dd]$");
                 tabname = filename.split("/").last().remove(re4);
-                webview[numWebviews] = new QWebEngineView();
+
+                QWebEngineView *newView = new QWebEngineView();
+                webViews.append(newView);
 
                 QFile f1(filename);
                 f1.open(QIODevice::ReadOnly | QIODevice::Text);
                 QTextStream in(&f1);
                 QString html = txtToHTMLlyrics(in.readAll(), filename);
-                webview[numWebviews]->setHtml(html);
-                webview[numWebviews]->setZoomFactor(1.5);
-                documentsTab->addTab(webview[numWebviews], tabname);
-                numWebviews++;
+
+                newView->setHtml(html);
+                newView->setZoomFactor(1.5);
+                documentsTab->addTab(newView, tabname);
+
         } else if (filename.endsWith(".pdf")) {
 //                qDebug() << "PDF FILE DETECTED:" << filename;
 
@@ -9124,25 +9118,25 @@ void MainWindow::initReftab() {
                 Communicator *m_communicator = new Communicator(this);
                 m_communicator->setUrl(pdf_path);
 
-                webview[numWebviews] = new QWebEngineView();
+                QWebEngineView *newView = new QWebEngineView();
+                webViews.append(newView);
+
                 QWebChannel * channel = new QWebChannel(this);
                 channel->registerObject(QStringLiteral("communicator"), m_communicator);
-                webview[numWebviews]->page()->setWebChannel(channel);
 
-                webview[numWebviews]->load(url);
-
+                newView->page()->setWebChannel(channel);
+                newView->load(url);
 
 //                QString indexFileURL = "file://" + filename;
 //                qDebug() << "    indexFileURL:" << indexFileURL;
 
-//                webview[numWebviews]->setUrl(QUrl(pdf_path));
 //                QFileInfo fInfo(filename);
                 static QRegularExpression re5(".pdf$");
                 tabname = filename.split("/").last().remove(re5);      // get basename, remove .pdf
                 static QRegularExpression re6("^1[0-9][0-9]\\.");
                 tabname.remove(re6);                         // 122.bar.txt -> "bar"  // remove optional 1##. at front
-                documentsTab->addTab(webview[numWebviews], tabname);
-                numWebviews++;
+
+                documentsTab->addTab(newView, tabname);
         }
 
     } // for loop, iterating through <musicRoot>/reference

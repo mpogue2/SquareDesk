@@ -286,9 +286,8 @@ public:
     void updateFlashFileMenu();
     void readFlashCallsList();  // re-read the flashCalls file, keep just those selected
 
-    unsigned int numWebviews;
-#define MAX_WEB_VIEWS 16
-    QWebEngineView* webview[MAX_WEB_VIEWS];  // max of 16 tabs
+    // Reference tab ---
+    QList<QWebEngineView*> webViews;
     QTabWidget *documentsTab;
 
     QStringList patterTemplateCuesheets; // of the form "patter.template*.html"
