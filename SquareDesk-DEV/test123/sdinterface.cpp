@@ -1158,7 +1158,16 @@ void SDThread::finishAndShutdownSD()
 
 SDThread::~SDThread()
 {
+    mutexSDAwaitingInput.tryLock();
+    // One of two things just happened:
+    // Either it was already unlocked, and now we locked it again, so it's now OK to unlock now
+    // or, we were unable to get the lock because it was already locked, so again it's OK to unlock here
     mutexSDAwaitingInput.unlock();
+
+    mutexAckToMainThread.tryLock();
+    // One of two things just happened:
+    // Either it was already unlocked, and now we locked it again, so it's now OK to unlock now
+    // or, we were unable to get the lock because it was already locked, so again it's OK to unlock here
     mutexAckToMainThread.unlock();
 
     // NOTE: we should NOT try to acquire this lock, because we might not be able to get it here,
