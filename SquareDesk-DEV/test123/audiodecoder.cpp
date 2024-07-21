@@ -41,6 +41,8 @@
 #include <QProcess>
 #include <QThread>
 #include <QTemporaryFile>
+#include <QUuid>
+#include <QDir>
 
 // EQ ----------
 #include <kfr/base.hpp>
@@ -1136,6 +1138,7 @@ void AudioDecoder::StopVolumeDucking() {
 // ========================================================================================================================
 // ========================================================================================================================
 // set to 0 to persist the in/out files to/from vamp, for debugging purposes
+// WARNING: These will be persisted in "/Users/mpogue", which is probably not where you want them.
 #define USETEMPFILES 1
 
 // ========================================================================================================================
@@ -1225,6 +1228,14 @@ QString AudioDecoder::runVamp(QString whichModule, QString WAVfilename, QString 
     }
 
     t->elapsed(__LINE__);
+
+#if USETEMPFILES==1
+    QUuid uuid = QUuid::createUuid();
+    QString resultsFilenameTemp = QDir::toNativeSeparators(QDir::tempPath() + "/" + qApp->applicationName().replace(" ", "") + "_" + uuid.toString(QUuid::WithoutBraces) + ".txt");
+    resultsFilename = resultsFilenameTemp;
+#endif
+
+    // qDebug() << "runVamp:" << whichModule << resultsFilename;
 
     if (whichModule == "beatbardetect") {
         vamp.disconnect();  // disconnect all previous connections, so we can start up a new one below (just one)
@@ -1378,7 +1389,7 @@ int AudioDecoder::beatBarDetection() {
     QString infile = makeExternalAudioFile("/Users/mpogue/beatDetect.wav");
     // qDebug() << "***** beatBarDetection: " << infile;
 
-    QString resultsFilename = runVamp("beatbardetect", infile, "/Users/mpogue/beatDetect.results.txt");
+    QString resultsFilename = runVamp("beatbardetect", infile, "/Users/mpogue/beatDetect.results.txt"); // last argument used only if USETEMPFILES is 0
 
     // TEST: ./vamp-simple-host -s qm-vamp-plugins:qm-barbeattracker hawk_LPF1500.wav -o beats.lpf1500.txt
 
