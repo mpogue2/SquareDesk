@@ -769,22 +769,23 @@ int MainWindow::PlaylistItemCount() {
 
 // ----------------------------------------------------------------------
 void MainWindow::PlaylistItemsToTop() {
-
-#ifdef DARKMODE
-    if (!relPathInSlot[0].startsWith("/tracks/")) {
-        slotModified[0] = ui->playlist1Table->moveSelectedItemsToTop() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+// #ifdef DARKMODE
+    if (darkmode) {
+        if (!relPathInSlot[0].startsWith("/tracks/")) {
+            slotModified[0] = ui->playlist1Table->moveSelectedItemsToTop() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+        }
+        if (!relPathInSlot[1].startsWith("/tracks/")) {
+            slotModified[1] = ui->playlist2Table->moveSelectedItemsToTop() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+        }
+        if (!relPathInSlot[2].startsWith("/tracks/")) {
+            slotModified[2] = ui->playlist3Table->moveSelectedItemsToTop() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+        }
+        if (slotModified[0] || slotModified[1] || slotModified[2]) {
+            playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+            return; // we changed something, no need to check songTable
+        }
     }
-    if (!relPathInSlot[1].startsWith("/tracks/")) {
-        slotModified[1] = ui->playlist2Table->moveSelectedItemsToTop() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
-    }
-    if (!relPathInSlot[2].startsWith("/tracks/")) {
-        slotModified[2] = ui->playlist3Table->moveSelectedItemsToTop() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
-    }
-    if (slotModified[0] || slotModified[1] || slotModified[2]) {
-        playlistSlotWatcherTimer->start(std::chrono::seconds(10));
-        return; // we changed something, no need to check songTable
-    }
-#endif
+// #endif
 
     // drop into this section, if it was the songTable and not one of the playlist slots that was selected
     // selections in these 4 tables are mutually exclusive
@@ -863,21 +864,23 @@ void MainWindow::PlaylistItemsToTop() {
 
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemsToBottom() {
-#ifdef DARKMODE
-    if (!relPathInSlot[0].startsWith("/tracks/")) {
-        slotModified[0] = ui->playlist1Table->moveSelectedItemsToBottom() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+// #ifdef DARKMODE
+    if (darkmode) {
+        if (!relPathInSlot[0].startsWith("/tracks/")) {
+            slotModified[0] = ui->playlist1Table->moveSelectedItemsToBottom() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+        }
+        if (!relPathInSlot[1].startsWith("/tracks/")) {
+            slotModified[1] = ui->playlist2Table->moveSelectedItemsToBottom() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+        }
+        if (!relPathInSlot[2].startsWith("/tracks/")) {
+            slotModified[2] = ui->playlist3Table->moveSelectedItemsToBottom() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+        }
+        if (slotModified[0] || slotModified[1] || slotModified[2]) {
+            playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+            return; // we changed something, no need to check songTable
+        }
     }
-    if (!relPathInSlot[1].startsWith("/tracks/")) {
-        slotModified[1] = ui->playlist2Table->moveSelectedItemsToBottom() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
-    }
-    if (!relPathInSlot[2].startsWith("/tracks/")) {
-        slotModified[2] = ui->playlist3Table->moveSelectedItemsToBottom() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
-    }
-    if (slotModified[0] || slotModified[1] || slotModified[2]) {
-        playlistSlotWatcherTimer->start(std::chrono::seconds(10));
-        return; // we changed something, no need to check songTable
-    }
-#endif
+// #endif
 
     // drop into this section, if it was the songTable and not one of the playlist slots that was selected
     // selections in these 4 tables are mutually exclusive
@@ -941,22 +944,24 @@ void MainWindow::PlaylistItemsToBottom() {
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemsMoveUp() {
 
-#ifdef DARKMODE
-    // qDebug() << "relPathInSlot: " << relPathInSlot[0] << relPathInSlot[1] << relPathInSlot[2];
-    if (!relPathInSlot[0].startsWith("/tracks/")) {
-        slotModified[0] = ui->playlist1Table->moveSelectedItemsUp() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+// #ifdef DARKMODE
+    if (darkmode) {
+        // qDebug() << "relPathInSlot: " << relPathInSlot[0] << relPathInSlot[1] << relPathInSlot[2];
+        if (!relPathInSlot[0].startsWith("/tracks/")) {
+            slotModified[0] = ui->playlist1Table->moveSelectedItemsUp() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+        }
+        if (!relPathInSlot[1].startsWith("/tracks/")) {
+            slotModified[1] = ui->playlist2Table->moveSelectedItemsUp() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+        }
+        if (!relPathInSlot[2].startsWith("/tracks/")) {
+            slotModified[2] = ui->playlist3Table->moveSelectedItemsUp() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+        }
+        if (slotModified[0] || slotModified[1] || slotModified[2]) {
+            playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+            return; // we changed something, no need to check songTable
+        }
     }
-    if (!relPathInSlot[1].startsWith("/tracks/")) {
-        slotModified[1] = ui->playlist2Table->moveSelectedItemsUp() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
-    }
-    if (!relPathInSlot[2].startsWith("/tracks/")) {
-        slotModified[2] = ui->playlist3Table->moveSelectedItemsUp() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
-    }
-    if (slotModified[0] || slotModified[1] || slotModified[2]) {
-        playlistSlotWatcherTimer->start(std::chrono::seconds(10));
-        return; // we changed something, no need to check songTable
-    }
-#endif
+// #endif
 
     // drop into this section, if it was the songTable and not one of the playlist slots that was selected
     // selections in these 4 tables are mutually exclusive
@@ -1014,40 +1019,45 @@ void MainWindow::PlaylistItemsMoveUp() {
 
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemsMoveDown() {
-#ifdef DARKMODE
-    if (!relPathInSlot[0].startsWith("/tracks/")) {
-        slotModified[0] = ui->playlist1Table->moveSelectedItemsDown() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+// #ifdef DARKMODE
+    if (darkmode) {
+        if (!relPathInSlot[0].startsWith("/tracks/")) {
+            slotModified[0] = ui->playlist1Table->moveSelectedItemsDown() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+        }
+        if (!relPathInSlot[1].startsWith("/tracks/")) {
+            slotModified[1] = ui->playlist2Table->moveSelectedItemsDown() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+        }
+        if (!relPathInSlot[2].startsWith("/tracks/")) {
+            slotModified[2] = ui->playlist3Table->moveSelectedItemsDown() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+        }
+        if (slotModified[0] || slotModified[1] || slotModified[2]) {
+            playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+            return; // we changed something, no need to check songTable
+        }
     }
-    if (!relPathInSlot[1].startsWith("/tracks/")) {
-        slotModified[1] = ui->playlist2Table->moveSelectedItemsDown() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
-    }
-    if (!relPathInSlot[2].startsWith("/tracks/")) {
-        slotModified[2] = ui->playlist3Table->moveSelectedItemsDown() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
-    }
-    if (slotModified[0] || slotModified[1] || slotModified[2]) {
-        playlistSlotWatcherTimer->start(std::chrono::seconds(10));
-        return; // we changed something, no need to check songTable
-    }
-#endif
+// #endif
 
     // drop into this section, if it was the songTable and not one of the playlist slots that was selected
     // selections in these 4 tables are mutually exclusive
     int selectedRow = selectedSongRow();  // get current row or -1
-
+    // qDebug() << "selectedRow: " << selectedRow;
     if (selectedRow == -1) {
         return;
     }
 
     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
 
+    // qDebug() << "currentNumberText: " << currentNumberText;
     if (currentNumberText == "") {
         // return, this is not an item that is on the playlist
         return;
     }
 
     int currentNumberInt = currentNumberText.toInt();
+    // qDebug() << "currentNumberInt: " << currentNumberInt;
 
     int playlistItemCount = PlaylistItemCount();
+    // qDebug() << "playlistItemCount: " << playlistItemCount;
 
     if (currentNumberInt >= playlistItemCount) {
         // return, if we're already at the bottom of the playlist
@@ -1090,29 +1100,31 @@ void MainWindow::PlaylistItemsMoveDown() {
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemsRemove() {
 
-#ifdef DARKMODE
-    if (!relPathInSlot[0].startsWith("/tracks/")) {
-//        ui->playlist1Table->removeSelectedItem();  // if nothing was selected in this slot, this call does nothing
-        slotModified[0] = ui->playlist1Table->removeSelectedItems() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
-    }
-    if (!relPathInSlot[1].startsWith("/tracks/")) {
-//        ui->playlist2Table->removeSelectedItem();  // if nothing was selected in this slot, this call does nothing
-        slotModified[1] = ui->playlist2Table->removeSelectedItems() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
-    }
-    if (!relPathInSlot[2].startsWith("/tracks/")) {
-//        ui->playlist3Table->removeSelectedItem();  // if nothing was selected in this slot, this call does nothing
-        slotModified[2] = ui->playlist3Table->removeSelectedItems() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
-    }
-
-    if (slotModified[0] || slotModified[1] || slotModified[2]) {
-        playlistSlotWatcherTimer->start(std::chrono::seconds(10));
-        return; // we changed something, no need to check songTable
-    }
-
+// #ifdef DARKMODE
     if (darkmode) {
-        return;
+        if (!relPathInSlot[0].startsWith("/tracks/")) {
+    //        ui->playlist1Table->removeSelectedItem();  // if nothing was selected in this slot, this call does nothing
+            slotModified[0] = ui->playlist1Table->removeSelectedItems() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+        }
+        if (!relPathInSlot[1].startsWith("/tracks/")) {
+    //        ui->playlist2Table->removeSelectedItem();  // if nothing was selected in this slot, this call does nothing
+            slotModified[1] = ui->playlist2Table->removeSelectedItems() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+        }
+        if (!relPathInSlot[2].startsWith("/tracks/")) {
+    //        ui->playlist3Table->removeSelectedItem();  // if nothing was selected in this slot, this call does nothing
+            slotModified[2] = ui->playlist3Table->removeSelectedItems() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+        }
+
+        if (slotModified[0] || slotModified[1] || slotModified[2]) {
+            playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+            return; // we changed something, no need to check songTable
+        }
+
+        // if (darkmode) {
+            return;
+        // }
     }
-#endif
+// #endif
 
     // This is only required for lightmode
 

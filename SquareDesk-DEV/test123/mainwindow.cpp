@@ -5401,7 +5401,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 #endif
                      ui->titleSearch->hasFocus()
                ) &&
-               (theKey == Qt::Key_Return || theKey == Qt::Key_Up || theKey == Qt::Key_Down)
+               (theKey == Qt::Key_Return || theKey == Qt::Key_Up || theKey == Qt::Key_Down || theKey == Qt::Key_Left || theKey == Qt::Key_Right)
              )
                   // These next 3 help work around a problem where going to a different non-SDesk window and coming back
                   //   puts the focus into a the Type field, where there was NO FOCUS before.  But, that field usually doesn't
@@ -9164,30 +9164,32 @@ void MainWindow::on_actionAuto_scroll_during_playback_toggled(bool checked)
     prefsManager.Setenableautoscrolllyrics(ui->actionAuto_scroll_during_playback->isChecked());
 }
 
-// void MainWindow::on_actionAt_TOP_triggered()    // Add > at TOP
-// {
-//     PlaylistItemToTop();
-// }
+// THE FOLLOWING FUNCTIONS ARE USED IN LIGHT MODE ONLY ==============
+void MainWindow::on_actionAt_TOP_triggered()    // Add > at TOP
+{
+    PlaylistItemsToTop();
+}
 
-// void MainWindow::on_actionAt_BOTTOM_triggered()  // Add > at BOTTOM
-// {
-//     PlaylistItemToBottom();
-// }
+void MainWindow::on_actionAt_BOTTOM_triggered()  // Add > at BOTTOM
+{
+    PlaylistItemsToBottom();
+}
 
-// void MainWindow::on_actionRemove_from_Playlist_triggered()
-// {
-//     PlaylistItemRemove();
-// }
+void MainWindow::on_actionRemove_from_Playlist_triggered()
+{
+    PlaylistItemsRemove();
+}
 
-// void MainWindow::on_actionUP_in_Playlist_triggered()
-// {
-//     PlaylistItemMoveUp();
-// }
+void MainWindow::on_actionUP_in_Playlist_triggered()
+{
+    PlaylistItemsMoveUp();
+}
 
-// void MainWindow::on_actionDOWN_in_Playlist_triggered()
-// {
-//     PlaylistItemMoveDown();
-// }
+void MainWindow::on_actionDOWN_in_Playlist_triggered()
+{
+    PlaylistItemsMoveDown();
+}
+// ==========================================================
 
 void MainWindow::on_actionStartup_Wizard_triggered()
 {

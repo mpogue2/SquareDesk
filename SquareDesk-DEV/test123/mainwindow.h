@@ -530,11 +530,13 @@ private slots:
     void on_menuLyrics_aboutToShow();
     void on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/);
 
-    // void on_actionAt_TOP_triggered();
-    // void on_actionAt_BOTTOM_triggered();
-    // void on_actionUP_in_Playlist_triggered();
-    // void on_actionDOWN_in_Playlist_triggered();
-    // void on_actionRemove_from_Playlist_triggered();
+    // THE FOLLOWING FUNCTIONS ARE USED IN LIGHT MODE ONLY =========
+    void on_actionAt_TOP_triggered();
+    void on_actionAt_BOTTOM_triggered();
+    void on_actionUP_in_Playlist_triggered();
+    void on_actionDOWN_in_Playlist_triggered();
+    void on_actionRemove_from_Playlist_triggered();
+    // =============================================================
 
     void on_actionStartup_Wizard_triggered();
     void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);
