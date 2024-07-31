@@ -1015,7 +1015,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 #endif
 
     t.elapsed(__LINE__);
-    ui->pushButtonTestLoop->setHidden(true);
+    ui->pushButtonTestLoop->setHidden(false); // ALWAYS VISIBLE NOW
     ui->pushButtonTestLoop->setEnabled(false);
 
 #ifdef DARKMODE
@@ -3315,7 +3315,7 @@ void MainWindow::on_actionCompact_triggered(bool checked)
         }
     }
 
-    ui->pushButtonTestLoop->setHidden(!currentSongIsPatter); // this button is PATTER ONLY
+    // ui->pushButtonTestLoop->setHidden(!currentSongIsPatter); // this button is ALWAYS VISIBLE NOW
 
 #ifdef DARKMODE
 //    ui->darkTestLoopButton->setHidden(!songTypeNamesForPatter.contains(currentSongType)); // this button is PATTER ONLY
@@ -10497,7 +10497,7 @@ void MainWindow::handleDurationBPM() {
 //        ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // Lyrics tab is named "Lyrics"
         ui->pushButtonSetIntroTime->setText("In");
         ui->pushButtonSetOutroTime->setText("Out");
-        ui->pushButtonTestLoop->setHidden(true);
+        // ui->pushButtonTestLoop->setHidden(false);  // ALWAYS VISIBLE NOW
 #ifdef DARKMODE
 //        ui->darkTestLoopButton->setHidden(true);
 #endif
