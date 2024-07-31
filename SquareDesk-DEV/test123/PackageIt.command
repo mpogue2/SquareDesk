@@ -11,18 +11,13 @@ if [ -d "$dir" ]; then
     cd "$dir"
 fi
 
-# we need to be in the directory above the test123 directory
-cd ..
 
 # check we are in a build directory
 echo checking we are in suitable directory $PWD
-case $PWD in
-     */build-SquareDesk-Qt_*_for_macOS-* )
-          echo ok;;
-     * )
-	 echo >&2 "$PWD doesn't seem to be a valid build directory"
-	 exit 1;;
-esac
+echo $PWD | grep -E -q 'build.*Qt.*macOS-(Debug|Release)/test123$' || { echo invalid directory ; exit 1; }
+
+# we need to be in the directory above the test123 directory
+cd ..
 
 # echo $dir
 
