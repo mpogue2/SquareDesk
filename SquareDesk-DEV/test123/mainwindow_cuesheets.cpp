@@ -115,6 +115,7 @@ bool MainWindow::breakFilenameIntoParts(const QString &s,
 
     static QRegularExpression regex1("(4-[Bb][Aa][Rr]-[Bb])");              // 4-Bar-B
     static QRegularExpression regex2("([Cc][Ii][Rr][Cc][Ll][Ee]-[Dd])");    // Circle-D
+    static QRegularExpression regex3("([Jj][Aa][Yy]-[Bb][Aa][Rr]-[Kk][Aa][Yy])");  // Jay-Bar-Kay
 
     QRegularExpressionMatch m1;
     if (s2.contains(regex1, &m1)) {
@@ -128,6 +129,12 @@ bool MainWindow::breakFilenameIntoParts(const QString &s,
         s2.replace(m2.captured(1), "CIRCLED");
     }
 
+    QRegularExpressionMatch m3;
+    if (s2.contains(regex3, &m3)) {
+        // qDebug() << "MATCH 3: " << m3 << m3.captured(1);
+        s2.replace(m3.captured(1), "JAYBARKAY");
+    }
+
     for (match_num = 0;
          matches[match_num].label_match >= 0
              && matches[match_num].title_match >= 0;
@@ -136,8 +143,9 @@ bool MainWindow::breakFilenameIntoParts(const QString &s,
         if (match.hasMatch()) {
             if (matches[match_num].label_match >= 0) {
                 label = match.captured(matches[match_num].label_match);
-                label.replace("FOURBARB", m1.captured()); // keep original capitalization
-                label.replace("CIRCLED",  m2.captured()); // keep original capitalization
+                label.replace("FOURBARB", m1.captured(1)); // keep original capitalization
+                label.replace("CIRCLED",  m2.captured(1)); // keep original capitalization
+                label.replace("JAYBARKAY", m3.captured(1)); // keep original capitalization
             }
             if (matches[match_num].title_match >= 0) {
                 title = match.captured(matches[match_num].title_match);
