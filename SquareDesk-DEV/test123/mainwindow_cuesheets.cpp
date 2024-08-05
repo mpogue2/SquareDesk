@@ -315,7 +315,6 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 
     QString fileCategory = filepath2SongCategoryName(MP3Filename); // get the CATEGORY name
     bool fileCategoryIsPatter = (fileCategory == "patter");
-    // bool fileCategoryIsSinging = (fileCategory == "singing");
 
     // qDebug() << "findPossibleCuesheets: fileTypeIsPatter = " << fileTypeIsPatter << ", fileTypeIsSinging = " << fileTypeIsSinging;
 

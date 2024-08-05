@@ -3315,12 +3315,6 @@ void MainWindow::on_actionCompact_triggered(bool checked)
         }
     }
 
-    // ui->pushButtonTestLoop->setHidden(!currentSongIsPatter); // this button is ALWAYS VISIBLE NOW
-
-#ifdef DARKMODE
-//    ui->darkTestLoopButton->setHidden(!songTypeNamesForPatter.contains(currentSongType)); // this button is PATTER ONLY
-#endif
-
     return;
 }
 
@@ -4350,7 +4344,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         if (flashCalls.length() != 0) {
             // if there are flash calls on the list, then Flash Calls are enabled.
 //            if (cBass->Stream_State == BASS_ACTIVE_PLAYING && songTypeNamesForPatter.contains(currentSongType)) {
-            if (cBass->currentStreamState() == BASS_ACTIVE_PLAYING && currentSongIsPatter) {
+            if (cBass->currentStreamState() == BASS_ACTIVE_PLAYING && (currentSongIsPatter || currentSongIsUndefined)) { // FLASH calls enabled if Patter OR Unknown type
                  // if playing, and Patter type
                  // TODO: don't show any random calls until at least the end of the first N seconds
                  setNowPlayingLabelWithColor(flashCalls[randCallIndex], true);
@@ -4753,7 +4747,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
     if (Stream_State == BASS_ACTIVE_PLAYING) {
         // if it's currently playing (checked once per second), then color this segment
         //   with the current segment type
-        if (currentSongIsPatter) {
+        if (currentSongIsPatter || currentSongIsUndefined) { // undefined songs are treated as patter
             theType = PATTER;
         }
         else if (currentSongIsSinger) {
@@ -7852,9 +7846,6 @@ void MainWindow::on_actionPreferences_triggered()
         // Show the Lyrics tab, if it is enabled now
 //        lyricsTabNumber = (showTimersTab ? 2 : 1);
 
-//        bool isPatter = songTypeNamesForPatter.contains(currentSongType);
-//        qDebug() << "actionPreferences_triggered: " << currentSongType << isPatter;
-
         ui->tabWidget->setTabText(lyricsTabNumber, CUESHEET_TAB_NAME);
 
         // -----------------------------------------------------------------------
@@ -10378,16 +10369,6 @@ void MainWindow::handleDurationBPM() {
     int songBPM = static_cast<int>(round(cBass->Stream_BPM));  // libbass's idea of the BPM
 //    qDebug() << "***** handleDurationBPM(): " << songBPM;
 
-    // bool isSingingCall = songTypeNamesForSinging.contains(currentSongType) ||
-    //                      songTypeNamesForCalled.contains(currentSongType);
-
-    // bool isPatter = songTypeNamesForPatter.contains(currentSongType);
-
-    bool isSingingCall = currentSongIsSinger || currentSongIsVocal;
-    bool isPatter = currentSongIsPatter;
-
-    // qDebug() << "handleDurationBPM: isPatter = " << isPatter << ", isSingingCall = " << isSingingCall;
-
 // If the MP3 file has an embedded TBPM frame in the ID3 tag, then it overrides the libbass auto-detect of BPM
     double songBPM_ID3 = getID3BPM(currentMP3filenameWithPath);  // returns 0.0, if not found or not understandable
 
@@ -10466,41 +10447,31 @@ void MainWindow::handleDurationBPM() {
     ui->dateTimeEditIntroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
     ui->dateTimeEditOutroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
 
-#ifdef DARKMODE
-    ui->darkStartLoopTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
-    ui->darkEndLoopTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
-#endif
+    bool isSinger = currentSongIsSinger || currentSongIsVocal;
 
-    ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
-    ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar
+    if (darkmode) {
+        ui->darkStartLoopTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
+        ui->darkEndLoopTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
+        ui->darkSeekBar->setSingingCall(currentSongIsSinger || currentSongIsVocal);
+    }
 
-#ifdef DARKMODE
-//    qDebug() << "handleDurationBPM!";
-    ui->darkSeekBar->setSingingCall(isSingingCall);
-#endif
+    ui->seekBar->SetSingingCall(isSinger); // if singing call, color the seek bar
+    ui->seekBarCuesheet->SetSingingCall(isSinger); // if singing call, color the seek bar
 
-    if (isPatter) {
-        on_loopButton_toggled(true); // default is to loop, if type is patter
-//        ui->tabWidget->setTabText(lyricsTabNumber, "Patter");  // Lyrics tab does double duty as Patter tab
+    if (currentSongIsPatter || currentSongIsUndefined) {
+        on_loopButton_toggled(currentSongIsPatter); // default is to ENABLE LOOPING if type is patter (but defaults to OFF if Undefined type)
         ui->pushButtonSetIntroTime->setText("Start Loop");
         ui->pushButtonSetOutroTime->setText("End Loop");
         ui->pushButtonTestLoop->setHidden(false);
-#ifdef DARKMODE
-        ui->darkTestLoopButton->setHidden(false);
-        // ui->darkSegmentButton->setHidden(false);  // SEGMENTATION: COMMENT THIS OUT FOR NORMAL OPERATION, IN FOR DEBUGGING SEGMENTATION
-#endif
+        if (darkmode) {
+            ui->darkTestLoopButton->setHidden(false);
+        }
         analogClock->setSingingCallSection("");
     } else {
-        // NOTE: if unknown type, it will be treated as a singing call, so as to NOT set looping
-        // singing call or vocals or xtras, so Loop mode defaults to OFF
+        // Either it's a SINGER, VOCAL (also a type of SINGER), or XTRA
         on_loopButton_toggled(false); // default is to loop, if type is patter
-//        ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // Lyrics tab is named "Lyrics"
         ui->pushButtonSetIntroTime->setText("In");
         ui->pushButtonSetOutroTime->setText("Out");
-        // ui->pushButtonTestLoop->setHidden(false);  // ALWAYS VISIBLE NOW
-#ifdef DARKMODE
-//        ui->darkTestLoopButton->setHidden(true);
-#endif
     }
 
 }

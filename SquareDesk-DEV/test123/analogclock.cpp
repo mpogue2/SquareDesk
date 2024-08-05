@@ -146,6 +146,8 @@ void AnalogClock::redrawTimerExpired()
                     timerLabel->setText(singingCallSection);
                     timerLabelSD->setVisible(!editModeSD);  // make the timerLabelSD appear if we're NOT in editing mode
                     timerLabelSD->setText(singingCallSection);
+
+                    timerLabelCuesheet->setVisible(true);  // make the timerLabelCuesheet appear
                     timerLabelCuesheet->setText(singingCallSection);
 
 #ifdef DARKMODE
@@ -156,6 +158,7 @@ void AnalogClock::redrawTimerExpired()
                 } else {
                     if (timerLabel->text() != "") {
                         timerLabel->setText("");
+                        timerLabelCuesheet->setText("");
 #ifdef DARKMODE
                         timerLabelDark->setText("");
 #endif
@@ -179,6 +182,7 @@ void AnalogClock::redrawTimerExpired()
                 timerLabelSD->setVisible(!editModeSD); // make it visible if we are NOT in edit mode
                 timerLabelSD->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
 
+                timerLabelCuesheet->setVisible(true);
                 timerLabelCuesheet->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
 
                 if (darkmode) {
@@ -193,6 +197,7 @@ void AnalogClock::redrawTimerExpired()
                 // the break has expired.  We played something before the break, and we're currently in NONE state.
 //                qDebug() << "expired BREAK";
                 timerLabel->setVisible(true);
+                timerLabelCuesheet->setVisible(true);
 #ifdef DARKMODE
                 timerLabelDark->setVisible(true);
 #endif
@@ -219,6 +224,7 @@ void AnalogClock::redrawTimerExpired()
                 //   we are not in None state right now, and we know what we're doing (e.g. playing Extras or Singers as break music)
 //                qDebug() << "none state";
                 timerLabel->setText("");
+                timerLabelCuesheet->setText("");
 #ifdef DARKMODE
                 timerLabelDark->setText("");
 #endif
@@ -237,6 +243,7 @@ void AnalogClock::redrawTimerExpired()
             timerLabelSD->setVisible(!editModeSD); // make visible if SD is NOT in edit mode
             timerLabelSD->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 
+            timerLabelCuesheet->setVisible(true);
             timerLabelCuesheet->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 
             if (darkmode) {
@@ -269,6 +276,7 @@ void AnalogClock::redrawTimerExpired()
             timerLabelSD->setVisible(!editModeSD); // make it visible if SD is NOT in edit mode
             timerLabelSD->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 
+            timerLabelCuesheet->setVisible(true);
             timerLabelCuesheet->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 
             setTimerLabelColor("red");
@@ -279,7 +287,9 @@ void AnalogClock::redrawTimerExpired()
         } else {
 //            qDebug() << "patter REALLY over the time limit";
             // REALLY OVER THE TIME LIMIT!!  So, flash "LONG TIP" alternately with the time-in-patter.
-            timerLabel->setVisible(true);            
+            timerLabel->setVisible(true);
+            timerLabelCuesheet->setVisible(true);
+
 #ifdef DARKMODE
             timerLabelDark->setVisible(true);
 #endif
