@@ -5223,6 +5223,7 @@
     <addaction name="actionExport"/>
     <addaction name="separator"/>
     <addaction name="actionExport_Play_Data"/>
+    <addaction name="actionExport_Current_Song_List"/>
     <addaction name="actionPreferences"/>
     <addaction name="separator"/>
     <addaction name="actionStartup_Wizard"/>
@@ -7070,6 +7071,11 @@
   <action name="actionRemove_for_all_songs">
    <property name="text">
     <string>all songs...</string>
+   </property>
+  </action>
+  <action name="actionExport_Current_Song_List">
+   <property name="text">
+    <string>Export Current Song List...</string>
    </property>
   </action>
  </widget>

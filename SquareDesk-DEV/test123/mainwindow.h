@@ -413,7 +413,8 @@ private slots:
     void on_actionImport_triggered();
     void on_actionExport_triggered();
     void on_actionExport_Play_Data_triggered();
-    
+    void on_actionExport_Current_Song_List_triggered();
+
     void on_pushButtonClearTaughtCalls_clicked();
 //    void on_pushButtonCountDownTimerStartStop_clicked();
 //    void on_pushButtonCountDownTimerReset_clicked();

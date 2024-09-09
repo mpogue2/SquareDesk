@@ -7648,6 +7648,45 @@ void MainWindow::on_actionExport_Play_Data_triggered()
     dialog = nullptr;
 }
 
+void MainWindow::on_actionExport_Current_Song_List_triggered()
+{
+    // Ask me where to save it...
+    RecursionGuard dialog_guard(inPreferencesDialog);
+
+    QString startingPath = QDir::homePath() + "/currentSongList.csv";
+    QString filename = QFileDialog::getSaveFileName(this,
+                                                    tr("Export Current Song List"),
+                                                    startingPath,
+                                                    tr("CSV (*.csv)"));
+
+    if (!filename.isNull())
+    {
+        QFile CSVfile(filename);
+        CSVfile.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream outfile(&CSVfile);
+        outfile << "filename,tags\n"; // HEADER ----------
+
+        for (int row=0; row < ui->darkSongTable->rowCount(); row++) {
+            if (!ui->darkSongTable->isRowHidden(row)) {
+                QString pathToMP3 = ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+                pathToMP3.replace(musicRootPath,"");
+
+                SongSetting settings;
+                songSettings.loadSettings(pathToMP3, settings);
+
+                // WRITE A SINGLE ROW ------------
+                if (settings.isSetTags()) {
+                    outfile << "\"" << pathToMP3 << "\",\"" << settings.getTags() << "\"\n"; // HAS TAGS
+                } else {
+                    outfile << "\"" << pathToMP3 << ",\"\"\n"; // DOES NOT HAVE TAGS
+                }
+            }
+        }
+
+        CSVfile.close();
+    }
+}
+
 void MainWindow::on_actionExport_triggered()
 {
     RecursionGuard dialog_guard(inPreferencesDialog);
