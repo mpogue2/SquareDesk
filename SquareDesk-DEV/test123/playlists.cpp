@@ -1511,8 +1511,8 @@ void MainWindow::on_actionPrint_Playlist_triggered()
 void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString relativePath, bool isPlaylist, QString PlaylistFileName) {
 
     // qDebug() << isPlaylist << whichRow << relativePath << PlaylistFileName;
-
-    QString shortTitle = relativePath.split('/').last().replace(".mp3", "", Qt::CaseInsensitive);
+    static QRegularExpression dotMusicSuffix("\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption); // match with music extensions
+    QString shortTitle = relativePath.split('/').last().replace(dotMusicSuffix, "");
 
     // example:
     // list1[0] = "/singing/BS 2641H - I'm Beginning To See The Light.mp3"
@@ -2030,7 +2030,8 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
         // } else {
         // qDebug() << "on_playlist1Table_itemDoubleClicked: no nextFile";
     }
-    QString songTitle = pathToMP3.split('/').last().replace(".mp3","");
+    static QRegularExpression dotMusicSuffix("\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption); // match with music extensions
+    QString songTitle = pathToMP3.split('/').last().replace(dotMusicSuffix,"");
 
     // parse the filename into parts, so we can use the shortTitle -----
     QString label;
@@ -2155,7 +2156,8 @@ void MainWindow::on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item)
         // qDebug() << "on_playlist2Table_itemDoubleClicked: no nextFile";
     }
 
-    QString songTitle = pathToMP3.split('/').last().replace(".mp3","");
+    static QRegularExpression dotMusicSuffix("\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption); // match with music extensions
+    QString songTitle = pathToMP3.split('/').last().replace(dotMusicSuffix,"");
 
     // parse the filename into parts, so we can use the shortTitle -----
     QString label;
@@ -2278,7 +2280,8 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
         // } else {
         // qDebug() << "on_playlist3Table_itemDoubleClicked: no nextFile";
     }
-    QString songTitle = pathToMP3.split('/').last().replace(".mp3","");
+    static QRegularExpression dotMusicSuffix("\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption); // match with music extensions
+    QString songTitle = pathToMP3.split('/').last().replace(dotMusicSuffix,"");
 
     // parse the filename into parts, so we can use the shortTitle -----
     QString label;
