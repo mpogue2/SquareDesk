@@ -2795,10 +2795,14 @@ void MainWindow::musicRootModified(QString s)
         //   TODO: At some point, this probably should save the sort order, and then restore it.
 //        qDebug() << "WE ARE RELOADING THE SONG TABLE NOW ------";
         findMusic(musicRootPath, true);  // get the filenames from the user's directories
-        loadMusicList(); // and filter them into the songTable
+        // loadMusicList(); // and filter them into the songTable
 #ifdef DARKMODE
         if (darkmode) {
             darkLoadMusicList(); // also filter them into the darkSongTable
+            darkFilterMusic();   // and redo the filtering (NOTE: might still scroll the darkSongTable)
+        } else {
+            loadMusicList(); // and filter them into the songTable (LIGHT MODE ONLY)
+            filterMusic();
         }
 #endif
         ui->songTable->horizontalHeader()->setSortIndicator(sortSection, sortOrder);
