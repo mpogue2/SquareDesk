@@ -2123,6 +2123,7 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
     }
 
     ui->playlist1Table->setFocus();
+    ui->playlist1Table->resizeColumnToContents(0); // number column needs to be resized, if bolded
 
     t.elapsed(__LINE__);
 }
@@ -2250,6 +2251,7 @@ void MainWindow::on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item)
     }
 
     ui->playlist2Table->setFocus();
+    ui->playlist2Table->resizeColumnToContents(0); // number column needs to be resized, if bolded
 
     t.elapsed(__LINE__);
 }
@@ -2374,6 +2376,7 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
     }
 
     ui->playlist3Table->setFocus();
+    ui->playlist3Table->resizeColumnToContents(0); // number column needs to be resized, if bolded
 
     t.elapsed(__LINE__);
 }
