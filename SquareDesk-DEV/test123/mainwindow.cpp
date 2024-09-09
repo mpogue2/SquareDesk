@@ -6289,7 +6289,7 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
         QFileDialog::getOpenFileName(this,
                                      tr("Import Audio File"),
                                      startingDirectory,
-                                     tr("Audio Files (*.mp3 *.m4a *.wav)"));
+                                     tr("Audio Files (*.mp3 *.m4a *.wav *.flac)"));
     if (MP3FileName.isNull()) {
         return;  // user cancelled...so don't do anything, just return
     }
@@ -10001,7 +10001,8 @@ QList<QString> MainWindow::getListOfMusicFiles()
         // if ((type == "singing" || type == "vocals") &&
         if ((songTypeNamesForSinging.contains(type) || songTypeNamesForCalled.contains(type)) &&
                                                         (filename.endsWith("mp3", Qt::CaseInsensitive) ||
-                                                        filename.endsWith("m4a", Qt::CaseInsensitive) ||
+                                                         filename.endsWith("m4a", Qt::CaseInsensitive) ||
+                                                         filename.endsWith("flac", Qt::CaseInsensitive) ||
                                                         filename.endsWith("wav", Qt::CaseInsensitive))) {
             QFileInfo fi(filename);
             QString justFilename = fi.fileName();
