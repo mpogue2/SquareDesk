@@ -7668,21 +7668,33 @@ void MainWindow::on_actionExport_Current_Song_List_triggered()
         QFile CSVfile(filename);
         CSVfile.open(QIODevice::WriteOnly | QIODevice::Text);
         QTextStream outfile(&CSVfile);
-        outfile << "filename,tags\n"; // HEADER ----------
+        outfile << "type,label,title,tags\n"; // HEADER ----------
 
         for (int row=0; row < ui->darkSongTable->rowCount(); row++) {
             if (!ui->darkSongTable->isRowHidden(row)) {
+                QString songTitle = getTitleColTitle(ui->darkSongTable, row).trimmed();
+                songTitle.replace("\"", "\"\"");  // Titles can have double quotes in them, must quote them
+                QString songType = ui->darkSongTable->item(row,kTypeCol)->text().toLower().trimmed();
+                QString songLabel = ui->darkSongTable->item(row,kLabelCol)->text().toUpper().trimmed();
+
                 QString pathToMP3 = ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
                 pathToMP3.replace(musicRootPath,"");
 
                 SongSetting settings;
                 songSettings.loadSettings(pathToMP3, settings);
 
+                // qDebug() << songTitle << songType << songLabel << pathToMP3 << settings.getTags();
+
+                const QString dq = "\""; // double quote
+
                 // WRITE A SINGLE ROW ------------
+                outfile << dq << songType << dq << ",";
+                outfile << dq << songLabel << dq << ",";
+                outfile << dq << songTitle << dq << ",";
                 if (settings.isSetTags()) {
-                    outfile << "\"" << pathToMP3 << "\",\"" << settings.getTags() << "\"\n"; // HAS TAGS
+                    outfile << dq << settings.getTags() << dq << "\n";  // HAS TAGS (which never themselves contain double quotes)
                 } else {
-                    outfile << "\"" << pathToMP3 << ",\"\"\n"; // DOES NOT HAVE TAGS
+                    outfile << dq << dq << "\n";                        // DOES NOT HAVE ANY TAGS
                 }
             }
         }
