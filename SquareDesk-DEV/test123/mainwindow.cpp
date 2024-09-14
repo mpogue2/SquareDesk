@@ -11328,57 +11328,59 @@ void MainWindow::clearSlot(int slotNumber) {
 
 void MainWindow::on_treeWidget_itemDoubleClicked(QTreeWidgetItem *treeItem, int column)
 {
-    // if treeView Playlist or Track Filter is double-clicked, it will be loaded into the first empty palette slot
-    // if they are all full, it will be loaded into the last palette slot (only if no unsaved items in that last slot)
+    Q_UNUSED(treeItem)
     Q_UNUSED(column)
 
-    // which slot is the first empty one? -----
-    int firstEmptySlot; // no empty slots, load into slot #2 (0-2)
+//     // if treeView Playlist or Track Filter is double-clicked, it will be loaded into the first empty palette slot
+//     // if they are all full, it will be loaded into the last palette slot (only if no unsaved items in that last slot)
 
-    if (relPathInSlot[0] == "" && (ui->playlist1Table->rowCount() == 0) ) {
-        firstEmptySlot = 0;
-    } else if (relPathInSlot[1] == "" && (ui->playlist2Table->rowCount() == 0) ) {
-        firstEmptySlot = 1;
-    } else if ( (relPathInSlot[2] == "" && ui->playlist3Table->rowCount() == 0) ||
-                (relPathInSlot[2] != "")
-              ) {
-        firstEmptySlot = 2;
-    } else {
-        QMessageBox msgBox;
-        msgBox.setIcon(QMessageBox::Warning);
-        msgBox.setText("Can't load, because slots are full, and the last slot has unsaved items.");
-        msgBox.exec();
-        return;
-    }
+//     // which slot is the first empty one? -----
+//     int firstEmptySlot; // no empty slots, load into slot #2 (0-2)
 
-    // what did the user double-click on? ---------
-    QString fullPathToLeaf = treeItem->text(0);
-    while (treeItem->parent() != NULL)
-    {
-        fullPathToLeaf = treeItem->parent()->text(0) + "/" + fullPathToLeaf;
-        treeItem = treeItem->parent();
-    }
+//     if (relPathInSlot[0] == "" && (ui->playlist1Table->rowCount() == 0) ) {
+//         firstEmptySlot = 0;
+//     } else if (relPathInSlot[1] == "" && (ui->playlist2Table->rowCount() == 0) ) {
+//         firstEmptySlot = 1;
+//     } else if ( (relPathInSlot[2] == "" && ui->playlist3Table->rowCount() == 0) ||
+//                 (relPathInSlot[2] != "")
+//               ) {
+//         firstEmptySlot = 2;
+//     } else {
+//         QMessageBox msgBox;
+//         msgBox.setIcon(QMessageBox::Warning);
+//         msgBox.setText("Can't load, because slots are full, and the last slot has unsaved items.");
+//         msgBox.exec();
+//         return;
+//     }
 
-    fullPathToLeaf = fullPathToLeaf.replace("Playlists", "playlists");  // difference between display "P" and file system "p"
+//     // what did the user double-click on? ---------
+//     QString fullPathToLeaf = treeItem->text(0);
+//     while (treeItem->parent() != NULL)
+//     {
+//         fullPathToLeaf = treeItem->parent()->text(0) + "/" + fullPathToLeaf;
+//         treeItem = treeItem->parent();
+//     }
 
-    // At this point, it's either:
-    //  TRACK FILTER: Tracks/<typeName>
-    //  PLAYLIST:     playlists/<playlistPath/.../PlaylistName>
+//     fullPathToLeaf = fullPathToLeaf.replace("Playlists", "playlists");  // difference between display "P" and file system "p"
 
-//    qDebug() << "treeWidget item double-clicked: " << firstEmptySlot << fullPathToLeaf;
+//     // At this point, it's either:
+//     //  TRACK FILTER: Tracks/<typeName>
+//     //  PLAYLIST:     playlists/<playlistPath/.../PlaylistName>
 
-    QString PlaylistFileName = musicRootPath + "/" + fullPathToLeaf + ".csv"; // prefix it with the path to musicDir, suffix it with .csv
+// //    qDebug() << "treeWidget item double-clicked: " << firstEmptySlot << fullPathToLeaf;
 
-    if (fullPathToLeaf.contains("playlists")) {
-        // load Playlists
-        // now load into the previously-determined empty slot
-        int songCount;
-        loadPlaylistFromFileToPaletteSlot(PlaylistFileName, firstEmptySlot, songCount);
-    } else {
-        // load Track Filter
-        int songCount;
-        loadPlaylistFromFileToPaletteSlot(fullPathToLeaf, firstEmptySlot, songCount);
-    }
+//     QString PlaylistFileName = musicRootPath + "/" + fullPathToLeaf + ".csv"; // prefix it with the path to musicDir, suffix it with .csv
+
+//     if (fullPathToLeaf.contains("playlists")) {
+//         // load Playlists
+//         // now load into the previously-determined empty slot
+//         int songCount;
+//         loadPlaylistFromFileToPaletteSlot(PlaylistFileName, firstEmptySlot, songCount);
+//     } else {
+//         // load Track Filter
+//         int songCount;
+//         loadPlaylistFromFileToPaletteSlot(fullPathToLeaf, firstEmptySlot, songCount);
+//     }
 }
 
 // ======================================================
