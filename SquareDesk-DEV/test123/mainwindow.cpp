@@ -4494,8 +4494,8 @@ void MainWindow::on_pushButtonClearTaughtCalls_clicked()
     int ret = msgBox.exec();
 
     if (ret == QMessageBox::Yes) {
-        //     songSettings.clearTaughtCalls(danceProgram);
-        //     on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());
+        songSettings.clearTaughtCalls(danceProgram);
+        on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());
     }
 }
 
