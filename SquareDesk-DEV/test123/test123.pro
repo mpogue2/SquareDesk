@@ -11,8 +11,7 @@ unix {
 }
 macx {
     QMAKE_INFO_PLIST = $$PWD/Info.plist
-    QMAKE_MACOSX_DEPLOYMENT_TARGET = 11.6
-#    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
+    QMAKE_MACOSX_DEPLOYMENT_TARGET = 12.0
 
     # for BULK operations
     QT += concurrent
@@ -430,7 +429,7 @@ copydata0d.commands = $(COPY) $$PWD/lyrics.template.2col.html $$OUT_PWD/SquareDe
 # MAKE SURE THAT MACOS DIRECTORY EXISTS BEFORE TRYING TO COPY
 # copydata1dir.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS
 copydata1dir.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/MacOS || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS
-copydata1.commands = $(COPY) $$PWD/sd_calls.dat     $$OUT_PWD/SquareDesk.app/Contents/MacOS
+copydata1.commands = $(COPY) $$PWD/sd_calls.dat     $$OUT_PWD/SquareDesk.app/Contents/MacOS/sd_calls.dat
 copydata2.commands = $(COPY) $$PWD/../sdlib/sd_doc.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata3.commands = $(COPY) $$PWD/allcalls.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata4s.commands = $(COPY) $$PWD/abbrevs.txt     $$OUT_PWD/SquareDesk.app/Contents/Resources
