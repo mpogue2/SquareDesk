@@ -1141,35 +1141,6 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     }
     // END ITERATION -------
 
-    {
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
-        ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,67);
-        ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, 34);
-        ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, 100);
-        ui->tableWidgetCallList->setColumnWidth(kCallListTimingCol, 200);
-#elif defined(Q_OS_LINUX)
-        ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,40);
-        ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, 24);
-        ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, 100);
-        ui->tableWidgetCallList->setColumnWidth(kCallListTimingCol, 200);
-#endif
-        ui->tableWidgetCallList->verticalHeader()->setVisible(false);  // turn off row numbers (we already have the Teach order, which is #'s)
-
-        // #define kCallListNameCol        2
-        QHeaderView *headerView = ui->tableWidgetCallList->horizontalHeader();
-        headerView->setSectionResizeMode(kCallListOrderCol, QHeaderView::Fixed);
-        headerView->setSectionResizeMode(kCallListCheckedCol, QHeaderView::Fixed);
-        headerView->setSectionResizeMode(kCallListNameCol, QHeaderView::Stretch);
-        headerView->setSectionResizeMode(kCallListWhenCheckedCol, QHeaderView::Fixed);
-        headerView->setSectionResizeMode(kCallListTimingCol, QHeaderView::Stretch);
-        headerView->setStretchLastSection(true);
-        QString lastDanceProgram(prefsManager.MySettings.value("lastCallListDanceProgram").toString());
-        loadDanceProgramList(lastDanceProgram);
-
-        ui->tableWidgetCallList->resizeColumnToContents(kCallListWhenCheckedCol);  // and force resizing of column width to match date
-        ui->tableWidgetCallList->resizeColumnToContents(kCallListNameCol);  // and force resizing of column width to match names
-    }
-
     t.elapsed(__LINE__);
 
 #if defined(Q_OS_MAC) || defined(Q_OS_WIN)
@@ -1291,6 +1262,38 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     // qDebug() << "Constructor sets initial session to:" << songSettings.getCurrentSession();
     populateMenuSessionOptions();  // update the Session menu
+
+    {
+        // Now that the current_session_id is setup, we can load the call lists,
+        //  and they will reflect the current session ID
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
+        ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,67);
+        ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, 34);
+        ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, 100);
+        ui->tableWidgetCallList->setColumnWidth(kCallListTimingCol, 200);
+#elif defined(Q_OS_LINUX)
+        ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,40);
+        ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, 24);
+        ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, 100);
+        ui->tableWidgetCallList->setColumnWidth(kCallListTimingCol, 200);
+#endif
+        ui->tableWidgetCallList->verticalHeader()->setVisible(false);  // turn off row numbers (we already have the Teach order, which is #'s)
+
+        // #define kCallListNameCol        2
+        QHeaderView *headerView = ui->tableWidgetCallList->horizontalHeader();
+        headerView->setSectionResizeMode(kCallListOrderCol, QHeaderView::Fixed);
+        headerView->setSectionResizeMode(kCallListCheckedCol, QHeaderView::Fixed);
+        headerView->setSectionResizeMode(kCallListNameCol, QHeaderView::Stretch);
+        headerView->setSectionResizeMode(kCallListWhenCheckedCol, QHeaderView::Fixed);
+        headerView->setSectionResizeMode(kCallListTimingCol, QHeaderView::Stretch);
+        headerView->setStretchLastSection(true);
+        QString lastDanceProgram(prefsManager.MySettings.value("lastCallListDanceProgram").toString());
+        loadDanceProgramList(lastDanceProgram);
+
+        ui->tableWidgetCallList->resizeColumnToContents(kCallListWhenCheckedCol);  // and force resizing of column width to match date
+        ui->tableWidgetCallList->resizeColumnToContents(kCallListNameCol);  // and force resizing of column width to match names
+    }
+
 
     // mutually exclusive items in Flash Call Timing menu
     flashCallTimingActionGroup = new QActionGroup(this);
@@ -2962,7 +2965,7 @@ void MainWindow::setCurrentSessionIdReloadSongAges(int id)
     lastSessionID = id;
     // qDebug() << "***** manual change of session id to:" << id;
     reloadSongAges(ui->actionShow_All_Ages->isChecked());
-//    on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex()); // this tab is gone now
+    on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex()); // this tab is gone now
 }
 
 void MainWindow::setCurrentSessionIdReloadSongAgesCheckMenu(int id)
@@ -4884,7 +4887,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
                 setCurrentSessionId(currentSessionID); // save it in songSettings
                 populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
                 reloadSongAges(ui->actionShow_All_Ages->isChecked());
-                // on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex()); // removed this tab a while ago
+                on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());
                 lastSessionID = currentSessionID;
                 currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
                 currentSongSecondsPlayedRecorded = false; // not reported yet, because this is a new session
