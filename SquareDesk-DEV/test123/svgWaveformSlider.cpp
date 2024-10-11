@@ -24,7 +24,7 @@ svgWaveformSlider::svgWaveformSlider(QWidget *parent) :
     // bare minimum init --------
     drawLoopPoints = false;
     singingCall = false;
-    SetDefaultIntroOutroPositions(false, 0.0, 0.0, 0.0, 0.0);
+    SetDefaultIntroOutroPositions(false, 0.0, false, 0.0, 0.0, 0.0);
     origin = 0;
 
     nowDestroying = false; // true when we're in the destructor, shutting everything down (don't want any paint events or updates)
@@ -246,58 +246,74 @@ bool svgWaveformSlider::eventFilter(QObject *obj, QEvent *event)
     }
 
 void svgWaveformSlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, double estimatedBPM,
+                                             bool songIsSingerType,
                                              double songStart_sec, double songEnd_sec, double songLength_sec)
 {
+    double loopStart_frac;
+    double loopEnd_frac;
+
     if (!tempoIsBPM) {
-        double defaultSingerLengthInBeats = (64 * 7 + 24);  // 16 beat intro + 8 beat tag = 24
-        introPosition = (16 / defaultSingerLengthInBeats);           // 0.0 - 1.0
-        outroPosition = (1.0 - 8 / defaultSingerLengthInBeats );     // 0.0 - 1.0
-        //        qDebug() << "MySlider::SetDefault" << introPosition << outroPosition;
-    } else {
-        // we are using BPM (not %)
-        //        double songLength_beats = (songEnd_sec - songStart_sec)/60.0 * estimatedBPM;
-        double phraseLength_beats = 32.0;  // everything is 32-beat phrases
-        double phraseLength_sec = 60.0 * phraseLength_beats/estimatedBPM;
-        //        double songLength_phrases = songLength_beats/phraseLength_beats;
-        double loopStart_sec = songStart_sec + 0.05 * (songEnd_sec - songStart_sec);
-        double loopStart_frac = loopStart_sec/songLength_sec;   // 0.0 - 1.0
-
-        int numPhrasesThatFit = static_cast<int>((songEnd_sec - loopStart_sec)/phraseLength_sec);
-        double loopEnd_sec = loopStart_sec + phraseLength_sec * numPhrasesThatFit;
-        double loopEnd_frac = loopEnd_sec/songLength_sec;  // 0.0 - 1.0
-
-        if (songLength_sec - loopEnd_sec < 7) {
-            // if too close to the end of the song (because an integer number of phrases just happens to fit)
-            //  average phrase is about 15 sec, so 7 is a little less than 1/2 of a phrase
-            loopEnd_sec -= phraseLength_sec;  // go back one
-            loopEnd_frac = loopEnd_sec/songLength_sec;  // and recalculate it
-            //            qDebug() << "TOO CLOSE TRIGGERED!";
+        // if we don't have an estimatedBPM at all, we have to guess
+        if (songIsSingerType) {
+            // take a guess on a singer or vocal, when we don't know the BPM
+            double defaultSingerLengthInBeats = 16 + (64 * 7) + 8;  // 16 beat intro + 7 64-beat sections + 8 beat tag
+            introPosition = (16 / defaultSingerLengthInBeats);           // 0.0 - 1.0
+            outroPosition = (1.0 - 8 / defaultSingerLengthInBeats );     // 0.0 - 1.0
+        } else {
+            // take a guess on a patter or xtra or unknown, when we don't know the BPM
+            introPosition = 0.033;         // 0.0 - 1.0
+            outroPosition = 1.0 - 0.033;   // 0.0 - 1.0
         }
+        // we need to keep both updated, updateBgPixmap uses Frac's
+        introFrac = introPosition;
+        outroFrac = outroPosition;
+    } else {
+        if (songIsSingerType) {
+            // qDebug() << "songIsSingerType";
+            // it's SINGER or VOCAL type, so let's estimate using BPM
+            // we are using BPM (not %)
+            //        double songLength_beats = (songEnd_sec - songStart_sec)/60.0 * estimatedBPM;
+            double phraseLength_beats = 64.0;  // everything is 64-beat phrases
+            double phraseLength_sec = 60.0 * phraseLength_beats/estimatedBPM;
 
-        ////        qDebug() << "MySlider::songLength_beats" << songLength_beats;
-        ////        qDebug() << "MySlider::songLength_phrases" << songLength_phrases;
-        //        qDebug() << "=====================";
-        //        qDebug() << "MySlider::tempoIsBPM" << tempoIsBPM;
-        //        qDebug() << "MySlider::estimatedBPM" << estimatedBPM;
-        //        qDebug() << "MySlider::songStart_sec" << songStart_sec;
-        //        qDebug() << "MySlider::songEnd_sec" << songEnd_sec;
-        //        qDebug() << "MySlider::songLength_sec" << songLength_sec;
-        //        qDebug() << "--------------";
-        //        qDebug() << "MySlider::phraseLength_beats" << phraseLength_beats;
-        //        qDebug() << "MySlider::phraseLength_sec" << phraseLength_sec;
-        //        qDebug() << "MySlider::loopStart_sec" << loopStart_sec;
-        //        qDebug() << "MySlider::loopStart_frac" << loopStart_frac;
-        //        qDebug() << "MySlider::numPhrasesThatFit" << numPhrasesThatFit;
-        //        qDebug() << "MySlider::loopEnd_sec" << loopEnd_sec;
-        //        qDebug() << "MySlider::loopEnd_frac" << loopEnd_frac;
-        ////        qDebug() << "--------------";
+            double loopStart_sec = songStart_sec + 0.033 * (songEnd_sec - songStart_sec);
+            loopStart_frac = loopStart_sec/songLength_sec;   // 0.0 - 1.0
 
-         // we need to keep both updated, updateBgPixmap uses Frac's
+            double loopEnd_sec = loopStart_sec + 7 * phraseLength_sec; // exactly 7 sections, probably
+            loopEnd_frac = loopEnd_sec/songLength_sec;  // 0.0 - 1.0
+
+        } else {
+            // qDebug() << "songIsPatterType";
+            // it's PATTER type, so let's estimate using BPM
+            // we are using BPM (not %)
+            //        double songLength_beats = (songEnd_sec - songStart_sec)/60.0 * estimatedBPM;
+            double phraseLength_beats = 32.0;  // everything is 32-beat phrases
+            double phraseLength_sec = 60.0 * phraseLength_beats/estimatedBPM;
+            //        double songLength_phrases = songLength_beats/phraseLength_beats;
+            double loopStart_sec = songStart_sec + 0.033 * (songEnd_sec - songStart_sec);
+            loopStart_frac = loopStart_sec/songLength_sec;   // 0.0 - 1.0
+
+            int numPhrasesThatFit = static_cast<int>((songEnd_sec - loopStart_sec)/phraseLength_sec);
+            double loopEnd_sec = loopStart_sec + phraseLength_sec * numPhrasesThatFit;
+            loopEnd_frac = loopEnd_sec/songLength_sec;  // 0.0 - 1.0
+
+            if (songLength_sec - loopEnd_sec < 7) {
+                // if too close to the end of the song (because an integer number of phrases just happens to fit)
+                //  average phrase is about 15 sec, so 7 is a little less than 1/2 of a phrase
+                // qDebug() << "TOO CLOSE:" << loopStart_sec << numPhrasesThatFit << loopEnd_sec;
+                loopEnd_sec -= phraseLength_sec;  // go back one
+                loopEnd_frac = loopEnd_sec/songLength_sec;  // and recalculate it
+                // qDebug() << "TOO CLOSE TRIGGERED!";
+            }
+            // qDebug() << "PATTER:" << loopStart_sec << numPhrasesThatFit << loopEnd_sec;
+        }
+        // we need to keep both updated, updateBgPixmap uses Frac's
         introFrac = loopStart_frac;
         outroFrac = loopEnd_frac;
-        introPosition = introFrac * (width()-4);
-        outroPosition = outroFrac * (width()-4);
     }
+
+    introPosition = introFrac * (width()-4);
+    outroPosition = outroFrac * (width()-4);
 }
 
 // ================================================================

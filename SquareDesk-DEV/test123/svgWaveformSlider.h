@@ -60,6 +60,7 @@ public:
     void updateBgPixmap(float *f, size_t t);
 
     void SetDefaultIntroOutroPositions(bool tempoIsBPM, double estimatedBPM,
+                                       bool songIsSingerType,
                                        double songStart_sec, double songEnd_sec, double songLength_sec);
 
     bool eventFilter(QObject *obj, QEvent *event);

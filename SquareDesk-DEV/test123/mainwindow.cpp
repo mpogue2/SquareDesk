@@ -6164,13 +6164,19 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     ui->darkEndLoopTime->setTime(QTime(23,59,59,0));
 #endif
 
-    ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM, startOfSong_sec, endOfSong_sec, cBass->FileLength);
+    ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM,
+                                                       currentSongIsSinger || currentSongIsVocal,
+                                                       startOfSong_sec, endOfSong_sec, cBass->FileLength);
 
     // set the defaults, but only for one of the two seekBars
     if (darkmode) {
-        ui->darkSeekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM, startOfSong_sec, endOfSong_sec, cBass->FileLength);
+        ui->darkSeekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM,
+                                                       currentSongIsSinger || currentSongIsVocal,
+                                                       startOfSong_sec, endOfSong_sec, cBass->FileLength);
     } else {
-        ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM, startOfSong_sec, endOfSong_sec, cBass->FileLength);
+        ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM,
+                                                   currentSongIsSinger || currentSongIsVocal,
+                                                   startOfSong_sec, endOfSong_sec, cBass->FileLength);
     }
 
     // in case loadSettings fails (no settings on the very first load!), we need to set these edit fields

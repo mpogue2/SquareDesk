@@ -45,6 +45,7 @@ public:
     double GetIntro() const;
     double GetOutro() const;
     void SetDefaultIntroOutroPositions(bool tempoIsBPM, double estimatedBPM,
+                                       bool songIsSingerType,
                                        double songStart_sec, double songEnd_sec, double songLength_sec);
 
     bool eventFilter(QObject *obj, QEvent *event);
