@@ -6395,19 +6395,25 @@ void MainWindow::checkLockFile() {
         QString myHostName = QHostInfo::localHostName();
 
         if (hostname != myHostName) {
-            // probably another instance of SquareDesk somewhere
+            // there's probably another instance of SquareDesk somewhere, and we're sharing the database using a Cloud service
+            hostname.replace(".local", ""); // let's make the hostname more friendly to the user
             QMessageBox msgBox(QMessageBox::Warning,
                                "TITLE",
-                               QString("The SquareDesk database is already being used by '") + hostname + QString("'.")
+                               QString("The SquareDesk database is currently being used by '") + hostname + QString("'.")
                                );
-            msgBox.setInformativeText("If you continue, any changes might be lost.");
-            msgBox.addButton(tr("&Continue anyway"), QMessageBox::AcceptRole);
-            msgBox.addButton(tr("&Quit"), QMessageBox::RejectRole);
+            msgBox.setInformativeText(QString("If you continue, any unsaved changes made by '") + hostname + QString("' might be lost."));
+            QAbstractButton *continueButton =
+                    msgBox.addButton(tr("&Continue anyway"), QMessageBox::AcceptRole);
+            Q_UNUSED(continueButton)
+            QAbstractButton *quitButton = msgBox.addButton(tr("&Quit"), QMessageBox::RejectRole);
             theSplash->close();  // if we have a lock problem, let's close the splashscreen before this dialog goes up,
                               //   so splashscreen doesn't cover up the dialog.
-            if (msgBox.exec() != QMessageBox::AcceptRole) {
+
+            msgBox.exec();
+            if (msgBox.clickedButton() == quitButton) {
                 exit(-1);
             }
+            // else user clicked on "Continue Anyway" button
         } else {
             // probably a recent crash of SquareDesk on THIS device
             // so we're already locked.  Just return, since we already have the lock.
