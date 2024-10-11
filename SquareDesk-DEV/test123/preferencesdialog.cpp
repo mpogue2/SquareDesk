@@ -32,7 +32,11 @@
 #include <QTimeEdit>
 #include "sessioninfo.h"
 #include <algorithm>
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Welaborated-enum-base"
 #include "mainwindow.h"
+#pragma clang diagnostic pop
 
 extern flexible_audio *cBass;    // global in MainWindow.cpp <-- use this on M1 Silicon
 

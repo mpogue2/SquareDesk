@@ -30,7 +30,11 @@
 #include <QTimeEdit>
 #include "sessioninfo.h"
 #include <algorithm>
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Welaborated-enum-base"
 #include "mainwindow.h"
+#pragma clang diagnostic pop
 
 // -------------------------------------------------------------------
 ChoreoSequenceDialog::ChoreoSequenceDialog(QString sequenceIdentifier, QWidget *parent) :

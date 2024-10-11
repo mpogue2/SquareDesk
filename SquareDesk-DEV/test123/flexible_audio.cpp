@@ -36,14 +36,14 @@
 //#include "perftimer.h"
 // GLOBALS =========
 
-QMediaDevices md;
+// QMediaDevices md;
 
 //PerfTimer gPT("flexible_audio::StreamCreate", 0);
 
 // ------------------------------------------------------------------
 flexible_audio::flexible_audio(void)
 {
-      connect(&decoder, SIGNAL(done()), this, SLOT(decoderDone()));  //
+    connect(&decoder, SIGNAL(done()), this, SLOT(decoderDone()));  //
 
     currentSoundEffectID = 0;
     soundEffect.setAudioOutput(new QAudioOutput);

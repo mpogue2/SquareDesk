@@ -413,7 +413,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 //    qDebug() << "preferences recentFenceDateTime: " << prefsManager.GetrecentFenceDateTime();
     recentFenceDateTime = QDateTime::fromString(prefsManager.GetrecentFenceDateTime(),
                                                           "yyyy-MM-dd'T'hh:mm:ss'Z'");
-    recentFenceDateTime.setTimeSpec(Qt::UTC);  // set timezone (all times are UTC)
+    // recentFenceDateTime.setTimeSpec(Qt::UTC);  // set timezone (all times are UTC) <-- deprecated soon
+    recentFenceDateTime.setTimeZone(QTimeZone::UTC);  // set timezone (all times are UTC)
     // qDebug() << "recent fence time (definition of 'recent'): " << recentFenceDateTime;
 
     t.elapsed(__LINE__);
@@ -10147,13 +10148,15 @@ void MainWindow::on_pushButtonTestLoop_clicked()
 
 void MainWindow::on_actionClear_Recent_triggered()
 {
-    QString nowISO8601 = QDateTime::currentDateTime().toTimeSpec(Qt::OffsetFromUTC).toString(Qt::ISODate);  // add days is for later
+    // QString nowISO8601 = QDateTime::currentDateTime().toTimeSpec(Qt::OffsetFromUTC).toString(Qt::ISODate);  // add days is for later <-- deprecated soon
+    QString nowISO8601 = QDateTime::currentDateTime().toTimeZone(QTimeZone::UTC).toString(Qt::ISODate);  // add days is for later
 //    qDebug() << "Setting fence to: " << nowISO8601;
 
     prefsManager.SetrecentFenceDateTime(nowISO8601);  // e.g. "2018-01-01T01:23:45Z"
     recentFenceDateTime = QDateTime::fromString(prefsManager.GetrecentFenceDateTime(),
                                                           "yyyy-MM-dd'T'hh:mm:ss'Z'");
-    recentFenceDateTime.setTimeSpec(Qt::UTC);  // set timezone (all times are UTC)
+    // recentFenceDateTime.setTimeSpec(Qt::UTC);  // set timezone (all times are UTC) <-- deprecated soon
+    recentFenceDateTime.setTimeZone(QTimeZone::UTC);  // set timezone (all times are UTC)
 
     firstTimeSongIsPlayed = true;   // this forces writing another record to the songplays DB when the song is next played
                                     //   so that the song will be marked Recent if it is played again after a Clear Recents,
@@ -10173,7 +10176,8 @@ void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &c
     QHash<QtMsgType, QString> msgLevelHash({{QtDebugMsg, "Debug"}, {QtInfoMsg, "Info"}, {QtWarningMsg, "Warning"}, {QtCriticalMsg, "Critical"}, {QtFatalMsg, "Fatal"}});
 //    QByteArray localMsg = msg.toLocal8Bit();
 
-    QString dateTime = QDateTime::currentDateTime().toTimeSpec(Qt::OffsetFromUTC).toString(Qt::ISODate);  // use ISO8601 UTC timestamps
+    // QString dateTime = QDateTime::currentDateTime().toTimeSpec(Qt::OffsetFromUTC).toString(Qt::ISODate);  // use ISO8601 UTC timestamps <-- deprecated soon
+    QString dateTime = QDateTime::currentDateTime().toTimeZone(QTimeZone::UTC).toString(Qt::ISODate);  // use ISO8601 UTC timestamps
     QString logLevelName = msgLevelHash[type];
     QString txt = QString("%1 %2: %3 (%4)").arg(dateTime, logLevelName, msg, context.file);
 
@@ -10215,6 +10219,10 @@ void MainWindow::customMessageOutputQt(QtMsgType type, const QMessageLogContext 
 //    QString logLevelName = msgLevelHash[type];
 ////    QString txt = QString("%1 %2: %3 (%4)").arg(dateTime, logLevelName, msg, context.file);
 //    QString txt = QString("%1: %2").arg(logLevelName, msg);
+
+    if (msg.contains("invalid nullptr parameter")) {
+        qDebug() << "FOUND IT.";
+    }
 
     // suppress known warnings from QtCreator Application Output window
     if (msg.contains("The provided value 'moz-chunked-arraybuffer' is not a valid enum value of type XMLHttpRequestResponseType") ||

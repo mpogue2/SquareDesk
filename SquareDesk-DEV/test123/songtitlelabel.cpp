@@ -23,7 +23,11 @@
 **
 ****************************************************************************/
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Welaborated-enum-base"
 #include "mainwindow.h"
+#pragma clang diagnostic pop
+
 #include "songtitlelabel.h"
 #include "songlistmodel.h"
 

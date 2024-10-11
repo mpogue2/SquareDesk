@@ -35,14 +35,14 @@ macx {
   contains(QMAKE_HOST.arch, x86_64) {
     message("X86_64 BUILD MACHINE DETECTED!")
     ARCHDIR = "x86_64"
-    QMAKE_MAC_SDK = macosx14.5
+    QMAKE_MAC_SDK = macosx15.0
     set(CMAKE_C_STANDARD 99)
     set(CMAKE_CXX_FLAGS "-std=c++17 -stdlib=libc++")
   }
   contains(QMAKE_HOST.arch, arm64) {
     message("ARM64 BUILD MACHINE DETECTED!")
     ARCHDIR = "arm64"
-    QMAKE_MAC_SDK = macosx14.5
+    QMAKE_MAC_SDK = macosx15.0
   }
   message("ARCHDIR = " $${ARCHDIR} ", QMAKE_MAC_SDK = " $${QMAKE_MAC_SDK})
 }
