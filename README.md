@@ -1,29 +1,51 @@
-SquareDeskPlayer is an open-source cross-platform (Mac, Windows & Linux) tool
-for Modern Western Square Dance callers.  It includes a music player,
-a lyrics editor, and a powerful graphical checker mover (SD).
+# Introduction
+SquareDesk is a super-powerful Open Source tool for for Modern Western Square 
+Dance callers with MacOS computers.  It includes a music player, 
+a cuesheet editor, and a powerful graphical version of the SD checker mover program.
 
-Definitive information at http://squaredesk.net/
+And, SquareDesk is under an Open Source license, so any programmer can modify
+SquareDesk itself to add cool new features or fix bugs!
+
+# Music playback tab
+The MUSIC tab is the main tab for playback of MP3 files.  Automatic
+timers mean that you don't have to remember to press a Start Timer button!
+Automatic section detection allows you to find the best
+possible loop points, while automatic beat and measure detection 
+makes it really easy to create seamless loops for patter.
+
+SquareDesk has two primary viewing modes, DARK MODE:
+
+![Main Dark Mode Screenshot](https://mpogue2.github.io/images/musicplayer_DARK.png)
+
+and LIGHT MODE:
 
 ![Main Screenshot](https://mpogue2.github.io/images/musicplayer.png)
 
-A built-in lyrics editor provides a super-simple way to edit cuesheets.  
-These cuesheets can be automatically scrolled during singing call playback, to make it easy
-to learn or perform a song.
+# Cuesheet editor tab
+A built-in cuesheet editor provides a super-simple way to edit lyrics.
+Singing calls are automatically matched with cuesheets by name, so no more
+"marrying" step required.  And, the cuesheets you make are self-contained, so
+you can send them to your fellow callers and they'll look the same on all computers.
+Cuesheets can also be automatically scrolled during singing call playback, 
+to make it easy to learn or perform a song.
+
+DARK MODE:
+
+![Lyrics Editor](https://mpogue2.github.io/images/lyricseditor_DARK.png)
+
+LIGHT MODE:
 
 ![Lyrics Editor](https://mpogue2.github.io/images/lyricseditor.png)
 
-For singing calls, the transport bar clearly shows you where you are
-in your opener, break, closer, and each sequence
+# SD Sequence Designer tab
+You can quickly design new sequences with a built-in copy of SD, with a clean
+graphical front-end, supporting automatic group/station annotation (aka "relationship
+calling").
 
-![Transport Bar](https://mpogue2.github.io/images/singingcallbar.png)
+DARK MODE:
 
-Track how long it's been since you've played a given song for any day
-of the week! Helps you rotate your music so dancers don't get sick of
-it.
+![SD](https://mpogue2.github.io/images/sd_DARK.png)
 
-![Sessions Menu](https://mpogue2.github.io/images/sessions.png)
-
-Quickly design new sequences with a built-in copy of SD, with a clean
-graphical front-end, supporting automatic group/station annotation.
+LIGHT MODE:
 
 ![SD](https://mpogue2.github.io/images/sd.png)
