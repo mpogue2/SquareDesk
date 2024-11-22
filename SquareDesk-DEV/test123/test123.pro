@@ -445,17 +445,17 @@ copydata4s.commands = $(COPY) $$PWD/abbrevs.txt     $$OUT_PWD/SquareDesk.app/Con
 
 # SOUNDFX STARTER SET --------------------------------------------
 copydata10.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/soundfx || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/soundfx
-copydata11a.commands = $(COPY_DIR) $$PWD/soundfx/1.whistle.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-copydata11b.commands = $(COPY_DIR) $$PWD/soundfx/2.clown_honk.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-copydata11c.commands = $(COPY_DIR) $$PWD/soundfx/3.submarine.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-copydata11d.commands = $(COPY_DIR) $$PWD/soundfx/4.applause.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-copydata11e.commands = $(COPY_DIR) $$PWD/soundfx/5.fanfare.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-copydata11f.commands = $(COPY_DIR) $$PWD/soundfx/6.fade.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-copydata11f2.commands = $(COPY_DIR) $$PWD/soundfx/7.short_bell.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-copydata11f3.commands = $(COPY_DIR) $$PWD/soundfx/8.ding_ding.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-copydata11g.commands = $(COPY_DIR) $$PWD/soundfx/break_over.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-copydata11h.commands = $(COPY_DIR) $$PWD/soundfx/long_tip.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-copydata12h.commands = $(COPY_DIR) $$PWD/soundfx/thirty_second_warning.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+copydata11a.commands = $(COPY_DIR) $$PWD/soundfx/1.whistle.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/1.whistle.mp3
+copydata11b.commands = $(COPY_DIR) $$PWD/soundfx/2.clown_honk.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/2.clown_honk.mp3
+copydata11c.commands = $(COPY_DIR) $$PWD/soundfx/3.submarine.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/3.submarine.mp3
+copydata11d.commands = $(COPY_DIR) $$PWD/soundfx/4.applause.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/4.applause.mp3
+copydata11e.commands = $(COPY_DIR) $$PWD/soundfx/5.fanfare.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/5.fanfare.mp3
+copydata11f.commands = $(COPY_DIR) $$PWD/soundfx/6.fade.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/6.fade.mp3
+copydata11f2.commands = $(COPY_DIR) $$PWD/soundfx/7.short_bell.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/7.short_bell.mp3
+copydata11f3.commands = $(COPY_DIR) $$PWD/soundfx/8.ding_ding.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/8.ding_ding.mp3
+copydata11g.commands = $(COPY_DIR) $$PWD/soundfx/break_over.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/break_over.mp3
+copydata11h.commands = $(COPY_DIR) $$PWD/soundfx/long_tip.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/long_tip.mp3
+copydata12h.commands = $(COPY_DIR) $$PWD/soundfx/thirty_second_warning.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/thirty_second_warning.mp3
 
 first.depends += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
 
