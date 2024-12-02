@@ -1609,9 +1609,25 @@ void AudioDecoder::updateWaveformMap()
 
     float wholeSongPeak = 0.0; // peak for the whole song
 
+#ifdef FINDZEROCROSSINGS
+    int zeroCrossingsFound = 0;  // TEST TEST TEST *****
+#endif
     for (int i = 0; i < totalFramesInSong; i++) {
         float L = songPointer[2*i + 0];
         float R = songPointer[2*i + 1];
+
+#ifdef FINDZEROCROSSINGS
+        // TEST TEST TEST *************************
+        float Lplus2 = songPointer[2*(i+2) + 0];
+
+        if ((zeroCrossingsFound < 5) && (L > 0.05) && (Lplus2 <= 0.0)) {
+            // we found a negative going zero crossing where the first sample was above 0.05
+            qDebug() << "***** Neg ZC @ frame " << i+1; // zc is one AFTER the last L that was above threshold
+            zeroCrossingsFound++;
+        }
+
+        // TEST TEST TEST *************************
+#endif
 
         // algorithm: MAX
         Laccum = max(Laccum, fabs(L));
