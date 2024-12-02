@@ -848,6 +848,8 @@ public:
     void RemoveSectionsForThisSong(QString pathToMP3);
     void RemoveSectionsForTheseSongs(QList<int>);
 
+    int MP3FileSampleRate(QString pathToMP3); // returns 32000, 44100, or 48000 for MP3 files, -1 for non-MP3 files
+
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
     void on_sd_add_new_line(QString, int drawing_picture);
@@ -995,6 +997,10 @@ private:
 
     QString currentSongTitle;    // song title, e.g. "Appalachian Joy"
     QString currentSongLabel;    // record label, e.g. RIV
+
+    int currentSongMP3SampleRate;  // this is BEFORE we load it in with Qt, which resamples all to 44.1kHz.
+                                // this will be used to set sample-accurate LOOPSTART (which is in samples).
+                                // -1 = doesn't have an MP3 sample rate (e.g. WAV file, etc.)
 
     int randCallIndex;     // for Flash Calls
 

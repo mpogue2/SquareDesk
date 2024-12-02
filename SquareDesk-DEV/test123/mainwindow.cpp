@@ -289,6 +289,15 @@ void InitializeSeekBar(MySlider *seekBar);  // forward decl
 
 void MainWindow::haveDuration2(void) {
 //    qDebug() << "MainWindow::haveDuration -- StreamCreate duration and songBPM now available! *****";
+
+    // QElapsedTimer timer1;
+    // timer1.start();
+
+    // NOTE: This function is called once at load time, and adds less than 1ms.
+    currentSongMP3SampleRate = MP3FileSampleRate(currentMP3filenameWithPath);
+
+    // qDebug() << "MP3 original file sample rate:" << currentSongMP3SampleRate << "samples per second (before resampling to 44.1)";
+
     cBass->StreamGetLength();  // tell everybody else what the length of the stream is...
     InitializeSeekBar(ui->seekBar);          // and now we can set the max of the seekbars, so they show up
     InitializeSeekBar(ui->seekBarCuesheet);  // and now we can set the max of the seekbars, so they show up
