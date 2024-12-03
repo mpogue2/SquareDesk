@@ -355,6 +355,8 @@ INCLUDEPATH += $$PWD/../taglib
 INCLUDEPATH += $$PWD/../taglib/taglib
 INCLUDEPATH += $$PWD/../taglib/taglib/toolkit
 INCLUDEPATH += $$PWD/../taglib/taglib/mpeg/id3v2
+INCLUDEPATH += $$PWD/../taglib/taglib/riff
+INCLUDEPATH += $$PWD/../taglib/taglib/riff/wav
 
 # KFR for filters -----------------------------------
 INCLUDEPATH += $$PWD/../kfr/include

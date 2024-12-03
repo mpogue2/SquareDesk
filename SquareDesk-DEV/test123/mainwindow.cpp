@@ -84,6 +84,9 @@
 
 #include "src/communicator.h"
 
+#include "rifffile.h"
+#include "wavfile.h"
+
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #ifndef M1MAC
 #include "JlCompress.h"
@@ -142,6 +145,8 @@ using namespace std;
 #include <taglib/mpeg/id3v2/id3v2header.h>
 
 #include <taglib/mpeg/id3v2/frames/unsynchronizedlyricsframe.h>
+#include <taglib/mpeg/id3v2/frames/commentsframe.h>
+#include <taglib/mpeg/id3v2/frames/textidentificationframe.h>
 #include <string>
 
 #include "typetracker.h"
@@ -5952,24 +5957,71 @@ void MainWindow::on_trebleSlider_valueChanged(int value)
 // --------------------------------------
 // Extract TBPM tag from ID3v2 to know (for sure) what the BPM is for a song (overrides beat detection) -----
 double MainWindow::getID3BPM(QString MP3FileName) {
-    MPEG::File *mp3file;
-    ID3v2::Tag *id3v2tag;  // NULL if it doesn't have a tag, otherwise the address of the tag
+    // MPEG::File *mp3file;
+    ID3v2::Tag *id3v2tag = nullptr;  // NULL if it doesn't have a tag, otherwise the address of the tag
 
-    mp3file = new MPEG::File(MP3FileName.toStdString().c_str()); // FIX: this leaks on read of another file
-    id3v2tag = mp3file->ID3v2Tag(true);  // if it doesn't have one, create one
+    // mp3file = new MPEG::File(MP3FileName.toStdString().c_str()); // FIX: this leaks on read of another file
+    // id3v2tag = mp3file->ID3v2Tag(true);  // if it doesn't have one, create one
+
+    // qDebug() << "getID3BPM filename:" << MP3FileName;
+
+    TagLib::File *theFile;
+    QString fileType = "UNKNOWN";
+
+    if (MP3FileName.endsWith(".mp3", Qt::CaseInsensitive)) {
+        theFile = new MPEG::File(MP3FileName.toStdString().c_str());
+        id3v2tag = ((MPEG::File *)theFile)->ID3v2Tag(true);
+        fileType = "MP3";
+    } else if ((MP3FileName.endsWith(".wav", Qt::CaseInsensitive))) {
+        theFile = new TagLib::RIFF::WAV::File(MP3FileName.toStdString().c_str());
+        id3v2tag = ((TagLib::RIFF::WAV::File *)theFile)->ID3v2Tag();
+        fileType = "WAV";
+    } else {
+        return(0.0);
+    }
 
     double theBPM = 0.0;
 
     ID3v2::FrameList::ConstIterator it = id3v2tag->frameList().begin();
     for (; it != id3v2tag->frameList().end(); it++)
     {
-        if ((*it)->frameID() == "TBPM")  // This is an Apple standard, which means it's everybody's standard now.
+        ByteVector b = (*it)->frameID();
+
+        QString theKey;
+        for (unsigned int i = 0; i < b.size(); i++) {
+            theKey.append(b.at(i));
+        }
+
+        QString theValue((*it)->toString().toCString());
+        // qDebug() << b.size() << theKey << ":" << theValue;
+
+        // ***** THIS IS SAMPLE CODE FOR HOW TO READ LOOPLENGTH AND LOOPSTART TAGS IN MP3 and WAV FILES *****
+        // if (theKey == "COMM") // comment (this will NOT be needed, it's sample code for now.)
+        // {
+        //     TagLib::ID3v2::CommentsFrame *cf = (TagLib::ID3v2::CommentsFrame *)(*it);
+        //     qDebug() << "COMM:" << cf->description().toCString() << ":" << cf->text().toCString();
+        // }
+
+        // if (theKey == "TXXX") // User Text frame <-- use these for LOOPSTART/LOOPLENGTH
+        // {
+        //     TagLib::ID3v2::UserTextIdentificationFrame *tf = (TagLib::ID3v2::UserTextIdentificationFrame *)(*it);
+        //     QString description = tf->description().toCString();
+        //     // qDebug() << "DESCRIPTION:" << description;
+        //     if (description == "LOOPSTART" || description == "LOOPLENGTH") {
+        //         qDebug() << "TXXX:" << description << ":" << tf->fieldList()[1].toCString();
+        //     }
+        // }
+
+        if ((*it)->frameID() == "TBPM" ||  // This is an Apple standard, which means it's everybody's standard now.
+            (*it)->frameID() == "BPM")     // This is what's used elsewhere. Whichever is found LAST wins.
         {
+            // qDebug() << "TBPM/BPM:" << ":" << theValue;
             QString BPM((*it)->toString().toCString());
             theBPM = BPM.toDouble();
         }
 
     }
+
 //    qDebug() << "getID3BPM filename: " << MP3FileName << "BPM: " << theBPM;
     return(theBPM);
 }
