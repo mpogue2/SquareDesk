@@ -849,6 +849,7 @@ public:
     void RemoveSectionsForTheseSongs(QList<int>);
 
     int MP3FileSampleRate(QString pathToMP3); // returns 32000, 44100, or 48000 for MP3 files, -1 for non-MP3 files
+    QString SongFileIdentifier(QString pathToSong);
 
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
@@ -1001,6 +1002,10 @@ private:
     int currentSongMP3SampleRate;  // this is BEFORE we load it in with Qt, which resamples all to 44.1kHz.
                                 // this will be used to set sample-accurate LOOPSTART (which is in samples).
                                 // -1 = doesn't have an MP3 sample rate (e.g. WAV file, etc.)
+
+    QString currentSongIdentifier; // MD5 hash of bytes of MP3 data, i.e. NOT including the ID3v2 tag
+
+    uint32_t currentSongID; // 32-bit MD5 hash of all bytes except the ID3v1 and ID3v2 tags
 
     int randCallIndex;     // for Flash Calls
 
@@ -1231,6 +1236,8 @@ private:
     void maybeMakeAllRequiredFolders();                // make them all, if they doesn't already exist
 
     int totalZoom;  // total zoom for Lyrics pane, so it can be undone with a Reset Zoom
+
+    // QElapsedTimer loadTimer;
 
 //    QElapsedTimer t1; //, t2;  // used for simple timing operations
     void startLongSongTableOperation(QString s);

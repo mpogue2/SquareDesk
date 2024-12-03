@@ -49,6 +49,8 @@
 #define MINIMP3_IMPLEMENTATION
 #include "minimp3_ex.h"
 
+#include "xxhash64.h"
+
 // forward decl's from wav_file.h -------
 extern "C"
 {
@@ -828,9 +830,9 @@ int mp3dec_load_cb_ONE(mp3dec_t *dec, mp3dec_io_t *io, uint8_t *buf, size_t buf_
     info->layer    = frame_info.layer;
     /* decode all frames */
 
-    // qDebug() << "INSIDE ONE:" << info->hz;
+    return(0);  // NOTE: THIS MODIFIED VERSION DECODES ZERO MP3 FRAMES *****
 
-    return(0);
+    // ================================================
 
 //     size_t avg_bitrate_kbps = 0, frames = 0;
 //     do
@@ -899,7 +901,10 @@ int mp3dec_load_cb_ONE(mp3dec_t *dec, mp3dec_io_t *io, uint8_t *buf, size_t buf_
 //                     break;
 //             }
 //         }
-//     } while (frame_info.frame_bytes);
+//     } while (
+//         false &&                     // NOTE MODIFIED FROM ORIGINAL mp3dec_load(), ONLY LOAD 1 FRAME
+//         frame_info.frame_bytes);
+
 //     if (detected_samples && info->samples > detected_samples)
 //         info->samples = detected_samples; /* cut padding */
 //     /* reallocate to normal buffer size */
@@ -955,8 +960,46 @@ int MainWindow::MP3FileSampleRate(QString pathToMP3) {
 
     int sampleRate = info.hz;
 
+    free(info.buffer);
+
     // qDebug() << "sampleRate = " << info.hz << info.channels << info.samples << info.avg_bitrate_kbps;
     // qDebug() << "***** DONE LOADING *****";
 
     return(sampleRate);
+}
+
+QString MainWindow::SongFileIdentifier(QString pathToSong) {
+    Q_UNUSED(pathToSong)
+
+    // LOAD TO MEMORY -----------
+    mp3dec_t mp3d;
+    mp3dec_file_info_t info;
+
+    if (mp3dec_load(&mp3d, pathToSong.toStdString().c_str(), &info, NULL, NULL))
+    {
+        qDebug() << "ERROR: mp3dec_load";
+        return(QString("0xFFFFFFFF"));  // ERROR: -1
+    }
+
+    // qDebug() << "SongFileID: " << info.samples << info.channels << info.hz << sizeof(mp3d_sample_t);
+
+    // QByteArray byteArray((const char *)info.buffer, info.samples * info.channels * info.hz);
+    // QByteArray hash = QCryptographicHash::hash(byteArray, QCryptographicHash::Md5);
+
+    // // Convert hash to hex string
+    // QString hexHash = hash.toHex();
+
+    // NOTE: THIS HASH ALGORITHM IS FOR LITTLE-ENDIAN MACHINES ONLY, e.g. Intel, ARM *********
+    // On an M1 mac, this hash takes only about 20ms for 31836672 * 4 bytes = 6400MB/s (!)
+
+    uint64_t myseed   = 0;
+    uint64_t numBytes = info.samples * sizeof(mp3d_sample_t);
+    uint64_t result2  = XXHash64::hash(info.buffer, numBytes, myseed);
+
+    QString hexHash = QString::number(result2, 16); // QString of exactly 16 hex characters
+    // QString hexHash = "0123456789abcdef";  // DEBUG DEBUG
+
+    free(info.buffer);
+
+    return(hexHash);
 }

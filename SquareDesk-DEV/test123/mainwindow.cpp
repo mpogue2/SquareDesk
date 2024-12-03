@@ -290,13 +290,24 @@ void InitializeSeekBar(MySlider *seekBar);  // forward decl
 void MainWindow::haveDuration2(void) {
 //    qDebug() << "MainWindow::haveDuration -- StreamCreate duration and songBPM now available! *****";
 
+    // *************** calculate MP3 sample rate AND song ID (hash) *****************
     // QElapsedTimer timer1;
     // timer1.start();
 
-    // NOTE: This function is called once at load time, and adds less than 1ms.
-    currentSongMP3SampleRate = MP3FileSampleRate(currentMP3filenameWithPath);
+    // NOTE: This function is called once at load time, and adds less than 1ms
+    // currentSongMP3SampleRate = MP3FileSampleRate(currentMP3filenameWithPath);
 
+    // This function takes about 200ms for a 330sec MP3 song
+    // TODO: use the MINIMP3 loader instead of the Qt loader for MP3 files (only).
+    // currentSongIdentifier = SongFileIdentifier(currentMP3filenameWithPath);
+
+    // qDebug() << "";
     // qDebug() << "MP3 original file sample rate:" << currentSongMP3SampleRate << "samples per second (before resampling to 44.1)";
+    // qDebug() << "Song ID:" << currentSongIdentifier;
+    // qDebug() << "";
+
+    // qDebug() << "Elapsed time in haveDuration2(): " << timer1.elapsed();
+    // ******************************************************************************
 
     cBass->StreamGetLength();  // tell everybody else what the length of the stream is...
     InitializeSeekBar(ui->seekBar);          // and now we can set the max of the seekbars, so they show up
@@ -5973,6 +5984,7 @@ void MainWindow::reloadCurrentMP3File() {
 
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType, QString songLabel, QString nextFilename)
 {
+    // loadTimer.start();
     // qDebug() << "loadMP3File: nextFilename = " << nextFilename;
     ui->darkSegmentButton->setHidden(true);
 
@@ -6136,7 +6148,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
 void MainWindow::secondHalfOfLoad(QString songTitle) {
     // This function is called when the files is actually loaded into memory, and the filelength is known.
-//    qDebug() << "***** secondHalfOfLoad()";
+    // qDebug() << "***** secondHalfOfLoad()" << loadTimer.elapsed();
 
     // qDebug() << "secondHalfOfLoad: clearing the secondsPlayed for the loaded song";
     currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
