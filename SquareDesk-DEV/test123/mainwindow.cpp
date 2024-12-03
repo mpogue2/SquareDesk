@@ -8950,6 +8950,11 @@ QString MainWindow::loadLyrics(QString MP3FileName)
 {
     QString USLTlyrics;
 
+    if (!MP3FileName.endsWith(".mp3", Qt::CaseInsensitive)) {
+        // WAV, FLAC, etc can have ID3 tags, but we don't support USLT in them right now
+        return(QString(""));
+    }
+
     MPEG::File mp3file(MP3FileName.toStdString().c_str());
     ID3v2::Tag *id3v2tag = mp3file.ID3v2Tag(true);
 
