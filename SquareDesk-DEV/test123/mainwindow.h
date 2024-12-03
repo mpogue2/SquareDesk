@@ -1021,8 +1021,13 @@ private:
 
     int getRsyncFileCount(QString sourceDir, QString destDir);
 
-    double getID3BPM(QString MP3FileName);
+    // ID3 ==============
+    int readID3Tags(QString fileName, double *bpm, double *tbpm, uint32_t *loopStartSamples, uint32_t *loopLengthSamples);
+    int writeID3Tags(QString fileName, double *bpm, double *tbpm, uint32_t *loopStartSamples, uint32_t *loopLengthSamples);
 
+    int audioFileSampleRate(QString fileName);
+
+    // ----------------------------
     void reloadCurrentMP3File();
     void loadMP3File(QString filepath, QString songTitle, QString songCategory, QString songLabel, QString nextFilename="");
     void secondHalfOfLoad(QString songTitle);  // after we have duration and BPM, execute this

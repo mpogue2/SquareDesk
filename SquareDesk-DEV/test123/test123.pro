@@ -78,6 +78,7 @@ SOURCES += main.cpp\
     mainwindow_cuesheets.cpp \
     mainwindow_flashcalls.cpp \
     mainwindow_fonts.cpp \
+    mainwindow_metadata.cpp \
     miniBPM/MiniBpm.cpp \
     playlists.cpp \
     preferencesdialog.cpp \

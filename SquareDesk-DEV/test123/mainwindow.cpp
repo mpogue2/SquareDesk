@@ -84,9 +84,6 @@
 
 #include "src/communicator.h"
 
-#include "rifffile.h"
-#include "wavfile.h"
-
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #ifndef M1MAC
 #include "JlCompress.h"
@@ -295,24 +292,38 @@ void InitializeSeekBar(MySlider *seekBar);  // forward decl
 void MainWindow::haveDuration2(void) {
 //    qDebug() << "MainWindow::haveDuration -- StreamCreate duration and songBPM now available! *****";
 
+#ifdef ID3TEST
     // *************** calculate MP3 sample rate AND song ID (hash) *****************
     // QElapsedTimer timer1;
     // timer1.start();
 
     // NOTE: This function is called once at load time, and adds less than 1ms
-    // currentSongMP3SampleRate = MP3FileSampleRate(currentMP3filenameWithPath);
+    currentSongMP3SampleRate = audioFileSampleRate(currentMP3filenameWithPath);
+    // qDebug() << "Time to do audioFileSampleRate: " << timer1.elapsed() << "ms";
+    // timer1.restart();
+    // qDebug() << "MP3 original file sample rate:" << currentSongMP3SampleRate << "samples per second (before resampling to 44.1)";
 
     // This function takes about 200ms for a 330sec MP3 song
     // TODO: use the MINIMP3 loader instead of the Qt loader for MP3 files (only).
-    // currentSongIdentifier = SongFileIdentifier(currentMP3filenameWithPath);
-
-    // qDebug() << "";
-    // qDebug() << "MP3 original file sample rate:" << currentSongMP3SampleRate << "samples per second (before resampling to 44.1)";
+    currentSongIdentifier = SongFileIdentifier(currentMP3filenameWithPath);
+    // qDebug() << "Time to do SongFileIdentifier: " << timer1.elapsed() << "ms";
+    // timer1.restart();
     // qDebug() << "Song ID:" << currentSongIdentifier;
-    // qDebug() << "";
 
+    // TEST:
+    double bpm, tbpm;
+    uint32_t loopStart, loopLength;
+
+    int a = readID3Tags(currentMP3filenameWithPath, &bpm, &tbpm, &loopStart, &loopLength);
+
+    // qDebug() << "Time to do readID3Tags: " << timer1.elapsed() << "ms";
+    // timer1.restart();
+    // qDebug() << "readID3Tags: " << a << bpm << tbpm << loopStart << loopLength;
+
+    // --------------
     // qDebug() << "Elapsed time in haveDuration2(): " << timer1.elapsed();
     // ******************************************************************************
+#endif
 
     cBass->StreamGetLength();  // tell everybody else what the length of the stream is...
     InitializeSeekBar(ui->seekBar);          // and now we can set the max of the seekbars, so they show up
@@ -5954,77 +5965,6 @@ void MainWindow::on_trebleSlider_valueChanged(int value)
 #endif
 }
 
-// --------------------------------------
-// Extract TBPM tag from ID3v2 to know (for sure) what the BPM is for a song (overrides beat detection) -----
-double MainWindow::getID3BPM(QString MP3FileName) {
-    // MPEG::File *mp3file;
-    ID3v2::Tag *id3v2tag = nullptr;  // NULL if it doesn't have a tag, otherwise the address of the tag
-
-    // mp3file = new MPEG::File(MP3FileName.toStdString().c_str()); // FIX: this leaks on read of another file
-    // id3v2tag = mp3file->ID3v2Tag(true);  // if it doesn't have one, create one
-
-    // qDebug() << "getID3BPM filename:" << MP3FileName;
-
-    TagLib::File *theFile;
-    QString fileType = "UNKNOWN";
-
-    if (MP3FileName.endsWith(".mp3", Qt::CaseInsensitive)) {
-        theFile = new MPEG::File(MP3FileName.toStdString().c_str());
-        id3v2tag = ((MPEG::File *)theFile)->ID3v2Tag(true);
-        fileType = "MP3";
-    } else if ((MP3FileName.endsWith(".wav", Qt::CaseInsensitive))) {
-        theFile = new TagLib::RIFF::WAV::File(MP3FileName.toStdString().c_str());
-        id3v2tag = ((TagLib::RIFF::WAV::File *)theFile)->ID3v2Tag();
-        fileType = "WAV";
-    } else {
-        return(0.0);
-    }
-
-    double theBPM = 0.0;
-
-    ID3v2::FrameList::ConstIterator it = id3v2tag->frameList().begin();
-    for (; it != id3v2tag->frameList().end(); it++)
-    {
-        ByteVector b = (*it)->frameID();
-
-        QString theKey;
-        for (unsigned int i = 0; i < b.size(); i++) {
-            theKey.append(b.at(i));
-        }
-
-        QString theValue((*it)->toString().toCString());
-        // qDebug() << b.size() << theKey << ":" << theValue;
-
-        // ***** THIS IS SAMPLE CODE FOR HOW TO READ LOOPLENGTH AND LOOPSTART TAGS IN MP3 and WAV FILES *****
-        // if (theKey == "COMM") // comment (this will NOT be needed, it's sample code for now.)
-        // {
-        //     TagLib::ID3v2::CommentsFrame *cf = (TagLib::ID3v2::CommentsFrame *)(*it);
-        //     qDebug() << "COMM:" << cf->description().toCString() << ":" << cf->text().toCString();
-        // }
-
-        // if (theKey == "TXXX") // User Text frame <-- use these for LOOPSTART/LOOPLENGTH
-        // {
-        //     TagLib::ID3v2::UserTextIdentificationFrame *tf = (TagLib::ID3v2::UserTextIdentificationFrame *)(*it);
-        //     QString description = tf->description().toCString();
-        //     // qDebug() << "DESCRIPTION:" << description;
-        //     if (description == "LOOPSTART" || description == "LOOPLENGTH") {
-        //         qDebug() << "TXXX:" << description << ":" << tf->fieldList()[1].toCString();
-        //     }
-        // }
-
-        if ((*it)->frameID() == "TBPM" ||  // This is an Apple standard, which means it's everybody's standard now.
-            (*it)->frameID() == "BPM")     // This is what's used elsewhere. Whichever is found LAST wins.
-        {
-            // qDebug() << "TBPM/BPM:" << ":" << theValue;
-            QString BPM((*it)->toString().toCString());
-            theBPM = BPM.toDouble();
-        }
-
-    }
-
-//    qDebug() << "getID3BPM filename: " << MP3FileName << "BPM: " << theBPM;
-    return(theBPM);
-}
 
 void MainWindow::reloadCurrentMP3File() {
     // if there is a song loaded, reload it (to pick up, e.g. new cuesheets)
@@ -10527,9 +10467,10 @@ void MainWindow::handleDurationBPM() {
 //    qDebug() << "***** handleDurationBPM(): " << songBPM;
 
 // If the MP3 file has an embedded TBPM frame in the ID3 tag, then it overrides the libbass auto-detect of BPM
-    double songBPM_ID3 = getID3BPM(currentMP3filenameWithPath);  // returns 0.0, if not found or not understandable
+    // double songBPM_ID3 = getID3BPM(currentMP3filenameWithPath);  // returns 0.0, if not found or not understandable
+    double songBPM_ID3 = audioFileSampleRate(currentMP3filenameWithPath);  // returns -1.0, if not found or not understandable
 
-    if (songBPM_ID3 != 0.0) {
+    if (songBPM_ID3 != -1.0) {
         songBPM = static_cast<int>(songBPM_ID3);
         tempoIsBPM = true;  // this song's tempo is BPM, not %
     }
