@@ -1025,7 +1025,8 @@ private:
     int readID3Tags(QString fileName, double *bpm, double *tbpm, uint32_t *loopStartSamples, uint32_t *loopLengthSamples);
     int writeID3Tags(QString fileName, double *bpm, double *tbpm, uint32_t *loopStartSamples, uint32_t *loopLengthSamples);
 
-    int audioFileSampleRate(QString fileName);
+    double getID3BPM(QString MP3FileName);      // gets the BPM (should be same as readID3Tags)
+    int audioFileSampleRate(QString fileName);  // gets the SAMPLERATE
 
     // ----------------------------
     void reloadCurrentMP3File();

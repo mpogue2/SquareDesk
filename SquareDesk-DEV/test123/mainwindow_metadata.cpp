@@ -504,7 +504,34 @@ int MainWindow::audioFileSampleRate(QString fileName) {
     return(sampleRate);
 }
 
+// THIS IS THE OLD ONE (that works)
 // --------------------------------------
+// Extract TBPM tag from ID3v2 to know (for sure) what the BPM is for a song (overrides beat detection) -----
+double MainWindow::getID3BPM(QString MP3FileName) {
+    MPEG::File *mp3file;
+    ID3v2::Tag *id3v2tag;  // NULL if it doesn't have a tag, otherwise the address of the tag
+
+    mp3file = new MPEG::File(MP3FileName.toStdString().c_str()); // FIX: this leaks on read of another file
+    id3v2tag = mp3file->ID3v2Tag(true);  // if it doesn't have one, create one
+
+    double theBPM = 0.0;
+
+    ID3v2::FrameList::ConstIterator it = id3v2tag->frameList().begin();
+    for (; it != id3v2tag->frameList().end(); it++)
+    {
+        if ((*it)->frameID() == "TBPM")  // This is an Apple standard, which means it's everybody's standard now.
+        {
+            QString BPM((*it)->toString().toCString());
+            theBPM = BPM.toDouble();
+        }
+
+    }
+    //    qDebug() << "getID3BPM filename: " << MP3FileName << "BPM: " << theBPM;
+    return(theBPM);
+}
+
+// --------------------------------------
+// THIS IS THE NEW ONE, THAT SHOULD (when it works) EVENTUALLY REPLACE THE OLD ONE
 // Extract TBPM tag from ID3v2 to know (for sure) what the BPM is for a song (overrides beat detection) -----
 // double MainWindow::getID3BPM(QString MP3FileName) {
 //     // MPEG::File *mp3file;

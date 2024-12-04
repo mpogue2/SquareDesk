@@ -10467,10 +10467,9 @@ void MainWindow::handleDurationBPM() {
 //    qDebug() << "***** handleDurationBPM(): " << songBPM;
 
 // If the MP3 file has an embedded TBPM frame in the ID3 tag, then it overrides the libbass auto-detect of BPM
-    // double songBPM_ID3 = getID3BPM(currentMP3filenameWithPath);  // returns 0.0, if not found or not understandable
-    double songBPM_ID3 = audioFileSampleRate(currentMP3filenameWithPath);  // returns -1.0, if not found or not understandable
+    double songBPM_ID3 = getID3BPM(currentMP3filenameWithPath);  // returns 0.0, if not found or not understandable
 
-    if (songBPM_ID3 != -1.0) {
+    if (songBPM_ID3 != 0.0) {
         songBPM = static_cast<int>(songBPM_ID3);
         tempoIsBPM = true;  // this song's tempo is BPM, not %
     }
