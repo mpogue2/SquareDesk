@@ -172,6 +172,8 @@ namespace TagLib {
       virtual void setYear(unsigned int i);
       virtual void setTrack(unsigned int i);
 
+      virtual void setTBPM(const String &s);  // modified -mpogue
+
       virtual bool isEmpty() const;
 
       /*!

@@ -40,6 +40,8 @@ public:
     void SetLoop(bool b);           // turn on loop points
     void SetSingingCall(bool b);    // turn on singing call coloring
     void SetOrigin(int newOrigin);  // use an origin other than zero, when double-clicked
+    int GetOrigin(); // returns origin
+
     void SetIntro(double intro);
     void SetOutro(double outro);
     double GetIntro() const;

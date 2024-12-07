@@ -292,38 +292,8 @@ void InitializeSeekBar(MySlider *seekBar);  // forward decl
 void MainWindow::haveDuration2(void) {
 //    qDebug() << "MainWindow::haveDuration -- StreamCreate duration and songBPM now available! *****";
 
-#ifdef ID3TEST
-    // *************** calculate MP3 sample rate AND song ID (hash) *****************
-    // QElapsedTimer timer1;
-    // timer1.start();
-
     // NOTE: This function is called once at load time, and adds less than 1ms
-    currentSongMP3SampleRate = audioFileSampleRate(currentMP3filenameWithPath);
-    // qDebug() << "Time to do audioFileSampleRate: " << timer1.elapsed() << "ms";
-    // timer1.restart();
-    // qDebug() << "MP3 original file sample rate:" << currentSongMP3SampleRate << "samples per second (before resampling to 44.1)";
-
-    // This function takes about 200ms for a 330sec MP3 song
-    // TODO: use the MINIMP3 loader instead of the Qt loader for MP3 files (only).
-    currentSongIdentifier = SongFileIdentifier(currentMP3filenameWithPath);
-    // qDebug() << "Time to do SongFileIdentifier: " << timer1.elapsed() << "ms";
-    // timer1.restart();
-    // qDebug() << "Song ID:" << currentSongIdentifier;
-
-    // TEST:
-    double bpm, tbpm;
-    uint32_t loopStart, loopLength;
-
-    int a = readID3Tags(currentMP3filenameWithPath, &bpm, &tbpm, &loopStart, &loopLength);
-
-    // qDebug() << "Time to do readID3Tags: " << timer1.elapsed() << "ms";
-    // timer1.restart();
-    // qDebug() << "readID3Tags: " << a << bpm << tbpm << loopStart << loopLength;
-
-    // --------------
-    // qDebug() << "Elapsed time in haveDuration2(): " << timer1.elapsed();
-    // ******************************************************************************
-#endif
+    currentSongMP3SampleRate = getMP3SampleRate(currentMP3filenameWithPath);
 
     cBass->StreamGetLength();  // tell everybody else what the length of the stream is...
     InitializeSeekBar(ui->seekBar);          // and now we can set the max of the seekbars, so they show up
@@ -5980,6 +5950,9 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     // qDebug() << "loadMP3File: nextFilename = " << nextFilename;
     ui->darkSegmentButton->setHidden(true);
 
+    // allow ID3 only on MP3 files right now!
+    ui->actionUpdate_ID3_Tags->setEnabled(MP3FileName.endsWith(".mp3", Qt::CaseInsensitive));
+
     PerfTimer t("loadMP3File", __LINE__);
 
     setCurrentSongMetadata(songType); // set current* based on the type extracted from the pathname, for later use all over the place
@@ -6064,17 +6037,22 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     SongSetting settings1;
     double intro1 = 0.0;
     double outro1 = 0.0;
+    // bool isSetIntro1 = false;
+    // bool isSetOutro1 = false;
     if (songSettings.loadSettings(currentMP3filenameWithPath, settings1)) {
         if (settings1.isSetIntroPos()) {
             intro1 = settings1.getIntroPos();
-//            qDebug() << "intro was set to: " << intro1;
+            // isSetIntro1 = true;
+            // qDebug() << "loadMP3File: intro was set to: " << intro1 << isSetIntro1;
         }
         if (settings1.isSetOutroPos()) {
             outro1 = settings1.getOutroPos();
-//            qDebug() << "outro was set to: " << outro1;
+            // isSetOutro1 = true;
+            // qDebug() << "loadMP3File: outtro was set to: " << outro1 << isSetOutro1;
         }
     }
 
+    // TODO: intro1 and outro1 are NOT used in cBass anymore
     cBass->StreamCreate(MP3FileName.toStdString().c_str(), &startOfSong_sec, &endOfSong_sec, intro1, outro1);  // load song, and figure out where the song actually starts and ends
 
     t.elapsed(__LINE__);
@@ -6150,7 +6128,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     startOfSong_sec = 0.0;
     endOfSong_sec = cBass->FileLength;  // used by setDefaultIntroOutroPositions below
 
-//    qDebug() << "***** secondHalfOfLoad(): " << startOfSong_sec << endOfSong_sec;
+    // qDebug() << "***** secondHalfOfLoad(): " << startOfSong_sec << endOfSong_sec;
 
     // song is loaded now, so init the seekbar min/max (once)
     InitializeSeekBar(ui->seekBar);
@@ -6177,19 +6155,68 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     ui->darkEndLoopTime->setTime(QTime(23,59,59,0));
 #endif
 
-    ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM,
-                                                       currentSongIsSinger || currentSongIsVocal,
-                                                       startOfSong_sec, endOfSong_sec, cBass->FileLength);
+    // ------------------------------------
+    // let's do a quick preview (takes <1ms), to see if the intro/outro are already set.
+    SongSetting settings1;
 
-    // set the defaults, but only for one of the two seekBars
-    if (darkmode) {
-        ui->darkSeekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM,
+    songSettings.loadSettings(currentMP3filenameWithPath, settings1);
+    bool isSetIntro1 = settings1.isSetIntroPos();
+    bool isSetOutro1 = settings1.isSetOutroPos();
+
+    uint32_t sampleRate = getMP3SampleRate(currentMP3filenameWithPath);
+
+    // qDebug() << "secondHalfOfLoad checking ID3v2 tags ------";
+    printID3Tags(currentMP3filenameWithPath);
+
+    double bpm = 0.0;
+    double tbpm = 0.0;
+    uint32_t loopStartSamples = 0;
+    uint32_t loopLengthSamples = 0;
+
+    int result = readID3Tags(currentMP3filenameWithPath, &bpm, &tbpm, &loopStartSamples, &loopLengthSamples);
+    // qDebug() << "secondHalfOfLoad result: " << result << loopStartSamples << loopLengthSamples << sampleRate;
+
+    if (result != -1 && loopStartSamples != 0 && loopLengthSamples != 0 && !isSetIntro1 && !isSetOutro1) {
+        // There is a Music Provider loop available!
+        //    AND the user has NOT set both intro/outro yet
+        // So, set the default loop to be the Music Provider's LOOPSTART/LOOPLENGTH
+
+        double iFrac = ((double)loopStartSamples/(double)sampleRate)/(double)(cBass->FileLength);
+        double oFrac = ((double)(loopStartSamples + loopLengthSamples)/(double)sampleRate)/(double)(cBass->FileLength);
+
+        qDebug() << "Music Provider loop available!" << loopStartSamples << loopLengthSamples << iFrac << oFrac;
+
+        ui->seekBarCuesheet->SetIntro(iFrac);
+        ui->seekBarCuesheet->SetOutro(oFrac);
+
+        if (darkmode) {
+            ui->darkSeekBar->setIntro(iFrac); // note lowercase 's'
+            ui->darkSeekBar->setOutro(oFrac);
+        } else {
+            ui->seekBar->SetIntro(iFrac);
+            ui->seekBar->SetOutro(oFrac);
+        }
+    } else {
+        // The user has set Intro/Outro, OR the MP3 file did NOT contain LOOPSTART/LOOPLENGTH,
+        //   OR there was a problem trying to read the ID3v2 tags,
+        // So, let's go with a guess (algorithm in SetDefaultIntroOutroPositions)
+        //
+        // THIS IS A MYSLIDER
+        ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM,
+                                                           currentSongIsSinger || currentSongIsVocal,
+                                                           startOfSong_sec, endOfSong_sec, cBass->FileLength);
+        // set the defaults, but only for one of the two seekBars
+        if (darkmode) {
+            // THIS IS A SVGWAVEFORMSLIDER
+            ui->darkSeekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM,
+                                                           currentSongIsSinger || currentSongIsVocal,
+                                                           startOfSong_sec, endOfSong_sec, cBass->FileLength);
+        } else {
+            // THIS IS A MYSLIDER
+            ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM,
                                                        currentSongIsSinger || currentSongIsVocal,
                                                        startOfSong_sec, endOfSong_sec, cBass->FileLength);
-    } else {
-        ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM,
-                                                   currentSongIsSinger || currentSongIsVocal,
-                                                   startOfSong_sec, endOfSong_sec, cBass->FileLength);
+        }
     }
 
     // in case loadSettings fails (no settings on the very first load!), we need to set these edit fields
@@ -6233,12 +6260,16 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     Info_Volume();
 
 //    qDebug() << "**** NOTE: currentSongTitle = " << currentSongTitle;
-//    qDebug() << "secondHalfOfLoad is calling loadSettingsForSong";
+    // qDebug() << "secondHalfOfLoad is calling loadSettingsForSong: " << songTitle;
+
+    // loadSettingsForSong will set Intro/Outro, if there was one saved in the settings
+    //   This will override the defaults possibly set above.
     loadSettingsForSong(songTitle); // also loads replayGain, if song has one; also loads tempo from DB (not necessarily same as songTable if playlist loaded)
 
     loadGlobalSettingsForSong(songTitle); // sets global eq (e.g. Intelligibility Boost), AFTER song is loaded
 
     // NOTE: this needs to be down here, to override the tempo setting loaded by loadSettingsForSong()
+    // This is a preference, e.g. to "[X] set all songs to 125BPM"
     bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
     int initialBPM = prefsManager.GetinitialBPM();
 
@@ -8824,9 +8855,11 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         double length = cBass->FileLength;  // This seems to work better, and round-tripping looks like it is working now.
         if (settings.isSetIntroOutroIsTimeBased() && settings.getIntroOutroIsTimeBased())
         {
+            // qDebug() << "INTRO/OUTRO ARE IN SECONDS, CONVERTING TO FRACTION NOW..."; // I think this is old
             intro = intro / length;
             outro = outro / length;
         }
+        // qDebug() << "loadSettingsForSong: INTRO/OUTRO ARE: " << intro << outro;
 
         // setup Markers for this song in the seekBar ----------------------------------
         // ui->seekBar->AddMarker(20.0/length);  // stored as fraction of the song length  // DEBUG DEBUG DEBUG, 20 sec for now
@@ -10470,6 +10503,7 @@ void MainWindow::handleDurationBPM() {
     double songBPM_ID3 = getID3BPM(currentMP3filenameWithPath);  // returns 0.0, if not found or not understandable
 
     if (songBPM_ID3 != 0.0) {
+        // qDebug() << "handleDurationBPM: file has ID3v2 TBPM, so slider center set to:" << songBPM;
         songBPM = static_cast<int>(songBPM_ID3);
         tempoIsBPM = true;  // this song's tempo is BPM, not %
     }
@@ -10531,7 +10565,7 @@ void MainWindow::handleDurationBPM() {
         ui->tempoSlider->SetOrigin(100);  // when double-clicked, goes here
 
 #ifdef DARKMODE
-        ui->darkTempoSlider->setDefaultValue(100);  // when double-clicked, goes here
+        ui->darkTempoSlider->setDefaultValue(100);  // when double-clicked, goes here, this is "100%"
 #endif
 
         ui->tempoSlider->setEnabled(true);

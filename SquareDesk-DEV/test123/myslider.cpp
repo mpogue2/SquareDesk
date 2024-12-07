@@ -177,6 +177,11 @@ void MySlider::SetOrigin(int newOrigin)
     origin = newOrigin;
 }
 
+int MySlider::GetOrigin()
+{
+    return(origin);
+}
+
 // when clicking inside the mySlider, jump directly there
 void MySlider::mousePressEvent(QMouseEvent *event)
 {

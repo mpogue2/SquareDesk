@@ -81,6 +81,9 @@
 
 #include "myslider.h"
 #include "preferencesdialog.h"
+
+#include "updateid3tagsdialog.h"
+
 #include "levelmeter.h"
 #include "analogclock.h"
 #include "console.h"
@@ -231,6 +234,8 @@ public:
     explicit MainWindow(QSplashScreen *splash, bool dark, QWidget *parent = nullptr);
     ~MainWindow() override;
 
+    friend class updateID3TagsDialog; // it can access private members of MainWindow
+
 //    double songLoadedReplayGain_dB;
 
     int longSongTableOperationCount;
@@ -255,6 +260,8 @@ public:
     static void customMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
     static void customMessageOutputQt(QtMsgType type, const QMessageLogContext &context, const QString &msg);
     static QString logFilePath;
+
+    updateID3TagsDialog *updateDialog;
 
     PreferencesDialog *prefDialog;
     QActionGroup *sdViewActionGroup;
@@ -833,6 +840,8 @@ private slots:
 
     void on_actionRemove_for_all_songs_triggered();
 
+    void on_actionUpdate_ID3_Tags_triggered();
+
 public:
 
     // BULK operations -----
@@ -849,7 +858,7 @@ public:
     void RemoveSectionsForTheseSongs(QList<int>);
 
     int MP3FileSampleRate(QString pathToMP3); // returns 32000, 44100, or 48000 for MP3 files, -1 for non-MP3 files
-    QString SongFileIdentifier(QString pathToSong);
+    QString getSongFileIdentifier(QString pathToSong);
 
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
@@ -1023,10 +1032,10 @@ private:
 
     // ID3 ==============
     int readID3Tags(QString fileName, double *bpm, double *tbpm, uint32_t *loopStartSamples, uint32_t *loopLengthSamples);
-    int writeID3Tags(QString fileName, double *bpm, double *tbpm, uint32_t *loopStartSamples, uint32_t *loopLengthSamples);
+    void printID3Tags(QString fileName);
 
     double getID3BPM(QString MP3FileName);      // gets the BPM (should be same as readID3Tags)
-    int audioFileSampleRate(QString fileName);  // gets the SAMPLERATE
+    int getMP3SampleRate(QString fileName);  // gets the SAMPLERATE (either 44100 or 48000 for MP3)
 
     // ----------------------------
     void reloadCurrentMP3File();

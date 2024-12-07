@@ -118,6 +118,8 @@ SOURCES += main.cpp\
     squaredancerscene.cpp \
 #    renderarea.cpp \
     sdhighlighter.cpp \
+    updateid3tagsdialog.cpp \
+    updateid3tagsmanager.cpp \
     utility.cpp \
     danceprograms.cpp \
     startupwizard.cpp \
@@ -182,6 +184,8 @@ HEADERS  += mainwindow.h \
     svgSlider.h \
     svgVUmeter.h \
     svgWaveformSlider.h \
+    updateid3tagsdialog.h \
+    updateid3tagsmanager.h \
     utility.h \
     mytablewidget.h \
     tablenumberitem.h \
@@ -240,7 +244,8 @@ FORMS    += mainwindow.ui \
     exportdialog.ui \
     songhistoryexportdialog.ui \
     choreosequencedialog.ui \
-    preferencesdialog.ui
+    preferencesdialog.ui \
+    updateID3TagsDialog.ui
 
 macx {
 # This is just for libtidy at this point... (NOTE: libtidy no longer needed)

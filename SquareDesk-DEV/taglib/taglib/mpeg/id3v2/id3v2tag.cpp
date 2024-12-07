@@ -243,6 +243,11 @@ void ID3v2::Tag::setTitle(const String &s)
   setTextFrame("TIT2", s);
 }
 
+void ID3v2::Tag::setTBPM(const String &s) // modified -mpogue
+{
+    setTextFrame("TBPM", s);
+}
+
 void ID3v2::Tag::setArtist(const String &s)
 {
   setTextFrame("TPE1", s);
