@@ -24,6 +24,7 @@
 ****************************************************************************/
 // Disable warning, see: https://github.com/llvm/llvm-project/issues/48757
 
+#include "ui_mainwindow.h"
 #include "ui_updateID3TagsDialog.h"
 
 #pragma clang diagnostic push
@@ -420,5 +421,30 @@ void MainWindow::printID3Tags(QString fileName) {
         }
     }
     qDebug() << "-------------------- printID3Tags";
+#Q_UNUSED(fileName)
+#else
+    Q_UNUSED(fileName)
 #endif
+}
+
+void MainWindow::on_actionIn_Out_Loop_points_to_default_triggered(bool checked) {
+    Q_UNUSED(checked)
+    double BPM, TBPM;
+    uint32_t loopStart_samples, loopLength_samples;
+
+    int result = readID3Tags(currentMP3filenameWithPath, &BPM, &TBPM, &loopStart_samples, &loopLength_samples);
+    if ((result == -1) || (loopLength_samples == 0)) { // TODO: BUG - do I ever check for loopStart_samples == 0, which is VALID?
+        return;
+    }
+
+    int sampleRate = getMP3SampleRate(currentMP3filenameWithPath);
+    if (sampleRate != -1) {
+        double loopStart_ms = 1000.0 * (double)loopStart_samples / (double)sampleRate;
+        double loopEnd_ms   = 1000.0 * (double)(loopStart_samples + loopLength_samples) / (double)sampleRate;
+
+        // qDebug() << "NOW SET THESE: " << loopStart_samples << loopLength_samples << loopStart_ms << loopEnd_ms;
+
+        ui->darkStartLoopTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(loopStart_ms)));
+        ui->darkEndLoopTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(loopEnd_ms)));
+    }
 }

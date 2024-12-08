@@ -6176,9 +6176,16 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     int result = readID3Tags(currentMP3filenameWithPath, &bpm, &tbpm, &loopStartSamples, &loopLengthSamples);
     // qDebug() << "secondHalfOfLoad result: " << result << loopStartSamples << loopLengthSamples << sampleRate;
 
-    if (result != -1 && loopStartSamples != 0 && loopLengthSamples != 0 && !isSetIntro1 && !isSetOutro1) {
+    // enable the "Restore Loop Points from ID3v2 Tag" menu item ONLY if
+    //   the LOOPLENGTH (in samples) is non-zero.  It's OK for the loopStart to be zero,
+    //   since a loop can indeed start at the beginning of the song.
+    //
+    ui->actionIn_Out_Loop_points_to_default->setEnabled(loopLengthSamples != 0);
+
+    if (sampleRate > 0 && (double)(cBass->FileLength) > 0.0 && result != -1 && loopLengthSamples != 0 && (!isSetIntro1 || !isSetOutro1)) {
         // There is a Music Provider loop available!
-        //    AND the user has NOT set both intro/outro yet
+        //    AND the user has NOT set one or both of intro/outro yet
+        // NOTE: it's OK (although uncommon) for the loopStart to be zero.
         // So, set the default loop to be the Music Provider's LOOPSTART/LOOPLENGTH
 
         double iFrac = ((double)loopStartSamples/(double)sampleRate)/(double)(cBass->FileLength);
@@ -6198,7 +6205,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
         }
     } else {
         // The user has set Intro/Outro, OR the MP3 file did NOT contain LOOPSTART/LOOPLENGTH,
-        //   OR there was a problem trying to read the ID3v2 tags,
+        //   OR there was a problem trying to read the ID3v2 tags, or this isn't an MP3 file.
         // So, let's go with a guess (algorithm in SetDefaultIntroOutroPositions)
         //
         // THIS IS A MYSLIDER
