@@ -8464,7 +8464,8 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
             bool set = false;
             for (const auto &t : currentTags)
             {
-                if (t.compare(tag, Qt::CaseInsensitive) == 0)
+                // if (t.compare(tag, Qt::CaseInsensitive) == 0)
+                if (t.compare(tag) == 0)
                 {
                     set = true;
                 }
@@ -8504,11 +8505,13 @@ void MainWindow::changeTagOnCurrentSongSelection(QString tag, bool add)
             songSettings.removeTags(oldTags);
         }
 
-        if (add && !tags.contains(tag, Qt::CaseInsensitive))
+        // if (add && !tags.contains(tag, Qt::CaseInsensitive))
+        if (add && !tags.contains(tag))
             tags.append(tag);
         if (!add)
         {
-            int i = tags.indexOf(tag, Qt::CaseInsensitive);
+            // int i = tags.indexOf(tag, Qt::CaseInsensitive);
+            int i = tags.indexOf(tag);
             if (i >= 0)
                 tags.removeAt(i);
         }
@@ -8541,11 +8544,13 @@ void MainWindow::darkChangeTagOnCurrentSongSelection(QString tag, bool add)
             songSettings.removeTags(oldTags);
         }
 
-        if (add && !tags.contains(tag, Qt::CaseInsensitive))
+        // if (add && !tags.contains(tag, Qt::CaseInsensitive))
+        if (add && !tags.contains(tag))
             tags.append(tag);
         if (!add)
         {
-            int i = tags.indexOf(tag, Qt::CaseInsensitive);
+            // int i = tags.indexOf(tag, Qt::CaseInsensitive);
+            int i = tags.indexOf(tag);
             if (i >= 0)
                 tags.removeAt(i);
         }
@@ -11586,7 +11591,8 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
             bool set = false;
             for (const auto &t : currentTags)
             {
-                if (t.compare(tag, Qt::CaseInsensitive) == 0)
+                // if (t.compare(tag, Qt::CaseInsensitive) == 0)
+                if (t.compare(tag) == 0)
                 {
                     set = true;
                 }
