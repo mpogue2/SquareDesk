@@ -53,6 +53,14 @@ int main(int argc, char *argv[])
     bool darkmode = prefsManager.GetdarkMode();
 //    qDebug() << "DARKMODE: " << darkmode;
 
+#ifdef DEBUG_LIGHT_MODE
+    // QString app_path = qApp->applicationDirPath();
+    // QFile File(app_path + "/../Resources/Integrid.qss");
+
+    // File.open(QIODevice::ReadOnly);
+    // QString style( File.readAll() );
+    // a.setStyleSheet(style);
+#else
     if (darkmode) {
         // DARK MODE ======================================
         // from: https://gist.github.com/QuantumCD/6245215
@@ -83,6 +91,7 @@ int main(int argc, char *argv[])
 
         a.setStyleSheet("QToolTip{border: 1px solid orange; padding: 2px; border-radius: 3px; opacity: 200; background-color:#121113; color:#ABA7AC; }");
     }
+#endif
 
     // splash screen ------
     QPixmap pixmap(":/graphics/SplashScreen2024.png");

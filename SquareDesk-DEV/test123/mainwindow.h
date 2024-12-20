@@ -570,6 +570,10 @@ private slots:
     void fileWatcherTriggered();
     void fileWatcherDisabledTriggered();
     void musicRootModified(QString s);
+#ifdef DEBUG_LIGHT_MODE
+    void lightModeModified(QString s);
+#endif
+
     void maybeLyricsChanged();
     void lockForEditing();
 
@@ -1184,6 +1188,10 @@ private:
     QFileSystemWatcher *fileWatcher;
     bool filewatcherShouldIgnoreOneFileSave;
     bool filewatcherIsTemporarilyDisabled;  // to workaround the Ventura extended attribute problem
+
+#ifdef DEBUG_LIGHT_MODE
+    QFileSystemWatcher lightModeWatcher;
+#endif
 
     QStringList flashCalls;
 

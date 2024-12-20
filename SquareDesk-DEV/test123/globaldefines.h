@@ -5,4 +5,7 @@
 #define DARKMODE
 #define DARKMUSICTABNAME "Music"
 
+// define this is you want to experiment with the qss file
+//#define DEBUG_LIGHT_MODE
+
 #endif // GLOBALDEFINES_H

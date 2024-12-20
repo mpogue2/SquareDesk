@@ -744,6 +744,16 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     fileWatcherDisabledTimer = new QTimer();    // 5 sec timer for working around the Venture extended attribute problem
     QObject::connect(fileWatcherDisabledTimer, SIGNAL(timeout()), this, SLOT(fileWatcherDisabledTriggered())); // this calls musicRootModified again (one last time!)
 
+#ifdef DEBUG_LIGHT_MODE
+    QString qssDir = qApp->applicationDirPath() + "/../Resources";
+    qDebug() << "WATCHING: " << qssDir;
+    lightModeWatcher.addPath(qssDir); // watch for add/deletes for light mode QSS file changing
+
+    QObject::connect(&lightModeWatcher, SIGNAL(directoryChanged(QString)),
+                     this, SLOT(lightModeModified(QString)));
+
+#endif
+
 #ifdef DARKMODE
     playlistSlotWatcherTimer = new QTimer();            // Retriggerable timer for slot watcher events
     QObject::connect(playlistSlotWatcherTimer, SIGNAL(timeout()),
@@ -12027,3 +12037,17 @@ void MainWindow::setCurrentSongMetadata(QString type) {
 
     // qDebug() << "setCurrentSongMetadata(): " << currentSongTypeName  << currentSongCategoryName << currentSongIsPatter << currentSongIsSinger << currentSongIsVocal << currentSongIsExtra << currentSongIsUndefined;
 }
+
+#ifdef DEBUG_LIGHT_MODE
+void MainWindow::lightModeModified(QString s)
+{
+    qDebug() << "lightModeModified() = " << s;
+
+    QString app_path = qApp->applicationDirPath();
+    QFile lightModeStyleSheet(app_path + "/../Resources/Integrid.qss");
+
+    lightModeStyleSheet.open(QIODevice::ReadOnly);
+    QString lightStyle( lightModeStyleSheet.readAll() );
+    qApp->setStyleSheet(lightStyle);
+}
+#endif
