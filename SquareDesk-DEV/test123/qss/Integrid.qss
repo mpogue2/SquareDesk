@@ -147,6 +147,7 @@ QToolButton
 	color: #fff;
 	padding: 3px;
 	margin-left: 1px;
+	border: 1px solid #222;
 }
 
 
@@ -572,7 +573,7 @@ QTreeView
 	border: 1px solid gray;
 	padding-top : 5px;
 	color: #000;
-	font: 8pt;
+	font: 12pt;
 
 }
 
@@ -580,7 +581,7 @@ QTreeView
 QTreeView::item:selected
 {
 	color:#fff;
-	background-color: #46a2da;
+	background-color: #b0b0b0;
 	border-radius: 0px;
 
 }
@@ -588,7 +589,7 @@ QTreeView::item:selected
 
 QTreeView::item:!selected:hover
 {
-    background-color: #5e5e5e;
+    background-color: #808080;
     border: none;
     color: white;
 
