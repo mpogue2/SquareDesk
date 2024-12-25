@@ -1,5 +1,8 @@
+#include <QFile>
 #include <QMenu>
+#include <QRegularExpression>
 #include <QTime>
+#include "globaldefines.h"
 #include "svgClock.h"
 #include "math.h"
 
@@ -10,15 +13,29 @@
 svgClock::svgClock(QWidget *parent) :
     QLabel(parent)
 {
+    sethourHandColor(QColor("#000"));
+    setminuteHandColor(QColor("#000"));
+    setsecondHandColor(QColor("#000"));
+    setnumberColor(QColor("#000"));
+    settickColor(QColor("#000"));
+
     view.setStyleSheet("background: transparent; border: none");
     view.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
 
     QFont  clockFont("Arial", 16);
+#ifdef DEBUG_LIGHT_MODE
+    QBrush numberBrush(numberColor());
+#else
     QBrush numberBrush(QColor("#a0a0a0"));
+#endif
 
     QFont  digitalTimeFont("Arial", 24);
 //    QBrush digitalTimeBrush(QColor("#7070d0"));
+#ifdef DEBUG_LIGHT_MODE
+    QBrush digitalTimeBrush(digitalTimeColor());
+#else
     QBrush digitalTimeBrush(QColor("#7070B0"));
+#endif
 
 //    QRect extent = this->geometry();
     double clockSize = 170;
@@ -64,20 +81,25 @@ svgClock::svgClock(QWidget *parent) :
     scene.addItem(t9);
 
     // TICKS -----------
+#ifdef DEBUG_LIGHT_MODE
+    QPen tickPen(tickColor(), 1, Qt::SolidLine);
+#else
     QPen tickPen(QColor("#a0a0a0"), 1, Qt::SolidLine);
+#endif
+
     double tickRotationDegrees[8] = {30.0, 60.0, 120.0, 150.0, 210.0, 240.0, 300.0, 330.0};
 
     for (int i = 0; i < 8; i++) {
         double tickRotationDegrees2 = tickRotationDegrees[i];
 //        qDebug() << "tickRotationDegrees:" << i << tickRotationDegrees2;
-        QGraphicsLineItem *tick = new QGraphicsLineItem(
+        tick[i] = new QGraphicsLineItem(
                                         center.rx() + radius * 1.0 * sin(M_PI * (tickRotationDegrees2/180.0)),
                                         center.ry() - radius * 1.0 * cos(M_PI * (tickRotationDegrees2/180.0)),
                                         center.rx() + radius * 1.05 * sin(M_PI * (tickRotationDegrees2/180.0)),
                                         center.ry() - radius * 1.05 * cos(M_PI * (tickRotationDegrees2/180.0))
                                         );
-        tick->setPen(tickPen);
-        scene.addItem(tick);
+        tick[i]->setPen(tickPen);
+        scene.addItem(tick[i]);
     }
 
     // DIGITAL PART ------
@@ -109,14 +131,24 @@ svgClock::svgClock(QWidget *parent) :
 
 //    QPen hourPen(QColor("#DB384A"), 4, Qt::SolidLine, Qt::RoundCap);
 //    QPen hourPen(QColor("#606060"), 4, Qt::SolidLine, Qt::RoundCap);
-    QPen hourPen(QColor("#A0A0A0"), 4, Qt::SolidLine, Qt::RoundCap);
 //    QPen minutePen(QColor("#E0E0E0"), 2, Qt::SolidLine, Qt::RoundCap);
+#ifdef DEBUG_LIGHT_MODE
+    QPen hourPen(hourHandColor(), 4, Qt::SolidLine, Qt::RoundCap);
+    QPen minutePen(minuteHandColor(), 2, Qt::SolidLine, Qt::RoundCap);
+#else
+    QPen hourPen(QColor("#A0A0A0"), 4, Qt::SolidLine, Qt::RoundCap);
     QPen minutePen(QColor("#D0D0D0"), 2, Qt::SolidLine, Qt::RoundCap);
+#endif
 
 #ifdef SHOWSECONDHAND
     double secondRotationDegrees = 0.0;
 #endif
+#ifdef DEBUG_LIGHT_MODE
+    // qDebug() << "secondHandCOlor:" << secondHandColor();
+    QPen secondPen(secondHandColor(), 1.2, Qt::SolidLine, Qt::RoundCap);
+#else
     QPen secondPen(Qt::white, 1.2, Qt::SolidLine, Qt::RoundCap);
+#endif
 
     lengthOfSecondHand = 0.85;
 #ifdef SHOWSECONDHAND
@@ -198,6 +230,29 @@ svgClock::svgClock(QWidget *parent) :
 void svgClock::updateClock() {
     // HANDS -----------
     QTime theTime = QTime::currentTime();
+
+#ifdef DEBUG_LIGHT_MODE
+    QPen hourPen(hourHandColor(), 4, Qt::SolidLine, Qt::RoundCap);
+    QPen minutePen(minuteHandColor(), 2, Qt::SolidLine, Qt::RoundCap);
+    QPen secondPen(secondHandColor(), 1.2, Qt::SolidLine, Qt::RoundCap);
+    QPen tickPen(tickColor(), 1, Qt::SolidLine);
+
+    QBrush numberBrush(numberColor());
+    QBrush digitalTimeBrush(digitalTimeColor());
+
+    hourHand->setPen(hourPen);
+    minuteHand->setPen(minutePen);
+    secondHand->setPen(secondPen);
+
+    digitalTime->setBrush(digitalTimeBrush);
+
+    t3->setBrush(numberBrush);
+    t6->setBrush(numberBrush);
+    t9->setBrush(numberBrush);
+    t12->setBrush(numberBrush);
+
+    // TODO: allow changing of tick color (need to move tick processing down here) ********
+#endif
 
 #ifdef SMOOTHROTATION
     // seconds smoothly go round -----
@@ -357,10 +412,17 @@ void svgClock::clearClockColoring() {
     updateClock(); // immediately update the clock coloring
 }
 
+void svgClock::setTheme(QString s) {
+    currentThemeString = s;
+}
+
 void svgClock::customMenuRequested(QPoint pos){
     Q_UNUSED(pos)
 
     QMenu *menu = new QMenu(this);
+
+    menu->setProperty("theme", currentThemeString);
+
     QAction action1("Clear clock coloring", this);
     connect(&action1, SIGNAL(triggered()), this, SLOT(clearClockColoring()));
     menu -> addAction(&action1);
@@ -369,4 +431,19 @@ void svgClock::customMenuRequested(QPoint pos){
     menu->exec();
 
     delete(menu);
+}
+
+void svgClock::finishInit() {
+    // TICKS -----------
+#ifdef DEBUG_LIGHT_MODE
+    QPen tickPen(tickColor(), 1, Qt::SolidLine);
+#else
+    QPen tickPen(QColor("#a0a0a0"), 1, Qt::SolidLine);
+#endif
+
+    // qDebug() << "tickColor is now: " << tickColor();
+    for (int i = 0; i < 8; i++) {
+        tick[i]->setPen(tickPen); // set the colors as per QSS
+    }
+
 }

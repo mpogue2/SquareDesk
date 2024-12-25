@@ -337,9 +337,13 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
             // if there was a non-matching path, tell the user what the first one of those was
             msg1 = QString("ERROR: missing '...") + firstBadSongLine + QString("'");
             ui->songTable->clearSelection(); // select nothing, if error
+#ifndef DEBUG_LIGHT_MODE
             ui->statusBar->setStyleSheet("color: red");
+#endif
         } else {
+#ifndef DEBUG_LIGHT_MODE
             ui->statusBar->setStyleSheet("color: black");
+#endif
         }
     }
     if (!darkmode) {
@@ -1605,6 +1609,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
                 // qDebug() << "QLABEL CONTEXT MENU: " << rowCount;
 
                 QMenu *plMenu = new QMenu();
+                plMenu->setProperty("theme", currentThemeString);
 
                 // Move up/down/top/bottom in playlist
                 if (isPlaylist) {

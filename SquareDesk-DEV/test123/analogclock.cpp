@@ -60,6 +60,9 @@ AnalogClock::AnalogClock(QWidget *parent)
 }
 
 void AnalogClock::setTimerLabelColor(QString col1) {
+#ifdef DEBUG_LIGHT_MODE
+    return; // DEBUG DEBUG DEBUG
+#endif
     if (lastTimerLabelColor != col1) {
         // only change it, if it is actually changing
 
@@ -141,6 +144,10 @@ void AnalogClock::redrawTimerExpired()
 
                 setTimerLabelColor("red");  // set all 3 labels to red, only if they are not already red (to save CPU cycles)
 
+#ifdef DEBUG_LIGHT_MODE
+                goToState("IN_SINGER");
+#endif
+
                 if (singingCallSection != "") {
                     timerLabel->setVisible(true);  // make the timerLabel appear
                     timerLabel->setText(singingCallSection);
@@ -191,6 +198,9 @@ void AnalogClock::redrawTimerExpired()
                     setTimerLabelColor("blue");
                 }
 
+#ifdef DEBUG_LIGHT_MODE
+                goToState("IN_BREAK");
+#endif
                 currentTimerState &= ~LONGTIPTIMEREXPIRED;  // clear
                 currentTimerState &= ~BREAKTIMEREXPIRED;  // clear
             } else if (typeTracker.timeSegmentList.length()>=2 && typeTracker.timeSegmentList.at(0).type == NONE) {
@@ -204,7 +214,9 @@ void AnalogClock::redrawTimerExpired()
                 timerLabelSD->setVisible(!editModeSD); // make it visible if SD is NOT in edit mode
 
                 setTimerLabelColor("red"); // turns red when break is over
-
+#ifdef DEBUG_LIGHT_MODE
+                goToState("BREAK_OVER");
+#endif
                 // alternate the time (negative now), and "END BREAK"
                 if (b_ss % 2 == 0) {
                     timerLabel->setText("End BRK");
@@ -251,7 +263,9 @@ void AnalogClock::redrawTimerExpired()
             } else {
                 setTimerLabelColor("black");
             }
-
+#ifdef DEBUG_LIGHT_MODE
+            goToState("IN_PATTER");
+#endif
             currentTimerState &= ~LONGTIPTIMEREXPIRED;  // clear
             currentTimerState &= ~BREAKTIMEREXPIRED;    // clear
 
@@ -280,7 +294,9 @@ void AnalogClock::redrawTimerExpired()
             timerLabelCuesheet->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 
             setTimerLabelColor("red");
-
+#ifdef DEBUG_LIGHT_MODE
+            goToState("PATTER_OVER");
+#endif
             currentTimerState |= LONGTIPTIMEREXPIRED;  // set
             currentTimerState &= ~BREAKTIMEREXPIRED;    // clear
             // TODO: play a sound, if enabled
@@ -297,7 +313,9 @@ void AnalogClock::redrawTimerExpired()
             timerLabelSD->setVisible(!editModeSD); // make visible if SD is NOT in edit mode
 
             setTimerLabelColor("red");
-
+#ifdef DEBUG_LIGHT_MODE
+            goToState("LONG_PATTER");
+#endif
             if (ss % 2 == 0) {
                 timerLabel->setText("LONG");
 #ifdef DARKMODE
@@ -363,10 +381,17 @@ void AnalogClock::paintEvent(QPaintEvent *)
         QPointF(-5.233, -99.863)
     };
 
+#ifndef DEBUG_LIGHT_MODE
     QColor hourColor(0,0,0);
     QColor minuteColor(0,0,0, 127);
     QColor minuteTickColor(0,0,0);
     QColor secondColor(127,0,0, 200);
+#else
+    QColor hourColor(0,0,0);
+    QColor minuteColor(0,0,0, 127);
+    QColor minuteTickColor(0,0,0);
+    QColor secondColor(127,0,0);
+#endif
 
     int side = qMin(width(), height());
 
@@ -579,3 +604,12 @@ void AnalogClock::clearClockColoring() {
         lastHourSet[i] = -1;     // invalid hour, matches no real hour
     }
 }
+
+#ifdef DEBUG_LIGHT_MODE
+// AnalogClock wants the 3 or 4 important labels to change color ---------------
+// newStateName: { IN_BREAK, BREAK_OVER, IN_SINGER, IN_PATTER, PATTER_OVER, LONG_PATTER }
+void AnalogClock::goToState(QString newStateName) {
+    // qDebug() << "AnalogClock::goToState" << newStateName;
+    emit newState(newStateName);
+}
+#endif

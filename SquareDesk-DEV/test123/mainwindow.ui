@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="redmode" stdset="0">
+   <bool>false</bool>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout_5">
     <item row="0" column="0">
@@ -21,7 +24,7 @@
        <enum>Qt::FocusPolicy::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>5</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1046,6 +1049,12 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>32</height>
+               </size>
+              </property>
               <property name="text">
                <string>In</string>
               </property>
@@ -1085,7 +1094,13 @@
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>35</height>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>32</height>
                </size>
               </property>
               <property name="text">
@@ -1113,6 +1128,18 @@
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>32</height>
+               </size>
               </property>
               <property name="text">
                <string>Test Loop</string>
@@ -1263,7 +1290,9 @@
                </sizepolicy>
               </property>
               <property name="font">
-               <font/>
+               <font>
+                <pointsize>12</pointsize>
+               </font>
               </property>
               <property name="text">
                <string>Lyrics</string>
@@ -1381,6 +1410,18 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonNewFromTemplate">
+              <property name="minimumSize">
+               <size>
+                <width>70</width>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>70</width>
+                <height>32</height>
+               </size>
+              </property>
               <property name="text">
                <string>New...</string>
               </property>
@@ -1407,6 +1448,12 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonRevertEdits">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="text">
                <string>Revert Edits</string>
               </property>
@@ -1778,7 +1825,7 @@
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>35</width>
+                    <width>40</width>
                     <height>30</height>
                    </size>
                   </property>
@@ -1823,6 +1870,12 @@
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>70</width>
+                    <height>0</height>
+                   </size>
                   </property>
                   <property name="maximumSize">
                    <size>
@@ -2632,6 +2685,9 @@
                    <property name="alignment">
                     <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                    </property>
+                   <property name="flashcall" stdset="0">
+                    <bool>false</bool>
+                   </property>
                   </widget>
                  </item>
                  <item>
@@ -2657,6 +2713,9 @@
                    <property name="alignment">
                     <set>Qt::AlignmentFlag::AlignBottom|Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing</set>
                    </property>
+                   <property name="state" stdset="0">
+                    <string>INPATTER</string>
+                   </property>
                   </widget>
                  </item>
                 </layout>
@@ -2676,7 +2735,7 @@
                   </size>
                  </property>
                  <property name="styleSheet">
-                  <string notr="true">QFrame[height=&quot;3&quot;], QFrame[width=&quot;3&quot;] {background-color: #800000; }</string>
+                  <string notr="true"/>
                  </property>
                  <property name="frameShadow">
                   <enum>QFrame::Shadow::Sunken</enum>
@@ -2851,6 +2910,9 @@
                      <property name="invertedControls">
                       <bool>false</bool>
                      </property>
+                     <property name="redmode" stdset="0">
+                      <bool>false</bool>
+                     </property>
                     </widget>
                    </item>
                    <item>
@@ -3007,9 +3069,9 @@
              <property name="geometry">
               <rect>
                <x>8</x>
-               <y>30</y>
+               <y>40</y>
                <width>90</width>
-               <height>132</height>
+               <height>140</height>
               </rect>
              </property>
              <layout class="QHBoxLayout" name="TempoPitch">
@@ -3061,6 +3123,18 @@
                 </item>
                 <item>
                  <widget class="QLabel" name="darkPitchLabel">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>29</width>
+                    <height>0</height>
+                   </size>
+                  </property>
                   <property name="font">
                    <font>
                     <family>Avenir Next</family>
@@ -3166,7 +3240,7 @@
              <property name="geometry">
               <rect>
                <x>12</x>
-               <y>28</y>
+               <y>38</y>
                <width>76</width>
                <height>131</height>
               </rect>
@@ -3602,17 +3676,17 @@
           <property name="minimumSize">
            <size>
             <width>0</width>
-            <height>4</height>
+            <height>0</height>
            </size>
           </property>
           <property name="styleSheet">
-           <string notr="true">color:#202020</string>
+           <string notr="true"/>
           </property>
           <property name="frameShadow">
-           <enum>QFrame::Shadow::Plain</enum>
+           <enum>QFrame::Shadow::Sunken</enum>
           </property>
           <property name="lineWidth">
-           <number>4</number>
+           <number>1</number>
           </property>
           <property name="orientation">
            <enum>Qt::Orientation::Horizontal</enum>
@@ -5527,6 +5601,13 @@
      <addaction name="action15_seconds"/>
      <addaction name="action20_seconds"/>
     </widget>
+    <widget class="QMenu" name="menuTheme">
+     <property name="title">
+      <string>Theme</string>
+     </property>
+     <addaction name="actionLight"/>
+     <addaction name="actionDark"/>
+    </widget>
     <addaction name="actionCompact"/>
     <addaction name="separator"/>
     <addaction name="menuZoom"/>
@@ -5540,6 +5621,7 @@
     <addaction name="separator"/>
     <addaction name="actionSwitch_to_Light_Mode"/>
     <addaction name="separator"/>
+    <addaction name="menuTheme"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -7086,6 +7168,25 @@
    </property>
    <property name="shortcut">
     <string>Meta+Ctrl+Alt+I</string>
+   </property>
+  </action>
+  <action name="actionLight">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Light</string>
+   </property>
+  </action>
+  <action name="actionDark">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Dark</string>
    </property>
   </action>
  </widget>

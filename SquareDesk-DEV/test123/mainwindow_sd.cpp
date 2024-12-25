@@ -2979,6 +2979,8 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
 {
     QMenu contextMenu(tr("Sequence"), this);
 
+    contextMenu.setProperty("theme", currentThemeString);
+
     QAction actionA("Toggle Highlight", this);
     connect(&actionA, SIGNAL(triggered()), this, SLOT(toggleHighlight()));
     if (!ui->lineEditSDInput->isVisible()) {
@@ -3153,6 +3155,8 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
 void MainWindow::on_listWidgetSDOutput_customContextMenuRequested(const QPoint &pos)
 {
     QMenu contextMenu(tr("Sequence"), this);
+
+    contextMenu.setProperty("theme", currentThemeString);
 
     QAction action1("Copy", this);
     connect(&action1, SIGNAL(triggered()), this, SLOT(copy_selection_from_listWidgetSDOutput()));
@@ -3768,9 +3772,11 @@ void MainWindow::on_pushButtonSDUnlock_clicked()
     ui->sdCurrentSequenceTitle->setPlaceholderText("Sequence Title");
     ui->sdCurrentSequenceTitle->setFocusPolicy(Qt::ClickFocus); // NOT TabFocus
 
+#ifndef DEBUG_LIGHT_MODE
     QPalette palette = ui->sdCurrentSequenceTitle->palette();
     palette.setColor(QPalette::Base, QColor(255,255,255)); // back to original color (Mac)
     ui->sdCurrentSequenceTitle->setPalette(palette);
+#endif
 
     ui->warningLabelSD->setVisible(false);
     ui->label_SD_Resolve->setVisible(true);

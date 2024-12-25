@@ -1314,6 +1314,8 @@ void MainWindow::customLyricsMenuRequested(QPoint pos) {
         // context menu is available, only if we have loaded a cuesheet
         QMenu *menu = new QMenu(this);
 
+        menu->setProperty("theme", currentThemeString);
+
     if (ui->pushButtonEditLyrics->isChecked()) {
         menu->addAction( "Cut", this, SLOT (cutIt()) );
         menu->addAction( "Copy", this, SLOT (copyIt()) );

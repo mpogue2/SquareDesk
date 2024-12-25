@@ -1,9 +1,11 @@
 #include "svgWaveformSlider.h"
 #include "math.h"
 #include <QFileInfo>
-
 // GOOD:
 // https://stackoverflow.com/questions/70206279/qslider-not-displaying-transparency-properly-when-overlapped-with-qlabel-pyqt5
+
+// this is used in a couple of places, and it's not adjustable by the user right now
+#define CURRENTPOSPENWIDTH 2
 
 // -------------------------------------
 // from: https://stackoverflow.com/questions/7537632/custom-look-svg-gui-widgets-in-qt-very-bad-performance
@@ -35,6 +37,12 @@ svgWaveformSlider::svgWaveformSlider(QWidget *parent) :
     this->installEventFilter(this);  // eventFilter() is called, where wheel/touchpad scroll events are eaten
 
 //    finishInit();
+
+#ifndef DEBUG_LIGHT_MODE
+    setcurrentPositionColor(QColor("green"));
+    setdarkeningColor(QColor("#80000000"));
+    setloopColor(QColor("#00a7f4"));
+#endif
 }
 
 svgWaveformSlider::~svgWaveformSlider()
@@ -55,6 +63,21 @@ svgWaveformSlider::~svgWaveformSlider()
 void svgWaveformSlider::paintEvent(QPaintEvent *pe)
 {
     Q_UNUSED(pe)
+    // qDebug() << "paintEvent()" << pe->rect() << bgColor();
+    // QSlider::paintEvent(pe);
+
+#ifdef DEBUG_LIGHT_MODE
+    QPainter p(this);
+    p.fillRect(QRect(-2,-2,10,10), QColor("green")); // if you see this rect, something is wrong!
+#endif
+    // p.setRenderHint(QPainter::Antialiasing);
+    // p.fillRect(QRect(-2,-2,10,10), QColor("#FF888888")); // fill everything with red
+    // p.setPen(QColor("#888888"));
+    // p.drawLine(0, 0, 100, 100);
+
+    // QPainter p(this);
+    // p.drawLine(0, 0, 100, 50);
+    // p.fillRect(pe->rect(), bgColor()); // fill everything with the QSS background color
 }
 
 void svgWaveformSlider::resizeEvent(QResizeEvent *re)
@@ -76,6 +99,25 @@ void svgWaveformSlider::setFloatValue(float val) {
     int currentPositionX = round((float)val * ((float)(width()-4)/(float)maximum()));
 
     currentPos->setPos(currentPositionX, 0);
+
+    // TODO: factor this out *******************
+    // Iterate over the items in the group, set their pen to the new color
+    QList<QGraphicsItem*> items = currentPos->childItems();
+    // qDebug() << "setFloatValue ***** Number of items in group:" << items.size() << currentPositionColor();
+
+    for (QGraphicsItem* item : items) {
+        QGraphicsLineItem* line = qgraphicsitem_cast<QGraphicsLineItem*>(item);
+        if (line) {
+            // qDebug() << "Line Item:" << line;
+            QPen currentPosPen(currentPositionColor(), CURRENTPOSPENWIDTH);
+            line->setPen(currentPosPen);
+        } else {
+            QGraphicsPolygonItem* poly = qgraphicsitem_cast<QGraphicsPolygonItem*>(item);
+            QBrush currentPosBrush(currentPositionColor());
+            poly->setBrush(currentPosBrush);
+        }
+    }
+
 }
 
 void svgWaveformSlider::setValue(int val) {
@@ -88,6 +130,25 @@ void svgWaveformSlider::setValue(int val) {
     int currentPositionX = round((float)val * ((float)(width()-4)/(float)maximum()));
 
     currentPos->setPos(currentPositionX, 0);
+
+    // TODO: factor this out *******************
+    // Iterate over the items in the group, set their pen to the new color
+    QList<QGraphicsItem*> items = currentPos->childItems();
+    // qDebug() << "setValue ***** Number of items in group:" << items.size() << currentPositionColor();
+
+    for (QGraphicsItem* item : items) {
+        QGraphicsLineItem* line = qgraphicsitem_cast<QGraphicsLineItem*>(item);
+        if (line) {
+            // qDebug() << "Line Item:" << line;
+            QPen currentPosPen(currentPositionColor(), CURRENTPOSPENWIDTH);
+            line->setPen(currentPosPen);
+        } else {
+            QGraphicsPolygonItem* poly = qgraphicsitem_cast<QGraphicsPolygonItem*>(item);
+            QBrush currentPosBrush(currentPositionColor());
+            poly->setBrush(currentPosBrush);
+        }
+    }
+
 };
 
 // MOUSE EVENTS ============
@@ -127,8 +188,12 @@ void svgWaveformSlider::finishInit() {
 
     // BACKGROUND PIXMAP --------
     bgPixmap = new QPixmap(WAVEFORMSAMPLES, 61);  // NOTE: we gotta make this bug to start, or the QSlider will never figure out that it can draw bigger.
-    bgPixmap->fill(QColor("#FA0000"));
-
+#ifdef DEBUG_LIGHT_MODE
+    bgPixmap->fill(bgColor());
+    // bgPixmap->fill(QColor("#888888"));
+#else
+    bgPixmap->fill(QColor("#FA0000")); // RED for debugging (should not see this)
+#endif
 //    DEBUG: save to a file so we can look at it ----
 //    bgPixmap->save("myPixmap.png");
 //    scene.addPixmap(*bgPixmap);
@@ -140,19 +205,25 @@ void svgWaveformSlider::finishInit() {
     loadingMessage->setFont(QFont("Avenir Next", 18));
     loadingMessage->setPos(20, 5);
     loadingMessage->setVisible(false);
+    loadingMessage->setDefaultTextColor(QColor("#7f7f7f")); // visible in both dark and light modes
 
     // CURRENT POSITION MARKER -------
+#ifndef DEBUG_LIGHT_MODE
     QPen currentPosPen(QColor("#00FF33"), 1);
     QBrush currentPosBrush(QColor("#00FF33"));
+#else
+    QPen currentPosPen(currentPositionColor(), CURRENTPOSPENWIDTH);
+    QBrush currentPosBrush(currentPositionColor());
+#endif
 
     currentPos = new QGraphicsItemGroup();
 
-    QGraphicsLineItem *vLine = new QGraphicsLineItem(0,0, 0,61); // initial position of the line
+    QGraphicsLineItem *vLine = new QGraphicsLineItem(0,0+2, 0,60-2); // initial position of the line
     vLine->setPen(currentPosPen);
 
     QPolygonF p;
     float d = 5.0;
-    p << QPointF(-d, 0.0) << QPointF(d, 0.0) << QPointF(0.0, d) << QPointF(-d, 0.0);
+    p << QPointF(-d, 0.0+1) << QPointF(d, 0.0+1) << QPointF(0.0, d+1) << QPointF(-d, 0.0+1);
     QGraphicsPolygonItem *topTri = new QGraphicsPolygonItem(p);
     topTri->setBrush(currentPosBrush);
 
@@ -165,12 +236,19 @@ void svgWaveformSlider::finishInit() {
     currentPos->addToGroup(topTri);
     currentPos->addToGroup(botTri);
 
-    currentPos->setPos(0, 0);
+    currentPos->setPos(100, 0);
     currentPos->setVisible(false);  // initially false, since nothing is loaded yet
 
     // LOOP INDICATORS -------
     QPen currentLoopPen(QColor("#26A4ED"), 2);
+
+    // qDebug() << "finishInit() darkeningColor:" << darkeningColor();
+
+#ifndef DEBUG_LIGHT_MODE
     QBrush loopDarkeningBrush(QColor("#80000000"));
+#else
+    QBrush loopDarkeningBrush(darkeningColor());
+#endif
 
     // left --
     leftLoopMarker = new QGraphicsItemGroup();
@@ -179,7 +257,7 @@ void svgWaveformSlider::finishInit() {
     top->setPen(currentLoopPen);
     QGraphicsLineItem *middle = new QGraphicsLineItem(0,0, 0,61);
     middle->setPen(currentLoopPen);
-    QGraphicsLineItem *bot = new QGraphicsLineItem(0,61-2, 4,61-2);
+    QGraphicsLineItem *bot = new QGraphicsLineItem(0,61-1, 4,61-1);
     bot->setPen(currentLoopPen);
 
     leftLoopMarker->addToGroup(top);
@@ -189,8 +267,9 @@ void svgWaveformSlider::finishInit() {
     leftLoopMarker->setPos(100,0);
 
     // left cover --
-    leftLoopCover = new QGraphicsRectItem(0,0,100,61);
+    leftLoopCover = new QGraphicsRectItem(99,0,100,61); // 99 is to fix a bug with extra vert line on the left when loadMP3
     leftLoopCover->setBrush(loopDarkeningBrush);
+    leftLoopCover->setPen(QColor(darkeningColor()));
 
     // right --
     rightLoopMarker = new QGraphicsItemGroup();
@@ -199,7 +278,7 @@ void svgWaveformSlider::finishInit() {
     topR->setPen(currentLoopPen);
     QGraphicsLineItem *middleR = new QGraphicsLineItem(4,0, 4,61);
     middleR->setPen(currentLoopPen);
-    QGraphicsLineItem *botR = new QGraphicsLineItem(0,61-2, 4,61-2);
+    QGraphicsLineItem *botR = new QGraphicsLineItem(0,61-1, 4,61-1);
     botR->setPen(currentLoopPen);
 
     rightLoopMarker->addToGroup(topR);
@@ -229,7 +308,6 @@ void svgWaveformSlider::finishInit() {
     scene.addItem(currentPos);  // on TOP
 
     view.setScene(&scene);
-    //    view.setParent(this, Qt::FramelessWindowHint);
     view.setParent(this);
 }
 
@@ -338,16 +416,30 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
     if (f != nullptr && f != (float*)1) {
         cachedWaveform = f;  // squirrel this away (but we don't own it, so do NOT delete it in the destructor!)
     }
-
-    int waveformSliderWidth = fmin(width()-4, 784); // BUG: don't ask me why it can't do more...
+    // qDebug() << "updatePixmap" << width();
+    // int waveformSliderWidth = fmin(width()-4, 784); // BUG: don't ask me why it can't do more...
+    int waveformSliderWidth = fmin(width()+2, 784); // BUG: don't ask me why it can't do more...
     int waveformSliderHeight = height();
 
-//    qDebug() << "DIMENSIONS: " << waveformSliderWidth << waveformSliderHeight;
+    // qDebug() << "DIMENSIONS: " << waveformSliderWidth << waveformSliderHeight;
 
     bgPixmap = new QPixmap(waveformSliderWidth, waveformSliderHeight); // TODO: get size from current size of widget
     QPainter *paint = new QPainter(bgPixmap);
 
+#ifndef DEBUG_LIGHT_MODE
     bgPixmap->fill(QColor("#1A1A1A"));
+#else
+    bgPixmap->fill(bgColor());
+
+    // DEBUG --------
+    // paint->setPen(QColor("red"));
+    // paint->drawRect(-1,0, 3,3); // DEBUG
+
+    // DEBUG --------
+    // bgPixmap->fill(QColor("#888888"));
+    // paint->setPen(QColor("red"));
+    // paint->drawRect(0,0,60,60);
+#endif
 
     QColor colors[4] = { QColor("#8868A1BB"), QColor("#88bf312c"), QColor("#8824a494"), QColor("#885368c9")}; // singing call colors
     int colorMap[] = {1,2,3,1,2,3,1};
@@ -423,7 +515,7 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
                 int baseIplus1  = (baseI <= WAVEFORMSAMPLES - 2 ? baseI + 1 : baseI);
                 float h = normalizationScaleFactor * fullScaleInPixels * (0.25 * f[baseIminus1] + 0.5 * f[baseI] + 0.25 * f[baseIplus1]); // simple 3-point gaussian
 
-                paint->drawLine(i,30.0 + h,i,30.0 - h);
+               paint->drawLine(i,30.0 + h,i,30.0 - h);
             }
             // singing calls don't show the loop markers, because intro/outro in a singing call are not loop start/end
             if (leftLoopMarker != nullptr) leftLoopMarker->setVisible(false);
@@ -616,8 +708,24 @@ void svgWaveformSlider::setIntro(double frac) {
     //        qDebug() << "*** setIntro:" << introPosition;
     if (leftLoopMarker != nullptr && leftLoopCover != nullptr) {
         leftLoopMarker->setX(introPosition);
-        leftLoopCover->setRect(0,0, introPosition,61);
+        // Iterate over the items in the group, set their pen to the new color
+        QList<QGraphicsItem*> items = leftLoopMarker->childItems();
+        // qDebug() << "Number of items in group:" << items.size();
+
+        for (QGraphicsItem* item : items) {
+            QGraphicsLineItem* line = qgraphicsitem_cast<QGraphicsLineItem*>(item);
+            if (line) {
+                // qDebug() << "Line Item:" << line;
+                QPen currentLoopPen(loopColor(), 2);
+                line->setPen(currentLoopPen);
+            }
+        }
+        leftLoopCover->setPen(QPen(darkeningColor()));
+        leftLoopCover->setBrush(QBrush(darkeningColor()));
+        leftLoopCover->setRect(-3,0, introPosition+3,61); // -3 is to cover up bugs on left hand side
     }
+
+    // qDebug() << "*** setIntro darkeningColor" << darkeningColor();
 }
 
 void svgWaveformSlider::setOutro(double frac) {
@@ -627,8 +735,25 @@ void svgWaveformSlider::setOutro(double frac) {
     //        qDebug() << "*** setOutro:" << outroPosition;
     if (rightLoopMarker != nullptr && rightLoopCover != nullptr) {
         rightLoopMarker->setX(outroPosition - 3); // 3 is to compensate for the width of the green bracket
-        rightLoopCover->setRect(outroPosition,0, width()-4-outroPosition,61);
+
+        // Iterate over the items in the group, set their pen to the new color
+        QList<QGraphicsItem*> items = rightLoopMarker->childItems();
+        // qDebug() << "Number of items in group:" << items.size();
+
+        for (QGraphicsItem* item : items) {
+            QGraphicsLineItem* line = qgraphicsitem_cast<QGraphicsLineItem*>(item);
+            if (line) {
+                // qDebug() << "Line Item:" << line;
+                QPen currentLoopPen(loopColor(), 2);
+                line->setPen(currentLoopPen);
+            }
+        }
+
+        rightLoopCover->setRect(outroPosition+1,0, width()+1-outroPosition,61);
+        rightLoopCover->setBrush(QBrush(darkeningColor()));
+        rightLoopCover->setPen(QPen(darkeningColor()));
     }
+    // qDebug() << "*** setOutro darkeningColor" << darkeningColor();
 }
 
 double svgWaveformSlider::getIntro() {

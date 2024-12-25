@@ -18,6 +18,8 @@
 #include "typetracker.h"
 #include "svgDial.h"  // for QGraphicsArcItem
 
+#include "globaldefines.h"
+
 // ---------
 #define SHOWSECONDHAND
 //#define SMOOTHROTATION
@@ -26,11 +28,18 @@
 class svgClock : public QLabel
 {
     Q_OBJECT
+    QP_V(QColor, hourHandColor);
+    QP_V(QColor, minuteHandColor);
+    QP_V(QColor, secondHandColor);
+    QP_V(QColor, tickColor);
+    QP_V(QColor, numberColor);
+    QP_V(QColor, digitalTimeColor);
 
 public:
     explicit svgClock(QWidget *parent = 0);
     ~svgClock();
 
+    void finishInit(); // color the ticks
     void setSegment(unsigned int hour, unsigned int minute, unsigned int second, unsigned int type);
     unsigned int typeInMinute[60]; // remembers the type for this minute
     unsigned int lastHourSet[60];  // remembers the hour when the type was set for that minute
@@ -41,6 +50,8 @@ public:
     void setHidden(bool hidden);
     bool coloringIsHidden;
 
+    void setTheme(QString s);
+
 //    int currentSongType; // TEST: setType()
 
 public slots:
@@ -50,6 +61,7 @@ private slots:
     void clearClockColoring();
 
 private:
+    QString currentThemeString;
     void updateClock();
 
     void paintEvent(QPaintEvent *pe);
@@ -74,7 +86,7 @@ private:
     QGraphicsEllipseItem *secondDot;
 
     QGraphicsArcItem *arc[60];  // 60 of these pointers
-
+    QGraphicsLineItem *tick[8]; //  8 of these
     QTimer secondTimer;
 
     double lengthOfHourHand, lengthOfMinuteHand, lengthOfSecondHand, lengthOfShortSecondHand;

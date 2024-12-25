@@ -140,6 +140,15 @@ void svgVUmeter::updateMeter() {
         valueR = 0.00000001;
     }
 
+#ifdef DEBUG_LIGHT_MODE
+    // qDebug() << "svgVUmeter:" << bgColor();
+    QBrush bgBrush(bgColor());
+    view.setBackgroundBrush(bgBrush);
+#else
+    QBrush bgBrush(QColor("#212121"));
+    view.setBackgroundBrush(bgBrush);
+#endif
+
     double vuMeterX = 21;
     double vuMeterY = 111;
     double bottom = vuMeterY-7;

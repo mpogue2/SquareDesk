@@ -88,7 +88,7 @@
 #define THIRTYSECWARNING    (0x04)
 
 // set to speed up the clock by 10X
-//#define DEBUGCLOCK 1
+// #define DEBUGCLOCK 1
 
 class AnalogClock : public QWidget
 {
@@ -148,6 +148,12 @@ public slots:
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+    void goToState(QString newStateName);
+
+#ifdef DEBUG_LIGHT_MODE
+signals:
+    void newState(QString stateName); // INBREAK, INSINGER, etc.
+#endif
 };
 
 #endif

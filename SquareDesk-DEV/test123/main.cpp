@@ -54,12 +54,8 @@ int main(int argc, char *argv[])
 //    qDebug() << "DARKMODE: " << darkmode;
 
 #ifdef DEBUG_LIGHT_MODE
-    // QString app_path = qApp->applicationDirPath();
-    // QFile File(app_path + "/../Resources/Integrid.qss");
-
-    // File.open(QIODevice::ReadOnly);
-    // QString style( File.readAll() );
-    // a.setStyleSheet(style);
+    QString resourcesPath = qApp->applicationDirPath() + "/../Resources";
+    QDir::addSearchPath("themes", resourcesPath); // url(images:foo.png) will look in Resources dir for foo.png
 #else
     if (darkmode) {
         // DARK MODE ======================================

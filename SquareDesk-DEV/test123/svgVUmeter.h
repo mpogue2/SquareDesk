@@ -16,10 +16,13 @@
 #include <QTimer>
 #include <QElapsedTimer>
 
+#include "globaldefines.h"
+
 // -----------------------------------
 class svgVUmeter : public QLabel
 {
     Q_OBJECT
+    QP_V(QColor, bgColor);
 
 public:
     explicit svgVUmeter(QWidget *parent = 0);

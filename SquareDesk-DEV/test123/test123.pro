@@ -68,6 +68,7 @@ SOURCES += main.cpp\
 #    AppleMusicLibraryXMLReader.cpp \  # no longer need this
     addcommentdialog.cpp \
     audiodecoder.cpp \
+    auditionbutton.cpp \
     flexible_audio.cpp \
 #    bass_audio.cpp \  # this is now #include'd by flexible_audio.cpp on non-M1-based Macs
     lyricsEditor.cpp \
@@ -79,6 +80,7 @@ SOURCES += main.cpp\
     mainwindow_flashcalls.cpp \
     mainwindow_fonts.cpp \
     mainwindow_metadata.cpp \
+    mainwindow_themes.cpp \
     miniBPM/MiniBpm.cpp \
     playlists.cpp \
     preferencesdialog.cpp \
@@ -152,6 +154,7 @@ HEADERS  += mainwindow.h \
 #    ../miniBPM/MiniBpm.h \
     addcommentdialog.h \
     audiodecoder.h \
+    auditionbutton.h \
     flexible_audio.h \
     globaldefines.h \
     miniBPM/MiniBpm.h \
@@ -429,6 +432,9 @@ copydata0b.commands = $(COPY) $$PWD/cuesheet2.css        $$OUT_PWD/SquareDesk.ap
 copydata0c.commands = $(COPY) $$PWD/patter.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata0d.commands = $(COPY) $$PWD/lyrics.template.2col.html $$OUT_PWD/SquareDesk.app/Contents/Resources
 
+# THEMES ----------------------------------------
+copydata0e.commands = $(COPY) $$PWD/themes/Themes.qss $$OUT_PWD/SquareDesk.app/Contents/Resources
+
 # SD --------------------------------------------
 # Copy the sd executable and the sd_calls.dat data file to the same place as the sd executable
 #  (inside the SquareDesk.app bundle)
@@ -503,14 +509,16 @@ macx {
     DEFINES += M1MAC=1
     QT += multimedia
 
-    # first.depends = $(first) copydata1dir copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4s installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
-    first.depends += copydata1dir copydata0a copydata0b copydata0c copydata0d copydata1 copydata2 copydata3 copydata4s installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
+    first.depends += copydata1dir copydata0a copydata0b copydata0c copydata0d copydata0e copydata1 copydata2 copydata3 copydata4s installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
 
     # lyrics and patter templates
     export(copydata0a.commands)
     export(copydata0b.commands)
     export(copydata0c.commands)
     export(copydata0d.commands)
+
+# themes
+    export(copydata0e.commands)
 
     # sd_calls.dat, allcalls.csv, sd_doc.pdf
     export(copydata1dir.commands)
@@ -520,7 +528,7 @@ macx {
     export(copydata3.commands)
     export(copydata4s.commands)
 
-    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata0d copydata1dir copydata1 copydata2 copydata3 copydata4s
+    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata0d copydata0e copydata1dir copydata1 copydata2 copydata3 copydata4s
 
     # For the PDF viewer -----------------
     copydata1p.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
@@ -924,6 +932,7 @@ DISTFILES += \
     lyrics.template.html \
     PackageIt.command \
     patter.template.html \
-    soundtouch/include/soundtouch_config.h.in
+    soundtouch/include/soundtouch_config.h.in \
+    themes/Themes.qss
 
 CONFIG += c++11

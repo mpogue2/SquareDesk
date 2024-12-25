@@ -283,8 +283,10 @@ void MainWindow::adjustFontSizes()
 
 #if defined(Q_OS_MAC)
     // the Mac combobox is not height resizeable.  This styled one is, and it looks fine.
+#ifndef DEBUG_LIGHT_MODE
     ui->comboBoxCuesheetSelector->setStyle(QStyleFactory::create("Windows"));
     ui->comboBoxCallListProgram->setStyle(QStyleFactory::create("Windows"));
+#endif
 #endif
 
     // set all the related fonts to the same size

@@ -281,6 +281,8 @@ public:
 
     QActionGroup *snapActionGroup; // snapping in Music menu
 
+    QActionGroup *themesActionGroup; // mutually exclusive themes
+
     QSplashScreen *theSplash;
     void checkLockFile();  // implicitly accesses theSplash
     void clearLockFile(QString path);
@@ -302,6 +304,9 @@ public:
 
 public slots:
 
+#ifdef DEBUG_LIGHT_MODE
+    void analogClockStateChanged(QString newStateName);
+#endif
     void changeApplicationState(Qt::ApplicationState state);
 
     void LyricsCopyAvailable(bool yes);
@@ -364,6 +369,10 @@ private slots:
     void sdActionTriggeredDances(QAction * action);  // Dances/frames
 
     void sdViewActionTriggered(QAction *action); // Sequence Designer vs Dance Arranger
+
+#ifdef DEBUG_LIGHT_MODE
+    void themeTriggered(QAction *action);
+#endif
 
     void on_stopButton_clicked();
     void on_playButton_clicked();
@@ -571,7 +580,9 @@ private slots:
     void fileWatcherDisabledTriggered();
     void musicRootModified(QString s);
 #ifdef DEBUG_LIGHT_MODE
-    void lightModeModified(QString s);
+    void themesFileModified(); // Themes.qss file has been modified
+    void setProp(QWidget *theWidget, const char *thePropertyName, bool b);
+    void setProp(QWidget *theWidget, const char *thePropertyName, QString s);
 #endif
 
     void maybeLyricsChanged();
@@ -728,6 +739,11 @@ private slots:
     void on_actionSave_Sequence_As_triggered();
 
     void on_actionShow_Frames_triggered();
+
+    // void on_actionLight_triggered();
+    // void on_actionDark_triggered();
+    // void on_actionLight_checked(bool b);
+    // void on_actionDark_checked(bool b);
 
     // slots for SD editing buttons ------
     void SDMakeFrameFilesIfNeeded();
@@ -894,6 +910,8 @@ public:
     QString relPathInSlot[3]; // playlist slot 1 --> relPathInSlot[0], used also by MyTableWidgets to know what's inside themselves
 
 private:
+
+    QString currentThemeString;
 
     QString lastAudioDeviceName;
 
@@ -1468,6 +1486,9 @@ public:
     // template menu for cuesheet
     QMenu *templateMenu;
     void newFromTemplate();
+
+    // THEME STUFF ----------
+    QString currentAnalogClockState;
 };
 
 // currentState:

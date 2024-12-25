@@ -81,6 +81,7 @@
 #include "mytablewidget.h"
 
 #include "svgWaveformSlider.h"
+#include "auditionbutton.h"
 
 #include "src/communicator.h"
 
@@ -513,7 +514,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 #endif
 
     ui->stopButton->setEnabled(false);
-#ifdef DARKMOD
+#ifdef DARKMODE
     ui->darkStopButton->setEnabled(false);
 #endif
     ui->nextSongButton->setEnabled(false);
@@ -666,6 +667,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     vuMeterTimer->start(100);           // adjust from GUI with timer->setInterval(newValue)
 
     vuMeter = new LevelMeter(this);
+    // vuMeter->setObjectName("VUMeter"); // so we can style it in QSS (this is OLD LIGHT MODE VUmeter, so not needed)
     ui->gridLayout_2->addWidget(vuMeter, 1,5);  // add it to the layout in the right spot
     vuMeter->setFixedHeight(20);
 
@@ -679,6 +681,10 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     analogClock = new AnalogClock(this);
     analogClock->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(analogClock, SIGNAL(customContextMenuRequested(QPoint)), analogClock, SLOT(customMenuRequested(QPoint)));
+#ifdef DEBUG_LIGHT_MODE
+    // IS THIS NEEDED?  SHOULD CONNECT TO theSVGclock, I think instead.
+    connect(analogClock, SIGNAL(newState(QString)), this, SLOT(analogClockStateChanged(QString)));
+#endif
     ui->gridLayout_2->addWidget(analogClock, 2,6,4,1);  // add it to the layout in the right spot
     analogClock->setFixedSize(QSize(110,110));
     analogClock->setEnabled(true);
@@ -750,7 +756,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     lightModeWatcher.addPath(qssDir); // watch for add/deletes for light mode QSS file changing
 
     QObject::connect(&lightModeWatcher, SIGNAL(directoryChanged(QString)),
-                     this, SLOT(lightModeModified(QString)));
+                     this, SLOT(themesFileModified()));
 
 #endif
 
@@ -870,7 +876,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
+#ifndef DEBUG_LIGHT_MODE
     ui->pushButtonEditLyrics->setStyleSheet("QToolButton { border: 1px solid #575757; border-radius: 4px; background-color: palette(base); }");  // turn off border
+#endif
 
     // ----------
     updateSongTableColumnView(); // update the actual view of Age/Pitch/Tempo in the songTable view
@@ -1001,15 +1009,20 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     analogClock->breakLengthAlarmMinutes = breakLengthTimerLength;
 
     ui->warningLabel->setText("");
-    ui->warningLabel->setStyleSheet("QLabel { color : red; }");
     ui->warningLabelCuesheet->setText("");
-    ui->warningLabelCuesheet->setStyleSheet("QLabel { color : red; }");
     ui->warningLabelSD->setText("");
+
+#ifndef DEBUG_LIGHT_MODE
+    ui->warningLabel->setStyleSheet("QLabel { color : red; }");
+    ui->warningLabelCuesheet->setStyleSheet("QLabel { color : red; }");
     ui->warningLabelSD->setStyleSheet("QLabel { color : red; }");
+#endif
 
 #ifdef DARKMODE
     ui->darkWarningLabel->setText("");
+#ifndef DEBUG_LIGHT_MODE
     ui->darkWarningLabel->setStyleSheet("QLabel { color : red; }");
+#endif
 #endif
 
     t.elapsed(__LINE__);
@@ -1105,6 +1118,15 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     sdActionGroupGenders->setExclusive(true);
     connect(sdActionGroupGenders, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredGenders(QAction*)));
 
+#ifdef DEBUG_LIGHT_MODE
+    themesActionGroup = new QActionGroup(this);  // themes: light, dark, etc.
+    themesActionGroup->setExclusive(true);
+    connect(themesActionGroup, SIGNAL(triggered(QAction*)), this, SLOT(themeTriggered(QAction*)));
+
+    themesActionGroup->addAction(ui->actionLight);
+    themesActionGroup->addAction(ui->actionDark);
+#endif
+
     t.elapsed(__LINE__);
 
     // let's look through the items in the SD menu (this method is less fragile now)
@@ -1187,15 +1209,18 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
+#ifndef DEBUG_LIGHT_MODE
     ui->pushButtonCueSheetEditTitle->setStyleSheet("font-weight: bold;");
 
     ui->pushButtonCueSheetEditBold->setStyleSheet("font-weight: bold;");
     ui->pushButtonCueSheetEditItalic->setStyleSheet("font: italic;");
 
     ui->pushButtonCueSheetEditHeader->setStyleSheet("color: red");
+#endif
 
     t.elapsed(__LINE__);
 
+#ifndef DEBUG_LIGHT_MODE
     if (!darkmode) {
         ui->pushButtonCueSheetEditArtist->setStyleSheet("color: #0000FF");
     } else {
@@ -1212,6 +1237,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
                 "QPushButton:pressed { background-color: qlineargradient(x1: 0, y1: 1, x2: 0, y2: 0, stop: 0 #1E72FE, stop: 1 #3E8AFC); color: #FFFFFF; border:0.5px solid #0D60E3;}"
                 "QPushButton:disabled { background-color: #FFC0CB; color: #000000; border-radius:4px; padding:1px 8px; border:0.5px solid #CF9090;}"
                 );
+#endif
 
     t.elapsed(__LINE__);
 
@@ -1772,17 +1798,18 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->songLengthLabel2->setToolTip("Shows Length-of-Song in MM:SS.");
 
     // LOOP CONTROLS =========
+#ifndef DEBUG_LIGHT_MODE
     ui->darkStartLoopTime->setStyleSheet("color: " + darkTextColor);
     ui->darkEndLoopTime->setStyleSheet("color: " + darkTextColor);
     ui->darkStartLoopButton->setStyleSheet("color: " + darkTextColor);
-    ui->darkStartLoopButton->setToolTip(QString("Sets start point of a loop (Patter) or Intro point (Singing Call)\n\nShortcuts: set Start [, set Start and End: %1[").arg(QChar(0x21e7)));
     ui->darkEndLoopButton->setStyleSheet("color: " + darkTextColor);
-    ui->darkEndLoopButton->setToolTip(QString("Sets end point of a loop (Patter) or Outro point (Singing Call)\n\nShortcuts: set End ]"));
     ui->darkTestLoopButton->setStyleSheet("color: " + darkTextColor);
     ui->darkSegmentButton->setStyleSheet("color: " + darkTextColor);
-
     ui->currentLocLabel3->setStyleSheet("color: " + darkTextColor);
     ui->songLengthLabel2->setStyleSheet("color: " + darkTextColor);
+#endif
+    ui->darkStartLoopButton->setToolTip(QString("Sets start point of a loop (Patter) or Intro point (Singing Call)\n\nShortcuts: set Start [, set Start and End: %1[").arg(QChar(0x21e7)));
+    ui->darkEndLoopButton->setToolTip(QString("Sets end point of a loop (Patter) or Outro point (Singing Call)\n\nShortcuts: set End ]"));
 
     // layout the QDials in QtDesigner, promote to svgDial's, and then make sure to init all 3 parameters (in this order)
     ui->darkTrebleKnob->setKnobFile("knobs/knob_bg_regular.svg");
@@ -1803,9 +1830,11 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkBassKnob->setArcColor("#909090"); // triggers finish of init
     ui->darkBassKnob->setToolTip("Bass\nControls the amount of low frequencies in this song.");
 
+#ifndef DEBUG_LIGHT_MODE
     ui->label_T->setStyleSheet("color: " + darkTextColor);
     ui->label_M->setStyleSheet("color: " + darkTextColor);
     ui->label_B->setStyleSheet("color: " + darkTextColor);
+#endif
 
     // sliders ==========
 
@@ -1818,7 +1847,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkVolumeSlider->setCenterVeinType(false);
     ui->darkVolumeSlider->setToolTip(QString("Volume (in %)\nControls the loudness of this song.\n\nShortcuts: volume up %1%2, volume down %1%3").arg(QChar(0x2318)).arg(QChar(0x2191)).arg(QChar(0x2193)));
 
+#ifndef DEBUG_LIGHT_MODE
     ui->darkVolumeLabel->setStyleSheet("color: " + darkTextColor);
+#endif
 
     connect(ui->darkVolumeSlider, &svgDial::valueChanged, this,
             [this](int i) {
@@ -1845,7 +1876,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkTempoSlider->setToolTip(QString("Tempo (in BPM)\nControls the tempo of this song (independent from Pitch).\n\nShortcuts: faster %1+, slower %1-").arg(QChar(0x2318)));
 
 //    ui->darkTempoLabel->setText("125");
+#ifndef DEBUG_LIGHT_MODE
     ui->darkTempoLabel->setStyleSheet("color: " + darkTextColor);
+#endif
 
     connect(ui->darkTempoSlider, &svgDial::valueChanged, this,
             [this](int i) {
@@ -1873,7 +1906,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkPitchSlider->setToolTip(QString("Pitch (in semitones)\nControls the pitch of this song (relative to song's original pitch).\n\nShortcuts: pitch up %1u, pitch down %1d").arg(QChar(0x2318)));
 
 //    ui->darkPitchLabel->setText("0");
+#ifndef DEBUG_LIGHT_MODE
     ui->darkPitchLabel->setStyleSheet("color: " + darkTextColor);
+#endif
 
     connect(ui->darkPitchSlider, &svgDial::valueChanged, this,
             [this](int i) {
@@ -1899,7 +1934,10 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 //    ui->darkSongTable->setStyleSheet("alternate-background-color: #1F1F1F; background-color: #0A0A0A;");
 //    ui->darkSongTable->setStyleSheet("::section { background-color: #393234; color: #C2AC9E; } alternate-background-color: #1F1F1F; background-color: #0A0A0A;");
 //    ui->darkSongTable->setStyleSheet("::section { background-color: #393234; color: #C2AC9E; }");
+
+#ifndef DEBUG_LIGHT_MODE
     ui->darkSongTable->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
+#endif
 
     ui->darkSongTable->resizeColumnToContents(kNumberCol);  // and force resizing of column widths to match songs
     ui->darkSongTable->resizeColumnToContents(kTypeCol);
@@ -1910,7 +1948,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkSongTable->setMainWindow(this);
 
     // PLAYLISTS:
+#ifndef DEBUG_LIGHT_MODE
     ui->playlist1Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
+#endif
     ui->playlist1Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers_2023.09.20");
     ui->playlist1Label->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist1Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
@@ -1936,20 +1976,24 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     // ui->playlist1Table->horizontalHeader()->setSectionHidden(4, false); // hide fullpath
     // ui->playlist1Table->horizontalHeader()->setSectionHidden(5, false); // hide loaded
 
+    // WARNING: THIS CODE IS ONLY FOR THE NUMBERS COLUMN OF PLAYLIST TABLES.
+    //  THE NORMAL CONTEXT MENU IS IN PLAYLISTS.CPP SOURCE FILE.
+    //
     // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST1 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
     ui->playlist1Table->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist1Table, &QTableWidget::customContextMenuRequested,
             this, [this](QPoint q) {
 
-                        qDebug() << "***** PLAYLIST 1 CONTEXT MENU REQUESTED";
+                        // qDebug() << "***** PLAYLIST 1 CONTEXT MENU REQUESTED";
                         // if (this->ui->playlist1Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
 
                         int rowCount = this->ui->playlist1Table->selectionModel()->selectedRows().count();
                         if (rowCount < 1) {
                             return;  // if mouse clicked and nothing was selected (this should be impossible)
                         }
-
                         QMenu *plMenu = new QMenu();
+
+                        plMenu->setProperty("theme", currentThemeString);
 
                         // can only move slot items if they are playlists, NOT tracks
                         QString plural;
@@ -2042,7 +2086,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
             );
 
     // -----
+#ifndef DEBUG_LIGHT_MODE
     ui->playlist2Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
+#endif
     ui->playlist2Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers_2023.09.20");
     ui->playlist2Label->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist2Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
@@ -2068,12 +2114,15 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     // ui->playlist2Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
     // ui->playlist2Table->horizontalHeader()->setSectionHidden(5, false); // hide loaded
 
+    // WARNING: THIS CODE IS ONLY FOR THE NUMBERS COLUMN OF PLAYLIST TABLES.
+    //  THE NORMAL CONTEXT MENU IS IN PLAYLISTS.CPP SOURCE FILE.
+    //
     // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST2 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
     ui->playlist2Table->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist2Table, &QTableWidget::customContextMenuRequested,
             this, [this](QPoint q) {
 
-                        // qDebug() << "***** PLAYLIST 2 CONTEXT MENU REQUESTED";
+                        qDebug() << "***** PLAYLIST 2 CONTEXT MENU REQUESTED";
                         // if (this->ui->playlist2Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
 
                         int rowCount = this->ui->playlist2Table->selectionModel()->selectedRows().count();
@@ -2088,6 +2137,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
                         }
 
                         QMenu *plMenu = new QMenu();
+                        plMenu->setProperty("theme", currentThemeString);
 
                         // Move up/down/top/bottom in playlist
                         if (!relPathInSlot[1].contains("/tracks/")) {
@@ -2173,7 +2223,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     // -----
     ui->playlist3Table->setMainWindow(this);
+#ifndef DEBUG_LIGHT_MODE
     ui->playlist3Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
+#endif
     ui->playlist3Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers_2023.09.20");
     ui->playlist3Label->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist3Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
@@ -2198,6 +2250,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     // ui->playlist3Table->horizontalHeader()->setSectionHidden(4, false); // hide fullpath
     // ui->playlist3Table->horizontalHeader()->setSectionHidden(5, false); // hide loaded
 
+    // WARNING: THIS CODE IS ONLY FOR THE NUMBERS COLUMN OF PLAYLIST TABLES.
+    //  THE NORMAL CONTEXT MENU IS IN PLAYLISTS.CPP SOURCE FILE.
+    //
     // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST3 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
     ui->playlist3Table->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist3Table, &QTableWidget::customContextMenuRequested,
@@ -2218,6 +2273,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
                         }
 
                         QMenu *plMenu = new QMenu();
+                        plMenu->setProperty("theme", currentThemeString);
 
                         // Move up/down/top/bottom in playlist
                         if (!relPathInSlot[2].contains("/tracks/")) {
@@ -2343,18 +2399,27 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     // STATUSBAR:
     //    ui->statusBar->setStyleSheet("color: #AC8F7E;");
 //    ui->statusBar->setStyleSheet("color: #D9D9D9;");
+
+#ifndef DEBUG_LIGHT_MODE
     ui->statusBar->setStyleSheet("color: " + darkTextColor);
+#endif
 
     // MICLABEL (right hand status):
 //    micStatusLabel->setStyleSheet("color: #AC8F7E");
+#ifndef DEBUG_LIGHT_MODE
     micStatusLabel->setStyleSheet("color: " + darkTextColor);
+#endif
 
     // SEARCH BOX:
     ui->darkSearch->setToolTip("Search\nFilter songs by specifying Type:Label:Title.\n\nExamples:\nfoo = any song where title contains 'foo'\nsing::bar = singing calls where title contains 'bar'\np:riv = patter from Riverboat\netc.");
 
     // TITLE:
     // QLabel { color : #C2AC9E; }
-    ui->darkTitle->setStyleSheet("color: "+ darkTextColor);
+#ifndef DEBUG_LIGHT_MODE
+    ui->darkTitle->setStyleSheet("color: "+ darkTextColor); // default color
+#else
+    setProp(ui->darkTitle, "flashcall", false);
+#endif
     ui->darkTitle->setText(""); // get rid of the placeholder text
 
     // TOOLBUTTONS:
@@ -2362,27 +2427,31 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     QStyle* style = QApplication::style();
     QPixmap pixmap = style->standardPixmap(QStyle::SP_MediaPlay);
+//#ifndef DEBUG_LIGHT_MODE
     QBitmap mask = pixmap.createMaskFromColor(QColor("transparent"), Qt::MaskInColor);
     pixmap.fill((QColor(toolButtonIconColor)));
     pixmap.setMask(mask);
-
+//#endif
 //    pixmap.save("darkPlay.png");
 
     darkPlayIcon = new QIcon(pixmap);
 
     pixmap = style->standardPixmap(QStyle::SP_MediaPause);
+//#ifndef DEBUG_LIGHT_MODE
     mask = pixmap.createMaskFromColor(QColor("transparent"), Qt::MaskInColor);
     pixmap.fill((QColor(toolButtonIconColor)));
     pixmap.setMask(mask);
-
+//#endif
 //    pixmap.save("darkPause.png");
 
     darkPauseIcon = new QIcon(pixmap);
 
     pixmap = style->standardPixmap(QStyle::SP_MediaStop);
+//#ifndef DEBUG_LIGHT_MODE
     mask = pixmap.createMaskFromColor(QColor("transparent"), Qt::MaskInColor);
     pixmap.fill((QColor(toolButtonIconColor)));
     pixmap.setMask(mask);
+//#endif
 
 //    pixmap.save("darkStop.png");
 
@@ -2448,7 +2517,6 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     // DARKSEEKBAR =================
 //    ui->darkSeekBar->setBgFile(":/graphics/darkWaveform.png");  // just set the background
-    ui->darkSeekBar->finishInit();  // load everything up!
 
 //    connect(ui->darkSeekBar, SIGNAL(valueChanged(int)), this, SLOT(on_darkSeekBar_valueChanged(int)));
 
@@ -2621,6 +2689,24 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     ui->pushButtonEditLyrics->setVisible(false); // don't show this button until there are cuesheets available to edit
     ui->pushButtonNewFromTemplate->setVisible(false); // don't show this button until there is a song loaded
+
+#ifdef DEBUG_LIGHT_MODE
+    // THEME STUFF -------------
+    analogClockStateChanged("UNINITIALIZED");
+
+    // initial stylesheet loaded here -----------
+    themesFileModified(); // load the Themes.qss file for the first time
+
+    // and set the dynamic properties for LIGHT mode to start with
+    themeTriggered(ui->actionLight); // start out with the mandatory "Light" theme (do NOT delete "Light")
+#else
+    qDebug() << "turning off menuTheme";
+    ui->menuTheme->menuAction()->setVisible(false);  // in OLD LIGHT MODE, don't show the new Theme menu
+#endif
+
+    // and update the caches ---------
+    ui->theSVGClock->finishInit();
+    ui->darkSeekBar->finishInit();  // load everything up!
 }
 
 void MainWindow::newFromTemplate() {
@@ -5960,6 +6046,9 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     // qDebug() << "loadMP3File: nextFilename = " << nextFilename;
     ui->darkSegmentButton->setHidden(true);
 
+#ifdef DEBUG_LIGHT_MODE
+    analogClockStateChanged("UNINITIALIZED");
+#endif
     // allow ID3 only on MP3 files right now!
     ui->actionUpdate_ID3_Tags->setEnabled(MP3FileName.endsWith(".mp3", Qt::CaseInsensitive));
 
@@ -7244,18 +7333,24 @@ void MainWindow::darkLoadMusicList()
         // # COLUMN IS NOW USED FOR AUDITION BUTTONS -----
         QTableWidgetItem *auditionItem = new QTableWidgetItem();
 
-        QPushButton *auditionButton = new QPushButton();
-        auditionButton->setFlat(true);
+        auditionButton *auditionButton1 = new auditionButton();
+        auditionButton1->setFlat(true);
+        auditionButton1->setObjectName("auditionButton");
+        auditionButton1->origPath = origPath;
 
-        connect(auditionButton, &QPushButton::pressed, this,
+        connect(auditionButton1, &QPushButton::pressed, this,
                 [this]() {
                     auditionSingleShotTimer.stop();
                     auditionInProgress = true;
                     // qDebug() << "setting auditionInProgress to true";
-                    QModelIndexList list = this->ui->darkSongTable->selectionModel()->selectedRows();
-                    int row = list.at(0).row();
-                    QString origPath = this->ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
-                    // qDebug() << "QPushButton pressed, row:" << row << origPath;
+
+                    QString origPath = ((auditionButton *)(sender()))->origPath;
+                    // qDebug() << "AUDITION PATH:" << origPath;
+
+                    // QModelIndexList list = this->ui->darkSongTable->selectionModel()->selectedRows();
+                    // int row = list.at(0).row();
+                    // QString origPath = this->ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+                    // // qDebug() << "QPushButton pressed, row:" << row << origPath;
 
                     this->auditionPlayer.setSource(QUrl::fromLocalFile(origPath));
                     QAudioOutput *audioOutput = new QAudioOutput; // always update the output device, based on the CURRENT default audio device
@@ -7263,7 +7358,7 @@ void MainWindow::darkLoadMusicList()
                     this->auditionPlayer.play();
                 });
 
-        connect(auditionButton, &QPushButton::released, this,
+        connect(auditionButton1, &QPushButton::released, this,
                 [this]() {
                     // QModelIndexList list = this->ui->darkSongTable->selectionModel()->selectedRows();
                     // int row = list.at(0).row();
@@ -7280,12 +7375,12 @@ void MainWindow::darkLoadMusicList()
                     //  In my testing, that seemed about right.  No false drag and drops, but normal drag and drop still works as expected.
                 });
 
-        // auditionButton->setMaximumSize(QSize(14,14));
         QIcon playbackIcon = QIcon::fromTheme(QIcon::ThemeIcon::MultimediaPlayer);
-        auditionButton->setIcon(playbackIcon);
+        auditionButton1->setIcon(playbackIcon);
+        // auditionButton1->setIconSize(QSize(26,26));
 
         ui->darkSongTable->setItem(i, kNumberCol, auditionItem);
-        ui->darkSongTable->setCellWidget(i, kNumberCol, auditionButton);
+        ui->darkSongTable->setCellWidget(i, kNumberCol, auditionButton1);
 
         // TYPE FIELD -----
         QTableWidgetItem *twi1 = new QTableWidgetItem(type);
@@ -8493,6 +8588,9 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
 
         menu.addMenu(tagsMenu);
 //        menu.addAction( "Load Song", this, SLOT (loadSong()) );
+
+        menu.setProperty("theme", currentThemeString);
+
         menu.popup(QCursor::pos());
         menu.exec();
     }
@@ -9130,11 +9228,13 @@ void MainWindow::microphoneStatusUpdate() {
     QString kybdStatus("SD (Level: " + currentSDKeyboardLevel + ", Dance: " + frameName + "), Audio: " + lastAudioDeviceName);
 
 #ifdef DARKMODE
+#ifndef DEBUG_LIGHT_MODE
     if (darkmode) {
         micStatusLabel->setStyleSheet("color: #C0C0C0;");
     } else {
         micStatusLabel->setStyleSheet("color: black");
     }
+#endif
 #else
 #endif
     micStatusLabel->setText(kybdStatus);
@@ -10332,12 +10432,20 @@ void MainWindow::setNowPlayingLabelWithColor(QString s, bool flashcall) {
             ui->nowPlayingLabel->setStyleSheet("QLabel { color : red; font-style: italic; }");
 #ifdef DARKMODE
 //            ui->darkTitle->setStyleSheet("QLabel { color : #D04040; font-style: italic; }");
-            ui->darkTitle->setStyleSheet("QLabel { color : red; font-style: italic; }");
+#ifndef DEBUG_LIGHT_MODE
+            ui->darkTitle->setStyleSheet("QLabel { color : red; font-style: italic; }"); // flashcall color
+#else
+            setProp(ui->darkTitle, "flashcall", true);
+#endif
 #endif
         } else {
             ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
 #ifdef DARKMODE
-            ui->darkTitle->setStyleSheet("QLabel { color : #D9D9D9; font-style: normal; }");
+#ifndef DEBUG_LIGHT_MODE
+            ui->darkTitle->setStyleSheet("QLabel { color : #D9D9D9; font-style: normal; }"); // normal color
+#else
+            setProp(ui->darkTitle, "flashcall", false);
+#endif
 #endif
         }
     }
@@ -11091,6 +11199,8 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
 
     QMenu *plMenu = new QMenu();
 
+    plMenu->setProperty("theme", currentThemeString);
+
     int whichSlot = 0;
     MyTableWidget *theTableWidget = ui->playlist1Table;
 
@@ -11369,6 +11479,7 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
     }
 
     QMenu *twMenu = new QMenu();
+    twMenu->setProperty("theme", currentThemeString);
 
     QString fullPathToLeaf = treeItem->text(0);
     while (treeItem->parent() != NULL)
@@ -11507,6 +11618,8 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
 
     // ------------------------------------------------------------------------------------
     QMenu menu(this);
+
+    menu.setProperty("theme", currentThemeString);
 
     // ADD TO BOTTOM OF SLOT {1,2,3} = allows multiple selections
     if (!relPathInSlot[0].contains("/tracks/")) {
@@ -12037,17 +12150,3 @@ void MainWindow::setCurrentSongMetadata(QString type) {
 
     // qDebug() << "setCurrentSongMetadata(): " << currentSongTypeName  << currentSongCategoryName << currentSongIsPatter << currentSongIsSinger << currentSongIsVocal << currentSongIsExtra << currentSongIsUndefined;
 }
-
-#ifdef DEBUG_LIGHT_MODE
-void MainWindow::lightModeModified(QString s)
-{
-    qDebug() << "lightModeModified() = " << s;
-
-    QString app_path = qApp->applicationDirPath();
-    QFile lightModeStyleSheet(app_path + "/../Resources/Integrid.qss");
-
-    lightModeStyleSheet.open(QIODevice::ReadOnly);
-    QString lightStyle( lightModeStyleSheet.readAll() );
-    qApp->setStyleSheet(lightStyle);
-}
-#endif

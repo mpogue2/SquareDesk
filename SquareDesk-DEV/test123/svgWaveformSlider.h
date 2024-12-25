@@ -14,6 +14,8 @@
 #include <QMouseEvent>
 #include <QPoint>
 
+#include "globaldefines.h"
+
 // This is a HORIZONTAL slider that shows the music waveform.
 //  It has start and end loop indicators, a current position indicator,
 //  and (for future expansion) settable markers.
@@ -29,6 +31,10 @@ class svgWaveformSlider : public QSlider
 {
     Q_OBJECT
 //    Q_PROPERTY(QString bgFile     READ getBgFile     WRITE setBgFile     NOTIFY bgFileChanged)
+    QP_V(QColor, bgColor);
+    QP_V(QColor, darkeningColor);
+    QP_V(QColor, loopColor);
+    QP_V(QColor, currentPositionColor);
 
 public:
     explicit svgWaveformSlider(QWidget *parent = 0);
