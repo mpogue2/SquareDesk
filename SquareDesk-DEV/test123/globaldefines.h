@@ -22,6 +22,6 @@ private: \
 
 
 // define this is you want to experiment with the qss file Light and Dark modes
-#define DEBUG_LIGHT_MODE
+// #define DEBUG_LIGHT_MODE
 
 #endif // GLOBALDEFINES_H
