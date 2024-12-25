@@ -295,7 +295,7 @@ QSlider#darkSeekBar[theme="Dark"] {
 }
 
 QSlider#darkSeekBar[theme="Light"] {
-    qproperty-bgColor: #e5e5e5;
+    qproperty-bgColor: #d5d5d5;
     qproperty-darkeningColor: #30000000;
     qProperty-loopColor: #00a7f4;
     qProperty-currentPositionColor: #00f700;
