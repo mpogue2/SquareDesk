@@ -1,6 +1,7 @@
 /* This is the stylesheet for both Light and Dark themes,
 as selected from the Theme menu */
 
+/* COMBO BOXES, PULLDOWN MENUS =============== */
 QMenu[theme="Dark"] {
     background-color: #3c3c3c;
     color: #ccc;
@@ -26,6 +27,7 @@ QAbstractItemView[theme="Dark"] {
     color: #ccc;
 }
 
+/* LABELS =========================== */
 QLabel[theme="Dark"] {
     color: #C0C0C0;
 }
@@ -115,22 +117,7 @@ QLabel#playlist3Label[theme="Light"] {
     color: #000;
 }
 
-/*
-QHeaderView::section {
-	background-color: red; 
-}
-*/
-
-QHeaderView::section[theme="Dark"] {
-    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-        stop:0 #464646, stop:1 #424242);
-    color: #aaaaaa;
-    padding-left: 4px;
-    border: 1px solid #353535;
-    font: bold 12px;
-    height: 18px;
-}
-
+/* LINES ========================== */
 /* reddish line just under the song title */
 QFrame#line_3 {
     background-color: #800;
@@ -145,7 +132,7 @@ QFrame#line_4[theme="Light"] {
     background-color: #CCC;
 }
 
-/* TOOL BUTTONS ---------- */
+/* TOOL BUTTONS ==================== */
 QToolButton[theme="Dark"] {
     /* all types of tool button */
     background-color: qlineargradient(x1:0 y1:1, x2:0 y2:0, stop:0 #363636, stop:1 #404040);
@@ -161,7 +148,7 @@ QToolButton[theme="Light"] {
     border-radius: 3px;
 }
 
-/* PUSH BUTTONS ---------- */
+/* PUSH BUTTONS ===================== */
 QPushButton[theme="Dark"] {
     /* all types of push button */
     background-color: #3d3d3d;
@@ -235,6 +222,7 @@ QPushButton#pushButtonCueSheetEditItalic {
     font: italic;
 }
 
+/* CLOCK =========================== */
 QLabel#theSVGClock[theme="Light"] {
     background-color: #e8e8e8;
     qproperty-hourHandColor: #225;
@@ -255,7 +243,7 @@ QLabel#theSVGClock[theme="Dark"] {
     qproperty-numberColor: #a0a0a0;
 }
 
-/* status bar */
+/* STATUS BAR ======================== */
 QStatusBar[theme="Dark"] {
     background-color: #252525;
     color: #ccc;
@@ -286,22 +274,6 @@ QLabel#darkPitchLabel {
     padding-left: 6px;
 }
 
-QSlider#darkSeekBar[theme="Dark"] {
-    qproperty-bgColor: #1a1a1a;
-    qproperty-darkeningColor: #80000000;
-    qProperty-loopColor: #00a7f4;
-    qProperty-currentPositionColor: #00f700;
-    /* TODO: add colors for singers, and for sections */
-}
-
-QSlider#darkSeekBar[theme="Light"] {
-    qproperty-bgColor: #d5d5d5;
-    qproperty-darkeningColor: #30000000;
-    qProperty-loopColor: #00a7f4;
-    qProperty-currentPositionColor: #00f700;
-    /* TODO: add colors for singers, and for sections */
-}
-
 QMainWindow[theme="Dark"] {
     background-color: #252525;
 }
@@ -312,6 +284,18 @@ QMainWindow[theme="Dark"] {
     border: 1px solid #1a1a1a;
 }
 
+/* TABLE HEADERS ==================== */
+QHeaderView::section[theme="Dark"] {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #464646, stop:1 #424242);
+    color: #aaaaaa;
+    padding-left: 4px;
+    border: 1px solid #353535;
+    font: bold 12px;
+    height: 18px;
+}
+
+/* TABLES and LISTS ==================== */
 QTreeWidget#treeWidget[theme="Dark"],
 #playlist1Table[theme="Dark"],
 #playlist2Table[theme="Dark"],
@@ -329,6 +313,7 @@ QTreeWidget#treeWidget[theme="Dark"],
     selection-background-color: #12507b;
 }
 
+/* DATETIME widgets ==================== */
 QDateTimeEdit[theme="Dark"] {
     background-color: #3c3c3c;
     color: #ccc;
@@ -337,8 +322,8 @@ QDateTimeEdit[theme="Dark"] {
     margin: 1px;
 }
 
+/* SCROLLBARS ============================ */
 /* https://stackoverflow.com/questions/77769147/how-to-customize-a-qscrollbar */
-
 QScrollBar:vertical[theme="Dark"] {
     background: green;
     margin: 6px 0 6px 0;
@@ -405,11 +390,29 @@ QScrollBar::add-page:vertical[theme="Dark"] {
     background-position: bottom;
 }
 
+/* SEEK BAR ============================ */
 QGraphicsView {
     /* important for the svgWaveformSlider */
     border: none;
 }
 
+QSlider#darkSeekBar[theme="Dark"] {
+    qproperty-bgColor: #1a1a1a;
+    qproperty-darkeningColor: #80000000;
+    qProperty-loopColor: #00a7f4;
+    qProperty-currentPositionColor: #00f700;
+    /* TODO: add colors for singers, and for sections */
+}
+
+QSlider#darkSeekBar[theme="Light"] {
+    qproperty-bgColor: #d5d5d5;
+    qproperty-darkeningColor: #30000000;
+    qProperty-loopColor: #00a7f4;
+    qProperty-currentPositionColor: #00f700;
+    /* TODO: add colors for singers, and for sections */
+}
+
+/* FRAMES ============================== */
 #tempoPitchFrame[theme="Light"],
 #VUvolumeFrame[theme="Light"],
 #EQframe[theme="Light"],
@@ -442,9 +445,9 @@ QGraphicsView {
 #playlist3Table[theme="Dark"],
 #darkSongTable[theme="Dark"] {
     border: 1px solid #2b2b2b;
-    /* 2b2b2b */
 }
 
+/* TAB BAR ============================ */
 QTabWidget::tab-bar[theme="Dark"] {
     alignment: left;
 }
@@ -485,6 +488,49 @@ QTabBar::tab:selected[theme="Dark"] {
     padding-top: 1px;
 }
 
+/* ----- */
+QTabWidget::tab-bar[theme="Light"] {
+    alignment: left;
+}
+
+QTabWidget::pane[theme="Light"] {
+    border-left: 1px solid #444444;
+    border-right: 1px solid #444444;
+    border-bottom: 1px solid #444444;
+    border-top: 1px solid 525252;
+    top: -1px;
+    background: #e5e5e5;
+}
+
+QTabBar::tab[theme="Light"] {
+    background: #d5d5d5;
+    border-left: 1px solid #4d4d4d;
+    border-right: 1px solid #4d4d4d;
+    border-top: 1px solid #4d4d4d;
+    border-bottom: 1px solid #272727;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    color: #000;
+    margin-left: 0.5px;
+    margin-right: 0.5px;
+}
+
+QTabBar::tab:selected[theme="Light"] {
+    background: #e5e5e5;
+    border-left: 1px solid #525252;
+    border-right: 1px solid #525252;
+    border-top: 1px solid #525252;
+    border-bottom: 1px solid #e5e5e5;
+    /*	 margin-bottom: -1px;  */
+    padding-top: 1px;
+}
+
+
+/* audition buttons ================== */
 #auditionButton {
     background-color: transparent;
     border: none;
@@ -503,6 +549,7 @@ QToolTip {
 	color:#ABA7AC; 
 } */
 
+/* EQ knobs ================================= */
 #darkTrebleKnob[theme="Light"], 
 #darkMidKnob[theme="Light"], 
 #darkBassKnob[theme="Light"]
@@ -521,7 +568,7 @@ QToolTip {
 	qproperty-arcColor: "#808080";
 }
 
-/* svgSlider's ------------------- */	
+/* Pitch, Tempo, Volume sliders ============= */	
 #darkPitchSlider[theme="Light"]
 {
 	qproperty-bgFile: "sliders/slider_light_pitchtempo.svg";
