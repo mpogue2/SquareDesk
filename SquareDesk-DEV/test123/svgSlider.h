@@ -49,6 +49,9 @@ public:
 
     void setValue(int value);
 
+    void reinit();
+    void finishInit();
+
 protected:
     void mouseMoveEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
@@ -93,8 +96,6 @@ private:
     // Starting point when left mouse button is pressed
     QPoint m_startPos;
     QPoint m_prevPos;
-
-    void finishInit();
 };
 
 #endif // SVGSLIDER_H

@@ -137,8 +137,16 @@ void svgSlider::mouseReleaseEvent(QMouseEvent* e) {
     Q_UNUSED(e)
 }
 
-void svgSlider::finishInit() {
+// this is called to update based on Light/Dark Mode change
+// do NOT kill the scene or View, they are fine the way they were made at the start
+void svgSlider::reinit() {
+    // return;  // DEBUG DEBUG DEBUG
 
+    if (m_bgFile == "" || m_handleFile == "" || m_veinColor == "") {
+        return;
+    }
+
+    // qDebug() << "svgSlider::reinit() ===========" << m_bgFile << m_handleFile;
     QString pathToResources = QCoreApplication::applicationDirPath() + "/";
 
 #if defined(Q_OS_MAC)
@@ -150,7 +158,96 @@ void svgSlider::finishInit() {
     handle = new QGraphicsSvgItem(pathToResources + m_handleFile);
     vein   = new QGraphicsLineItem(21, 100, 21, 40);
 
-    veinColor.setNamedColor(m_veinColor); // convert string to QColor
+    // veinColor.setNamedColor(m_veinColor); // convert string to QColor
+    veinColor = QColor(m_veinColor);
+    vein->setPen(QPen(veinColor, 2, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin));
+
+    view.setStyleSheet("background: transparent; border: none;");
+
+    bSize = bg->renderer()->defaultSize();
+    hSize = handle->renderer()->defaultSize();
+
+    //    qDebug() << bSize << hSize;
+
+    // bg->setTransformOriginPoint(bSize.width()/2, bSize.height()/2);
+    // handle->setTransformOriginPoint(hSize.width()/2, hSize.height()/2);
+
+    if (bSize != hSize) {
+        //        needle->setPos((k.width()-n.width())/2, (k.height()-n.height())/2);
+    }
+
+    //    this->setMinimum(0);
+    //    this->setMaximum(100);
+    //    this->setValue(m_increment * round(m_defaultValue/m_increment));    // initial position
+
+    //    qDebug() << "finishInit:" << getDefaultValue();
+
+    // setValue(getDefaultValue());    // initial position and double-click position to return to
+
+    qDebug() << "current slider value is" << value();
+    setValue(value());  // force recalculation of the vein
+
+    setFixedSize(42,107); // no need for this
+
+    // -56 is at top = position 100
+    // -12 is middle
+    //  32 is at bottom = position 0
+
+    top = -56;
+    bot = 32;
+    length = bot - top;
+
+    // double value100 = 100.0 * (getDefaultValue() - minimum())/(maximum() - minimum());
+    double value100 = 100.0 * (value() - minimum())/(maximum() - minimum());
+
+    //    double offset = bot - (this->value()/100.0) * length;
+    double offset = bot - (value100/100.0) * length;
+    handle->setPos(0, bSize.height()/2.0 + offset);  // initial position of the handle
+
+    double endVein = bSize.height()/2.0 + offset + 7;
+
+    if (m_centerVeinType) {
+        startVein = 54;
+    } else {
+        startVein = 100;
+    }
+    vein->setLine(21, startVein, 21, endVein);
+
+    // ---------------------
+    // view.setDisabled(true);
+    // view.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    // view.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    scene.clear();
+
+    scene.addItem(bg);
+    scene.addItem(vein);
+    scene.addItem(handle);
+
+    // view.setScene(&scene);
+    // view.setParent(this);
+}
+
+void svgSlider::finishInit() {
+    // qDebug() << "svgSlider::finishInit() ===========" << m_bgFile << m_handleFile;
+
+    QString pathToResources = QCoreApplication::applicationDirPath() + "/";
+
+#if defined(Q_OS_MAC)
+    pathToResources = pathToResources + "../Resources/";
+#endif
+
+    if (m_bgFile == "" || m_handleFile == "" || m_veinColor == "") {
+        return;
+    }
+
+    // make the graphical items
+    bg     = new QGraphicsSvgItem(pathToResources + m_bgFile);
+    handle = new QGraphicsSvgItem(pathToResources + m_handleFile);
+    vein   = new QGraphicsLineItem(21, 100, 21, 40);
+
+    // veinColor.setNamedColor(m_veinColor); // convert string to QColor
+    veinColor = QColor(m_veinColor);
     vein->setPen(QPen(veinColor, 2, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin));
 
     view.setStyleSheet("background: transparent; border: none;");
@@ -263,7 +360,7 @@ void svgSlider::setCenterVeinType(bool s) {
     m_centerVeinType = s;
     emit centerVeinTypeChanged(s);
 
-    finishInit(); // after parameters are set, finish up the init stuff, before slider is visible for the first time
+    // finishInit(); // after parameters are set, finish up the init stuff, before slider is visible for the first time
 }
 
 bool svgSlider::getCenterVeinType() const {

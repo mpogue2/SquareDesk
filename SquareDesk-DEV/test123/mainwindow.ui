@@ -3069,9 +3069,9 @@
              <property name="geometry">
               <rect>
                <x>8</x>
-               <y>40</y>
+               <y>38</y>
                <width>90</width>
-               <height>140</height>
+               <height>131</height>
               </rect>
              </property>
              <layout class="QHBoxLayout" name="TempoPitch">

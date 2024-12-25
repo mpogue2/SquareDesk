@@ -90,6 +90,10 @@ void MainWindow::themeTriggered(QAction * action) {
     ui->darkTrebleKnob->reinit();  // update the cached files
     ui->darkMidKnob->reinit();  // update the cached files
     ui->darkBassKnob->reinit();  // update the cached files
+
+    ui->darkPitchSlider->reinit(); // update
+    ui->darkTempoSlider->reinit();
+    ui->darkVolumeSlider->reinit();
 }
 
 #endif

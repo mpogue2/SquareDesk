@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 42 19" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <path d="M4.794,16.148C5.4,16.721 6.282,17.001 6.856,17.001L36.513,17C37.929,17 39.289,15.975 39.499,14.301C39.51,16.438 39.073,18 37.168,18L7.357,18C6.269,18 5.008,17.37 4.794,16.148L4.794,16.148Z" style="fill-opacity:0.15;fill-rule:nonzero;"/>
+    <path d="M4.294,15.183C4.987,15.825 5.782,16.001 6.356,16.001L35.911,16C38.013,16 39.013,14.347 39.013,13L39,11L38,11L38,8L39.013,8C39.013,7.426 38.815,6.708 38.433,6.223C39.295,6.748 39.514,7.912 39.514,9L39.514,14C39.514,15.662 38.176,17 36.514,17L6.856,17C5.768,17 4.323,16.145 4.294,15.183L4.294,15.183Z" style="fill-opacity:0.5;fill-rule:nonzero;"/>
+    <path d="M6.355,5.002C4.694,5.002 3.357,6.339 3.355,8L4,8L4,11L3.355,11L3.355,13.002C3.355,14.664 4.693,16.002 6.355,16.002L36.014,16.002C37.676,16.002 39.014,14.664 39.014,13.002L39,11L38,11L38,8L39.014,8.002C39.021,6.34 37.676,5.002 36.014,5.002L6.355,5.002Z" style="fill-opacity:0.8;fill-rule:nonzero;"/>
+    <path d="M39,10L39,13C39,14.104 38.104,15 37,15L5,15C3.896,15 3,14.104 3,13L3,10C3,8.896 3.896,8 5,8L37,8C38.104,8 39,8.896 39,10Z" style="fill:rgb(5,5,5);"/>
+    <path d="M4,9L38,9C38.554,9 39,9.865 39,10.939L39,12.062C39,13.135 38.554,14 38,14L4,14C3.446,14 3,13.135 3,12.061L3,10.939C3,9.865 3.446,9 4,9Z" style="fill:white;fill-rule:nonzero;"/>
+    <path d="M4,5L38,5C38.554,5 39,5.865 39,6.939L39,8.061C39,9.135 38.554,10 38,10L4,10C3.446,10 3,9.135 3,8.061L3,6.939C3,5.865 3.446,5 4,5Z" style="fill:rgb(255,254,254);fill-rule:nonzero;"/>
+    <rect id="line-2" serif:id="line 2" x="4" y="9" width="34" height="1" style="fill-rule:nonzero;"/>
+    <rect id="right-pixel-2" serif:id="right pixel 2" x="38" y="9" width="1" height="1" style="fill:rgb(43,43,43);fill-rule:nonzero;"/>
+    <rect id="left-pixel-2" serif:id="left pixel 2" x="3" y="9" width="1" height="1" style="fill:rgb(37,37,37);fill-rule:nonzero;"/>
+</svg>

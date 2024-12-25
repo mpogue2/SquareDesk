@@ -131,7 +131,6 @@ void svgDial::mouseReleaseEvent(QMouseEvent* e) {
 // -----------------------------
 void svgDial::reinit() {
     // qDebug() << "======== reinit with new files and colors:" << m_knobFile << m_needleFile << m_arcColor;
-
     QString pathToResources = QCoreApplication::applicationDirPath() + "/";
 
 #if defined(Q_OS_MAC)
@@ -258,7 +257,8 @@ void svgDial::finishInit() {
     yoffset = -0.5;
     radius = mysize;
 
-    arcColor.setNamedColor(m_arcColor); // convert string to QColor
+    // arcColor.setNamedColor(m_arcColor); // convert string to QColor
+    arcColor = QColor(m_arcColor);
 
     // ARC ------------------
     arc = new QGraphicsArcItem(offset+xoffset,offset+yoffset, radius-2*offset+yoffset+xoffset, radius-2*offset+yoffset);

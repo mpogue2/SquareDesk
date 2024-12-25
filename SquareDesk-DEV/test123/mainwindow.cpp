@@ -2727,6 +2727,10 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkTrebleKnob->finishInit();
     ui->darkMidKnob->finishInit();
     ui->darkBassKnob->finishInit();
+
+    ui->darkPitchSlider->finishInit();
+    ui->darkTempoSlider->finishInit();
+    ui->darkVolumeSlider->finishInit();
 }
 
 void MainWindow::newFromTemplate() {

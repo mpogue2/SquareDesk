@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 42 107" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;">
+    <g id="path2" transform="matrix(3,0,0,1,-18,0)">
+        <rect x="9" y="70.5" width="8" height="1" style="fill:rgb(208,208,208);fill-rule:nonzero;"/>
+    </g>
+    <g id="path3" transform="matrix(3,0,0,1,-18,0)">
+        <rect x="9" y="79.5" width="8" height="1" style="fill:rgb(208,208,208);fill-rule:nonzero;"/>
+    </g>
+    <g id="path4" transform="matrix(3,0,0,1,-18,0)">
+        <rect x="9" y="88.5" width="8" height="1" style="fill:rgb(208,208,208);fill-rule:nonzero;"/>
+    </g>
+    <g id="path6" transform="matrix(3,0,0,1,-18,0)">
+        <rect x="9" y="25.5" width="8" height="1" style="fill:rgb(208,208,208);fill-rule:nonzero;"/>
+    </g>
+    <g id="path7" transform="matrix(3,0,0,1,-18,0)">
+        <rect x="9" y="34.5" width="8" height="1" style="fill:rgb(208,208,208);fill-rule:nonzero;"/>
+    </g>
+    <g id="path8" transform="matrix(3,0,0,1,-18,0)">
+        <rect x="9" y="43.5" width="8" height="1" style="fill:rgb(208,208,208);fill-rule:nonzero;"/>
+    </g>
+    <g id="path81" serif:id="path8" transform="matrix(3,0,0,1,-18,9)">
+        <rect x="9" y="43.5" width="8" height="1" style="fill:rgb(208,208,208);fill-rule:nonzero;"/>
+    </g>
+    <g id="path9" transform="matrix(3,0,0,1,-18,0)">
+        <path d="M9,7.5L17,7.5L17,8.5L9,8.5L9,7.5Z" style="fill:rgb(176,176,176);fill-rule:nonzero;"/>
+    </g>
+    <g id="path91" serif:id="path9" transform="matrix(3,0,0,1,-18,9)">
+        <path d="M9,7.5L17,7.5L17,8.5L9,8.5L9,7.5Z" style="fill:rgb(208,208,208);fill-rule:nonzero;"/>
+    </g>
+    <g id="path10" transform="matrix(3,0,0,1,-18,0)">
+        <path d="M9,97.5L17,97.5L17,98.5L9,98.5L9,97.5Z" style="fill:rgb(176,176,176);fill-rule:nonzero;"/>
+    </g>
+    <g id="path2-9" transform="matrix(3,0,0,1,-18,0)">
+        <rect x="9" y="61.5" width="8" height="1" style="fill:rgb(208,208,208);fill-rule:nonzero;"/>
+    </g>
+    <rect id="inside-vein" serif:id="inside vein" x="20.305" y="7.305" width="1.39" height="92.39" style="fill:rgb(145,145,145);fill-rule:nonzero;stroke:rgb(145,145,145);stroke-width:3px;"/>
+    <g id="plus">
+    </g>
+    <g id="minus">
+    </g>
+</svg>

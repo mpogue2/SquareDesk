@@ -279,7 +279,7 @@ QWidget#darkVUmeter[theme="Dark"] {
 }
 
 QWidget#darkVUmeter[theme="Light"] {
-    qproperty-bgColor: #C8C8C8;
+    qproperty-bgColor: #D5D5D5;
 }
 
 QLabel#darkPitchLabel {
@@ -519,4 +519,53 @@ QToolTip {
 	qproperty-knobFile: "knobs/knob_bg_dark.svg";
 	qproperty-needleFile: "knobs/knob_indicator_dark.svg";
 	qproperty-arcColor: "#808080";
+}
+
+/* svgSlider's ------------------- */	
+#darkPitchSlider[theme="Light"]
+{
+	qproperty-bgFile: "sliders/slider_light_pitchtempo.svg";
+	qproperty-handleFile: "sliders/knob_light.svg";
+	qproperty-veinColor: "#009CFF";
+	qproperty-centerVeinType: true;
+}
+
+#darkTempoSlider[theme="Light"]
+{
+	qproperty-bgFile: "sliders/slider_light_pitchtempo.svg";
+	qproperty-handleFile: "sliders/knob_light.svg";
+	qproperty-veinColor: "#009CFF";
+	qproperty-centerVeinType: true;
+}
+
+#darkVolumeSlider[theme="Light"]
+{
+	qproperty-bgFile: "sliders/slider_light_volume.svg";
+	qproperty-handleFile: "sliders/knob_light.svg";
+	qproperty-veinColor: "#009CFF";
+	qproperty-centerVeinType: false;
+}
+
+#darkPitchSlider[theme="Dark"]
+{
+	qproperty-bgFile: "sliders/slider_dark_pitchtempo.svg";
+	qproperty-handleFile: "sliders/knob_dark.svg";
+	qproperty-veinColor: "#177D0F";
+	qproperty-centerVeinType: true;
+}
+
+#darkTempoSlider[theme="Dark"]
+{
+	qproperty-bgFile: "sliders/slider_dark_pitchtempo.svg";
+	qproperty-handleFile: "sliders/knob_dark.svg";
+	qproperty-veinColor: "#CA4E09";
+	qproperty-centerVeinType: true;
+}
+
+#darkVolumeSlider[theme="Dark"]
+{
+	qproperty-bgFile: "sliders/slider_dark_volume.svg";
+	qproperty-handleFile: "sliders/knob_dark.svg";
+	qproperty-veinColor: "#00797B";
+	qproperty-centerVeinType: false;
 }
