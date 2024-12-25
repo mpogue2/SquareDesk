@@ -752,7 +752,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
 #ifdef DEBUG_LIGHT_MODE
     QString qssDir = qApp->applicationDirPath() + "/../Resources";
-    qDebug() << "WATCHING: " << qssDir;
+    // qDebug() << "WATCHING: " << qssDir;
     lightModeWatcher.addPath(qssDir); // watch for add/deletes for light mode QSS file changing
 
     QObject::connect(&lightModeWatcher, SIGNAL(directoryChanged(QString)),
@@ -1367,6 +1367,21 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     updateFlashFileMenu();
     readFlashCallsList();
 
+#ifdef DEBUG_LIGHT_MODE
+    QString themePreference = prefsManager.GetactiveTheme();
+    // qDebug() << "themePreference:" << themePreference;
+
+    if (themePreference == "Light") {
+        // qDebug() << "    setting to Light";
+        ui->actionLight->setChecked(true);
+        themeTriggered(ui->actionLight);
+    } else if (themePreference == "Dark") {
+        // qDebug() << "    setting to Dark";
+        ui->actionDark->setChecked(true);
+        themeTriggered(ui->actionDark);
+    }
+#endif
+
     QString snapSetting = prefsManager.Getsnap();
     if (snapSetting == "disabled") {
         ui->actionDisabled->setChecked(true);
@@ -1814,20 +1829,17 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     // layout the QDials in QtDesigner, promote to svgDial's, and then make sure to init all 3 parameters (in this order)
     ui->darkTrebleKnob->setKnobFile("knobs/knob_bg_regular.svg");
     ui->darkTrebleKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
-//    ui->darkTrebleKnob->setArcColor("#ff0000"); // triggers finish of init
-    ui->darkTrebleKnob->setArcColor("#909090"); // triggers finish of init
+    ui->darkTrebleKnob->setArcColor("#909090"); // no longer triggers finish of init
     ui->darkTrebleKnob->setToolTip("Treble\nControls the amount of high frequencies in this song.");
 
     ui->darkMidKnob->setKnobFile("knobs/knob_bg_regular.svg");
     ui->darkMidKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
-//    ui->dial2->setArcColor("#00FF00"); // triggers finish of init
-    ui->darkMidKnob->setArcColor("#909090"); // triggers finish of init
+    ui->darkMidKnob->setArcColor("#909090"); // no longer triggers finish of init
     ui->darkMidKnob->setToolTip("Midrange\nControls the amount of midrange frequencies in this song.");
 
     ui->darkBassKnob->setKnobFile("knobs/knob_bg_regular.svg");
     ui->darkBassKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
-//    ui->dial3->setArcColor("#028392"); // triggers finish of init
-    ui->darkBassKnob->setArcColor("#909090"); // triggers finish of init
+    ui->darkBassKnob->setArcColor("#909090"); // no longer triggers finish of init
     ui->darkBassKnob->setToolTip("Bass\nControls the amount of low frequencies in this song.");
 
 #ifndef DEBUG_LIGHT_MODE
@@ -2697,16 +2709,24 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     // initial stylesheet loaded here -----------
     themesFileModified(); // load the Themes.qss file for the first time
 
-    // and set the dynamic properties for LIGHT mode to start with
-    themeTriggered(ui->actionLight); // start out with the mandatory "Light" theme (do NOT delete "Light")
+    // // and set the dynamic properties for LIGHT mode to start with
+    // themeTriggered(ui->actionLight); // start out with the mandatory "Light" theme (do NOT delete "Light")
+
+    ui->actionSwitch_to_Light_Mode->setVisible(false);  // in NEW LIGHT/DARK MODES, don't show the old Switch to X Mode menu item
 #else
-    qDebug() << "turning off menuTheme";
+    // qDebug() << "turning off menuTheme";
     ui->menuTheme->menuAction()->setVisible(false);  // in OLD LIGHT MODE, don't show the new Theme menu
 #endif
 
     // and update the caches ---------
     ui->theSVGClock->finishInit();
     ui->darkSeekBar->finishInit();  // load everything up!
+
+    // qDebug() << "trigger!";
+
+    ui->darkTrebleKnob->finishInit();
+    ui->darkMidKnob->finishInit();
+    ui->darkBassKnob->finishInit();
 }
 
 void MainWindow::newFromTemplate() {

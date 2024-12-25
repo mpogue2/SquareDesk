@@ -1,20 +1,9 @@
-/* THIS IS THE stylesheet for light and dark modes */
+/* This is the stylesheet for both Light and Dark themes,
+as selected from the Theme menu */
 
-/*-----QWidget-----
-QWidget
-{
-	background-color: #f2f2f5;
-	color: #000;
-	selection-background-color: #46a2da;
-	selection-color: #fff;
-}
-*/ 
-
-/* BUG: AH...context menus and tooltips don't
-have the theme property set */
-QMenu[theme="Dark"]  {
-	background-color: #3c3c3c;
-	color: #ccc;
+QMenu[theme="Dark"] {
+    background-color: #3c3c3c;
+    color: #ccc;
 }
 
 /* QT BUG: can't put qualifier [theme="Dark"]
@@ -25,116 +14,105 @@ because the QAbstractItemView is ignored */
 selector stuff has to be exactly this way */
 #comboBoxCallListProgram[theme="Dark"],
 QComboBox[theme="Dark"] {
-	background-color: #3c3c3c;
-	alternate-background-color: #2d2d2d;
-	color: #ccc;
-	selection-background-color: #8012507b;
+    background-color: #3c3c3c;
+    alternate-background-color: #2d2d2d;
+    color: #ccc;
+    selection-background-color: #8012507b;
 }
 
 QAbstractItemView[theme="Dark"] {
-	background-color: #3c3c3c;
-	alternate-background-color: #2d2d2d;
-	color: #ccc;
+    background-color: #3c3c3c;
+    alternate-background-color: #2d2d2d;
+    color: #ccc;
 }
 
 QLabel[theme="Dark"] {
-	color: #C0C0C0;
+    color: #C0C0C0;
 }
 
 QLabel[theme="Light"] {
-	color: #000;
+    color: #000;
 }
 
-QLabel#darkTitle[flashcall="false"][theme="Light"]
-{
-	color: #000;
-	font-style: normal;
+QLabel#darkTitle[flashcall="false"][theme="Light"] {
+    color: #000;
+    font-style: normal;
 }
 
-QLabel#darkTitle[flashcall="false"][theme="Dark"]
-{
-	color: #c0c0c0;
-	font-style: normal;
+QLabel#darkTitle[flashcall="false"][theme="Dark"] {
+    color: #c0c0c0;
+    font-style: normal;
 }
 
-QLabel#darkTitle[flashcall="true"]
-{
-	color: #F00;
-	font-style: italic;
+QLabel#darkTitle[flashcall="true"] {
+    color: #F00;
+    font-style: italic;
 }
 
 /* WARNING LABELS ---------------- */
 QLabel#darkWarningLabel[state="IN_PATTER"][theme="Light"],
 QLabel#warningLabelSD[state="IN_PATTER"][theme="Light"],
-QLabel#warningLabelCuesheet[state="IN_PATTER"][theme="Light"]
-{
-	color: black;
-	font-style: normal;
+QLabel#warningLabelCuesheet[state="IN_PATTER"][theme="Light"] {
+    color: black;
+    font-style: normal;
 }
 
 QLabel#darkWarningLabel[state="IN_PATTER"][theme="Dark"],
 QLabel#warningLabelSD[state="IN_PATTER"][theme="Dark"],
-QLabel#warningLabelCuesheet[state="IN_PATTER"][theme="Dark"]
-{
-	color: #C0C0C0;
-	font-style: normal;
+QLabel#warningLabelCuesheet[state="IN_PATTER"][theme="Dark"] {
+    color: #C0C0C0;
+    font-style: normal;
 }
 
 QLabel#darkWarningLabel[state="PATTER_OVER"],
 QLabel#warningLabelSD[state="PATTER_OVER"],
-QLabel#warningLabelCuesheet[state="PATTER_OVER"]
-{
-	color: red;
-	font-style: normal;
+QLabel#warningLabelCuesheet[state="PATTER_OVER"] {
+    color: red;
+    font-style: normal;
 }
 
 QLabel#darkWarningLabel[state="LONG_PATTER"],
 QLabel#warningLabelSD[state="LONG_PATTER"],
-QLabel#warningLabelCuesheet[state="LONG_PATTER"]
-{
-	color: red;
-	font-style: italic;
+QLabel#warningLabelCuesheet[state="LONG_PATTER"] {
+    color: red;
+    font-style: italic;
 }
 
 QLabel#darkWarningLabel[state="IN_SINGER"],
 QLabel#warningLabelSD[state="IN_SINGER"],
-QLabel#warningLabelCuesheet[state="IN_SINGER"]
-{
-	color: red;
-	font-style: normal;
+QLabel#warningLabelCuesheet[state="IN_SINGER"] {
+    color: red;
+    font-style: normal;
 }
 
 QLabel#darkWarningLabel[state="IN_BREAK"],
 QLabel#warningLabelSD[state="IN_BREAK"],
-QLabel#warningLabelCuesheet[state="IN_BREAK"]
-{
-	color: #88F;
-	font-style: normal;
+QLabel#warningLabelCuesheet[state="IN_BREAK"] {
+    color: #88F;
+    font-style: normal;
 }
 
 QLabel#darkWarningLabel[state="BREAK_OVER"],
 QLabel#warningLabelSD[state="BREAK_OVER"],
-QLabel#warningLabelCuesheet[state="BREAK_OVER"]
-{
-	color: red;
-	font-style: normal;
+QLabel#warningLabelCuesheet[state="BREAK_OVER"] {
+    color: red;
+    font-style: normal;
 }
 
 QLabel#playlist1Label[theme="Dark"],
 QLabel#playlist2Label[theme="Dark"],
-QLabel#playlist3Label[theme="Dark"]
-{
-	font-size: 11pt;
-	color: #CCC;
-	border: 1px solid #383838;
-	background-color: #404040;
+QLabel#playlist3Label[theme="Dark"] {
+    font-size: 11pt;
+    color: #CCC;
+    border: 1px solid #383838;
+    background-color: #404040;
 }
+
 QLabel#playlist1Label[theme="Light"],
 QLabel#playlist2Label[theme="Light"],
-QLabel#playlist3Label[theme="Light"]
-{
-	font-size: 11pt;
-	color: #000;
+QLabel#playlist3Label[theme="Light"] {
+    font-size: 11pt;
+    color: #000;
 }
 
 /*
@@ -145,7 +123,7 @@ QHeaderView::section {
 
 QHeaderView::section[theme="Dark"] {
     background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                      stop:0 #464646, stop:1 #424242);
+        stop:0 #464646, stop:1 #424242);
     color: #aaaaaa;
     padding-left: 4px;
     border: 1px solid #353535;
@@ -153,254 +131,185 @@ QHeaderView::section[theme="Dark"] {
     height: 18px;
 }
 
-/*
-QHeaderView::section[theme="Dark"] {
-    background-color: black;
-    color: red;
-    height: 17px;
-    font: 14px;
-}
-QHeaderView::section[theme="Light"] {
-    background-color: #D2D2D2;
-    color: black;
-    height: 17px;
-    font: 14px;
-}
-*/
-
-/* line just under the song title QFrame[height="3"],
-QFrame[width="3"]
-*/
-QFrame#line_3
-{
-	background-color: #800; 
+/* reddish line just under the song title */
+QFrame#line_3 {
+    background-color: #800;
 }
 
 /* line dividing top 1/3 from bottom 2/3 */
-QFrame#line_4[theme="Dark"]
-{
-	background-color: #202020;
+QFrame#line_4[theme="Dark"] {
+    background-color: #202020;
 }
-QFrame#line_4[theme="Light"]
-{
-	background-color: #CCC;
+
+QFrame#line_4[theme="Light"] {
+    background-color: #CCC;
 }
 
 /* TOOL BUTTONS ---------- */
-QToolButton[theme="Dark"] { /* all types of tool button */
-	background-color: qlineargradient( x1:0 y1:1, x2:0 y2:0, stop:0 #363636, stop:1 #404040);
+QToolButton[theme="Dark"] {
+    /* all types of tool button */
+    background-color: qlineargradient(x1:0 y1:1, x2:0 y2:0, stop:0 #363636, stop:1 #404040);
     border: 1px solid #1a1a1a;
     border-radius: 3px;
     color: #CCC;
 }
-QToolButton[theme="Light"] { /* all types of tool button */
-	background-color: #f2f2f5;
+
+QToolButton[theme="Light"] {
+    /* all types of tool button */
+    background-color: #f2f2f5;
     border: 1px solid #000;
     border-radius: 3px;
 }
 
 /* PUSH BUTTONS ---------- */
-QPushButton[theme="Dark"] { /* all types of push button */
-	background-color: #3d3d3d;
+QPushButton[theme="Dark"] {
+    /* all types of push button */
+    background-color: #3d3d3d;
     border: 1px solid #000;
     border-radius: 3px;
     color: #d2d2d2;
 }
-QPushButton[theme="Light"] { /* all types of push button */
-	background-color: #f2f2f5;
+
+QPushButton[theme="Light"] {
+    /* all types of push button */
+    background-color: #f2f2f5;
     border: 1px solid #8f8f91;
     border-radius: 3px;
 }
 
-/*QPushButton#pushButtonEditLyrics, 
-QPushButton#pushButtonCueSheetEditLyrics,
-*/
 QPushButton#pushButtonCueSheetEditTitle,
 QPushButton#pushButtonCueSheetEditLabel,
 QPushButton#pushButtonCueSheetEditArtist,
 QPushButton#pushButtonCueSheetEditBold,
-QPushButton#pushButtonCueSheetEditItalic, 
-QPushButton#pushButtonCueSheetEditClearFormatting, 
-QPushButton#pushButtonNewFromTemplate
-{
-	height:15; 
+QPushButton#pushButtonCueSheetEditItalic,
+QPushButton#pushButtonCueSheetEditClearFormatting,
+QPushButton#pushButtonNewFromTemplate {
+    height: 15;
 }
 
-QPushButton#pushButtonCueSheetEditLyrics 
-{
-    background-color: #FFC0CB; 
-    color: #000000; 
+QPushButton#pushButtonCueSheetEditLyrics {
+    background-color: #FFC0CB;
+    color: #000000;
 }
 
-/*QPushButton#pushButtonCueSheetEditLyrics 
-{
-    background-color: #FFC0CB; 
-    color: #000000; 
-    border-radius:4px; 
-    padding:1px 8px; 
-    border:0.5px solid #CF9090;
-    height: 60;
-}
-*/
-/*
-QPushButton#pushButtonCueSheetEditLyrics:checked
-{
-        background-color: qlineargradient(x1: 0, y1: 1, x2: 0, y2: 0, stop: 0 #1E72FE, stop: 1 #3E8AFC); 
-        color: #FFFFFF; 
-        border:0.5px solid #0D60E3;
-    height: 20;
-}
-QPushButton#pushButtonCueSheetEditLyrics:pressed
-{
-    background-color: qlineargradient(x1: 0, y1: 1, x2: 0, y2: 0, stop: 0 #1E72FE, stop: 1 #3E8AFC); 
-    color: #FFFFFF; 
-    border:0.5px solid #0D60E3;
-    height: 20;
-}
-QPushButton#pushButtonCueSheetEditLyrics:disabled
-{
-	background-color: #FFC0CB; 
-	color: #000000; 
-	border-radius:4px; 
-	padding:1px 8px; 
-	border:0.5px solid #CF9090;
-    height: 20;
-}                
-*/
 QPushButton#pushButtonSetIntroTime,
 QPushButton#pushButtonSetOutroTime,
 QPushButton#pushButtonTestLoop,
 QPushButton#pushButtonSDNew,
 QPushButton#pushButtonSDUnlock,
 QPushButton#pushButtonSDRevert,
-QPushButton#pushButtonSDDelete
-{
-	padding:8px; 
+QPushButton#pushButtonSDDelete {
+    padding: 8px;
 }
 
-QPushButton#pushButtonCueSheetEditTitle
-{
-	font-weight:bold;
-	font-size:16pt;
+QPushButton#pushButtonCueSheetEditTitle {
+    font-weight: bold;
+    font-size: 16pt;
 }
 
-QPushButton#pushButtonCueSheetEditLabel
-{
-	color:#60C060;
-	font-size:12pt;
+QPushButton#pushButtonCueSheetEditLabel {
+    color: #60C060;
+    font-size: 12pt;
 }
 
-QPushButton#pushButtonCueSheetEditArtist[theme="Dark"]
-{
-	color:#77F;
-	font-size:12pt;
-}
-QPushButton#pushButtonCueSheetEditArtist[theme="Light"]
-{
-	color:#00F;
-	font-size:12pt;
+QPushButton#pushButtonCueSheetEditArtist[theme="Dark"] {
+    color: #77F;
+    font-size: 12pt;
 }
 
-QPushButton#pushButtonCueSheetEditHeader
-{
-	color:#F00;
-	font-size:16pt;
+QPushButton#pushButtonCueSheetEditArtist[theme="Light"] {
+    color: #00F;
+    font-size: 12pt;
 }
 
-QPushButton#pushButtonCueSheetEditBold
-{
-	font-weight:bold;
+QPushButton#pushButtonCueSheetEditHeader {
+    color: #F00;
+    font-size: 16pt;
 }
 
-QPushButton#pushButtonCueSheetEditItalic
-{
-	font:italic;
+QPushButton#pushButtonCueSheetEditBold {
+    font-weight: bold;
 }
 
-QLabel#theSVGClock[theme="Light"]
-{
-	background-color: #e8e8e8;
-	qproperty-hourHandColor: #225;
-	qproperty-minuteHandColor: #444;
-	qproperty-secondHandColor: #A00;
-	qproperty-digitalTimeColor: #7070E0;
-	qproperty-tickColor: #000;
-	qproperty-numberColor: #000;
+QPushButton#pushButtonCueSheetEditItalic {
+    font: italic;
 }
-QLabel#theSVGClock[theme="Dark"]
-{
-	background-color: #393939;
-	qproperty-hourHandColor: #a0a0a0;
-	qproperty-minuteHandColor: #ddd;
-	qproperty-secondHandColor: #fdfdfd;
-	qproperty-digitalTimeColor: #7070E0;
-	qproperty-tickColor: #989898;
-	qproperty-numberColor: #a0a0a0;
+
+QLabel#theSVGClock[theme="Light"] {
+    background-color: #e8e8e8;
+    qproperty-hourHandColor: #225;
+    qproperty-minuteHandColor: #444;
+    qproperty-secondHandColor: #A00;
+    qproperty-digitalTimeColor: #7070E0;
+    qproperty-tickColor: #000;
+    qproperty-numberColor: #000;
+}
+
+QLabel#theSVGClock[theme="Dark"] {
+    background-color: #393939;
+    qproperty-hourHandColor: #a0a0a0;
+    qproperty-minuteHandColor: #ddd;
+    qproperty-secondHandColor: #fdfdfd;
+    qproperty-digitalTimeColor: #7070E0;
+    qproperty-tickColor: #989898;
+    qproperty-numberColor: #a0a0a0;
 }
 
 /* status bar */
 QStatusBar[theme="Dark"] {
-	background-color: #252525;
-	color: #ccc;
+    background-color: #252525;
+    color: #ccc;
 }
+
 QStatusBar[theme="Light"] {
-	background-color: #e5e5e5;
+    background-color: #e5e5e5;
 }
 
 /* right side of the status bar */
 QStatusBar QLabel[theme="Dark"] {
-	color: #ccc;
-}
-QStatusBar QLabel[theme="Light"] {
-	color: #000;
+    color: #ccc;
 }
 
-QWidget#darkVUmeter[theme="Dark"] 
-{
-	qproperty-bgColor: #212121;
+QStatusBar QLabel[theme="Light"] {
+    color: #000;
 }
-QWidget#darkVUmeter[theme="Light"] 
-{
-	qproperty-bgColor: #C8C8C8;
+
+QWidget#darkVUmeter[theme="Dark"] {
+    qproperty-bgColor: #212121;
+}
+
+QWidget#darkVUmeter[theme="Light"] {
+    qproperty-bgColor: #C8C8C8;
 }
 
 QLabel#darkPitchLabel {
-	padding-left: 6px;
+    padding-left: 6px;
 }
 
-/* there's a bug when reloading this qss file, where a little white vertical line is added to the left side of the darkSeekBar.
-This is not normally visible to a user
-under normal circumstances. */
-
-QSlider#darkSeekBar[theme="Dark"]
-{
-	qproperty-bgColor: #1a1a1a;
-	qproperty-darkeningColor: #80000000;
-/*	qProperty-bracketColor: #00a7f4; */
-	qProperty-loopColor: #00a7f4;
-	qProperty-currentPositionColor: #00f700;
-	/* TODO: add colors for singers, and for sections */
+QSlider#darkSeekBar[theme="Dark"] {
+    qproperty-bgColor: #1a1a1a;
+    qproperty-darkeningColor: #80000000;
+    qProperty-loopColor: #00a7f4;
+    qProperty-currentPositionColor: #00f700;
+    /* TODO: add colors for singers, and for sections */
 }
 
-QSlider#darkSeekBar[theme="Light"]
-{
-	qproperty-bgColor: #e5e5e5;
-	qproperty-darkeningColor: #30000000;
-	qProperty-loopColor: #00a7f4;
-	qProperty-currentPositionColor: #00f700;
-	/* TODO: add colors for singers, and for sections */
+QSlider#darkSeekBar[theme="Light"] {
+    qproperty-bgColor: #e5e5e5;
+    qproperty-darkeningColor: #30000000;
+    qProperty-loopColor: #00a7f4;
+    qProperty-currentPositionColor: #00f700;
+    /* TODO: add colors for singers, and for sections */
 }
 
-QMainWindow[theme="Dark"]
-{
-	background-color:#252525;
+QMainWindow[theme="Dark"] {
+    background-color: #252525;
 }
 
-#darkSearch[theme="Dark"]
-{
-	background-color:#3c3c3c;
-	color:#ccc;
-	border: 1px solid #1a1a1a;
+#darkSearch[theme="Dark"] {
+    background-color: #3c3c3c;
+    color: #ccc;
+    border: 1px solid #1a1a1a;
 }
 
 QTreeWidget#treeWidget[theme="Dark"],
@@ -413,40 +322,31 @@ QTreeWidget#treeWidget[theme="Dark"],
 #listHard[theme="Dark"],
 #tableWidgetCurrentSequence[theme="Dark"],
 #tableWidgetCallList[theme="Dark"],
-#sdCurrentSequenceTitle[theme="Dark"]
-{
-	background-color: #3c3c3c;
-	alternate-background-color: #2d2d2d;
-	color: #ccc;
-	selection-background-color: #12507b;
+#sdCurrentSequenceTitle[theme="Dark"] {
+    background-color: #3c3c3c;
+    alternate-background-color: #2d2d2d;
+    color: #ccc;
+    selection-background-color: #12507b;
 }
 
-QDateTimeEdit[theme="Dark"]
-{
-	background-color: #3c3c3c;
-	color:#ccc;
-	border: 1px solid #1a1a1a;
-	padding: 1px;
-	margin: 1px;
+QDateTimeEdit[theme="Dark"] {
+    background-color: #3c3c3c;
+    color: #ccc;
+    border: 1px solid #1a1a1a;
+    padding: 1px;
+    margin: 1px;
 }
 
 /* https://stackoverflow.com/questions/77769147/how-to-customize-a-qscrollbar */
 
-/* TODO:
-   - fix indentation
-   - make arrows taller?
-*/
-
 QScrollBar:vertical[theme="Dark"] {
-        background: green;
-        margin: 6px 0 6px 0;
+    background: green;
+    margin: 6px 0 6px 0;
 }
 
 QScrollBar::handle:vertical[theme="Dark"] {
-    background: qlineargradient(
-        x1:0, y1:0, x2:1, y2:0, 
-        stop:0 #3f3f3f, stop:1 #383838
-    );
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 #3f3f3f, stop:1 #383838);
     min-height: 8px;
     border: 1px solid;
     border-left-color: #464646;
@@ -454,50 +354,60 @@ QScrollBar::handle:vertical[theme="Dark"] {
     border-right-color: #434343;
     border-bottom-color: #444444;
 }
-QScrollBar::add-line:vertical[theme="Dark"], QScrollBar::sub-line:vertical[theme="Dark"] {
+
+QScrollBar::add-line:vertical[theme="Dark"],
+QScrollBar::sub-line:vertical[theme="Dark"] {
     border: none;
     background: #3e3e3e;
     subcontrol-origin: margin;
     height: 6px;
 }
+
 QScrollBar::add-line:vertical[theme="Dark"] {
     subcontrol-position: bottom;
 }
+
 QScrollBar::sub-line:vertical[theme="Dark"] {
     subcontrol-position: top;
 }
-QScrollBar::up-arrow:vertical[theme="Dark"], QScrollBar::down-arrow:vertical[theme="Dark"] {
+
+QScrollBar::up-arrow:vertical[theme="Dark"],
+QScrollBar::down-arrow:vertical[theme="Dark"] {
     border: 4px solid #434343;
     width: 0px;
     height: 0px;
 }
+
 QScrollBar::up-arrow:vertical[theme="Dark"] {
     top: -2px;
     border-bottom-color: gray;
 }
+
 QScrollBar::down-arrow:vertical[theme="Dark"] {
     bottom: -2px;
     border-top-color: gray;
 }
+
 QScrollBar::up-arrow:vertical:hover[theme="Dark"] {
     border-bottom-color: lightgray;
 }
+
 QScrollBar::down-arrow:vertical:hover[theme="Dark"] {
     border-top-color: lightgray
 }
-QScrollBar::add-page:vertical[theme="Dark"], QScrollBar::sub-page:vertical[theme="Dark"] {
+
+QScrollBar::add-page:vertical[theme="Dark"],
+QScrollBar::sub-page:vertical[theme="Dark"] {
     background: #343434;
 }
+
 QScrollBar::add-page:vertical[theme="Dark"] {
     background-position: bottom;
 }
 
-/*QFrame {
-	border: none;
-}
-*/
-QGraphicsView { /* important for the svgWaveformSlider */
-	border: none;
+QGraphicsView {
+    /* important for the svgWaveformSlider */
+    border: none;
 }
 
 #tempoPitchFrame[theme="Light"],
@@ -512,10 +422,10 @@ QGraphicsView { /* important for the svgWaveformSlider */
 #playlist2Table[theme="Light"],
 #playlist3Label[theme="Light"],
 #playlist3Table[theme="Light"],
-#darkSongTable[theme="Light"]
-{
-	border: 1px solid #bababa; /* bababa */
-	selection-background-color: #A0D2FF;
+#darkSongTable[theme="Light"] {
+    border: 1px solid #bababa;
+    /* bababa */
+    selection-background-color: #A0D2FF;
 }
 
 #tempoPitchFrame[theme="Dark"],
@@ -530,56 +440,56 @@ QGraphicsView { /* important for the svgWaveformSlider */
 #playlist2Table[theme="Dark"],
 #playlist3Label[theme="Dark"],
 #playlist3Table[theme="Dark"],
-#darkSongTable[theme="Dark"]
-{
-	border: 1px solid #2b2b2b; /* 2b2b2b */
+#darkSongTable[theme="Dark"] {
+    border: 1px solid #2b2b2b;
+    /* 2b2b2b */
 }
 
 QTabWidget::tab-bar[theme="Dark"] {
     alignment: left;
 }
 
- QTabWidget::pane[theme="Dark"] { 
-	 border-left: 1px solid #444444; 
-	 border-right: 1px solid #444444; 
-	 border-bottom: 1px solid #444444; 
-	 border-top: 1px solid 525252; 
-	 top: -1px; 
-	 background: #393939; 
-} 
+QTabWidget::pane[theme="Dark"] {
+    border-left: 1px solid #444444;
+    border-right: 1px solid #444444;
+    border-bottom: 1px solid #444444;
+    border-top: 1px solid 525252;
+    top: -1px;
+    background: #393939;
+}
 
- QTabBar::tab[theme="Dark"] { 
- 	background: #303030; 
-	 border-left: 1px solid #4d4d4d; 
-	 border-right: 1px solid #4d4d4d; 
-	 border-top: 1px solid #4d4d4d; 
-	 border-bottom: 1px solid #272727; 
-	 border-top-left-radius: 3px;
-	 border-top-right-radius: 3px;
-	 padding-left: 8px; 
-	 padding-right: 8px; 
-	 padding-top: 3px;
-	 padding-bottom: 3px;
-	 color: #d4d4d4;
-	 margin-left: 0.5px;
-	 margin-right: 0.5px;
-} 
+QTabBar::tab[theme="Dark"] {
+    background: #303030;
+    border-left: 1px solid #4d4d4d;
+    border-right: 1px solid #4d4d4d;
+    border-top: 1px solid #4d4d4d;
+    border-bottom: 1px solid #272727;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    color: #d4d4d4;
+    margin-left: 0.5px;
+    margin-right: 0.5px;
+}
 
- QTabBar::tab:selected[theme="Dark"] { 
-	 background: #393939; 
-	 border-left: 1px solid #525252; 
-	 border-right: 1px solid #525252; 
-	 border-top: 1px solid #525252; 
-	 border-bottom: 1px solid #393939; 
-/*	 margin-bottom: -1px;  */
-	 padding-top: 1px;
+QTabBar::tab:selected[theme="Dark"] {
+    background: #393939;
+    border-left: 1px solid #525252;
+    border-right: 1px solid #525252;
+    border-top: 1px solid #525252;
+    border-bottom: 1px solid #393939;
+    /*	 margin-bottom: -1px;  */
+    padding-top: 1px;
 }
 
 #auditionButton {
-	background-color: transparent;
-	border: none;
-	border-radius: 0px;
-	qproperty-iconSize: 26px;
+    background-color: transparent;
+    border: none;
+    border-radius: 0px;
+    qproperty-iconSize: 26px;
 }
 
 /* for some reason, QToolTip's can't be
@@ -593,3 +503,20 @@ QToolTip {
 	color:#ABA7AC; 
 } */
 
+#darkTrebleKnob[theme="Light"], 
+#darkMidKnob[theme="Light"], 
+#darkBassKnob[theme="Light"]
+{
+	qproperty-knobFile: "knobs/knob_bg_light.svg";
+	qproperty-needleFile: "knobs/knob_indicator_light.svg";
+	qproperty-arcColor: "#009CFF";
+}
+
+#darkTrebleKnob[theme="Dark"],
+#darkMidKnob[theme="Dark"], 
+#darkBassKnob[theme="Dark"]
+{
+	qproperty-knobFile: "knobs/knob_bg_dark.svg";
+	qproperty-needleFile: "knobs/knob_indicator_dark.svg";
+	qproperty-arcColor: "#808080";
+}

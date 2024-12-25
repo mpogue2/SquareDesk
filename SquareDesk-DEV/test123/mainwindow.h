@@ -740,11 +740,6 @@ private slots:
 
     void on_actionShow_Frames_triggered();
 
-    // void on_actionLight_triggered();
-    // void on_actionDark_triggered();
-    // void on_actionLight_checked(bool b);
-    // void on_actionDark_checked(bool b);
-
     // slots for SD editing buttons ------
     void SDMakeFrameFilesIfNeeded();
     void SDGetCurrentSeqs();

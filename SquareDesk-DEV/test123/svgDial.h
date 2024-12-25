@@ -14,6 +14,8 @@
 #include <QMouseEvent>
 #include <QPoint>
 
+#include "globaldefines.h"
+
 // -------------------------------------
 // from: https://stackoverflow.com/questions/14279162/qt-qgraphicsscene-drawing-arc
 class QGraphicsArcItem : public QGraphicsEllipseItem {
@@ -60,6 +62,9 @@ public:
 
     void setValue(int value);
 
+    void finishInit(); // reinitialize all the QGraphicsItems from files
+    void reinit();     // MINIMALLY reinitialize all the QGraphicsItems from files
+
 protected:
     void mouseMoveEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
@@ -102,8 +107,6 @@ private:
     double xoffset;
     double yoffset;
     double radius;
-
-    void finishInit();
 };
 
 #endif // svgDial_H

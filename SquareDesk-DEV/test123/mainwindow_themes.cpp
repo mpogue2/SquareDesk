@@ -12,7 +12,7 @@
 void MainWindow::themesFileModified()
 {
     // Q_UNUSED(s)
-    qDebug() << "***** FILEWATCHER: Themes.qss has been modified...";
+    // qDebug() << "***** FILEWATCHER: Themes.qss has been modified...";
 
     qApp->setStyleSheet("");  // reset it to NOTHING before setting it again
 
@@ -74,8 +74,11 @@ void setDynamicPropertyOnAllWidgets(const QString& propertyName, const QVariant&
 }
 
 void MainWindow::themeTriggered(QAction * action) {
-    qDebug() << "***** themeTriggered()" << action << action->isChecked() << action->text();
+    // qDebug() << "***** themeTriggered()" << action << action->isChecked() << action->text();
     action->setChecked(true);  // check this one (the new one)
+
+    prefsManager.SetactiveTheme(action->text()); // currently just {Light, Dark}
+    // qDebug() << "activeTheme now set to: " << prefsManager.GetactiveTheme();
 
     setDynamicPropertyOnAllWidgets("theme", action->text()); // use this info in the QSS
     ui->darkSeekBar->updateBgPixmap((float*)1, 1);           // update the cached bg pixmap, too
@@ -83,6 +86,10 @@ void MainWindow::themeTriggered(QAction * action) {
 
     currentThemeString = action->text(); // remember for popups
     ui->theSVGClock->setTheme(action->text()); // tell the clock, too (it does not have access to mw)
+
+    ui->darkTrebleKnob->reinit();  // update the cached files
+    ui->darkMidKnob->reinit();  // update the cached files
+    ui->darkBassKnob->reinit();  // update the cached files
 }
 
 #endif

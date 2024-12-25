@@ -2,6 +2,12 @@
 #include "svgDial.h"
 #include "math.h"
 
+#ifdef DEBUG_LIGHT_MODE
+#define ARCWIDTH 3.5
+#else
+#define ARCWIDTH 1.5
+#endif
+
 // -------------------------------------
 // from: https://stackoverflow.com/questions/7537632/custom-look-svg-gui-widgets-in-qt-very-bad-performance
 svgDial::svgDial(QWidget *parent) :
@@ -123,8 +129,91 @@ void svgDial::mouseReleaseEvent(QMouseEvent* e) {
 }
 
 // -----------------------------
+void svgDial::reinit() {
+    // qDebug() << "======== reinit with new files and colors:" << m_knobFile << m_needleFile << m_arcColor;
+
+    QString pathToResources = QCoreApplication::applicationDirPath() + "/";
+
+#if defined(Q_OS_MAC)
+    pathToResources = pathToResources + "../Resources/";
+#endif
+
+    if (m_knobFile == "" || m_needleFile == "") {
+        return;
+    }
+
+    knob   = new QGraphicsSvgItem(pathToResources + m_knobFile);
+    needle = new QGraphicsSvgItem(pathToResources + m_needleFile);
+
+    //view.setStyleSheet("background: transparent; border: none");
+
+    k = knob->renderer()->defaultSize();
+    n = needle->renderer()->defaultSize();
+
+    // qDebug() << "k/n" << k << n;
+
+    needle->setTransformOriginPoint(n.width()/2, n.height()/2 + 2.0);
+    knob->setTransformOriginPoint(k.width()/2, k.height()/2);
+
+    if (k != n) {
+        needle->setPos((k.width()-n.width())/2, (k.height()-n.height())/2);
+    }
+
+    // this->setMinimum(0);
+    // this->setMaximum(100);
+
+    degPerPos = 270.0/(double)(this->maximum() - this->minimum());
+    middle = (this->maximum() - this->minimum())/2;
+
+    int position = value();  // ***** current position
+    needle->setRotation((position - middle) * degPerPos);
+
+    mysize = k.width();
+    if (mysize < n.width())  mysize = n.width();
+    if (mysize < k.height()) mysize = k.height();
+    if (mysize < n.height()) mysize = n.height();
+
+    // for the ARC ------
+    offset = 5.5;
+    xoffset =  0.25;
+    yoffset = -0.5;
+    radius = mysize;
+
+    //arcColor.setNamedColor(m_arcColor); // convert string to QColor
+    arcColor = QColor(m_arcColor);
+
+    // ARC ------------------
+    arc = new QGraphicsArcItem(offset+xoffset,offset+yoffset, radius-2*offset+yoffset+xoffset, radius-2*offset+yoffset);
+    arc->setPen(QPen(arcColor, ARCWIDTH, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin));  // NOTE: arcColor is QColor
+    arc->setStartAngle(16.0 * 90.0);
+
+    // draw the arc -----
+    double endAngle = 0.0; // TEST TEST
+    arc->setSpanAngle(16.0 * endAngle);
+
+    this->setValue(position);
+
+    // ---------------------
+    // view.setDisabled(true);
+    // view.setDisabled(false);
+    // view.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    // view.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    scene.clear(); // added
+
+    // qDebug() << "NEW knob/needle/arc = " << knob << needle << arc;
+
+    scene.addItem(knob);
+    scene.addItem(arc);
+    scene.addItem(needle);
+
+    // view.setScene(&scene);
+    // view.setParent(this,Qt::FramelessWindowHint);
+}
+
+// -----------------------------
 void svgDial::finishInit() {
-//    qDebug() << "======== finishing up initialization!";
+    // qDebug() << "======== finishing up svgDial init!" << m_knobFile << m_needleFile;
 
     QString pathToResources = QCoreApplication::applicationDirPath() + "/";
 
@@ -140,7 +229,7 @@ void svgDial::finishInit() {
     k = knob->renderer()->defaultSize();
     n = needle->renderer()->defaultSize();
 
-    //    qDebug() << k << n;
+    // qDebug() << "k/n" << k << n;
 
     needle->setTransformOriginPoint(n.width()/2, n.height()/2 + 2.0);
     knob->setTransformOriginPoint(k.width()/2, k.height()/2);
@@ -173,7 +262,7 @@ void svgDial::finishInit() {
 
     // ARC ------------------
     arc = new QGraphicsArcItem(offset+xoffset,offset+yoffset, radius-2*offset+yoffset+xoffset, radius-2*offset+yoffset);
-    arc->setPen(QPen(arcColor, 1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));  // NOTE: arcColor is QColor
+    arc->setPen(QPen(arcColor, ARCWIDTH, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin));  // NOTE: arcColor is QColor
     arc->setStartAngle(16.0 * 90.0);
 
     // draw the arc -----
@@ -184,8 +273,13 @@ void svgDial::finishInit() {
 
     // ---------------------
     view.setDisabled(true);
+    // view.setDisabled(false);
     view.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    scene.clear(); // added
+
+    // qDebug() << "knob/needle/arc = " << knob << needle << arc << arcColor;
 
     scene.addItem(knob);
     scene.addItem(arc);
@@ -209,6 +303,7 @@ void svgDial::setValue(int value) {
 };
 
 void svgDial::setKnobFile(QString s) {
+    // qDebug() << "setKnobFile" << s;
     m_knobFile = s;
     emit knobFileChanged(s);
 }
@@ -218,6 +313,7 @@ QString svgDial::getKnobFile() const {
 }
 
 void svgDial::setNeedleFile(QString s) {
+    // qDebug() << "setNeedleFile" << s;
     m_needleFile = s;
     emit needleFileChanged(s);
 }
@@ -228,9 +324,10 @@ QString svgDial::getNeedleFile() const {
 
 void svgDial::setArcColor(QString s) {
     m_arcColor = s;
+    // qDebug() << "setArcColor" << s;
     emit arcColorChanged(s);
 
-    finishInit(); // after knobFile, needleFile, and arcColor are set, finish up the init stuff, before knob is visible for the first time
+    // finishInit(); // after knobFile, needleFile, and arcColor are set, finish up the init stuff, before knob is visible for the first time
 }
 
 QString svgDial::getArcColor() const {

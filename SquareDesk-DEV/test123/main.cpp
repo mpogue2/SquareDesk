@@ -51,9 +51,9 @@ int main(int argc, char *argv[])
 //    prefsManager.SetdarkMode(false);
 
     bool darkmode = prefsManager.GetdarkMode();
-//    qDebug() << "DARKMODE: " << darkmode;
 
 #ifdef DEBUG_LIGHT_MODE
+    darkmode = true;  // override the Light Mode preference for Dark GUI, go with the new one
     QString resourcesPath = qApp->applicationDirPath() + "/../Resources";
     QDir::addSearchPath("themes", resourcesPath); // url(images:foo.png) will look in Resources dir for foo.png
 #else
