@@ -279,7 +279,7 @@ QWidget#darkVUmeter[theme="Dark"] {
 }
 
 QWidget#darkVUmeter[theme="Light"] {
-    qproperty-bgColor: #D5D5D5;
+    qproperty-bgColor: #dadada;
 }
 
 QLabel#darkPitchLabel {

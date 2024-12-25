@@ -37,8 +37,11 @@ svgVUmeter::svgVUmeter(QWidget *parent) :
     QPen greenPen(QColor(Qt::green), 8, Qt::DashLine, Qt::FlatCap);
     QPen yellowPen(QColor(Qt::yellow), 8, Qt::DashLine, Qt::FlatCap);
     QPen redPen(QColor(Qt::red), 8, Qt::DashLine, Qt::FlatCap);
-    QPen grayPen(QColor("#282828"), 8, Qt::DashLine, Qt::FlatCap);
-    QPen darkRedPen(QColor("#48020D"), 8, Qt::DashLine, Qt::FlatCap);
+
+    // QPen grayPen(QColor("#282828"), 8, Qt::DashLine, Qt::FlatCap);
+    QPen grayPen(QColor("#484848"), 8, Qt::DashLine, Qt::FlatCap);
+    // QPen darkRedPen(QColor("#48020b"), 8, Qt::DashLine, Qt::FlatCap);
+    QPen darkRedPen(QColor("#7a0b1c"), 8, Qt::DashLine, Qt::FlatCap);
 
     QVector<qreal> dashes;
     dashes << 0.25 << 0.25;
@@ -127,7 +130,6 @@ svgVUmeter::svgVUmeter(QWidget *parent) :
 }
 
 void svgVUmeter::updateMeter() {
-
     if (valueL < 0 || valueL > 1.0 || valueR < 0 || valueR > 1.0) {
         return;  // ignore bad values
     }
