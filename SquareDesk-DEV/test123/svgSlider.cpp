@@ -209,7 +209,7 @@ void svgSlider::reinit() {
 
     // setValue(getDefaultValue());    // initial position and double-click position to return to
 
-    qDebug() << "current slider value is" << value();
+    // qDebug() << "current slider value is" << value();
     setValue(value());  // force recalculation of the vein
 
     setFixedSize(42,107); // no need for this
