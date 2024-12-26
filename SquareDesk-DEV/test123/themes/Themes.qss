@@ -141,11 +141,32 @@ QToolButton[theme="Dark"] {
     color: #CCC;
 }
 
+QToolButton:hover:!disabled[theme="Dark"]
+{
+    background-color: qlineargradient(x1:0 y1:1, x2:0 y2:0, stop:0 #3F3F3F, stop:1 #484848);
+}
+
+QToolButton:pressed[theme="Dark"]
+{
+    background-color: qlineargradient(x1:0 y1:1, x2:0 y2:0, stop:0 #262626, stop:1 #363636);
+}
+
+/* ----- */
 QToolButton[theme="Light"] {
     /* all types of tool button */
     background-color: #f2f2f5;
     border: 1px solid #000;
     border-radius: 3px;
+}
+
+QToolButton:hover:!disabled[theme="Light"]
+{
+    background-color: #ffffff;
+}
+
+QToolButton:pressed[theme="Light"]
+{
+    background-color: #E0E0E0;
 }
 
 /* PUSH BUTTONS ===================== */
@@ -530,7 +551,7 @@ QTabBar::tab:selected[theme="Light"] {
 }
 
 
-/* audition buttons ================== */
+/* Audition Buttons ================== */
 #auditionButton {
     background-color: transparent;
     border: none;
@@ -538,6 +559,17 @@ QTabBar::tab:selected[theme="Light"] {
     qproperty-iconSize: 26px;
 }
 
+#auditionButton:hover:!disabled[theme="Dark"]
+{
+    background-color: #10808080; /* make it lighter */
+}
+
+#auditionButton:hover:!disabled[theme="Light"]
+{
+    background-color: #08000000; /* make it darker */
+}
+
+/* TOOLTIPS ========================== */
 /* for some reason, QToolTip's can't be
 qualified with [theme="something"]
 QToolTip {
