@@ -67,6 +67,8 @@
 #include <taglib/mpeg/id3v2/frames/textidentificationframe.h>
 #include <string>
 
+#include "utility.h"
+
 using namespace TagLib;
 
 // ---------------------------------------------------------------------------------
@@ -225,6 +227,7 @@ void MainWindow::on_actionUpdate_ID3_Tags_triggered()
     }
 
     updateDialog = new updateID3TagsDialog(this);
+    setDynamicPropertyRecursive(updateDialog, "theme", currentThemeString);
 
     // UpdateID3Tags dialog is MODAL ---------
     int dialogCode = updateDialog->exec();

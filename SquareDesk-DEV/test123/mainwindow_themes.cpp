@@ -6,6 +6,7 @@
 #pragma clang diagnostic pop
 
 #include "ui_mainwindow.h"
+#include "utility.h"
 
 #ifdef DEBUG_LIGHT_MODE
 
@@ -50,28 +51,28 @@ void MainWindow::analogClockStateChanged(QString newStateName) {
     }
 }
 
-// HELPER FUNCTIONS for setting properties on all widgets
-//   the qss can then use darkmode and !darkmode
-void setDynamicPropertyRecursive(QWidget* widget, const QString& propertyName, const QVariant& value) {
-    if (widget) {
-        widget->setProperty(propertyName.toStdString().c_str(), value);
-        widget->style()->unpolish(widget);
-        widget->style()->polish(widget);
-        const QList<QObject*> children = widget->children();
-        for (QObject* child : children) {
-            if (QWidget* childWidget = qobject_cast<QWidget*>(child)) {
-                setDynamicPropertyRecursive(childWidget, propertyName, value);
-            }
-        }
-    }
-}
+// // HELPER FUNCTIONS for setting properties on all widgets
+// //   the qss can then use darkmode and !darkmode
+// void setDynamicPropertyRecursive(QWidget* widget, const QString& propertyName, const QVariant& value) {
+//     if (widget) {
+//         widget->setProperty(propertyName.toStdString().c_str(), value);
+//         widget->style()->unpolish(widget);
+//         widget->style()->polish(widget);
+//         const QList<QObject*> children = widget->children();
+//         for (QObject* child : children) {
+//             if (QWidget* childWidget = qobject_cast<QWidget*>(child)) {
+//                 setDynamicPropertyRecursive(childWidget, propertyName, value);
+//             }
+//         }
+//     }
+// }
 
-void setDynamicPropertyOnAllWidgets(const QString& propertyName, const QVariant& value) {
-    const QList<QWidget*> topLevelWidgets = QApplication::topLevelWidgets();
-    for (QWidget* widget : topLevelWidgets) {
-        setDynamicPropertyRecursive(widget, propertyName, value);
-    }
-}
+// void setDynamicPropertyOnAllWidgets(const QString& propertyName, const QVariant& value) {
+//     const QList<QWidget*> topLevelWidgets = QApplication::topLevelWidgets();
+//     for (QWidget* widget : topLevelWidgets) {
+//         setDynamicPropertyRecursive(widget, propertyName, value);
+//     }
+// }
 
 void MainWindow::themeTriggered(QAction * action) {
     // qDebug() << "***** themeTriggered()" << action << action->isChecked() << action->text();

@@ -52,6 +52,39 @@ QAbstractItemView[theme="Dark"] {
     color: #ccc;
 }
 
+/* QLINEEDIT =========================== */
+QLineEdit[theme="Dark"] {
+    background-color: #3c3c3c;
+    color: #C0C0C0;
+    border: 1px solid #202020;    
+}
+
+QLineEdit[theme="Light"] {
+    color: #000;
+}
+
+/* QLINEEDIT =========================== */
+QSpinBox[theme="Dark"] {
+    background-color: #3c3c3c;
+    color: #C0C0C0;
+    border: 1px solid #202020;    
+}
+
+QSpinBox[theme="Light"] {
+    color: #000;
+}
+
+/* QTIMEEDIT =========================== */
+QTimeEdit[theme="Dark"] {
+    background-color: #3c3c3c;
+    color: #C0C0C0;
+    border: 1px solid #202020;    
+}
+
+QSpinBox[theme="Light"] {
+    color: #000;
+}
+
 /* LABELS =========================== */
 QLabel[theme="Dark"] {
     color: #C0C0C0;
@@ -322,6 +355,43 @@ QLabel#darkPitchLabel {
 
 QMainWindow[theme="Dark"] {
     background-color: #252525;
+}
+
+QDialog[theme="Dark"] {
+    background-color: #252525;
+}
+
+QDialog[theme="Dark"] QCheckBox:unchecked,
+QDialog[theme="Dark"] QCheckBox:checked {
+    color: #ccc;
+}
+
+#tableWidgetTagColors[theme="Dark"],
+#tableWidgetSessionsList[theme="Dark"],
+#tableWidgetKeyBindings[theme="Dark"]
+{
+	gridline-color: #303030;
+}
+
+QTableWidget[theme="Dark"] QTableCornerButton::section {
+    background-color: #444444;
+/*    border: 1px solid #fffff8;*/
+}
+
+#patterColorButton,
+#singingColorButton,
+#extrasColorButton,
+#calledColorButton,
+#pushButtonTagsBackgroundColor,
+#pushButtonTagsForegroundColor
+{
+	border: none;
+}
+
+QKeySequenceEdit[theme="Dark"] {
+    background-color: #383838;
+    color: #ccc;
+	border: 1px solid #101010;
 }
 
 #darkSearch[theme="Dark"] {

@@ -29,6 +29,9 @@
 #include <QString>
 #include <math.h>
 
+#include <QApplication>
+#include <QWidget>
+#include <QStyle>
 
 #if QT_VERSION >= 0x051400
 #define KEEP_EMPTY_PARTS Qt::KeepEmptyParts
@@ -58,6 +61,11 @@ public:
 
 QString doubleToTime(double t);
 double timeToDouble(QString t);
+
+// HELPER FUNCTIONS for setting properties on all widgets
+//   the qss can then use darkmode and !darkmode
+void setDynamicPropertyRecursive(QWidget* widget, const QString& propertyName, const QVariant& value);
+void setDynamicPropertyOnAllWidgets(const QString& propertyName, const QVariant& value);
 
 #endif // ifndef UTILITY_H_INCLUDED
 

@@ -238,6 +238,8 @@ public:
 
 //    double songLoadedReplayGain_dB;
 
+    QString currentThemeString;
+
     int longSongTableOperationCount;
 
     bool lyricsCopyIsAvailable;
@@ -905,9 +907,6 @@ public:
     QString relPathInSlot[3]; // playlist slot 1 --> relPathInSlot[0], used also by MyTableWidgets to know what's inside themselves
 
 private:
-
-    QString currentThemeString;
-
     QString lastAudioDeviceName;
 
     bool flashCallsVisible;

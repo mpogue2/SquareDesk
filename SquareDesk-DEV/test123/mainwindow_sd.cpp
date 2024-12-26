@@ -2667,6 +2667,8 @@ void MainWindow::add_comment_to_tableWidgetCurrentSequence() {
     trapKeypresses = false;
 
     AddCommentDialog *dialog = new AddCommentDialog();
+    setDynamicPropertyRecursive(dialog, "theme", currentThemeString);
+
     dialog->populateFields(item);
     int dialogCode = dialog->exec();
     trapKeypresses = true;

@@ -7821,6 +7821,8 @@ void MainWindow::on_actionImport_triggered()
     qDebug() << "IMPORT TRIGGERED";
  
     ImportDialog *importDialog = new ImportDialog();
+    setDynamicPropertyRecursive(importDialog, "theme", currentThemeString);
+
     int dialogCode = importDialog->exec();
     RecursionGuard keypress_guard(trapKeypresses);
     if (dialogCode == QDialog::Accepted)
@@ -7837,6 +7839,8 @@ void MainWindow::on_actionExport_Play_Data_triggered()
     RecursionGuard dialog_guard(inPreferencesDialog);
 
     SongHistoryExportDialog *dialog = new SongHistoryExportDialog();
+    setDynamicPropertyRecursive(dialog, "theme", currentThemeString);
+
     dialog->populateOptions(songSettings);
     int dialogCode = dialog->exec();
     RecursionGuard keypress_guard(trapKeypresses);
@@ -7939,6 +7943,8 @@ void MainWindow::on_actionExport_triggered()
     else
     {
         ExportDialog *exportDialog = new ExportDialog();
+        setDynamicPropertyRecursive(exportDialog, "theme", currentThemeString);
+
         int dialogCode = exportDialog->exec();
         RecursionGuard keypress_guard(trapKeypresses);
         if (dialogCode == QDialog::Accepted)
@@ -7991,6 +7997,9 @@ void MainWindow::on_actionPreferences_triggered()
     AddHotkeyMappingsFromMenus(hotkeyMappings);
 
     prefDialog = new PreferencesDialog(&soundFXname, this);
+
+    setDynamicPropertyRecursive(prefDialog, "theme", currentThemeString);
+
     prefsManager.SetHotkeyMappings(hotkeyMappings);
     prefsManager.setTagColors(songSettings.getTagColors());
     prefsManager.populatePreferencesDialog(prefDialog);
@@ -8748,6 +8757,8 @@ void MainWindow::darkEditTags()
         // dialog needs to be bigger, so we have to do all this...
         QString newtags;
         QInputDialog *dialog = new QInputDialog();
+        setDynamicPropertyRecursive(dialog, "theme", currentThemeString);
+
         dialog->setWindowTitle("Edit Tags for '" + title + "'");
         dialog->setInputMode(QInputDialog::TextInput);
         dialog->setLabelText("Note: separate tags by spaces.\n");
@@ -9738,7 +9749,7 @@ void MainWindow::on_actionCheck_for_Updates_triggered()
     if (iVersionLatest == iVersionCurrent) {
         msgBox.setText("<B>You are running the latest version of SquareDesk.</B>");
     } else if (iVersionLatest < iVersionCurrent) {
-        msgBox.setText("<H2>You are ahead of the latest Beta version.</H2>\nYour version of SquareDesk: " + QString(VERSIONSTRING) +
+        msgBox.setText("<H2>You are ahead of the latest version.</H2>\nYour version of SquareDesk: " + QString(VERSIONSTRING) +
                        "<P>Latest version of SquareDesk: " + latestVersionNumber);
     } else {
         msgBox.setText("<H2>Newer version available</H2>\nYour version of SquareDesk: " + QString(VERSIONSTRING) +

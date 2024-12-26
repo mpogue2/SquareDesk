@@ -38,6 +38,8 @@
 #include "mainwindow.h"
 #pragma clang diagnostic pop
 
+#include "utility.h"
+
 extern flexible_audio *cBass;    // global in MainWindow.cpp <-- use this on M1 Silicon
 
 static const int kSessionsColName = 0;
@@ -211,7 +213,7 @@ PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *p
     ui->tableWidgetKeyBindings->resizeColumnToContents(0);
     ui->tableWidgetKeyBindings->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 
-
+    // qDebug() << "setting tab to music!";
     ui->tabWidget->setCurrentIndex(0); // Music tab (not Experimental tab) is primary, regardless of last setting in Qt Designer
 
     on_intelBoostEnabledCheckbox_toggled(ui->intelBoostEnabledCheckbox->isChecked());
@@ -521,10 +523,13 @@ void PreferencesDialog::setSessionInfoList(const QList<SessionInfo> &sessions)
         ui->tableWidgetSessionsList->setItem(row, 0, item);
 
         QComboBox *comboDay = weekSelectionComboBox();
+        setDynamicPropertyRecursive(comboDay, "theme", mw->currentThemeString);
+
         comboDay->setCurrentIndex(session.day_of_week);
         ui->tableWidgetSessionsList->setCellWidget(row, 1, comboDay);
 
         QTimeEdit *timeEdit = timeSelectionControl(session.start_minutes);
+        setDynamicPropertyRecursive(timeEdit, "theme", mw->currentThemeString);
                 
         ui->tableWidgetSessionsList->setCellWidget(row,2,timeEdit);
         
@@ -946,11 +951,13 @@ void PreferencesDialog::finishPopulation()
 
 int PreferencesDialog::getActiveTab()
 {
+    // qDebug() << "getActiveTab will return: " << ui->tabWidget->currentIndex();
     return ui->tabWidget->currentIndex();
 }
 
 void PreferencesDialog::setActiveTab(int tabnum)
 {
+    // qDebug() << "setActiveTab: " << tabnum;
     ui->tabWidget->setCurrentIndex(tabnum);
 }
 
