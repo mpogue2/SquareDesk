@@ -78,6 +78,8 @@ void MainWindow::themeTriggered(QAction * action) {
     // qDebug() << "***** themeTriggered()" << action << action->isChecked() << action->text();
     action->setChecked(true);  // check this one (the new one)
 
+    QApplication::setOverrideCursor(Qt::WaitCursor); // tell user this will be a while...
+
     prefsManager.SetactiveTheme(action->text()); // currently just {Light, Dark}
     // qDebug() << "activeTheme now set to: " << prefsManager.GetactiveTheme();
 
@@ -95,6 +97,19 @@ void MainWindow::themeTriggered(QAction * action) {
     ui->darkPitchSlider->reinit(); // update
     ui->darkTempoSlider->reinit();
     ui->darkVolumeSlider->reinit();
+
+    // and update the colors in the darkSongTable, because they MIGHT have changed
+    //  well, they probably did.
+    // set initial colors for text in songTable, also used for shading the clock
+    patterColorString = prefsManager.GetpatterColorString();
+    singingColorString = prefsManager.GetsingingColorString();
+    calledColorString = prefsManager.GetcalledColorString();
+    extrasColorString = prefsManager.GetextrasColorString();
+
+    darkLoadMusicList();
+    reloadPaletteSlots();
+
+    QApplication::restoreOverrideCursor(); // back to normal cursor...
 }
 
 #endif

@@ -70,7 +70,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>5</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tab_3">
         <attribute name="title">
@@ -549,6 +549,13 @@ Click on a color square to change the color associated with that Music Type.  Se
           <widget class="QLabel" name="labelToggleSequenceHelpTextLabel">
            <property name="text">
             <string>';' separated list, when Toggle Songs Filter hotkey is pressed (defaults to &quot;patter;singing&quot; first items)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="2">
+          <widget class="QLabel" name="currentThemeLabel">
+           <property name="text">
+            <string>TextLabel</string>
            </property>
           </widget>
          </item>

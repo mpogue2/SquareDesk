@@ -24,7 +24,7 @@
 ****************************************************************************/
 
 /* See the large comment at the top of prefs_options.h */
-
+#include "globaldefines.h"
 #include "prefsmanager.h"
 #include "preferencesdialog.h"
 #include <QDir>
@@ -179,6 +179,7 @@ void PreferencesManager::Set##name(QString value)       \
 
 // ------------------------------------------------------------------------
 // Color is a string, but it's handled specially in the prefs dialog (it's actually a specially painted button there)
+#ifndef DEBUG_LIGHT_MODE
 #define CONFIG_ATTRIBUTE_COLOR(control, name, default) \
     QString PreferencesManager::Get##name()             \
 {                                                       \
@@ -194,7 +195,90 @@ void PreferencesManager::Set##name(QString value)       \
 void PreferencesManager::Set##name(QString value)       \
 {                                                       \
     MySettings.setValue(#name, value);                  \
+    qDebug() << "PrefsMgr::Set*ColorString" << value;   \
 }
+#else
+/* NEW THEME-AWARE COLORS ---------- */
+/* patterColorString    example: "#123456"                    <-- Light theme */
+/* patterColorStringExt example: "Dark:#123456;Mike:#765432"  <-- Dark & Mike themes (right now, only Dark) */
+#define CONFIG_ATTRIBUTE_COLOR(control, name, default) \
+QString PreferencesManager::Get##name()                     \
+{                                                           \
+    QString value;  \
+    if (GetactiveTheme() == "Light") {                      \
+        value = MySettings.value(#name).toString(); \
+        if (value.isNull())                                 \
+        {                                                   \
+            value = default;                                \
+            /*qDebug() << "LIGHT SET TO DEFAULT";*/     \
+            MySettings.setValue(#name, value); /* name = "#default" */             \
+        }                                                   \
+    } else {                                                \
+        QString valueExt = MySettings.value(QString(#name) + "Ext").toString(); \
+        /*qDebug() << "GET valueExt = " << valueExt;*/  \
+        QString defaultExt = QString(GetactiveTheme()) + ":" + default;   \
+        value = default;                          \
+        if (valueExt.isNull())                           \
+        {                                                \
+            MySettings.setValue(QString(#name) + "Ext", defaultExt);  /* name##Ext = "Dark:#default" */   \
+            /*qDebug() << "MYSETTINGS 1 newExt = " << defaultExt << #name;*/      \
+        } else { /* valueExt contains something */       \
+            QStringList sl1 = valueExt.split(";");          \
+            /*qDebug() << "GET sl1 = " << sl1;*/  \
+            for (const auto &item : sl1) { \
+                QStringList s2 = item.split(":");   \
+                if (s2.count() == 2 && s2[0] == GetactiveTheme()) {    \
+                    /*qDebug() << "PrefsMgr::Get*ColorString 1" << value << GetdarkMode() << GetactiveTheme() << #name;*/   \
+                    return(s2[1]);                  \
+                }                                   \
+            }                                       \
+            /* if it didn't already find the value and returned it, again set to default */   \
+            MySettings.setValue(QString(#name) + "Ext", defaultExt);  /* name##Ext = "Dark:#default" */   \
+            /*qDebug() << "MYSETTINGS 2 newExt = " << defaultExt << #name;*/      \
+        }                                               \
+    }                                                       \
+    /*qDebug() << "     PrefsMgr::Get*ColorString 2" << value << GetdarkMode() << GetactiveTheme() << #name;*/   \
+    return value;                                       \
+}                                                       \
+                                                        \
+void PreferencesManager::Set##name(QString value)       \
+{                                                       \
+    if (GetactiveTheme() == "Light") {                      \
+        MySettings.setValue(#name, value);                  \
+    } else {                                            \
+        QString valueExt = MySettings.value(QString(#name) + "Ext").toString(); \
+        QString newExt = "";        \
+        QMap<QString,QString> map1;                     \
+        if (valueExt == "") {  \
+            newExt = GetactiveTheme() + ":" + value;  /* newExt = "Dark:#123456" */    \
+        } else {        \
+            /* split it apart, replace the value (or insert new one), and join it again */ \
+            /* newExt = "Dark:#newval"OR newExt = "Dark:#newval;Mike:#654321"  */     \
+            QStringList sl1 = valueExt.split(";");          \
+            QStringList s2;                 \
+            for (const auto &item : sl1) { \
+                s2 = item.split(":");   \
+                map1.insert(s2[0], s2[1]);          \
+            }                             \
+            if (map1.contains(GetactiveTheme())) {  \
+                map1[s2[0]] = value;            \
+            } else {   \
+                map1.insert(GetactiveTheme(), value);   \
+            }       \
+            /*qDebug() << "SL1,MAP1:" << sl1 << map1;*/        \
+            QStringList sl2;    \
+            QMapIterator<QString, QString> it(map1);                    \
+            while (it.hasNext()) {                                  \
+                it.next();                                          \
+                sl2.append(it.key() + ":" + it.value());   \
+            }                \
+            newExt = sl2.join(";");         \
+        }       \
+        /*qDebug() << "MySettings 3 newExt = " << newExt << #name;*/         \
+        MySettings.setValue(QString(#name) + "Ext", newExt);  /* name##Ext = "Dark:#default" */   \
+    }                                   \
+}
+#endif
 
 // ------------------------------------------------------------------------
 #define CONFIG_ATTRIBUTE_BOOLEAN(control, name, default) \

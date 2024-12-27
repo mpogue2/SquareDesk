@@ -123,6 +123,8 @@ PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *p
 
     ui->setupUi(this);
 
+    ui->currentThemeLabel->setText("[Theme: " + mw->currentThemeString + "]");
+
     {
         ui->tableWidgetSessionsList->setColumnHidden(kSessionsColID, true);
         QHeaderView *headerView = ui->tableWidgetSessionsList->horizontalHeader();

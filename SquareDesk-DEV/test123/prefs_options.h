@@ -53,12 +53,33 @@
 
 CONFIG_ATTRIBUTE_STRING(musicPath, musicPath, QDir::homePath() + "/squareDeskMusic")
 
-CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(darkMode, true);  // true if we're using the new dark GUI
+// darkmode   activeTheme
+// ----------------------
+// false        ----        old Light Mode
+// true         Light       new Light Theme
+// true         Dark        new Dark Theme (old Dark Mode)
 
+// These need to be up here...
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(darkMode, true);
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(activeTheme, "Light"); // currently 2 values: {Light, Dark}
+
+// These are the new GUI colors for themes OTHER THAN the Light Theme.
+// Format example: "Dark:#123456;Mike:#765432"
+// Right now, only Dark is implemented.
+// Semicolons are used as separators here
+// Light Theme uses the *ColorString's above, all other Themes use the Ext versions below
+// defaults are the same as the Light Theme, and user can change them to preferred colors.
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(patterColorStringExt, DEFAULTPATTERCOLOR)
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(singingColorStringExt, DEFAULTSINGINGCOLOR)
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(calledColorStringExt, DEFAULTCALLEDCOLOR)
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(extrasColorStringExt, DEFAULTEXTRASCOLOR)
+
+// so that these can reference Get/Set* darkMode and activeTheme
 CONFIG_ATTRIBUTE_COLOR(patterColorButton,  patterColorString,  DEFAULTPATTERCOLOR)
 CONFIG_ATTRIBUTE_COLOR(singingColorButton, singingColorString, DEFAULTSINGINGCOLOR)
 CONFIG_ATTRIBUTE_COLOR(calledColorButton,  calledColorString,  DEFAULTCALLEDCOLOR)
 CONFIG_ATTRIBUTE_COLOR(extrasColorButton,  extrasColorString,  DEFAULTEXTRASCOLOR)
+
 
 CONFIG_ATTRIBUTE_BOOLEAN(longTipCheckbox,tipLengthTimerEnabled, false)
 CONFIG_ATTRIBUTE_BOOLEAN(thirtySecWarningCheckbox,tipLength30secEnabled, false)
@@ -104,7 +125,7 @@ CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(enableautoscrolllyrics, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(enablegroupstation, true);  // defatuls to show group/station
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(enableordersequence, true); // defaults to show order/sequence
 
-CONFIG_ATTRIBUTE_BOOLEAN(enableAutoAirplaneModeCheckbox, enableAutoAirplaneMode, false)
+CONFIG_ATTRIBUTE_BOOLEAN(enableAutoAirplaneModeCheckbox, enableAutoAirplaneMode, false);
 //CONFIG_ATTRIBUTE_BOOLEAN(enableAutoMicsOffCheckbox, enableAutoMicsOff, false)
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showRecentColumn, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showAgeColumn, true);
@@ -130,8 +151,6 @@ CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastflashcalluserdirectory, "");
 
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(flashcalltiming, "10");
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(default_flashcards_file, "");
-
-CONFIG_ATTRIBUTE_STRING_NO_PREFS(activeTheme, "Light"); // currently 2 values: {Light, Dark}
 
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(snap, "measure"); // three values: disabled, beat, measure
 
