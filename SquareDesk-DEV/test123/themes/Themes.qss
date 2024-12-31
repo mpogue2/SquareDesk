@@ -357,6 +357,7 @@ QMainWindow[theme="Dark"] {
     background-color: #252525;
 }
 
+/* DIALOGs ==================== */
 QDialog[theme="Dark"] {
     background-color: #252525;
 }
@@ -366,6 +367,7 @@ QDialog[theme="Dark"] QCheckBox:checked {
     color: #ccc;
 }
 
+/* TABLE COLORS ================ */
 #tableWidgetTagColors[theme="Dark"],
 #tableWidgetSessionsList[theme="Dark"],
 #tableWidgetKeyBindings[theme="Dark"]
@@ -436,6 +438,37 @@ QDateTimeEdit[theme="Dark"] {
     border: 1px solid #1a1a1a;
     padding: 1px;
     margin: 1px;
+}
+
+QDateTimeEdit::up-button[theme="Dark"], 
+QDateTimeEdit::down-button[theme="Dark"] {
+    border: none;
+    padding-right: 5px;
+}
+
+QDateTimeEdit::up-button[theme="Dark"] {
+    subcontrol-position: top right;
+}
+
+QDateTimeEdit::down-button[theme="Dark"] {
+    subcontrol-position: bottom right;
+}
+
+QDateTimeEdit::up-arrow[theme="Dark"], 
+QDateTimeEdit::down-arrow[theme="Dark"] {
+    border: 5px solid rgba(255, 255, 255, 0);
+    width: 0;
+    height: 0;
+}
+
+QDateTimeEdit::up-arrow[theme="Dark"] {
+    border-top: none;
+    border-bottom-color: white;
+}
+
+QDateTimeEdit::down-arrow[theme="Dark"] {
+    border-bottom: none;
+    border-top-color: white;
 }
 
 /* SCROLLBARS ============================ */
