@@ -182,7 +182,10 @@ void svgWaveformSlider::mousePressEvent(QMouseEvent* e) {
 
     switch (e->button()) {
         case Qt::LeftButton:
-            val = this->maximum() * (fmax(0,(e->pos().rx() - 6))/(width()-4));
+            // val = this->maximum() * (fmax(0,(e->pos().rx() - 6))/(width()-4));
+            val = this->maximum() * (fmax(0,(e->pos().rx()))/(width()-4));
+            val = round(val);
+            qDebug() << "LEFT BUTTON:" << e->pos().rx() << width()-4 << this->maximum() << val;
             this->setValue(val);
             break;
         case Qt::MiddleButton:
