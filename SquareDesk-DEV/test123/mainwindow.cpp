@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2024 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2025 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -2134,7 +2134,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     connect(ui->playlist2Table, &QTableWidget::customContextMenuRequested,
             this, [this](QPoint q) {
 
-                        qDebug() << "***** PLAYLIST 2 CONTEXT MENU REQUESTED";
+                        // qDebug() << "***** PLAYLIST 2 CONTEXT MENU REQUESTED";
                         // if (this->ui->playlist2Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
 
                         int rowCount = this->ui->playlist2Table->selectionModel()->selectedRows().count();
@@ -6314,7 +6314,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
         double iFrac = ((double)loopStartSamples/(double)sampleRate)/(double)(cBass->FileLength);
         double oFrac = ((double)(loopStartSamples + loopLengthSamples)/(double)sampleRate)/(double)(cBass->FileLength);
 
-        qDebug() << "Music Provider loop available!" << loopStartSamples << loopLengthSamples << iFrac << oFrac;
+        // qDebug() << "Music Provider loop available!" << loopStartSamples << loopLengthSamples << iFrac << oFrac;
 
         ui->seekBarCuesheet->SetIntro(iFrac);
         ui->seekBarCuesheet->SetOutro(oFrac);
@@ -7819,7 +7819,7 @@ void MainWindow::on_actionAutostart_playback_triggered()
 void MainWindow::on_actionImport_triggered()
 {
     RecursionGuard dialog_guard(inPreferencesDialog);
-    qDebug() << "IMPORT TRIGGERED";
+    // qDebug() << "IMPORT TRIGGERED";
  
     ImportDialog *importDialog = new ImportDialog();
     setDynamicPropertyRecursive(importDialog, "theme", currentThemeString);
@@ -10436,7 +10436,7 @@ void MainWindow::customMessageOutputQt(QtMsgType type, const QMessageLogContext 
 //    QString txt = QString("%1: %2").arg(logLevelName, msg);
 
     if (msg.contains("invalid nullptr parameter")) {
-        qDebug() << "FOUND IT.";
+        // qDebug() << "FOUND IT.";
     }
 
     // suppress known warnings from QtCreator Application Output window

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2024 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2025 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -54,10 +54,13 @@ void SDSequenceCallLabel::mouseDoubleClickEvent(QMouseEvent *e)
 //}
 
 void SDSequenceCallLabel::setData(int role, const QVariant &value) {
-    qDebug() << "SDSequenceCallLabel::setData" << role << value;
+    Q_UNUSED(role)
+    Q_UNUSED(value)
+    // qDebug() << "SDSequenceCallLabel::setData" << role << value;
 }
 QVariant SDSequenceCallLabel::data(int role) {
-    qDebug() << "SDSequenceCallLabel::data" << role;
+    Q_UNUSED(role)
+    // qDebug() << "SDSequenceCallLabel::data" << role;
     return QVariant();
 }
 

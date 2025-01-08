@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2024 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2025 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -294,7 +294,7 @@ void svgClock::updateClock() {
     double minuteRotationDegrees = 360 * ((theTime.second()/60.0));
 
 //    minuteRotationDegrees = (theTime.second() % 4) * 90.0;
-    qDebug() << "UpdateClock:" << hourRotationDegrees << minuteRotationDegrees;
+    // qDebug() << "UpdateClock:" << hourRotationDegrees << minuteRotationDegrees;
 #else
     // seconds tick one at a time -----
     double hourRotationDegrees = 30.0 * (theTime.hour() + (theTime.minute()/60.0));

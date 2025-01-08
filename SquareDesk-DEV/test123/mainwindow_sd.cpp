@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2024 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2025 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -2579,7 +2579,7 @@ void MainWindow::undo_sd_to_row()
 {
     while (--sdUndoToLine)
     {
-        qDebug() << "UNDO -----";
+        // qDebug() << "UNDO -----";
         undo_last_sd_action();
     }
 }
@@ -3605,7 +3605,7 @@ bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
         case Qt::Key_F11:
 //            qDebug() << "SHIFT-F11";
             newIndex = fmax(centralIndex - 1, 0);
-            qDebug() << "    central/new index: " << centralIndex << newIndex;
+            // qDebug() << "    central/new index: " << centralIndex << newIndex;
             frameVisible[centralIndex] = "sidebar";
             frameVisible[newIndex]     = "central";
             refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
@@ -3613,7 +3613,7 @@ bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
         case Qt::Key_F12:
 //            qDebug() << "SHIFT-F12";
             newIndex = fmin(centralIndex + 1, 3);
-            qDebug() << "    central/new index: " << centralIndex << newIndex;
+            // qDebug() << "    central/new index: " << centralIndex << newIndex;
             frameVisible[centralIndex] = "sidebar";
             frameVisible[newIndex]     = "central";
             refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button

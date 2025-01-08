@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2024 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2025 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -509,7 +509,7 @@ void MainWindow::on_actionRemove_for_all_songs_triggered()
 }
 
 void MainWindow::EstimateSectionsForTheseSongs(QList<int> rows) {
-    qDebug() << "Estimate Sections for these rows in darkSongTable: " << rows;
+    // qDebug() << "Estimate Sections for these rows in darkSongTable: " << rows;
 
     QMessageBox msgBox;
     msgBox.setText("Calculating section info can take about 30 seconds per song.  You can keep working while it runs.");
@@ -535,7 +535,7 @@ void MainWindow::EstimateSectionsForTheseSongs(QList<int> rows) {
 }
 
 void MainWindow::RemoveSectionsForTheseSongs(QList<int> rows) {
-    qDebug() << "Remove Sections for rows: " << rows;
+    // qDebug() << "Remove Sections for rows: " << rows;
 
     QMessageBox msgBox;
     msgBox.setText("Removing section info for these songs cannot be undone.");

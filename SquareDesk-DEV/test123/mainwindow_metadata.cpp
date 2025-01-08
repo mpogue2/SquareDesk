@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2024 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2025 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -85,7 +85,7 @@ QString MainWindow::getSongFileIdentifier(QString pathToSong) {
         return(QString("0xFFFFFFFF"));  // ERROR: -1
     }
 
-    qDebug() << "SongFileID: " << info.samples << info.channels << info.hz << sizeof(mp3d_sample_t);
+    // qDebug() << "SongFileID: " << info.samples << info.channels << info.hz << sizeof(mp3d_sample_t);
 
     // NOTE: THIS HASH ALGORITHM IS FOR LITTLE-ENDIAN MACHINES ONLY, e.g. Intel, ARM *********
     // On an M1 mac, this hash takes only about 20ms for 31836672 * 4 bytes = 6400MB/s (!)
@@ -311,7 +311,7 @@ void MainWindow::on_actionUpdate_ID3_Tags_triggered()
             // NOTE: these two sets-to-true should work to stop the FileWatcher, which should only NOT wake up once,
             //   since both the COPY and the WRITE ID3v2 should occur before we get back to the main loop
 
-            qDebug() << "***** WRITE ID3v2 TAG TO:" << MODIFYFILE << ", with:" << TBPM << START << LENGTH;
+            // qDebug() << "***** WRITE ID3v2 TAG TO:" << MODIFYFILE << ", with:" << TBPM << START << LENGTH;
 
             TagLib::MPEG::File f(MODIFYFILE.toUtf8().constData());
             ID3v2::Tag *id3v2tag = f.ID3v2Tag(true);
@@ -373,7 +373,7 @@ void MainWindow::on_actionUpdate_ID3_Tags_triggered()
                 }
             }
 
-            qDebug() << "SAVING FILE!";
+            // qDebug() << "SAVING FILE!";
             bool saveSuccess = f.save(); // <----- HERE IS THE SAVE OF THE AUDIO FILE WITH NEW TAGS
 
             if (!saveSuccess) {

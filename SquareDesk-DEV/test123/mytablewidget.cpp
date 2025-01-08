@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2024 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2025 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -438,12 +438,12 @@ bool MyTableWidget::removeSelectedItems() {
                 row = rowCount()-1;
             }
 
-            qDebug() << "SELECTING AND SCROLLING TO ROW:" << row;
-            qDebug() << "BEFORE selected rows: " << selectionModel()->selectedRows() << row;
+            // qDebug() << "SELECTING AND SCROLLING TO ROW:" << row;
+            // qDebug() << "BEFORE selected rows: " << selectionModel()->selectedRows() << row;
             // selectRow(row);    // select it
             setCurrentIndex(model()->index(row, 0));
             scrollToItem(item(row-1, 0)); // EnsureVisible for the row that was deleted, OR last row in table
-            qDebug() << "AFTER selected rows: " << selectionModel()->selectedRows() << row;
+            // qDebug() << "AFTER selected rows: " << selectionModel()->selectedRows() << row;
         }
         return true;
     } else {

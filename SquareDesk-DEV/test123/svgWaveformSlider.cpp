@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2024 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2025 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -185,7 +185,7 @@ void svgWaveformSlider::mousePressEvent(QMouseEvent* e) {
             // val = this->maximum() * (fmax(0,(e->pos().rx() - 6))/(width()-4));
             val = this->maximum() * (fmax(0,(e->pos().rx()))/(width()-4));
             val = round(val);
-            qDebug() << "LEFT BUTTON:" << e->pos().rx() << width()-4 << this->maximum() << val;
+            // qDebug() << "LEFT BUTTON:" << e->pos().rx() << width()-4 << this->maximum() << val;
             this->setValue(val);
             break;
         case Qt::MiddleButton:
@@ -203,7 +203,8 @@ void svgWaveformSlider::mouseMoveEvent(QMouseEvent* e) {
 }
 
 void svgWaveformSlider::mouseDoubleClickEvent(QMouseEvent* e) {
-    qDebug() << "mouseDoubleClickEvent: " << e;
+    Q_UNUSED(e)
+    // qDebug() << "mouseDoubleClickEvent: " << e;
 }
 
 void svgWaveformSlider::mouseReleaseEvent(QMouseEvent* e) {

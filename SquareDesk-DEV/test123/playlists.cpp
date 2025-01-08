@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2024 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2025 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -521,7 +521,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
             markPlaylistModified(false); // turn off the * in the status bar
             lastSavedPlaylist = PlaylistFileName;  // have to save something here to enable File > Save (to same place as loaded) and Auto-load
 
-            qDebug() << "saveCurrentPlaylistToFile calling setlastPlaylistLoaded with:" << shortPlaylistName;
+            // qDebug() << "saveCurrentPlaylistToFile calling setlastPlaylistLoaded with:" << shortPlaylistName;
 
             prefsManager.SetlastPlaylistLoaded(shortPlaylistName); // save the name of the playlist, so we can reload at app start time
             ui->actionSave_Playlist_2->setText(QString("Save Playlist '") + shortPlaylistName + "'"); // and now Playlist > Save Playlist 'name' has a name, because it was loaded (possibly with errors)
@@ -1803,8 +1803,8 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                 shortTitle.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if title contains HTML encoded chars, put originals back
 
                 if (shortTitle.contains("span")) { // DEBUG DEBUG
-                    qDebug() << "FOUND SPAN BEFORE: " << dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(i, kTitleCol))->text();
-                    qDebug() << "FOUND SPAN AFTER: " << shortTitle;
+                    // qDebug() << "FOUND SPAN BEFORE: " << dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(i, kTitleCol))->text();
+                    // qDebug() << "FOUND SPAN AFTER: " << shortTitle;
                 }
 
                 QString pitch = ui->darkSongTable->item(i, kPitchCol)->text();
