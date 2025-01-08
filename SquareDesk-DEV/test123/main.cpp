@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 #endif
 
     // splash screen ------
-    QPixmap pixmap(":/graphics/SplashScreen2024.png");
+    QPixmap pixmap(":/graphics/SplashScreen2025.png");
 
     //  draw the version number into the splashscreen pixmap
     QPainter painter( &pixmap );
