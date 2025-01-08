@@ -7288,6 +7288,7 @@ void MainWindow::darkLoadMusicList()
     // The font that we'll use for the QLabels that are used to implement the Title-with-Tags field
     QFont darkSongTableFont("Avenir Next");
     darkSongTableFont.setPointSize(20);
+    darkSongTableFont.setWeight(QFont::Medium);
 
     int i = 0;
     for (const auto &s : justMusic) {
