@@ -5297,7 +5297,9 @@
     <addaction name="actionExport"/>
     <addaction name="separator"/>
     <addaction name="actionExport_Play_Data"/>
+    <addaction name="separator"/>
     <addaction name="actionExport_Current_Song_List"/>
+    <addaction name="separator"/>
     <addaction name="actionPreferences"/>
     <addaction name="separator"/>
     <addaction name="actionStartup_Wizard"/>

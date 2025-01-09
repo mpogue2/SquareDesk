@@ -73,6 +73,8 @@ void SongHistoryExportDialog::populateOptions(SongSettings &songSettings)
     {
         ui->comboBoxSession->addItem(session.name, session.id);
     }
+
+    ui->checkBoxOpenAfterExport->setChecked(true);
 }
 
 
@@ -109,24 +111,32 @@ public:
 };
 
 
-void SongHistoryExportDialog::exportSongPlayData(SongSettings &settings)
+QString SongHistoryExportDialog::exportSongPlayData(SongSettings &settings, QString lastSaveDir)
 {
+    QString dateFormat1("yyyy-MM-dd");
+    QString startDate1 = ui->dateTimeEditStart->dateTime().toString(dateFormat1);
+
+    QString saveDir = lastSaveDir;
+    if (saveDir == "") {
+        saveDir = QDir::homePath();  // use HOME, if one was not set previously
+    }
+    QString defaultFilename = saveDir + "/songsPlayedOn_" + startDate1 + ".txt";
+
     QString filename =
         QFileDialog::getSaveFileName(this, tr("Select Export File"),
-                                     QDir::homePath());
+                                     defaultFilename);
 
     if (filename.isNull()) {
-        return; 
+        return("");
     }
 
     QFile file( filename );
     if ( file.open(QIODevice::WriteOnly) )
-    {
-        
+    {        
         QTextStream stream( &file );
         FileExportSongPlayEvent fespe(stream);
-        QString dateFormat("yyyy-MM-dd HH:mm:ss.sss");
         
+        QString dateFormat("yyyy-MM-dd HH:mm:ss.sss");
         QString startDate = ui->dateTimeEditStart->dateTime().toUTC().toString(dateFormat);
         QString endDate = ui->dateTimeEditEnd->dateTime().toUTC().toString(dateFormat);
 
@@ -140,7 +150,38 @@ void SongHistoryExportDialog::exportSongPlayData(SongSettings &settings)
                                     startDate,
                                     omitEndDate,
                                     endDate);
+
+        if (ui->checkBoxOpenAfterExport->isChecked()) {
+#if defined(Q_OS_MAC)
+            QStringList args;
+            args << "-e";
+            args << "tell application \"TextEdit\"";
+            args << "-e";
+            args << "activate";
+            args << "-e";
+            args << "open POSIX file \"" + filename + "\"";
+            args << "-e";
+            args << "end tell";
+
+            //    QProcess::startDetached("osascript", args);
+
+            // same as startDetached, but suppresses output from osascript to console
+            //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
+            QProcess process;
+            process.setProgram("osascript");
+            process.setArguments(args);
+            process.setStandardOutputFile(QProcess::nullDevice());
+            process.setStandardErrorFile(QProcess::nullDevice());
+            qint64 pid;
+            process.startDetached(&pid);
+#endif
+        }
+        // get path to directory of file user selected
+        QFileInfo fileInfo(filename);
+        QString directoryPath = fileInfo.absolutePath();
+        return(directoryPath); // successful return, update the lastExportSongHistoryDir in preferences
     } // end of successful open
+    return(""); // error return
 }
 
 void SongHistoryExportDialog::on_checkBoxOmitStart_stateChanged(int newState)

@@ -7847,7 +7847,11 @@ void MainWindow::on_actionExport_Play_Data_triggered()
     RecursionGuard keypress_guard(trapKeypresses);
     if (dialogCode == QDialog::Accepted)
     {
-        dialog->exportSongPlayData(songSettings);
+        QString lastExportSaveHistoryDir = prefsManager.MySettings.value("lastExportSaveHistoryDir").toString();
+        lastExportSaveHistoryDir = dialog->exportSongPlayData(songSettings, lastExportSaveHistoryDir);
+        if (lastExportSaveHistoryDir != "") {
+            prefsManager.MySettings.setValue("lastExportSaveHistoryDir", lastExportSaveHistoryDir);
+        }
     }
     delete dialog;
     dialog = nullptr;
