@@ -64,7 +64,10 @@ void SongHistoryExportDialog::populateOptions(SongSettings &songSettings)
     QDateTime yesterday = now.addDays(-1);
     
     ui->dateTimeEditEnd->setDateTime(now);
+    ui->dateTimeEditEnd->setDisplayFormat("MM/dd/yyyy HH:mm ap"); // work around bug: changing 25 to 24 results in 1924
+
     ui->dateTimeEditStart->setDateTime(yesterday);
+    ui->dateTimeEditStart->setDisplayFormat("MM/dd/yyyy HH:mm ap"); // work around bug: changing 25 to 24 results in 1924
     
     QList<SessionInfo> sessions(songSettings.getSessionInfo());
     ui->comboBoxSession->clear();
