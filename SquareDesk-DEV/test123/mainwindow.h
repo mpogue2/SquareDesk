@@ -1483,6 +1483,9 @@ public:
 
     // THEME STUFF ----------
     QString currentAnalogClockState;
+
+    // JUCE STUFF -----------
+    void scanForPlugins();
 };
 
 // currentState:

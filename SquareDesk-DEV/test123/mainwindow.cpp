@@ -2731,6 +2731,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkPitchSlider->finishInit();
     ui->darkTempoSlider->finishInit();
     ui->darkVolumeSlider->finishInit();
+
+    // JUCE ---------------
+    scanForPlugins(); // TEST
 }
 
 void MainWindow::newFromTemplate() {
