@@ -98,6 +98,13 @@
 //#include <tidy/tidy.h>
 //#include <tidy/tidybuffio.h>
 
+#define JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED = 1
+#define DEBUG 1
+#define JUCE_PLUGINHOST_AU 1
+#define JUCE_MAC 1
+
+#include "JuceHeader.h"
+
 #include "sdinterface.h"
 
 // uncomment this to force a Light <-> Dark mode toggle every 5 seconds, checking for crashes
@@ -1485,6 +1492,8 @@ public:
     QString currentAnalogClockState;
 
     // JUCE STUFF -----------
+    std::unique_ptr<juce::AudioPluginInstance> loudMaxPlugin;
+    juce::DocumentWindow *loudMaxWin;
     void scanForPlugins();
 };
 

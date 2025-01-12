@@ -21,7 +21,6 @@
 
 #include <QString>
 #include <QDebug>
-// #include <vector>
 #include <memory>
 
 // Disable warning, see: https://github.com/llvm/llvm-project/issues/48757
@@ -34,6 +33,7 @@
 
 using namespace juce;
 
+#ifdef OLDSCAN
 class PluginFinder : public juce::FileFilter
 {
 public:
@@ -84,11 +84,13 @@ public:
         return false;
     }
 };
+#endif
 
 // --------------------------------------------
 void MainWindow::scanForPlugins() {
     qDebug() << "PLUGINS =============";
 
+#ifdef OLDSCAN
     PluginFinder scanner;
 
     // Scan for plugins
@@ -106,13 +108,15 @@ void MainWindow::scanForPlugins() {
             break;
         }
     }
-
-    // ALTERNATE: does this work?
+#else
+    // ALTERNATE: does this work?  Why yes, it does. This is way simpler, if we are only loading
+    //    1 plugin from a known location.
     //    https://forum.juce.com/t/instantiate-plug-in/34099/2
     PluginDescription altDesc;
-    altDesc.fileOrIdentifier = "/Users/mpogue/Library/Audio/Plug-Ins/Components/LoudMax.component";
+    File home = File::getSpecialLocation(File::SpecialLocationType::userHomeDirectory);
+    altDesc.fileOrIdentifier = home.getChildFile("Library/Audio/Plug-Ins/Components/LoudMax.component").getFullPathName();
     altDesc.pluginFormatName = "AudioUnit";
-
+#endif
     // HOW TO INSTANTIATE A PLUGIN
     // https://forum.juce.com/t/instantiate-plug-in/34099/2
 
@@ -121,12 +125,17 @@ void MainWindow::scanForPlugins() {
     plugmgr.addDefaultFormats();
 
     // std::unique_ptr<AudioPluginInstance> loudMaxPlugin =
-    //     plugmgr.createPluginInstance(loudMaxPluginDescription, 44100.0, 512, error); // THIS WORKS
-    std::unique_ptr<AudioPluginInstance> loudMaxPlugin =
+#ifdef OLDSCAN
+    loudMaxPlugin =
+        plugmgr.createPluginInstance(loudMaxPluginDescription, 44100.0, 512, error); // THIS WORKS
+#else
+    loudMaxPlugin =
         plugmgr.createPluginInstance(altDesc, 44100.0, 512, error);  // THIS WORKS (and we could ship with an embedded copy of LoudMax?)
+#endif
 
     if (loudMaxPlugin == nullptr) {
         qDebug() << error.toStdString(); // there was an error in loading
+        return;
     } else {
         qDebug() << "LoudMax was loaded!";
     }
@@ -178,6 +187,20 @@ void MainWindow::scanForPlugins() {
     // You use the PluginDescription that your scanning returned to create an instance of the plugin.
     //     Then you need to prepare the AudioProcessor by calling prepareToPlay() and then
     //     you can process the audio using the processBlock() method.
+
+    qDebug() << "ABOUT TO OPEN A PLUGIN WINDOW =============";
+
+    // https://forum.juce.com/t/open-a-window-in-juce-and-put-a-plugineditor-into-it/54102/5
+    // // loudMaxWin = std::make_unique<juce::ResizableWindow>(String("LoudMax"), true);
+
+    // This works, but it leaks.  I think we should just have a single slider in SquareDesk.
+    //   Probably per-song?
+
+    // loudMaxWin = new juce::DocumentWindow(String("LoudMax"), juce::Colours::white, juce::DocumentWindow::closeButton, true);
+    // loudMaxWin->setUsingNativeTitleBar(true);
+    // loudMaxWin->setContentOwned (loudMaxPlugin->createEditor(), true);
+    // loudMaxWin->addToDesktop (/* flags */);
+    // loudMaxWin->setVisible (true);
 
     qDebug() << "PLUGINS =============";
 }
