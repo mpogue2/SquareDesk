@@ -424,7 +424,7 @@ void MainWindow::printID3Tags(QString fileName) {
         }
     }
     qDebug() << "-------------------- printID3Tags";
-#Q_UNUSED(fileName)
+    Q_UNUSED(fileName)
 #else
     Q_UNUSED(fileName)
 #endif
