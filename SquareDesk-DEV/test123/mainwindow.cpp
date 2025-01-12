@@ -3538,6 +3538,9 @@ MainWindow::~MainWindow()
     delete sessionActionGroup;
     delete sdActionGroupDanceProgram;
     delete cBass;
+
+    // JUCE -------
+    delete loudMaxWin;
 }
 
 // ----------------------------------------------------------------------
@@ -4913,6 +4916,10 @@ void MainWindow::on_UIUpdateTimerTick(void)
         ui->actionPlay->setText("Play");
 //        currentState = kPaused;
         setNowPlayingLabelWithColor(currentSongTitle);
+
+        // JUCE ---------
+        qDebug() << "THRESHOLD: " << paramThresh->getValue()
+                 << paramThresh->getCurrentValueAsText().toStdString();
     }
 
 #ifndef DEBUGCLOCK
