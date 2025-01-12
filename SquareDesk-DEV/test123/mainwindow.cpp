@@ -2733,6 +2733,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkVolumeSlider->finishInit();
 
     // JUCE ---------------
+    juce::initialiseJuce_GUI(); // not sure this is needed
     scanForPlugins(); // TEST
 }
 
