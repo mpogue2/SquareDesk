@@ -737,10 +737,13 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 //        if (ignoreTheseDirs.indexIn(aPath) == -1) {
         if (aPath.indexOf(ignoreTheseDirs) == -1) {
             musicRootWatcher.addPath(aPath); // watch for add/deletes to musicDir and interesting subdirs
-//            qDebug() << "adding to musicRootWatcher: " << aPath;
+            // qDebug() << "adding to musicRootWatcher: " << aPath;
         }
         t.elapsed(__LINE__);
     }
+
+    musicRootWatcher.addPath(musicRootPath); // watch for add/deletes to musicDir, too
+    // qDebug() << "Also adding to musicRootWatcher: " << musicRootPath;
 
     t.elapsed(__LINE__);
 
@@ -2888,12 +2891,12 @@ void MainWindow::reloadPaletteSlots() {
 }
 
 void MainWindow::fileWatcherTriggered() {
-//    qDebug() << "fileWatcherTriggered()";
+    // qDebug() << "fileWatcherTriggered()";
     musicRootModified(QString("DONE"));
 }
 
 void MainWindow::fileWatcherDisabledTriggered() {
-//    qDebug() << "***** fileWatcherDisabledTriggered(): FileWatcher is re-enabled now....";
+    // qDebug() << "***** fileWatcherDisabledTriggered(): FileWatcher is re-enabled now....";
     filewatcherIsTemporarilyDisabled = false;   // no longer disabled when this fires!
     fileWatcherDisabledTimer->stop();  // 5s expired, so we don't need to be notified again
 
@@ -2916,7 +2919,7 @@ void MainWindow::musicRootModified(QString s)
 
     fileWatcherTimer->stop();  // 500ms expired, so we don't need to be notified again.
 
-//    qDebug() << "Music root modified (File Watcher awakened for real!): " << s;
+   // qDebug() << "Music root modified (File Watcher awakened for real!): " << s;
     if (!filewatcherShouldIgnoreOneFileSave) { // yes, we need this here, too...because root watcher watches playlists (don't ask me!)
         // qDebug() << "*** musicRootModified!!!";
         Qt::SortOrder sortOrder(ui->songTable->horizontalHeader()->sortIndicatorOrder());
