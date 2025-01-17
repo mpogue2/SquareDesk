@@ -98,12 +98,14 @@
 //#include <tidy/tidy.h>
 //#include <tidy/tidybuffio.h>
 
+#ifdef USE_JUCE
 #define JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED = 1
 #define DEBUG 1
 #define JUCE_PLUGINHOST_AU 1
 #define JUCE_MAC 1
 
 #include "JuceHeader.h"
+#endif
 
 #include "sdinterface.h"
 
@@ -1491,11 +1493,13 @@ public:
     // THEME STUFF ----------
     QString currentAnalogClockState;
 
+#ifdef USE_JUCE
     // JUCE STUFF -----------
     std::unique_ptr<juce::AudioPluginInstance> loudMaxPlugin;
     juce::HostedAudioProcessorParameter *paramThresh;
     juce::DocumentWindow *loudMaxWin;
     void scanForPlugins();
+#endif
 };
 
 // currentState:

@@ -4924,11 +4924,13 @@ void MainWindow::on_UIUpdateTimerTick(void)
 //        currentState = kPaused;
         setNowPlayingLabelWithColor(currentSongTitle);
 
+#ifdef USE_JUCE
         // JUCE ---------
         if (paramThresh) {
             qDebug() << "THRESHOLD: " << paramThresh->getValue()
                      << paramThresh->getCurrentValueAsText().toStdString();
         }
+#endif
     }
 
 #ifndef DEBUGCLOCK
