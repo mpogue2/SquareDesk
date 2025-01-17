@@ -24,4 +24,7 @@ private: \
 // define this is you want to experiment with the qss file Light and Dark modes
 #define DEBUG_LIGHT_MODE
 
+// define this to play with JUCE
+// #define USE_JUCE
+
 #endif // GLOBALDEFINES_H

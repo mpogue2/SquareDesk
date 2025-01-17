@@ -1,3 +1,7 @@
+#include "globaldefines.h"
+
+#ifdef USE_JUCE
+
 #define JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED = 1
 #define DEBUG 1
 #define JUCE_PLUGINHOST_AU 1
@@ -169,7 +173,7 @@ void MainWindow::scanForPlugins() {
 //     possible value: "Off"
 //     possible value: "On"
 
-    auto paramThresh = loudMaxPlugin->getHostedParameter(0); // 0.0 - 1.0 maps to -30 - 0 dB threshold. This is the important one.
+    paramThresh = loudMaxPlugin->getHostedParameter(0); // 0.0 - 1.0 maps to -30 - 0 dB threshold. This is the important one.
     // auto paramOutput = loudMaxPlugin->getHostedParameter(1); // OK to leave at 1.0 = 0.0dB output
     // auto paramFaderLink = loudMaxPlugin->getHostedParameter(2); // leave at OFF. We do not need to link the Thresh and Output faders.
     // auto paramISPDetect = loudMaxPlugin->getHostedParameter(3); // leave at OFF. We do not need to detect peaks BETWEEN samples (takes lots of CPU).
@@ -196,11 +200,13 @@ void MainWindow::scanForPlugins() {
     // This works, but it leaks.  I think we should just have a single slider in SquareDesk.
     //   Probably per-song?
 
-    // loudMaxWin = new juce::DocumentWindow(String("LoudMax"), juce::Colours::white, juce::DocumentWindow::closeButton, true);
-    // loudMaxWin->setUsingNativeTitleBar(true);
-    // loudMaxWin->setContentOwned (loudMaxPlugin->createEditor(), true);
-    // loudMaxWin->addToDesktop (/* flags */);
-    // loudMaxWin->setVisible (true);
+    loudMaxWin = new juce::DocumentWindow(String("LoudMax"), juce::Colours::white, juce::DocumentWindow::closeButton, true);
+    loudMaxWin->setUsingNativeTitleBar(true);
+    loudMaxWin->setContentOwned (loudMaxPlugin->createEditor(), true);
+    loudMaxWin->addToDesktop (/* flags */);
+    loudMaxWin->setVisible (true);
 
-    qDebug() << "PLUGINS =============";
+    qDebug() << "============= PLUGINS";
 }
+
+#endif
