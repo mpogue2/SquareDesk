@@ -405,7 +405,7 @@ void MainWindow::printID3Tags(QString fileName) {
     ID3v2::Tag *id3v2tag = f.ID3v2Tag(true);
 
     // print NO MODIFY the entire framelist, showing updates ----------
-    qDebug() << "printID3Tags --------------------";
+    // qDebug() << "printID3Tags --------------------";
     TagLib::ID3v2::FrameList fl = id3v2tag->frameList();  // update the framelist
     for (TagLib::ID3v2::FrameList::Iterator lit = fl.begin(); lit != fl.end(); ++lit) {
         String key((*lit)->frameID());
@@ -413,18 +413,20 @@ void MainWindow::printID3Tags(QString fileName) {
         if ( key == "TIT2" || key == "TALB" || key == "TPE1" || key == "TBPM")
         {
             TagLib::ID3v2::TextIdentificationFrame* textFrame = dynamic_cast<ID3v2::TextIdentificationFrame*>(*lit);
-            qDebug() << key.toCString()      // key
-                     << textFrame->toString().toCString(); // value
+            Q_UNUSED(textFrame)
+            // qDebug() << key.toCString()      // key
+            //          << textFrame->toString().toCString(); // value
         } else if ( key == "TXXX") {
             TagLib::ID3v2::UserTextIdentificationFrame* textFrame = dynamic_cast<ID3v2::UserTextIdentificationFrame*>(*lit);
             QString description = textFrame->description().toCString();
-            qDebug() << "TXXX"                                  // TXXX
-                     << description                             // e.g. LOOPSTART
-                     << textFrame->fieldList()[1].toCString();  // value
+            Q_UNUSED(description)
+            // qDebug() << "TXXX"                                  // TXXX
+            //          << description                             // e.g. LOOPSTART
+            //          << textFrame->fieldList()[1].toCString();  // value
         }
     }
-    qDebug() << "-------------------- printID3Tags";
-#Q_UNUSED(fileName)
+    // qDebug() << "-------------------- printID3Tags";
+    Q_UNUSED(fileName)
 #else
     Q_UNUSED(fileName)
 #endif
