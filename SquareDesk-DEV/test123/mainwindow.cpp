@@ -2734,6 +2734,12 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkPitchSlider->finishInit();
     ui->darkTempoSlider->finishInit();
     ui->darkVolumeSlider->finishInit();
+
+#ifdef USE_JUCE
+    // JUCE ---------------
+    juce::initialiseJuce_GUI(); // not sure this is needed
+    scanForPlugins(); // TEST
+#endif
 }
 
 void MainWindow::newFromTemplate() {
@@ -3537,6 +3543,11 @@ MainWindow::~MainWindow()
     delete sessionActionGroup;
     delete sdActionGroupDanceProgram;
     delete cBass;
+
+#ifdef USE_JUCE
+    // JUCE -------
+    delete loudMaxWin;
+#endif
 }
 
 // ----------------------------------------------------------------------
@@ -4912,6 +4923,12 @@ void MainWindow::on_UIUpdateTimerTick(void)
         ui->actionPlay->setText("Play");
 //        currentState = kPaused;
         setNowPlayingLabelWithColor(currentSongTitle);
+
+        // JUCE ---------
+        if (paramThresh) {
+            qDebug() << "THRESHOLD: " << paramThresh->getValue()
+                     << paramThresh->getCurrentValueAsText().toStdString();
+        }
     }
 
 #ifndef DEBUGCLOCK

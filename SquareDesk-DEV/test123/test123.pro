@@ -74,6 +74,7 @@ SOURCES += main.cpp\
     lyricsEditor.cpp \
     mainwindow.cpp \
 #    miniBPM/MiniBpm.cpp \
+    mainwindow_JUCE.cpp \
     mainwindow_bulk.cpp \
     mainwindow_choreo1.cpp \
     mainwindow_cuesheets.cpp \
@@ -254,6 +255,7 @@ macx {
 # This is just for libtidy at this point... (NOTE: libtidy no longer needed)
 INCLUDEPATH += $$PWD/ $$PWD/../local_macosx/include
 DEPENDPATH += $$PWD/ $$PWD/../local_macosx/include
+INCLUDEPATH += /Users/mpogue/JUCEProjects/libJUCEstatic/JuceLibraryCode /Applications/JUCE/modules
 }
 
 win32 {
@@ -366,6 +368,15 @@ INCLUDEPATH += $$PWD/../taglib/taglib/toolkit
 INCLUDEPATH += $$PWD/../taglib/taglib/mpeg/id3v2
 INCLUDEPATH += $$PWD/../taglib/taglib/riff
 INCLUDEPATH += $$PWD/../taglib/taglib/riff/wav
+
+# JUCE ------------
+LIBS += -L/Users/mpogue/JUCEProjects/libJUCEstatic/Builds/MacOSX/build/Debug -lJUCE_debug
+LIBS += -framework QuartzCore
+LIBS += -framework Security
+LIBS += -framework Accelerate
+LIBS += -framework WebKit
+LIBS += -framework AudioToolbox
+LIBS += -framework CoreAudioKit
 
 # KFR for filters -----------------------------------
 INCLUDEPATH += $$PWD/../kfr/include
