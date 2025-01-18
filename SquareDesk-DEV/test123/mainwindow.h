@@ -1496,6 +1496,7 @@ public:
 #ifdef USE_JUCE
     // JUCE STUFF -----------
     std::unique_ptr<juce::AudioPluginInstance> loudMaxPlugin;
+    // juce::AudioPluginInstance *loudMaxPlugin;
     juce::HostedAudioProcessorParameter *paramThresh;
     juce::DocumentWindow *loudMaxWin;
     void scanForPlugins();

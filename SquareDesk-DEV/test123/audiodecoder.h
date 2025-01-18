@@ -76,6 +76,17 @@
 #ifndef AUDIODECODER_H
 #define AUDIODECODER_H
 
+#include "globaldefines.h"
+
+#ifdef USE_JUCE
+#define JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED = 1
+#define DEBUG 1
+#define JUCE_PLUGINHOST_AU 1
+#define JUCE_MAC 1
+#include "juce_audio_processors/juce_audio_processors.h"
+// #include "juce_audio_basics/juce_audio_basics.h"
+#endif
+
 #if defined(Q_OS_LINUX)
 #include <QtMultimedia/QAudioDecoder>
 #include <QtMultimedia/QMediaPlayer>
@@ -191,6 +202,10 @@ public:
     bool activelyPlaying;
 
     std::vector<float> waveformMap;  // WAVEFORMWIDTH samples of the power/max of the song for each songLength/WAVEFORMWIDTH second window
+
+#ifdef USE_JUCE
+    void setLoudMaxPlugin(std::unique_ptr<juce::AudioPluginInstance> &p); // pass by reference
+#endif
 
 signals:
     void done();

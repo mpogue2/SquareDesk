@@ -149,7 +149,8 @@ void MainWindow::scanForPlugins() {
              << loudMaxPlugin->getLatencySamples()
              << loudMaxPlugin->getTotalNumInputChannels()
              << loudMaxPlugin->getTotalNumOutputChannels()
-             << loudMaxPlugin->isUsingDoublePrecision();
+             << loudMaxPlugin->isUsingDoublePrecision()
+             << loudMaxPlugin->getTailLengthSeconds();
 
     // Array< AudioProcessorParameter * > parms = loudMaxPlugin->getParameters();
     // for (auto a : parms) {
@@ -200,12 +201,15 @@ void MainWindow::scanForPlugins() {
     // This works, but it leaks.  I think we should just have a single slider in SquareDesk.
     //   Probably per-song?
 
-    // loudMaxWin = new juce::DocumentWindow(String("LoudMax"), juce::Colours::white, juce::DocumentWindow::closeButton, true);
-    // loudMaxWin->setUsingNativeTitleBar(true);
-    // // loudMaxWin->setContentOwned (loudMaxPlugin->createEditor(), true);
+    loudMaxWin = new juce::DocumentWindow(String("LoudMax"), juce::Colours::white, juce::DocumentWindow::closeButton, true);
+    loudMaxWin->setUsingNativeTitleBar(true);
+    loudMaxWin->setContentOwned (loudMaxPlugin->createEditor(), true);
     // loudMaxWin->setContentOwned (new GenericAudioProcessorEditor(*loudMaxPlugin), true);
-    // loudMaxWin->addToDesktop (/* flags */);
-    // loudMaxWin->setVisible (true);
+    loudMaxWin->addToDesktop (/* flags */);
+    loudMaxWin->setVisible (true);
+
+    extern flexible_audio *cBass;
+    cBass->setLoudMaxPlugin(loudMaxPlugin); // cBass is a flexible_audio, which passes to AudioDecoder, which passes to PlayerThread
 
     qDebug() << "PLUGINS =============";
 }

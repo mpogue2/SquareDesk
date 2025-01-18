@@ -23,6 +23,8 @@
 **
 ****************************************************************************/
 
+#include "globaldefines.h"
+
 #include "audiodecoder.h"
 #include "svgWaveformSlider.h"
 #include <QCoreApplication>
@@ -101,6 +103,8 @@ public:
 
         StopVolumeDucking();
 
+        fadeIsStop = false; // when true, overrides volume to zero
+
         clearLoop();
 
         // EQ settings
@@ -132,6 +136,10 @@ public:
         m_peakLevelL_mono = 0.0;
         m_peakLevelR      = 0.0;
         m_resetPeakDetector = true;
+
+#ifdef USE_JUCE
+        pLoudMaxPluginRaw = nullptr;
+#endif
     }
 
     virtual ~PlayerThread() {
@@ -248,10 +256,43 @@ public:
         currentFadeFactor = 1.0;
         fadeFactorDecrementPerFrame = 0.0;
 
+#ifdef USE_JUCE
+        fadeIsStop = false;
+
+        if (pLoudMaxPluginRaw != nullptr) {
+            pLoudMaxPluginRaw->prepareToPlay(44100.0, sizeof(processedData)/sizeof(float)); // 8192 is sizeof processedData/R, everything is 44.1K right now
+        } else {
+            qDebug() << "Play: pLoudMaxPluginRaw was null";
+        }
+#endif
     }
 
     void Stop() {
-//        qDebug() << "PlayerThread::Stop";
+        // qDebug() << "PlayerThread::Stop";
+
+#ifdef USE_JUCE
+        //     for (int j = 0; j < 8192; j++) {
+        //         processedData[j] = processedDataR[j] = 0.0;
+        //     }
+        //     juce::AudioBuffer<float> b(dataToReferTo, 2, 8192);
+        //     juce::MidiBuffer emptyMidiBuffer; // not using MIDI
+        //     for (int i = 0; i < 10; i++) {
+        //         qDebug() << "processing block" << i;
+        //         pLoudMaxPluginRaw->processBlock(b, emptyMidiBuffer); // processes IN PLACE (so outDataFloat/outDataFloatR are in play)
+        //     }
+        //     // pLoudMaxPluginRaw->releaseResources(); // no longer need internal buffers, OK to release them now
+        // } else {
+        //     qDebug() << "Stop: pLoudMaxPluginRaw was null";
+        // }
+
+        if (activelyPlaying) {
+            fadeIsStop = true; // forces volume to zero
+            fadeOutAndPause(0.0, 2.0); // stop is now a 2s fade, to allow meters to go to zero
+            return;
+        }
+        qDebug() << "second half of Stop()";
+#endif
+
         activelyPlaying = false;
         clearSoundTouch = true;  // at next opportunity, flush all the soundTouch buffers, because we're stopped now.
         playPosition_frames = 0;
@@ -271,13 +312,16 @@ public:
     }
 
     void Pause() {
-//        qDebug() << "PlayerThread::Pause";
+        // qDebug() << "PlayerThread::Pause";
         activelyPlaying = false;
         currentState = BASS_ACTIVE_PAUSED;
 
         // Pause cancels FadeAndPause ------
         currentFadeFactor = 1.0;
         fadeFactorDecrementPerFrame = 0.0;
+#ifdef USE_JUCE
+        fadeIsStop = false;
+#endif
     }
 
     // ---------------------
@@ -296,7 +340,15 @@ public:
     }
 
     void fadeComplete() {
-        Pause();                            // pause (which also explicitly cancels and reinits fadeFactor and decrement)
+        // qDebug() << "fadeComplete()";
+#ifdef USE_JUCE
+        if (fadeIsStop) {
+            qDebug() << "fadeComplete() now calling Stop()";
+            activelyPlaying = false;
+            Stop();  // let Stop() do the rest of the shutdown
+        }
+#endif
+        Pause();     // pause (which also explicitly cancels and reinits fadeFactor and decrement)
     }
 
     void StartVolumeDucking(float duckToPercent, float forSeconds) {
@@ -329,7 +381,11 @@ public:
     }
 
     unsigned char getCurrentState() {
+#ifdef USE_JUCE
+        return(fadeIsStop ? BASS_ACTIVE_STOPPED : currentState); // if we're fading to STOP, pretend we are already stopped, so PLAY works during fade
+#else
         return(currentState);  // returns current state as int {0,3}
+#endif
     }
 
     double getPeakLevelL_mono() {
@@ -435,6 +491,13 @@ public:
         soundTouch.setTempo(newTempoPercent/100.0);
     }
 
+#ifdef USE_JUCE
+    void setLoudMaxPlugin(std::unique_ptr<juce::AudioPluginInstance> &p) { // pass by reference
+        qDebug() << "PlayerThread::setLoudMaxPlugin";
+        pLoudMaxPluginRaw = p.get();
+    }
+#endif
+
     // ================================================================================
     unsigned int processDSP(const char *inData, unsigned int inLength_bytes) {
 
@@ -513,7 +576,9 @@ public:
         if (m_mono) {
             // Force Mono is ENABLED
             scaleFactor = currentNormalizeFactor * currentPanEQFactor * currentDuckingFactor * currentFadeFactor * m_volume / (100.0 * 2.0);  // divide by 2, to avoid overflow; fade factor goes from 1.0 -> 0.0
-
+#ifdef USE_JUCE
+            scaleFactor = (fadeIsStop ? 0.0 : scaleFactor); // force volume to zero, if we are doing a JUCE-style stop
+#endif
 //    qDebug() << "scaleFactor: " << scaleFactor;
             for (int i = 0; i < (int)scaled_inLength_frames; i++) {
                 // output data is MONO (de-interleaved)
@@ -544,6 +609,9 @@ public:
         } else {
             // stereo (Force Mono is DISABLED)
             scaleFactor = currentNormalizeFactor * currentPanEQFactor * currentDuckingFactor * currentFadeFactor * m_volume / (100.0);
+#ifdef USE_JUCE
+            scaleFactor = (fadeIsStop ? 0.0 : scaleFactor); // force volume to zero, if we are doing a JUCE-style stop
+#endif
             // qDebug() << "scaleFactor:" << scaleFactor;
             for (unsigned int i = 0; i < scaled_inLength_frames; i++) {
                 // output data is de-interleaved into first and second half of outDataFloat buffer
@@ -557,6 +625,17 @@ public:
                 filter->apply(outDataFloat,   scaled_inLength_frames);    // NOTE: applies L filter IN PLACE (filter and storage used for mono and L)
                 filterR->apply(outDataFloatR, scaled_inLength_frames);    // NOTE: applies R filter IN PLACE (separate filter for R, because has separate state)
             }
+
+#ifdef USE_JUCE
+            juce::AudioBuffer<float> buffer(dataToReferTo, 2, scaled_inLength_frames); // stereo AUDIO
+            juce::MidiBuffer emptyMidiBuffer; // not using MIDI
+            if (pLoudMaxPluginRaw != nullptr) {
+                pLoudMaxPluginRaw->processBlock(buffer, emptyMidiBuffer); // processes IN PLACE (so outDataFloat/outDataFloatR are in play)
+            } else {
+                qDebug() << "ERROR: tried to call processBlock, but pLoudMaxPluginRaw was zero.";
+            }
+#endif
+
             // output data is INTERLEAVED STEREO (normal LR stereo) -- re-interleave to the outDataFloat buffer (which is the final output buffer)
             for (int i = scaled_inLength_frames-1; i >= 0; i--) {
                 outDataFloat[2*i]   = max(min(1.0f, outDataFloat[i]),-1.0);  // L + hard limiter
@@ -676,6 +755,12 @@ private:
 
     float       processedData[8192];
     float       processedDataR[8192];
+#ifdef USE_JUCE
+    float * const dataToReferTo[2] = {processedData, processedDataR}; // array of pointers to the float data
+    juce::AudioPluginInstance *pLoudMaxPluginRaw;
+    bool fadeIsStop; // true, if we're using FadeToPause to Stop playback
+#endif
+
     unsigned int numProcessedFrames;   // number of frames in the processedData array that are VALID
     unsigned int sourceFramesConsumed; // number of source (input) frames used to create those processed (output) frames
 
@@ -1649,3 +1734,10 @@ void AudioDecoder::updateWaveformMap()
 
 //    qDebug() << "waveformMap: " << waveformMap;
 }
+
+#ifdef USE_JUCE
+void AudioDecoder::setLoudMaxPlugin(std::unique_ptr<juce::AudioPluginInstance> &p) { // pass by reference
+    qDebug() << "AudioDecoder::setLoudMaxPlugin()";
+    myPlayer.setLoudMaxPlugin(p);
+}
+#endif

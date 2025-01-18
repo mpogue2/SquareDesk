@@ -168,6 +168,10 @@ public:
     void FXChannelStopPlaying();
     bool FXChannelIsPlaying();
 
+#ifdef USE_JUCE
+    void setLoudMaxPlugin(std::unique_ptr<juce::AudioPluginInstance> &p); // pass by reference
+#endif
+
     // always asks the engine what the state is (NOT CACHED), then returns one of:
     //    BASS_ACTIVE_STOPPED, BASS_ACTIVE_PLAYING, BASS_ACTIVE_STALLED, BASS_ACTIVE_PAUSED
     uint32_t currentStreamState();

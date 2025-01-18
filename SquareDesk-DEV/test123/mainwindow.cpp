@@ -3461,17 +3461,17 @@ void MainWindow::on_actionCompact_triggered(bool checked)
     return;
 }
 
-
 void MainWindow::on_actionShow_All_Ages_triggered(bool checked)
 {
     reloadSongAges(checked);
 }
 
-
-
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
+    cBass->Pause(); // if we don't do this, LoudMax will be called and will try to touch the window which will be dead already, and BOOM
+    cBass->Stop();  // if we don't do this, LoudMax will be called and will try to touch the window which will be dead already, and BOOM
+
     // clearing the database lock as soon as possible, so that we don't put up scary messages later,
     //   if SD couldn't be killed.
     QString currentMusicRootPath = prefsManager.GetmusicPath();
@@ -4360,7 +4360,11 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 //                      ui->darkSeekBar->setValue(ui->seekBar->value());
 //                }
                 if (fabs(ui->darkSeekBar->value() - currentPos_f) > 0.5) {
-                      ui->darkSeekBar->setFloatValue(currentPos_f);
+#ifdef USE_JUCE
+                    ui->darkSeekBar->setFloatValue(cBass->currentStreamState() == BASS_ACTIVE_STOPPED ? 0.0 : currentPos_f); // override for fadeIsStop
+#else
+                    ui->darkSeekBar->setFloatValue(currentPos_f);
+#endif
                 }
             } else {
                 qDebug() << "WARNING: Info_Seekbar does not have both maxima yet";
@@ -4926,10 +4930,10 @@ void MainWindow::on_UIUpdateTimerTick(void)
 
 #ifdef USE_JUCE
         // JUCE ---------
-        if (paramThresh) {
-            qDebug() << "THRESHOLD: " << paramThresh->getValue()
-                     << paramThresh->getCurrentValueAsText().toStdString();
-        }
+        // if (paramThresh) {
+            // qDebug() << "THRESHOLD: " << paramThresh->getValue()
+            //          << paramThresh->getCurrentValueAsText().toStdString();
+        // }
 #endif
     }
 
