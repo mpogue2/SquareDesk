@@ -33,3 +33,5 @@ SquareDesk.pro.user
 /SquareDesk-DEV/test123/.qmake.stash
 *.user
 *.autosave
+
+SquareDesk-DEV/test123/.vscode/
