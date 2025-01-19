@@ -103,8 +103,9 @@ public:
 
         StopVolumeDucking();
 
+#ifdef USE_JUCE
         fadeIsStop = false; // when true, overrides volume to zero
-
+#endif
         clearLoop();
 
         // EQ settings
