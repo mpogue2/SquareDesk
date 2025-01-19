@@ -596,6 +596,17 @@ public:
                 filter->apply(outDataFloat, scaled_inLength_frames);   // NOTE: applies IN PLACE
             }
 
+#ifdef USE_JUCE
+            memcpy(outDataFloatR, outDataFloat, scaled_inLength_frames*sizeof(float)); // copy L to R so meters look right
+            juce::AudioBuffer<float> buffer(dataToReferTo, 2, scaled_inLength_frames); // stereo AUDIO
+            juce::MidiBuffer emptyMidiBuffer; // not using MIDI
+            if (pLoudMaxPluginRaw != nullptr) {
+                pLoudMaxPluginRaw->processBlock(buffer, emptyMidiBuffer); // processes IN PLACE (so outDataFloat/outDataFloatR are in play)
+            } else {
+                qDebug() << "ERROR: tried to call processBlock, but pLoudMaxPluginRaw was zero.";
+            }
+#endif
+
 //            if (outDataFloat[0] != 0.0) {
 //                for (int i = 0; i < 40; i++) { // DEBUG DEBUG DEBUG
 //                    qDebug() << "A-outDataFloat[" << i << "]: " << outDataFloat[i];
