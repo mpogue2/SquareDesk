@@ -1,4 +1,5 @@
 #include "globaldefines.h"
+#include "ui_mainwindow.h"
 
 #ifdef USE_JUCE
 #define JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED = 1
@@ -89,6 +90,29 @@ public:
 };
 #endif
 
+
+class PluginWindow : public juce::DocumentWindow
+{
+public:
+    PluginWindow(const juce::String& name,
+                 juce::Colour backgroundColour,
+                 int requiredButtons,
+                 bool addToDesktop)
+        : DocumentWindow(name, backgroundColour, requiredButtons, addToDesktop)
+    {
+        setUsingNativeTitleBar(true);
+    }
+
+    void closeButtonPressed() override
+    {
+        // Just hide the window instead of destroying it
+        setVisible(false);
+    }
+
+private:
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginWindow)
+};
+
 // --------------------------------------------
 void MainWindow::scanForPlugins() {
     qDebug() << "PLUGINS =============";
@@ -138,10 +162,13 @@ void MainWindow::scanForPlugins() {
 
     if (loudMaxPlugin == nullptr) {
         qDebug() << error.toStdString(); // there was an error in loading
+        ui->FXbutton->setVisible(false);
         return;
     } else {
         qDebug() << "LoudMax was loaded!";
     }
+
+    ui->FXbutton->setVisible(true);
 
     // loudMaxPlugin->createEditorIfNeeded();
 
@@ -201,15 +228,20 @@ void MainWindow::scanForPlugins() {
     // This works, but it leaks.  I think we should just have a single slider in SquareDesk.
     //   Probably per-song?
 
-    loudMaxWin = new juce::DocumentWindow(String("LoudMax"), juce::Colours::white, juce::DocumentWindow::closeButton, true);
+    loudMaxWin = new PluginWindow(String("FX: LoudMax"), juce::Colours::white, juce::DocumentWindow::closeButton, true);
     loudMaxWin->setUsingNativeTitleBar(true);
     loudMaxWin->setContentOwned (loudMaxPlugin->createEditor(), true);
     // loudMaxWin->setContentOwned (new GenericAudioProcessorEditor(*loudMaxPlugin), true);
     loudMaxWin->addToDesktop (/* flags */);
-    loudMaxWin->setVisible (true);
+
+    connect(ui->FXbutton, &QPushButton::pressed,
+            this, [this](){
+                loudMaxWin->setVisible (true); // show the window!
+            } );
 
     extern flexible_audio *cBass;
     cBass->setLoudMaxPlugin(loudMaxPlugin); // cBass is a flexible_audio, which passes to AudioDecoder, which passes to PlayerThread
+                                            //   and PlayerThread calls PrepareToPlay and ProcessBlock to process audio.
 
     qDebug() << "PLUGINS =============";
 }
