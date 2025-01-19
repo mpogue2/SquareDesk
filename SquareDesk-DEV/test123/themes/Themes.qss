@@ -301,6 +301,10 @@ QPushButton#pushButtonCueSheetEditItalic {
     font: italic;
 }
 
+QPushButton#FXbutton {
+    border-radius: 8px;
+}
+
 /* CLOCK =========================== */
 QLabel#theSVGClock[theme="Light"] {
     background-color: #e8e8e8;
