@@ -518,7 +518,7 @@ void flexible_audio::getWaveform(float *f, size_t t) {
 
 #ifdef USE_JUCE
 void flexible_audio::setLoudMaxPlugin(std::unique_ptr<juce::AudioPluginInstance> &p) { // pass by reference
-    qDebug() << "flexible_audio::setLoudMaxPlugin";
+    // qDebug() << "flexible_audio::setLoudMaxPlugin";
     decoder.setLoudMaxPlugin(p);
 }
 #endif

@@ -99,11 +99,6 @@
 //#include <tidy/tidybuffio.h>
 
 #ifdef USE_JUCE
-#define JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED = 1
-#define DEBUG 1
-#define JUCE_PLUGINHOST_AU 1
-#define JUCE_MAC 1
-
 #include "JuceHeader.h"
 #endif
 
@@ -1498,7 +1493,8 @@ public:
     std::unique_ptr<juce::AudioPluginInstance> loudMaxPlugin;
     // juce::AudioPluginInstance *loudMaxPlugin;
     juce::HostedAudioProcessorParameter *paramThresh;
-    juce::DocumentWindow *loudMaxWin;
+    // juce::DocumentWindow *loudMaxWin;
+    std::unique_ptr<juce::DocumentWindow> loudMaxWin;
     void scanForPlugins();
 #endif
 };

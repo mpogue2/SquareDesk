@@ -1,11 +1,14 @@
 #include "globaldefines.h"
+
+// Disable warning, see: https://github.com/llvm/llvm-project/issues/48757
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Welaborated-enum-base"
+#include "mainwindow.h"
+#pragma clang diagnostic pop
+
 #include "ui_mainwindow.h"
 
 #ifdef USE_JUCE
-#define JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED = 1
-#define DEBUG 1
-#define JUCE_PLUGINHOST_AU 1
-#define JUCE_MAC 1
 
 #include "JuceHeader.h"
 
@@ -115,7 +118,7 @@ private:
 
 // --------------------------------------------
 void MainWindow::scanForPlugins() {
-    qDebug() << "PLUGINS =============";
+    // qDebug() << "PLUGINS =============";
 
 #ifdef OLDSCAN
     PluginFinder scanner;
@@ -165,19 +168,19 @@ void MainWindow::scanForPlugins() {
         ui->FXbutton->setVisible(false);
         return;
     } else {
-        qDebug() << "LoudMax was loaded!";
+        // qDebug() << "LoudMax was loaded!";
     }
 
     ui->FXbutton->setVisible(true);
 
     // loudMaxPlugin->createEditorIfNeeded();
 
-    qDebug() << "*** LoudMax:" << loudMaxPlugin->getSampleRate()
-             << loudMaxPlugin->getLatencySamples()
-             << loudMaxPlugin->getTotalNumInputChannels()
-             << loudMaxPlugin->getTotalNumOutputChannels()
-             << loudMaxPlugin->isUsingDoublePrecision()
-             << loudMaxPlugin->getTailLengthSeconds();
+    // qDebug() << "*** LoudMax:" << loudMaxPlugin->getSampleRate()
+    //          << loudMaxPlugin->getLatencySamples()
+    //          << loudMaxPlugin->getTotalNumInputChannels()
+    //          << loudMaxPlugin->getTotalNumOutputChannels()
+    //          << loudMaxPlugin->isUsingDoublePrecision()
+    //          << loudMaxPlugin->getTailLengthSeconds();
 
     // Array< AudioProcessorParameter * > parms = loudMaxPlugin->getParameters();
     // for (auto a : parms) {
@@ -201,26 +204,26 @@ void MainWindow::scanForPlugins() {
 //     possible value: "Off"
 //     possible value: "On"
 
-    paramThresh = loudMaxPlugin->getHostedParameter(0); // 0.0 - 1.0 maps to -30 - 0 dB threshold. This is the important one.
-    // auto paramOutput = loudMaxPlugin->getHostedParameter(1); // OK to leave at 1.0 = 0.0dB output
-    // auto paramFaderLink = loudMaxPlugin->getHostedParameter(2); // leave at OFF. We do not need to link the Thresh and Output faders.
-    // auto paramISPDetect = loudMaxPlugin->getHostedParameter(3); // leave at OFF. We do not need to detect peaks BETWEEN samples (takes lots of CPU).
-    // auto paramLargeGUI = loudMaxPlugin->getHostedParameter(4);  // leave at OFF. We do not use the GUI right now.
+    // paramThresh = loudMaxPlugin->getHostedParameter(0); // 0.0 - 1.0 maps to -30 - 0 dB threshold. This is the important one.
+    // // auto paramOutput = loudMaxPlugin->getHostedParameter(1); // OK to leave at 1.0 = 0.0dB output
+    // // auto paramFaderLink = loudMaxPlugin->getHostedParameter(2); // leave at OFF. We do not need to link the Thresh and Output faders.
+    // // auto paramISPDetect = loudMaxPlugin->getHostedParameter(3); // leave at OFF. We do not need to detect peaks BETWEEN samples (takes lots of CPU).
+    // // auto paramLargeGUI = loudMaxPlugin->getHostedParameter(4);  // leave at OFF. We do not use the GUI right now.
 
-    qDebug() << "Before: " << paramThresh->getValue()
-             << paramThresh->getCurrentValueAsText().toStdString()
-             << paramThresh->getDefaultValue();
-    paramThresh->setValue(0.5);
-    qDebug() << "After: " << paramThresh->getValue()
-             << paramThresh->getCurrentValueAsText().toStdString()
-             << paramThresh->getDefaultValue();
+    // qDebug() << "Before: " << paramThresh->getValue()
+    //          << paramThresh->getCurrentValueAsText().toStdString()
+    //          << paramThresh->getDefaultValue();
+    // paramThresh->setValue(0.5);
+    // qDebug() << "After: " << paramThresh->getValue()
+    //          << paramThresh->getCurrentValueAsText().toStdString()
+    //          << paramThresh->getDefaultValue();
 
     // GOOD: https://forum.juce.com/t/hosting-plugins/44560/13
     // You use the PluginDescription that your scanning returned to create an instance of the plugin.
     //     Then you need to prepare the AudioProcessor by calling prepareToPlay() and then
     //     you can process the audio using the processBlock() method.
 
-    qDebug() << "ABOUT TO OPEN A PLUGIN WINDOW =============";
+    // qDebug() << "ABOUT TO OPEN A PLUGIN WINDOW =============";
 
     // https://forum.juce.com/t/open-a-window-in-juce-and-put-a-plugineditor-into-it/54102/5
     // // loudMaxWin = std::make_unique<juce::ResizableWindow>(String("LoudMax"), true);
@@ -228,7 +231,8 @@ void MainWindow::scanForPlugins() {
     // This works, but it leaks.  I think we should just have a single slider in SquareDesk.
     //   Probably per-song?
 
-    loudMaxWin = new PluginWindow(String("FX: LoudMax"), juce::Colours::white, juce::DocumentWindow::closeButton, true);
+    // loudMaxWin = new PluginWindow(String("FX: LoudMax"), juce::Colours::white, juce::DocumentWindow::closeButton, true);
+    loudMaxWin = std::make_unique<PluginWindow>(String("FX: LoudMax"), juce::Colours::white, juce::DocumentWindow::closeButton, true);
     loudMaxWin->setUsingNativeTitleBar(true);
     loudMaxWin->setContentOwned (loudMaxPlugin->createEditor(), true);
     // loudMaxWin->setContentOwned (new GenericAudioProcessorEditor(*loudMaxPlugin), true);
@@ -243,7 +247,7 @@ void MainWindow::scanForPlugins() {
     cBass->setLoudMaxPlugin(loudMaxPlugin); // cBass is a flexible_audio, which passes to AudioDecoder, which passes to PlayerThread
                                             //   and PlayerThread calls PrepareToPlay and ProcessBlock to process audio.
 
-    qDebug() << "PLUGINS =============";
+    // qDebug() << "PLUGINS =============";
 }
 
 #endif

@@ -291,7 +291,7 @@ public:
             fadeOutAndPause(0.0, 2.0); // stop is now a 2s fade, to allow meters to go to zero
             return;
         }
-        qDebug() << "second half of Stop()";
+        // qDebug() << "second half of Stop()";
 #endif
 
         activelyPlaying = false;
@@ -494,7 +494,7 @@ public:
 
 #ifdef USE_JUCE
     void setLoudMaxPlugin(std::unique_ptr<juce::AudioPluginInstance> &p) { // pass by reference
-        qDebug() << "PlayerThread::setLoudMaxPlugin";
+        // qDebug() << "PlayerThread::setLoudMaxPlugin";
         pLoudMaxPluginRaw = p.get();
     }
 #endif
@@ -1749,7 +1749,7 @@ void AudioDecoder::updateWaveformMap()
 
 #ifdef USE_JUCE
 void AudioDecoder::setLoudMaxPlugin(std::unique_ptr<juce::AudioPluginInstance> &p) { // pass by reference
-    qDebug() << "AudioDecoder::setLoudMaxPlugin()";
+    // qDebug() << "AudioDecoder::setLoudMaxPlugin()";
     myPlayer.setLoudMaxPlugin(p);
 }
 #endif

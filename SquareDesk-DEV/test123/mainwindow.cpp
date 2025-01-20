@@ -2735,10 +2735,12 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkTempoSlider->finishInit();
     ui->darkVolumeSlider->finishInit();
 
+    ui->FXbutton->setVisible(false); // if USE_JUCE is enabled, and if LoudMax AU is present, this button will be made visible
+
 #ifdef USE_JUCE
     // JUCE ---------------
     juce::initialiseJuce_GUI(); // not sure this is needed
-    scanForPlugins(); // TEST
+    scanForPlugins();
 #endif
 }
 
@@ -3546,7 +3548,8 @@ MainWindow::~MainWindow()
 
 #ifdef USE_JUCE
     // JUCE -------
-    delete loudMaxWin;
+    // delete loudMaxWin;
+    // delete paramThresh;
 #endif
 }
 

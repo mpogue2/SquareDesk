@@ -400,7 +400,7 @@ void MainWindow::on_actionUpdate_ID3_Tags_triggered()
 }
 
 void MainWindow::printID3Tags(QString fileName) {
-#if DEBUG
+#if DEBUGID3
     TagLib::MPEG::File f(fileName.toUtf8().constData());
     ID3v2::Tag *id3v2tag = f.ID3v2Tag(true);
 
