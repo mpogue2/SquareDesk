@@ -240,6 +240,11 @@ void MainWindow::scanForPlugins() {
 
     connect(ui->FXbutton, &QPushButton::pressed,
             this, [this](){
+                QPoint p = ui->FXbutton->mapToGlobal(QPoint(0,0));
+                loudMaxWin->setBounds(p.x() /*+ loudMaxWin->getWidth() + ui->FXbutton->width()*/,
+                                      p.y() + ui->FXbutton->height() + 30,
+                                      loudMaxWin->getWidth(),
+                                      loudMaxWin->getHeight());
                 loudMaxWin->setVisible (true); // show the window!
             } );
 
