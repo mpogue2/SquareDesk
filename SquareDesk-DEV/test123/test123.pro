@@ -257,7 +257,7 @@ INCLUDEPATH += $$PWD/ $$PWD/../local_macosx/include
 DEPENDPATH += $$PWD/ $$PWD/../local_macosx/include
 
 # FOR JUCE:
-#INCLUDEPATH += /Users/mpogue/JUCEProjects/libJUCEstatic/JuceLibraryCode /Applications/JUCE/modules
+INCLUDEPATH += /Users/mpogue/JUCEProjects/libJUCEstatic/JuceLibraryCode /Applications/JUCE/modules
 }
 
 win32 {
@@ -372,13 +372,13 @@ INCLUDEPATH += $$PWD/../taglib/taglib/riff
 INCLUDEPATH += $$PWD/../taglib/taglib/riff/wav
 
 # JUCE ------------
-# LIBS += -L/Users/mpogue/JUCEProjects/libJUCEstatic/Builds/MacOSX/build/Debug -lJUCE_debug
-# LIBS += -framework QuartzCore
-# LIBS += -framework Security
-# LIBS += -framework Accelerate
-# LIBS += -framework WebKit
-# LIBS += -framework AudioToolbox
-# LIBS += -framework CoreAudioKit
+LIBS += -L/Users/mpogue/JUCEProjects/libJUCEstatic/Builds/MacOSX/build/Debug -lJUCE_debug
+LIBS += -framework QuartzCore
+LIBS += -framework Security
+LIBS += -framework Accelerate
+LIBS += -framework WebKit
+LIBS += -framework AudioToolbox
+LIBS += -framework CoreAudioKit
 
 # KFR for filters -----------------------------------
 INCLUDEPATH += $$PWD/../kfr/include

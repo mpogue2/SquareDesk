@@ -25,7 +25,7 @@ private: \
 #define DEBUG_LIGHT_MODE
 
 // define this to play with JUCE
-// #define USE_JUCE
+#define USE_JUCE
 
 #ifdef USE_JUCE
 #define JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED 1
