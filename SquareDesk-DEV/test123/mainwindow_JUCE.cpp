@@ -100,20 +100,24 @@ public:
     PluginWindow(const juce::String& name,
                  juce::Colour backgroundColour,
                  int requiredButtons,
-                 bool addToDesktop)
+                 bool addToDesktop,
+                 Ui::MainWindow *ui1)
         : DocumentWindow(name, backgroundColour, requiredButtons, addToDesktop)
     {
         setUsingNativeTitleBar(true);
+        ui = ui1;
     }
 
     void closeButtonPressed() override
     {
         // Just hide the window instead of destroying it
         setVisible(false);
+        ui->FXbutton->setChecked(false);
     }
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginWindow)
+    Ui::MainWindow *ui;
 };
 
 // --------------------------------------------
@@ -232,20 +236,28 @@ void MainWindow::scanForPlugins() {
     //   Probably per-song?
 
     // loudMaxWin = new PluginWindow(String("FX: LoudMax"), juce::Colours::white, juce::DocumentWindow::closeButton, true);
-    loudMaxWin = std::make_unique<PluginWindow>(String("Global FX: LoudMax"), juce::Colours::white, juce::DocumentWindow::closeButton, true);
+    loudMaxWin = std::make_unique<PluginWindow>(String("Global FX: LoudMax"),
+                                                juce::Colours::white,
+                                                juce::DocumentWindow::closeButton,
+                                                true,
+                                                ui);
     loudMaxWin->setUsingNativeTitleBar(true);
     loudMaxWin->setContentOwned (loudMaxPlugin->createEditor(), true);
     // loudMaxWin->setContentOwned (new GenericAudioProcessorEditor(*loudMaxPlugin), true);
     loudMaxWin->addToDesktop (/* flags */);
 
-    connect(ui->FXbutton, &QPushButton::pressed,
+    connect(ui->FXbutton, &QPushButton::clicked,
             this, [this](){
-                QPoint p = ui->FXbutton->mapToGlobal(QPoint(0,0));
-                loudMaxWin->setBounds(p.x() /*+ loudMaxWin->getWidth() + ui->FXbutton->width()*/,
-                                      p.y() + ui->FXbutton->height() + 30,
-                                      loudMaxWin->getWidth(),
-                                      loudMaxWin->getHeight());
-                loudMaxWin->setVisible (true); // show the window!
+                if (ui->FXbutton->isChecked()) {
+                    QPoint p = ui->FXbutton->mapToGlobal(QPoint(0,0));
+                    loudMaxWin->setBounds(p.x() /*+ loudMaxWin->getWidth() + ui->FXbutton->width()*/,
+                                          p.y() + ui->FXbutton->height() + 30,
+                                          loudMaxWin->getWidth(),
+                                          loudMaxWin->getHeight());
+                    loudMaxWin->setVisible (true); // show the window!
+                } else {
+                    loudMaxWin->setVisible (false); // hide the window!
+                }
             } );
 
     extern flexible_audio *cBass;

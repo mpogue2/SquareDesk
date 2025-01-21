@@ -3350,6 +3350,9 @@
              <property name="text">
               <string>FX</string>
              </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
              <property name="flat">
               <bool>false</bool>
              </property>

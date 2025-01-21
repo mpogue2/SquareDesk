@@ -305,6 +305,10 @@ QPushButton#FXbutton {
     border-radius: 8px;
 }
 
+QPushButton#FXbutton:checked {
+    color: #FE5F57; /* color of text is close-button-red in Light and Dark modes */
+}
+
 /* CLOCK =========================== */
 QLabel#theSVGClock[theme="Light"] {
     background-color: #e8e8e8;

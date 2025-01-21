@@ -2736,6 +2736,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkVolumeSlider->finishInit();
 
     ui->FXbutton->setVisible(false); // if USE_JUCE is enabled, and if LoudMax AU is present, this button will be made visible
+    ui->FXbutton->setChecked(false); // checked = LoudMaxWin is visible
 
 #ifdef USE_JUCE
     // JUCE ---------------
