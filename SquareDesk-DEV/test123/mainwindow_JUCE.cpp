@@ -232,7 +232,7 @@ void MainWindow::scanForPlugins() {
     //   Probably per-song?
 
     // loudMaxWin = new PluginWindow(String("FX: LoudMax"), juce::Colours::white, juce::DocumentWindow::closeButton, true);
-    loudMaxWin = std::make_unique<PluginWindow>(String("FX: LoudMax"), juce::Colours::white, juce::DocumentWindow::closeButton, true);
+    loudMaxWin = std::make_unique<PluginWindow>(String("Global FX: LoudMax"), juce::Colours::white, juce::DocumentWindow::closeButton, true);
     loudMaxWin->setUsingNativeTitleBar(true);
     loudMaxWin->setContentOwned (loudMaxPlugin->createEditor(), true);
     // loudMaxWin->setContentOwned (new GenericAudioProcessorEditor(*loudMaxPlugin), true);
