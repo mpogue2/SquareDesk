@@ -242,6 +242,7 @@ void MainWindow::scanForPlugins() {
                                                 true,
                                                 ui);
     loudMaxWin->setUsingNativeTitleBar(true);
+    loudMaxWin->setAlwaysOnTop(true);
     loudMaxWin->setContentOwned (loudMaxPlugin->createEditor(), true);
     // loudMaxWin->setContentOwned (new GenericAudioProcessorEditor(*loudMaxPlugin), true);
     loudMaxWin->addToDesktop (/* flags */);
