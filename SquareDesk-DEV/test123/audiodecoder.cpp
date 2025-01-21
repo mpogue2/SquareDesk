@@ -286,11 +286,15 @@ public:
         //     qDebug() << "Stop: pLoudMaxPluginRaw was null";
         // }
 
-        if (activelyPlaying) {
-            fadeIsStop = true; // forces volume to zero
-            fadeOutAndPause(0.0, 2.0); // stop is now a 2s fade, to allow meters to go to zero
-            return;
-        }
+        // NOTE: Nice try.  Allowing stop to be a volume=0.0 suppressed audio for 2 seconds
+        //   allows the meters in the LoudMax plugin to drain.  BUT, if a new song is loaded
+        //   during that 2 seconds, the PlayerThread crashes.
+        //
+        // if (activelyPlaying) {
+        //     fadeIsStop = true; // forces volume to zero
+        //     fadeOutAndPause(0.0, 2.0); // stop is now a 2s fade, to allow meters to go to zero
+        //     return;
+        // }
         // qDebug() << "second half of Stop()";
 #endif
 
