@@ -344,7 +344,7 @@ public:
         // qDebug() << "fadeComplete()";
 #ifdef USE_JUCE
         if (fadeIsStop) {
-            qDebug() << "fadeComplete() now calling Stop()";
+            // qDebug() << "fadeComplete() now calling Stop()";
             activelyPlaying = false;
             Stop();  // let Stop() do the rest of the shutdown
         }
