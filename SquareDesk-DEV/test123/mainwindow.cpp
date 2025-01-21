@@ -1615,7 +1615,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
         ui->actionSDDanceProgramC1->setChecked(true);
     } else if (sdLevel == "C2") {
         ui->actionSDDanceProgramC2->setChecked(true);
-    } else if (sdLevel == "C3A") {
+    } else if (sdLevel == "C3a") {
         ui->actionSDDanceProgramC3A->setChecked(true);
     } else if (sdLevel == "C3") {
         ui->actionSDDanceProgramC3->setChecked(true);
