@@ -1506,27 +1506,6 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     on_songTable_itemSelectionChanged(); // call this to update the colors
 
-    // startup the file watcher, AND make sure that focus has gone to the Title search field
-    QTimer::singleShot(2000, [this]{
-//            qDebug("Starting up FileWatcher now (intentionally delayed from app startup, to avoid Box.net locks retriggering loadMusicList)");
-            QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
-            if (darkmode) {
-                if (!ui->darkSearch->hasFocus()) {
-                    //                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
-                    ui->darkSearch->setFocus();
-                }
-            } else {
-                if (!ui->titleSearch->hasFocus()) {
-                    //                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
-                    ui->titleSearch->setFocus();
-                }
-            }
-
-            // also watch the abbrevs.txt file for changes, and reload the abbreviations if it changed
-            abbrevsWatcher.addPath(musicRootPath + "/sd/abbrevs.txt");
-            QObject::connect(&abbrevsWatcher, SIGNAL(fileChanged(QString)), this, SLOT(readAbbreviations()));
-
-        });
 
     on_actionSD_Output_triggered(); // initialize visibility of SD Output tab in SD tab
     on_actionShow_Frames_triggered(); // show or hide frames
@@ -2743,6 +2722,32 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     juce::initialiseJuce_GUI(); // not sure this is needed
     scanForPlugins();
 #endif
+
+    // NOTE: This MUST be down here at the end of the constructor now.
+    //   The startup sequence takes longer now, and we don't want the
+    //   timer to start too early, or it won't affect the focus.
+    //
+    // startup the file watcher, AND make sure that focus has gone to the Title search field
+    QTimer::singleShot(2000, [this]{
+//            qDebug("Starting up FileWatcher now (intentionally delayed from app startup, to avoid Box.net locks retriggering loadMusicList)");
+            QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
+            if (darkmode) {
+                if (!ui->darkSearch->hasFocus()) {
+                                   qDebug() << "HACK: DARK SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
+                    ui->darkSearch->setFocus();
+                }
+            } else {
+                if (!ui->titleSearch->hasFocus()) {
+                    //                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
+                    ui->titleSearch->setFocus();
+                }
+            }
+
+            // also watch the abbrevs.txt file for changes, and reload the abbreviations if it changed
+            abbrevsWatcher.addPath(musicRootPath + "/sd/abbrevs.txt");
+            QObject::connect(&abbrevsWatcher, SIGNAL(fileChanged(QString)), this, SLOT(readAbbreviations()));
+
+        });
 }
 
 void MainWindow::newFromTemplate() {
@@ -5364,7 +5369,7 @@ void MainWindow::aboutBox()
     msgBox.setText("SquareDesk, V" + QString(VERSIONSTRING) + QString(" (Qt") + QString(QT_VERSION_STR) + QString(")"));
     msgBox.setInformativeText(QString("Visit our website at\n") +
                               "http://squaredesk.net\n\n" +
-                              "Uses: sd, wpdfjs, minibpm, minimp3, Vamp (Queen Mary University of London & Segmentino), Icons8, kfr, and SoundTouch.\n\n" +
+                              "Uses: sd, qpdfjs, JUCE, minibpm, minimp3, Vamp (Queen Mary University of London & Segmentino), Icons8, kfr, and SoundTouch.\n\n" +
                               "Thanks to: all8.com"
                              );
 #else
