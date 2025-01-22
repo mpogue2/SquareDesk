@@ -2733,7 +2733,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
             QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
             if (darkmode) {
                 if (!ui->darkSearch->hasFocus()) {
-                                   qDebug() << "HACK: DARK SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
+                                   // qDebug() << "HACK: DARK SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
                     ui->darkSearch->setFocus();
                 }
             } else {
