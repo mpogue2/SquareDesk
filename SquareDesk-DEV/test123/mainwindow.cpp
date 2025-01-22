@@ -742,7 +742,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
         t.elapsed(__LINE__);
     }
 
-    musicRootWatcher.addPath(musicRootPath); // watch for add/deletes to musicDir, too
+    // musicRootWatcher.addPath(musicRootPath); // watch for add/deletes to musicDir, too
     // qDebug() << "Also adding to musicRootWatcher: " << musicRootPath;
 
     t.elapsed(__LINE__);
