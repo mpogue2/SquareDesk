@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2022  William B. Ackerman.
+//    Copyright (C) 1990-2024  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -44,8 +44,8 @@
 //    string is also required by paragraphs 2(a) and 2(c) of the GNU
 //    General Public License if you distribute the file.
 
-#define VERSION_STRING "39.45"
-#define TIME_STAMP "wba@alum.mit.edu Apr 25 2022 $"
+#define VERSION_STRING "39.71a"
+#define TIME_STAMP "wba@alum.mit.edu Jan 10 2025 $"
 
 /* This defines the following functions:
    sd_version_string
@@ -485,7 +485,7 @@ extern bool deposit_call(call_with_name *call, const call_conc_option_state *opt
                        &number_list))
          return true;
 
-   new_block = get_parse_block();
+   new_block = parse_block::get_parse_block();
    new_block->concept = &concept_mark_end_of_list;
    new_block->call = call;
    new_block->call_to_print = call;
@@ -504,7 +504,7 @@ extern bool deposit_call(call_with_name *call, const call_conc_option_state *opt
 
       new_block->options.tagger = tagg;
       new_block->concept = &concept_marker_concept_mod;
-      new_block->next = get_parse_block();
+      new_block->next = parse_block::get_parse_block();
       new_block->next->concept = &concept_marker_concept_mod;
 
       // Deposit the index of the base tagging call.  This will of course be replaced.
@@ -525,7 +525,7 @@ extern bool deposit_call(call_with_name *call, const call_conc_option_state *opt
 
       new_block->options.circcer = circc;
       new_block->concept = &concept_marker_concept_mod;
-      new_block->next = get_parse_block();
+      new_block->next = parse_block::get_parse_block();
       new_block->next->concept = &concept_marker_concept_mod;
 
       // Deposit the index of the base circcing call.  This will of course be replaced.
@@ -584,7 +584,7 @@ extern bool deposit_concept(const concept_descriptor *conc)
       if (find_numbers(howmanynumbers, true, 0, false, &number_list)) return true;
    }
 
-   new_block = get_parse_block();
+   new_block = parse_block::get_parse_block();
    new_block->concept = conc;
    new_block->options.who = sel;
    new_block->options.where = dir;
@@ -814,7 +814,7 @@ extern bool query_for_call()
                   char *temp_text_ptr = new_comment_block->txt;
                   string_copy(&temp_text_ptr, comment);
 
-                  *parse_state.concept_write_ptr = get_parse_block();
+                  *parse_state.concept_write_ptr = parse_block::get_parse_block();
                   (*parse_state.concept_write_ptr)->concept = &concept_marker_concept_comment;
 
                   (*parse_state.concept_write_ptr)->call = (call_with_name *) new_comment_block;

@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2021  William B. Ackerman.
+//    Copyright (C) 1990-2024  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -439,7 +439,7 @@ extern void remove_mxn_spreading(setup *ss) THROW_DECL
    if (!(ss->result_flags.misc & RESULTFLAG__DID_MXN_EXPANSION))
       return;
 
-   uint32_t livemasklittle = little_endian_live_mask(ss);
+   uint32_t livemasklittle = ss->little_endian_live_mask();
 
    static const expand::thing *unwind_2x6_table[] = {
       &exp52, &exp25, &exp72, &exp27,
@@ -573,7 +573,7 @@ extern void remove_fudgy_2x3_2x6(setup *ss) THROW_DECL
 extern void repair_fudgy_2x3_2x6(setup *ss) THROW_DECL
 {
    if (ss->kind == s1p5x8) {
-      uint32_t mask = little_endian_live_mask(ss);
+      uint32_t mask = ss->little_endian_live_mask();
       if (mask != 0 && (mask & 0xF0F0) == 0)
          ss->kind = sfudgy2x6l;
       else if (mask != 0 && (mask & 0x0F0F) == 0)
@@ -724,7 +724,7 @@ static bool do_1x3_type_expansion(setup *ss, heritflags heritflags_to_check) THR
    const Nx1_checker *getin_search;
    uint32_t full_occupation = (uint32_t) ((1U << ((attr::klimit(ss->kind)+1) << 1)) - 1);
 
-   big_endian_get_directions32(ss, directions, dblbitlivemask);
+   ss->big_endian_get_directions32(directions, dblbitlivemask);
 
    if (heritflags_to_check == INHERITFLAGMXNK_3X1 ||
        heritflags_to_check == INHERITFLAGMXNK_1X3) {
@@ -1436,6 +1436,17 @@ static const coordrec squeezething4dmd = {s4dmd, 0x23,
    {-10,  -5,   5,  10,  14,  10,   6,   2,  10,   5,  -5, -10, -14, -10,  -6,  -2},
    {  6,   6,   6,   6,   0,   0,   0,   0,  -6,  -6,  -6,  -6,   0,   0,   0,   0}, {0}};
 
+static const coordrec supernicethingqtag = {s_qtag, 0x23,   /* really precise coordinates */
+   { -2,   2,   6,   2,   2,  -2,  -6,  -2},
+   {  4,   4,   0,   0,  -4,  -4,   0,   0}, {
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1,  0,  1, -1, -1, -1,
+      -1, -1,  6,  7,  3,  2, -1, -1,
+      -1, -1, -1,  5,  4, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1}};
 
 enum { matrix_info_capacity = MAX_PEOPLE };
 
@@ -1457,8 +1468,11 @@ static int start_matrix_call(
    const coordrec *nicethingyptr = setup_attrs[ss->kind].nice_setup_coords;
    const coordrec *thingyptr = setup_attrs[ss->kind].setup_coords;
 
-   if (the_schema == schema_counter_rotate) {
-      thingyptr = nicethingyptr;
+   // For trade, we use the accurate info.  You're not allowed to press or truck
+   // across the points of an hourglass, but you are allowed to trade.
+   if (the_schema == schema_counter_rotate || (flags & MTX_FIND_TRADERS) != 0) {
+      thingyptr = (ss->kind == s_qtag) ?
+         &supernicethingqtag : nicethingyptr;
    }
 
    if (flags & (MTX_FIND_SQUEEZERS|MTX_FIND_SPREADERS)) {
@@ -1555,6 +1569,42 @@ struct checkitem {
 };
 
 
+static const coordrec spec_qtag = {s_qtag, 0x23,
+   { -2,   2,   5,   1,   2,  -2,  -5,  -1},
+   {  6,   6,   0,   0,  -6,  -6,   0,   0}, {
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1,  0,  1, -1, -1, -1,
+      -1, -1,  6,  7,  3,  2, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1,  5,  4, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1}};
+
+static const coordrec spec_rigger = {s_rigger, 0x23,
+   { -2,   2,   5,   5,   2,  -2,  -5,  -5},
+   {  2,   2,   0,   0,  -2,  -2,   0,   0}, {
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1,  6,  7,  0,  1,  3,  2, -1,
+      -1, -1, -1,  5,  4, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1}};
+
+static const coordrec spec_4x4 = {s4x4, 0x23,
+   {  6,   6,   6,   2,   6,   2,  -2,   2,  -6,  -6,  -6,  -2,  -6,  -2,   2,  -2},
+   {  6,   2,  -2,   2,  -5,  -5,  -5,  -2,  -5,  -2,   2,  -2,   5,   5,   5,   2}, {
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, 12, 13, 14,  0, -1, -1,
+      -1, -1, 10, 15,  3,  1, -1, -1,
+      -1, -1,  9, 11,  7,  2, -1, -1,
+      -1, -1,  8,  6,  5,  4, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1}};
+
 static const coordrec spec_qtag1 = {s_qtag, 0x23,
    { -4,   4,   6,   2,   4,  -4,  -6,  -2},
    {  6,   6,   0,   0,  -6,  -6,   0,   0}, {
@@ -1564,6 +1614,18 @@ static const coordrec spec_qtag1 = {s_qtag, 0x23,
       -1, -1,  6,  7,  3,  2, -1, -1,
       -1, -1, -1, -1, -1, -1, -1, -1,
       -1, -1, -1,  5, -1,  4, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1}};
+
+static const coordrec spec_ptpd = {s_ptpd, 0x23,
+   {-12,  -8,  -1,  -8,  12,   8,   1,   8},
+   {  0,   2,   0,  -2,   0,  -2,   0,   2}, {
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1,  0,  1,  2,  6, -1,  7,  4,
+      -1, -1,  3, -1, -1, -1,  5, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1,
       -1, -1, -1, -1, -1, -1, -1, -1,
       -1, -1, -1, -1, -1, -1, -1, -1}};
 
@@ -1889,6 +1951,18 @@ static const int8_t qtagto3x4correction[] =
 static const int8_t s3x6correction[] =
 {2, 5, 2, 4,     -2, 5, -2, 4,      2, -5, 2, -4,    -2, -5, -2, -4, 127};
 
+static const int8_t qtagcorrection[] =
+{0, -3, 0, -5,    0, 3, 0, 5, 127};
+
+static const int8_t ptpdcorrection[] =
+{-2, 2, -2, 8,    2, 2, 2, 8,    2, -2, 2, -8,    -2, -2, -2, -8,    0, 3, 0, 12,   0, -3, 0, -12, 127};
+
+static const int8_t qrigcorrection[] =
+{0, -3, 0, -5,    0, 3, 0, 5, 127};
+
+static const int8_t q4x4correction[] =
+{-2, 3, -2, 5,    2, -3, 2, -5,    -2, -3, -2, -5,    2, 3, 2, 5, 127};
+
 static const coordrec qtagto4x5 = {s4x5, 0x123,
    { -8,  -4,   0,   4,   8,   8,   5,   0,  -5,  -8,   8,   4,   0,  -4,  -8,  -8,  -5,   0,   5,   8},
    {  6,   9,   6,   9,   6,   2,   4,   2,   5,   2,  -6,  -9,  -6,  -9,  -6,  -2,  -4,  -2,  -5,  -2}};
@@ -1996,6 +2070,10 @@ static const checkitem checktable[] = {
    {0x00630095, 0x10800A00, spgdmdccw, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
    {0x00A20026, 0x08008404, s_rigger, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
    {0x002600A2, 0x0800C004, s_rigger, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00260033, 0x20008004, nothing, 0x201, warn__none, &spec_rigger, qrigcorrection},
+   {0x00620033, 0x04488006, nothing, 0x200, warn__none, &spec_4x4, q4x4correction},
+   {0x00660033, 0x20180002, nothing, 0x201, warn__none, &spec_qtag, qtagcorrection},
+   {0x00260033, 0x20108004, nothing, 0x201, warn__none, &spec_ptpd, ptpdcorrection},
    {0x00770077, 0x00418004, s_galaxy, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
    // Fudge this to a galaxy.  The center 2 did a squeeze or spread from a spindle.
    {0x00840066, 0x0C000108, nothing, 0, warn__check_galaxy, &spec_spin_gal, (const int8_t *) 0},
@@ -2217,6 +2295,7 @@ static const checkitem checktable[] = {
    {0x01130066, 0x09406600, sbigbigh, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
    {0x01130026, 0x09406600, sbigbigh, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
    {0x00550057, 0x20000620, s_hrglass, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00670057, 0x00400620, s_hrglass, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
    {0x00570067, 0x09400020, s_hrglass, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
    // The checkpointers squeezed or spread from a spindle.  Fudge to an hourglass.
@@ -2349,6 +2428,7 @@ static const checkitem checktable[] = {
    {0x00620004, 0x01000400, s1x4, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
    {0x00040062, 0x08000200, s1x4, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
    {0x00550026, 0x20020200, sdmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00510004, 0x20020200, sdmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
    {0x00260055, 0x01000080, sdmd, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
    {0x00000005, 0x20020200, sdmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
    {0x00550004, 0x20020200, sdmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
@@ -2405,7 +2485,7 @@ static int finish_matrix_call(
    bool do_roll_stability,
    collision_severity allow_collisions,
    bool allow_fudging,
-   merge_action action,
+   merge_action_type action,
    setup *people,
    setup *result) THROW_DECL
 {
@@ -2421,14 +2501,15 @@ static int finish_matrix_call(
    uint32_t people_needing_grab_info = 0UL;  // Little-endian, of course.
    uint32_t grab_directions = 0UL;           // 1 for CW, 2 for CCW
 
-   // If doing a schema_counter_rotate, we may need two passes.  In the first,
-   // we do all the processing for people whose counter rotate direction can be determined.
+   // If doing a schema_counter_rotate, we may need two passes.  In the first, we do all
+   // the processing for people whose counter rotate direction can be determined.
 
    for (int pass = 0 ; pass < 2 ; pass++) {
       if (pass >= 1 && (the_schema != schema_counter_rotate || people_needing_grab_info == 0)) continue;
 
       for (i=0; i<nump; i++) {
-         // Yes, even phantoms participate in a counter rotate.  Otherwise, just skip this person.
+         // Yes, even phantoms participate in a counter rotate.
+         // Otherwise, just skip this person.
          if (matrix_info[i].id1 == 0 && the_schema != schema_counter_rotate) continue;
 
          alldelta |= matrix_info[i].deltax | matrix_info[i].deltay;
@@ -2611,7 +2692,7 @@ static int finish_matrix_call(
    warn(p->warning);
 
    const coordrec *checkptr = (p->new_checkptr) ? p->new_checkptr :
-      (the_schema == schema_counter_rotate) ?
+      (the_schema == schema_counter_rotate || (flags & MTX_FIND_TRADERS) != 0) ?
       setup_attrs[p->new_setup].nice_setup_coords:
       setup_attrs[p->new_setup].setup_coords;
 
@@ -2663,6 +2744,17 @@ static int finish_matrix_call(
 
    // Pass the "action" in case it's merge_c1_phantom_real_couples.
    CC.fix_possible_collision(action);
+
+   // Matrix calls sometimes get tripped up by the infamous "diamond to 1/4 tag
+   // adjustment situation, turning a qtag into a 3x4 with a so-and-so trade.  Fix that.
+   // Will check that the corners are empty.
+
+   if (!ss || ss->kind == s_qtag) {
+      if ((flags & MTX_FIND_TRADERS) != 0 && result->kind == s3x4) {
+         expand::fix_3x4_to_qtag(result);
+      }
+   }
+
    return alldelta;
 }
 
@@ -2738,10 +2830,13 @@ static int matrixmove(
          }
 
          if (flags & MTX_FIND_TRADERS) {
-            const coordrec *checkptr = setup_attrs[ss->kind].setup_coords;
+            const coordrec *checkptr = (ss->kind == s_qtag) ?
+               &supernicethingqtag :
+               setup_attrs[ss->kind].nice_setup_coords;
             int32_t d = thisrec->dir;
-            // These numbers are -1, 0, or +1.  They tell how far to move to get the next person
-            // to this person's own left.  Negatives of these to get people to the right.
+            // These numbers are -1, 0, or +1.  They tell how far to move (in the actual
+            // "absolute" setup) to get the next person to this person's own left.
+            // Negatives of these get people to this person's own right.
             int dyleft = (d&1) * ((d<<30)>>30);
             d += 3;
             int dxleft = (d&1) * ((d<<30)>>30);
@@ -2751,10 +2846,15 @@ static int matrixmove(
             int yposition[2];
             bool passed_a_gap[2];
 
-            // This is 0 for the search to the left, then 1 for the search to the right.
+            // Search farther and farther to this person's own left, for the person they
+            // are to trade with.  Then do it again to their right, Record the nearest
+            // one in each case, of course.
+
             for (int searchdir=0; searchdir<2; searchdir++) {
+               int actualdel = 1 - searchdir*2;
+               // Search to left is searchdir=0, actualdel=1.
+               // Then search to right is searchdir=1, actualdel=-1.
                bool gap = false;
-               int actualdel = 1 - searchdir*2;   // This is -1 for left, +1 for right.
                dircount[searchdir] = 0;
                int tx = thisrec->x;
                int ty = thisrec->y;
@@ -2771,7 +2871,7 @@ static int matrixmove(
                      // keep looking in the same direction, with step size reduced to 1,
                      // until we find a valid spot or go past 10.
                      failcount++;
-                     if (failcount > 6)
+                     if (failcount > 8)
                         break;   // We really can't find a spot.
                      gap = true;
                      tx -= dxleft * actualdel * 3;  // Sleazy way to make the next step size be 1.
@@ -2806,8 +2906,13 @@ static int matrixmove(
             }
 
             // One of the directions must have an odd count, the other an even count.
+            //
+            // Most exceptions allow the next definition to be tried (and "<anyone trade>"
+            // has a subsequent definition.)  But if there simply is no unambiguous
+            // selected person to trade with, this call simply can't be done, and the
+            // "array" definition can't help.
             if (((dircount[0] + dircount[1]) & 1) == 0)
-               fail("Can't find trade target.");
+               fail_no_retry("Can't find trade target.");
 
             int whichway = (dircount[0] & 1) ? 0 : 1;   // 0 if left, 1 if right.
 
@@ -2819,12 +2924,13 @@ static int matrixmove(
 
             if (ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_HALF)) {
                absdelx >>= 1;
+               absdely = (thisrec->dir & 2) != 0 ? 3 : -3;
                thisrec->deltarot = 3 - (whichway << 1);
             }
 
             thisrec->roll_stability_info = callstuff[whichway];
 
-            // This suff is absolute, but later code wants it relative and will convert
+            // This stuff is absolute, but later code wants it relative and will convert
             // to absolute, so we have to unwind that.
             switch (thisrec->dir) {
             case 0:
@@ -3366,6 +3472,16 @@ static void process_jaywalk_chains(
          else {
             mi->roll_stability_info &= ~(DBSTAB_BIT * STB_MASK);
             mi->roll_stability_info |= DBSTAB_BIT * STB_A;
+
+            if ((deltarot & 3) == 1) {
+               mi->roll_stability_info &= ~(ROLL_DIRMASK / (NROLL_BIT/DBSLIDEROLL_BIT));
+               mi->roll_stability_info |= ((ROLL_IS_R|PERSON_MOVED) / (NROLL_BIT/DBSLIDEROLL_BIT));
+            }
+            else if ((deltarot & 3) == 3) {
+               mi->roll_stability_info &= ~(ROLL_DIRMASK / (NROLL_BIT/DBSLIDEROLL_BIT));
+               mi->roll_stability_info |= ((ROLL_IS_L|PERSON_MOVED) / (NROLL_BIT/DBSLIDEROLL_BIT));
+            }
+
             if ((deltarot & 3) == 1)
                mi->roll_stability_info |= DBSTAB_BIT * STB_REVERSE;
          }
@@ -3546,7 +3662,7 @@ static int partner_matrixmove(
 // This treats res2 as though it had rotation zero.
 // Res1 is allowed to have rotation.
 extern void brute_force_merge(const setup *res1, const setup *res2,
-                              merge_action action, setup *result) THROW_DECL
+                              merge_action_type action, setup *result) THROW_DECL
 {
    int i;
    int r = res1->rotation & 3;
@@ -3625,7 +3741,6 @@ extern void drag_someone_and_move(setup *ss, parse_block *parseptr, setup *resul
    matrix_rec second_matrix_info[matrix_info_capacity+1];
    int i;
    bool fudged_start = false;
-   uint32_t flags = MTX_STOP_AND_WARN_ON_TBONE | MTX_IGNORE_NONSELECTEES;
    who_list saved_selector = current_options.who;
    current_options.who = parseptr->options.who;
 
@@ -3645,7 +3760,8 @@ extern void drag_someone_and_move(setup *ss, parse_block *parseptr, setup *resul
    // Make the lateral chains first.
 
    make_matrix_chains(matrix_info, nump, false, MTX_STOP_AND_WARN_ON_TBONE, 1);
-   process_nonjaywalk_chains(matrix_info, nump, (uint32_t *) 0, flags, 1);
+   process_nonjaywalk_chains(matrix_info, nump, (uint32_t *) 0,
+                             MTX_STOP_AND_WARN_ON_TBONE | MTX_IGNORE_NONSELECTEES, 1);
 
    /* Now clean off the pointers in preparation for the second pass. */
 
@@ -3660,7 +3776,8 @@ extern void drag_someone_and_move(setup *ss, parse_block *parseptr, setup *resul
    // Vertical chains next.
 
    make_matrix_chains(matrix_info, nump, false, MTX_STOP_AND_WARN_ON_TBONE, 0);
-   process_nonjaywalk_chains(matrix_info, nump, (uint32_t *) 0, flags, 0);
+   process_nonjaywalk_chains(matrix_info, nump, (uint32_t *) 0,
+                             MTX_STOP_AND_WARN_ON_TBONE | MTX_IGNORE_NONSELECTEES, 0);
 
    // Scan for people who ought to have done something but didn't.
 
@@ -3691,10 +3808,11 @@ extern void drag_someone_and_move(setup *ss, parse_block *parseptr, setup *resul
 
    for (i=0; i<nump; i++) {
       if (matrix_info[i].sel) {
+         // This person is a draggee.  Find his dragger.
          // Get the actual dragger person id1 word.
          uint32_t dragger_id = scopy.people[matrix_info[i].deltarot].id1;
 
-         // Find the XY coords of the person's dragger.
+         // Find the XY coords of the dragger.
 
          int kk;
          for (kk=0; kk<second_nump; kk++) {
@@ -3702,6 +3820,7 @@ extern void drag_someone_and_move(setup *ss, parse_block *parseptr, setup *resul
                goto found_dragger;
          }
          fail("Internal error: failed to find dragger coords.");
+
       found_dragger:
          // Original offset of draggee relative to dragger.
          int origdx = matrix_info[i].x - matrix_info[i].deltax;
@@ -3721,7 +3840,19 @@ extern void drag_someone_and_move(setup *ss, parse_block *parseptr, setup *resul
          }
          // Now origdx/dy has offset of draggee from dragger in new space.
          // This is new info for draggee.
+
+         // (Second_matrix_info, second_nump) has the location records for the draggers,
+         // that is, the people that actually did the call.  Create new records for the
+         // draggees.
+
          copy_rot(&second_people, final_2nd_nump, &people, i, dragger_turn*011);
+
+         second_people.people[final_2nd_nump].id1 &= ~STABLE_ALL_MASK;
+
+         if (result->people[second_matrix_info[kk].orig_source_idx].id1 & STABLE_ENAB)
+            second_people.people[final_2nd_nump].id1 |=
+               (result->people[second_matrix_info[kk].orig_source_idx].id1 & STABLE_ALL_MASK);
+
          second_matrix_info[final_2nd_nump] = matrix_info[i];
          second_matrix_info[final_2nd_nump].x = second_matrix_info[kk].x + origdx;
          second_matrix_info[final_2nd_nump++].y = second_matrix_info[kk].y + origdy;
@@ -4224,6 +4355,7 @@ extern bool get_real_subcall(
 
    cmd_out->parseptr = parseptr;
    cmd_out->cmd_final_flags = new_final_concepts;
+   cmd_out->cmd_misc3_flags = cmd_in->cmd_misc3_flags;
 
    // If this context requires a tagging or scoot call, pass that fact on.
    if (this_is_tagger) cmd_out->cmd_final_flags.set_finalbit(FINAL__MUST_BE_TAG);
@@ -4234,7 +4366,7 @@ extern bool get_real_subcall(
 
    if (current_options.star_turn_option != 0 &&
        (orig_call->the_defn.callflagsf & CFLAG2_IS_STAR_CALL)) {
-      parse_block *xx = get_parse_block();
+      parse_block *xx = parse_block::get_parse_block();
       xx->concept = &concept_marker_concept_mod;
       xx->options = current_options;
       xx->options.star_turn_option = 0;
@@ -4295,7 +4427,7 @@ extern bool get_real_subcall(
    if (parseptr->concept->kind == concept_another_call_next_mod) {
       if (snumber == (DFM1_CALL_MOD_MAND_ANYCALL/DFM1_CALL_MOD_BIT) &&
           (cmd_in->cmd_misc3_flags & CMD_MISC3__NO_ANYTHINGERS_SUBST) &&
-          item_id == base_call_circulate) {
+          (item_id == base_call_circulate || item_id == base_call_motcirc)) {
          return false;
       }
       else if (snumber == (DFM1_CALL_MOD_ANYCALL/DFM1_CALL_MOD_BIT) &&
@@ -4308,7 +4440,8 @@ extern bool get_real_subcall(
       while ((search = *newsearch) != (parse_block *) 0) {
          if (orig_call == search->call ||
              (snumber == (DFM1_CALL_MOD_MAND_ANYCALL/DFM1_CALL_MOD_BIT) &&
-              search->call == base_calls[base_call_null] && orig_call == base_calls[base_call_circulate]) ||
+              search->call == base_calls[base_call_null] &&
+              (orig_call == base_calls[base_call_circulate] || orig_call == base_calls[base_call_motcirc])) ||
              (this_is_tagger && search->call == base_calls[base_call_tagger0])) {
             // Found a reference to this call.
             parse_block *subsidiary_ptr = search->subsidiary_root;
@@ -4418,43 +4551,19 @@ void reduce_fraction(int &a, int &b)
 }
 
 
-/* The fraction stuff is encoded into 6 hexadecimal digits, which we will call
-   digits 3 through 8:
+/* The cmd_fraction.fraction word:
+      The lowest 12 bits give denominator (high 6 bits) and numerator (low 6 bits)
+                  of the end point of the call, always in reduced-fraction form.
+                  The default is [1,1] (that is, 000001 000001) meaning to end
+                  at 1.0000, that is, the end.
+      The next 12 bits give denominator (high 6 bits) and numerator (low 6 bits)
+                  of the start point of the call, always in reduced-fraction form.
+                  The default is [0,1] (that is, 000001 000000) meaning to start
+                  at 0.0000, that is, the beginning.
 
-      Late-breaking news:  digit 2 is now used.  The bit 0x01000000 means
-      "this is 'initially' or 'finally', and I promise to invoke all parts
-      of the call, even though I appear at present to be invoking just a
-      subset."  It is used to allow 'initially' and 'finally' to be stacked
-      with themselves.
+   The default configuration is 000001 000000 000001 000001, that is, 0x00040041,
+   also known as FRAC_FRAC_NULL_VALUE.
 
-      digit 3 - the code (3 bits) and the reversal bit (1 bit)
-                  Note that the code*2 is what is visible in this digit.
-                  If this digit is odd, the reversal bit is on.  The code
-                  indicates what kind of special job we are doing.
-      digit 4 - the selected part, called "N".  Think of this as being 1-based,
-                  even though the part numbering stuff that comes out of this
-                  procedure will be zero-based.  This will always be nonzero
-                  when some nontrivial job is being done.  the meaning of the
-                  codes has been defined so that no job ever requires N to be zero.
-                  The only time N is zero is when we are not doing anything, in
-                  which case the code is zero.  Code = N = 0 means no special
-                  job is being done.  (Though reversal and nontrivial fractions
-                  may still be present.)
-      digits 5 and 6 - the numerator and denominator, respectively, of the
-                  start point of the call, always in reduced-fraction form.
-                  The default is [0,1] meaning to start at 0.0000, that is, the
-                  beginning.
-      digits 7 and 8 - the numerator and denominator, respectively, of the
-                  end point of the call, always in reduced-fraction form.
-                  The default is [1,1] meaning to end at 1.0000, that is, the
-                  end.
-
-   The default configuration is 000111 hex, meaning do not reverse, go from
-   0.0000 to 1.0000, and don't do any special job.  A word of zero means the same
-   thing, and the fraction flag word is initialized to 0 if no fractions are being
-   used.  This makes it easier to tell whether any fractions are being used.
-   The zero is changed to 000111 hex at the start of any fraction-manipulation
-   operation.
 
    The meaning of all this stuff is as follows:
 
@@ -5215,17 +5324,22 @@ fracfrac fraction_info::get_fracs_for_this_part()
       if (m_do_half_of_last_part != 0 && m_client_index == m_start_point)
          return m_do_half_of_last_part;
       else if (m_do_last_half_of_first_part != 0 && m_client_index == m_end_point)
-         return (fracfrac) m_do_last_half_of_first_part;
+         return m_do_last_half_of_first_part;
       else
          return FRAC_FRAC_NULL_VALUE;
    }
    else {
+      uint32_t retval = FRAC_FRAC_NULL_VALUE;
+
       if (m_do_half_of_last_part != 0 && (m_client_index == m_highlimit-1 || m_client_index == m_instant_stop-1))
-         return m_do_half_of_last_part;
-      else if (m_do_last_half_of_first_part != 0 && m_client_index == m_start_point)
-         return (fracfrac) m_do_last_half_of_first_part;
-      else
-         return FRAC_FRAC_NULL_VALUE;
+         // overwrite RH with m_do_half_of_last_part;
+         retval = rplacend(retval);
+
+      if (m_do_last_half_of_first_part != 0 && m_client_index == m_start_point)
+         // overwrite LH with m_do_last_half_of_first_part;
+         retval = rplacstart(retval);
+
+      return (fracfrac) retval;
    }
 }
 
@@ -5277,7 +5391,7 @@ bool fill_active_phantoms_and_move(setup *ss, setup *result, bool suppress_fudgy
    ss->cmd.cmd_assume.assumption = cr_none;
    // Fill in the geometrical bits (beau/lead/center/etc) for the newly created phantoms,
    // but not the boy/girl/couple-number stuff.
-   update_id_bits(ss);
+   ss->update_id_bits();
    move(ss, false, result, suppress_fudgy_2x3_2x6_fixup);
 
    // Take out the phantoms.
@@ -5550,7 +5664,7 @@ static void propagate_seq_assumptions(const assumption_thing incoming_assumption
                fix_next_assumption_p->assumption = cr_ctr_couples;
          }
       }
-      else if (this_call == base_calls[base_call_circulate]) {
+      else if ((this_call == base_calls[base_call_circulate] || this_call == base_calls[base_call_motcirc])) {
          // If we are doing a circulate in columns, and the assumption was
          // "8 chain" or "trade by", change it to the other assumption.
          // Similarly for facing lines and back-to-back lines.
@@ -5674,7 +5788,7 @@ static void propagate_seq_assumptions(const assumption_thing incoming_assumption
       }
    }
    else if ((result->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_HALF))) {
-      if (this_call == base_calls[base_call_circulate]) {
+      if ((this_call == base_calls[base_call_circulate] || this_call == base_calls[base_call_motcirc])) {
          // If we are doing a 1/2 circulate in a 2x2 that assumes lines facing in or out,
          // result is a wave.
 
@@ -5780,6 +5894,8 @@ static void do_sequential_call(
    bool first_call = true;    // First call in logical definition.
    bool first_time = true;    // First thing we are doing, in temporal sequence.
    bool use_incoming_assumption = true;  // Normally turned off after first round; only 1st call get the assumption.
+   bool cast_didnt_start_at_beginning = false;    // This makes it start a cast off with continue_cast, so it
+                                                  // will use the roll info from the earlier part of the call.
    assumption_thing fix_next_assumption;
 
    // This tells whether the setup was genuinely elongated when it came in.
@@ -5803,7 +5919,7 @@ static void do_sequential_call(
       ss->cmd.cmd_fraction.flags |= CMD_FRAC_FORCE_VIS;
    }
 
-   bool distribute = (callflags1 & CFLAG1_DISTRIBUTE_REPETITIONS) != 0;
+   bool distribute_repetitions = (callflags1 & CFLAG1_DISTRIBUTE_REPETITIONS) != 0;
 
    fraction_info zzz(callspec->stuff.seq.howmanyparts);
 
@@ -5811,7 +5927,60 @@ static void do_sequential_call(
    bool fetch_other_call_for_this_cycle = false;
    bool fetching_remainder_for_this_cycle = false;
 
-   if (distribute) {
+   // Fix up "cast off" stuff by canonicalizing the "HALF", options->number, and fraction info.
+   // This schema is only used for "cast off <N/4>", where the number comes from those three
+   // sources.  The "HALF" bit could have been turned on if this came from "cast off <N/8>".
+   // Also, when we do this, we know that "distribute_repetitions" is on.
+
+   if (this_schema == schema_sequential_remainder) {
+      // Cast off N/8 turns on the HALF bit.  Subsume that (and its ilk) into the fraction.
+      if (new_final_concepts.bool_test_heritbits(INHERITFLAG_HALF|INHERITFLAG_LASTHALF)) {
+         fraction_command afracs;
+         afracs.flags = 0;
+         afracs.process_fractions(NUMBER_FIELDS_1_0, NUMBER_FIELDS_2_1,
+                                  FRAC_INVERT_NONE, ss->cmd.cmd_fraction);
+         ss->cmd.cmd_fraction.fraction = afracs.fraction;
+         new_final_concepts.clear_heritbits(INHERITFLAG_HALF|INHERITFLAG_LASTHALF);
+      }
+
+      // Now canonicalize the fraction onto the number fields.
+
+      int SN = ss->cmd.cmd_fraction.start_numer();
+      int SD = ss->cmd.cmd_fraction.start_denom();
+      int EN = ss->cmd.cmd_fraction.end_numer();
+      int ED = ss->cmd.cmd_fraction.end_denom();
+      if (SN != 0 && (ss->cmd.cmd_fraction.flags & CMD_FRAC_BREAKING_UP) != 0)
+         cast_didnt_start_at_beginning = true;   // Record the fact that we need to get 2nd clause.
+
+      ss->cmd.cmd_fraction.set_to_null();    // Won't need this any more.
+
+      // Now we need to push the fraction down to bottom, so can do "middle 1/2 of ..."
+
+      int NNN = EN*SD - SN*ED;
+      int DDD = ED * SD;
+      reduce_fraction(NNN, DDD);
+
+      // We want number_fields * NNN / DDD, calibrated in quarters, or
+      // number_fields * NNN * 2 / DDD, calibrated in eighths, and that
+      // number must be an integer at least 1.
+
+      current_options.number_fields *= NNN*2;
+      uint32_t bar = current_options.number_fields;
+      current_options.number_fields /= DDD;
+      if (bar != current_options.number_fields * DDD)
+         fail("fraction is too complicated.");
+
+      if (current_options.number_fields & 1)
+         zzz.m_do_half_of_last_part = FRAC_FRAC_HALF_VALUE;
+
+      current_options.number_fields++;
+      current_options.number_fields /= 2;
+      // This is now the integer number of full quarters that we are going to cast.
+      // If casting a half integer, this is rounded up and that extra half is taken away
+      // in zzz.m_do_half_of_last_part.
+   }
+
+   if (distribute_repetitions) {
       int ii;
       int delta = 0;
 
@@ -5928,7 +6097,7 @@ static void do_sequential_call(
       if (ss->cmd.cmd_misc3_flags & CMD_MISC3__RESTRAIN_CRAZINESS)
          restrained_concept_p = &ss->cmd.restrained_concept;
 
-          if (!feeding_fractions_through) zzz.get_fraction_info(ss->cmd.cmd_fraction,
+      if (!feeding_fractions_through) zzz.get_fraction_info(ss->cmd.cmd_fraction,
                                                             visibility_info,
                                                             weirdness_off,
                                                             restrained_concept_p);
@@ -5937,7 +6106,7 @@ static void do_sequential_call(
       // We will scan the fetch array in its entirety, using the
       // client counts to control what we actually process.
 
-      if (distribute || doing_weird_revert != weirdness_off) {
+      if (distribute_repetitions || doing_weird_revert != weirdness_off) {
          if (zzz.m_reverse_order) {
             zzz.m_client_index = zzz.m_client_total-1;
             zzz.m_fetch_index = zzz.m_fetch_total-1;
@@ -5990,7 +6159,7 @@ static void do_sequential_call(
       }
 
       ss->cmd.cmd_misc_flags |= CMD_MISC__ALREADY_STEPPED;  // Can only do it once.
-      touch_or_rear_back(ss, *mirror_p, callflags1);
+      ss->touch_or_rear_back(*mirror_p, callflags1);
    }
 
    // If a restrained concept is in place, it is waiting for the call to be pulled apart
@@ -6027,12 +6196,12 @@ static void do_sequential_call(
    prepare_for_call_in_series(result, ss, false);
    uint32_t remember_elongation = 0;
    int remembered_2x2_elongation = 0;
-   int subpart_count = 0;
+   int extra_repetitions_needed = 0;
 
    for (;;) {
-      by_def_item *this_item = &callspec->stuff.seq.defarray[0];
+      const by_def_item *this_item = &callspec->stuff.seq.defarray[0];
       uint32_t this_mod1 = this_item->modifiers1;
-      by_def_item *alt_item = this_item;
+      const by_def_item *alt_item = this_item;
       bool recompute_id = false;
       uint32_t saved_number_fields = current_options.number_fields;
       int saved_num_numbers = current_options.howmanynumbers;
@@ -6041,21 +6210,21 @@ static void do_sequential_call(
 
       /* Now the "index" values (zzz.m_fetch_index and zzz.m_client_index) contain the
          number of parts we have completed.  That is, they point (in 0-based
-         numbering) to what we are about to do.  Also, if "subpart_count" is
+         numbering) to what we are about to do.  Also, if "extra_repetitions_needed" is
          nonzero, it has the number of extra repetitions of what we just did
          that we must perform before we can go on to the next thing. */
 
-      if (subpart_count) {
-         subpart_count--;    // This is now the number of EXTRA repetitions
-                             // of this that we will still have to do after
-                             // we do the repetition that we are about to do.
+      if (extra_repetitions_needed) {
+         extra_repetitions_needed--;    // This is now the number of EXTRA repetitions
+                                        // of this that we will still have to do after
+                                        // we do the repetition that we are about to do.
 
          fetch_other_call_for_this_cycle =
             (this_schema == schema_sequential_remainder) ?
             fetching_remainder_for_this_cycle :
             !fetch_other_call_for_this_cycle;
 
-         if (!distribute) zzz.m_client_index -= zzz.m_subcall_incr;
+         if (!distribute_repetitions) zzz.m_client_index -= zzz.m_subcall_incr;
 
          // The client index moves forward, but the fetch index does not.
          // So we back up the fetch index to compensate for the incrementing
@@ -6078,6 +6247,10 @@ static void do_sequential_call(
       {
          setup_command foobar = ss->cmd;
          this_item = &callspec->stuff.seq.defarray[zzz.m_fetch_index];
+         // Fetch the "continue_cast" instead of the "cast_off_14" if there was an earlier part.
+         if (zzz.m_fetch_index == 0 && zzz.m_highlimit == 1 &&
+             this_schema == schema_sequential_remainder && cast_didnt_start_at_beginning)
+            this_item = &callspec->stuff.seq.defarray[1];
          this_mod1 = this_item->modifiers1;
          foobar.cmd_final_flags = new_final_concepts;
 
@@ -6090,21 +6263,21 @@ static void do_sequential_call(
             if (this_schema_is_rem_or_alt && zzz.m_fetch_index >= 1) {
                alt_item = this_item;
                this_item = &callspec->stuff.seq.defarray[zzz.m_fetch_index-1];
-               zzz.m_fetch_index--;     // BTW, we require (in the database) that "distribute" be on.
+               zzz.m_fetch_index--;     // BTW, we require (in the database) that "distribute_repetitions" be on.
                this_mod1 = this_item->modifiers1;
             }
          }
          else {
             if (this_schema_is_rem_or_alt) {
                alt_item = &callspec->stuff.seq.defarray[zzz.m_fetch_index+1];
-               zzz.m_fetch_index++;     // BTW, we require (in the database) that "distribute" be on.
+               zzz.m_fetch_index++;     // BTW, we require (in the database) that "distribute_repetitions" be on.
             }
          }
 
          // If we are not distributing, perform the range test now, so we don't
          // query the user needlessly about parts of calls that we won't do.
 
-         if (!distribute) {
+         if (!distribute_repetitions) {
             if (zzz.not_yet_in_active_section()) {
                if (doing_weird_revert == weirdness_otherstuff && zzz.m_client_index == 0)
                   zzz.m_fetch_index--;
@@ -6127,6 +6300,8 @@ static void do_sequential_call(
 
          // Turn on the expiration mechanism.
          result->cmd.prior_expire_bits |= RESULTFLAG__EXPIRATION_ENAB;
+         foo1.prior_expire_bits = result->cmd.prior_expire_bits;
+         foo2.prior_expire_bits = result->cmd.prior_expire_bits;
 
          if (get_real_subcall(parseptr, this_item, &foobar,
                               callspec, forbid_flip, extra_heritmask_bits, &foo1)) {
@@ -6145,7 +6320,7 @@ static void do_sequential_call(
 
       // We also re-evaluate if the invocation flag "seq_re_evaluate" is on.
 
-      if (recompute_id || (this_mod1 & DFM1_SEQ_RE_EVALUATE)) update_id_bits(result);
+      if (recompute_id || (this_mod1 & DFM1_SEQ_RE_EVALUATE)) result->update_id_bits();
 
       // If this subcall invocation involves inserting or shifting the numbers, do so.
 
@@ -6176,7 +6351,7 @@ static void do_sequential_call(
 
          bool just_use_half_of_count = false;
 
-         if (zzz.m_do_half_of_last_part != 0 && !distribute &&
+         if (zzz.m_do_half_of_last_part != 0 && !distribute_repetitions &&
              zzz.m_fetch_index+zzz.m_subcall_incr == zzz.m_highlimit) {
             just_use_half_of_count = true;
          }
@@ -6198,11 +6373,11 @@ static void do_sequential_call(
             fetching_remainder_for_this_cycle :
             zzz.m_reverse_order && (count_to_use & 1) == 0;
 
-         subpart_count = count_to_use;
-         if (subpart_count == 0) {
+         extra_repetitions_needed = count_to_use;
+         if (extra_repetitions_needed == 0) {
             goto done_with_big_cycle;
          }
-         subpart_count--;
+         extra_repetitions_needed--;
       }
 
       remember_elongation = result->cmd.prior_elongation_bits;
@@ -6210,7 +6385,7 @@ static void do_sequential_call(
    do_plain_call:
 
       /* The index points to what we are about to do (0-based numbering, of course).
-         Subpart_count has the number of ADDITIONAL repetitions of what we are about to do,
+         Extra_repetitions_needed has the number of ADDITIONAL repetitions of what we are about to do,
          after we finish the upcoming one. */
 
       if (zzz.not_yet_in_active_section()) {
@@ -6315,7 +6490,6 @@ static void do_sequential_call(
 
       if (this_schema == schema_split_sequential &&
           (result->cmd.cmd_final_flags.herit & (INHERITFLAG_MXNMASK|INHERITFLAG_NXNMASK)) == 0ULL) {
-         //         result->cmd.cmd_misc_flags &= ~(CMD_MISC__MUST_SPLIT_HORIZ|CMD_MISC__MUST_SPLIT_VERT);
          switch (result->kind) {
          case s2x4: case s1x8: case s_qtag: case s_ptpd: case s3x4: case s_bone: case s_rigger: case s_bone6:
             if ((result->cmd.cmd_misc_flags & CMD_MISC__MUST_SPLIT_MASK) == CMD_MISC__MUST_SPLIT_VERT) {
@@ -6339,8 +6513,22 @@ static void do_sequential_call(
             }
 
             break;
+         default:
+            if (attr::slimit(result) > 5)
+               fail("Can't split this.");
          }
       }
+
+      // The call "_revert if needed" doesn't allow plain fractal without revert.
+      // This shows up in "fractal tag reaction", where both fractal and revert
+      // are sent to the "_real @v tag base", since the tag base might have needed
+      // revert.  So, if that happens and we have plain fractal, remove same.
+
+      if (this_item->call_id == base_call_revert_if_needed &&
+          (ss->cmd.callspec == base_calls[base_call_basetag0] ||
+           ss->cmd.callspec == base_calls[base_call_basetag0_noflip]) &&
+          (result->cmd.cmd_final_flags.herit & (INHERITFLAG_FRACTAL | INHERITFLAG_REVERTMASK)) == INHERITFLAG_FRACTAL)
+         result->cmd.cmd_final_flags.herit &= ~INHERITFLAG_FRACTAL;
 
       do_stuff_inside_sequential_call(
          result, this_mod1,
@@ -6355,7 +6543,7 @@ static void do_sequential_call(
 
       remember_elongation = result->cmd.prior_elongation_bits;
 
-      if (subpart_count && !distribute) goto go_to_next_cycle;
+      if (extra_repetitions_needed && !distribute_repetitions) goto go_to_next_cycle;
 
    done_with_big_cycle:
 
@@ -6400,8 +6588,8 @@ static void do_sequential_call(
       if ((this_mod1 & DFM1_SEQ_NO_RE_EVALUATE) == 0 &&
           attr::slimit(result) >= 0 &&
           (result->people[0].id3 & ID3_ABSOLUTE_PROXIMITY_BITS) != 0) {
-         clear_absolute_proximity_and_facing_bits(result);
-         put_in_absolute_proximity_and_facing_bits(result);
+         result->clear_absolute_proximity_and_facing_bits();
+         result->put_in_absolute_proximity_and_facing_bits();
       }
 
       // Increment for next cycle.
@@ -6421,7 +6609,7 @@ static void do_sequential_call(
 static bool do_misc_schema(
    setup *ss,
    calldef_schema the_schema,
-   calldefn *callspec,
+   const calldefn *callspec,
    uint32_t callflags1,
    setup_command *foo1p,
    uint32_t override_concentric_rules,
@@ -6494,7 +6682,7 @@ static bool do_misc_schema(
       }
       else {
          // We have to do this -- the schema means the *current* centers.
-         update_id_bits(ss);
+         ss->update_id_bits();
          *special_selectorp = (the_schema == schema_select_ctr2) ?
             selector_center2 : selector_center4;
          *special_modifiersp = innerdef->modifiers1;
@@ -6503,7 +6691,7 @@ static bool do_misc_schema(
    }
    else if (the_schema == schema_select_ctr6) {
       // We have to do this -- the schema means the *current* centers.
-      update_id_bits(ss);
+      ss->update_id_bits();
       *special_selectorp = selector_center6;
       *special_modifiersp = innerdef->modifiers1;
       return true;
@@ -6716,7 +6904,7 @@ static bool do_misc_schema(
          normalize_strongly = true;
 
          if (ss->kind == s2x4)
-            do_matrix_expansion(ss, CONCPROP__NEEDK_4X4, false);
+            ss->do_matrix_expansion(CONCPROP__NEEDK_4X4, false);
 
          if (ss->kind == s4x4) {
 
@@ -6749,9 +6937,9 @@ static bool do_misc_schema(
             fail("You must specify a matrix.");
 
          if (ss->kind == s2x6)
-            do_matrix_expansion(ss, CONCPROP__NEEDK_4X6, false);
+            ss->do_matrix_expansion(CONCPROP__NEEDK_4X6, false);
          else
-            do_matrix_expansion(ss, CONCPROP__NEEDK_3X4_D3X4, false);
+            ss->do_matrix_expansion(CONCPROP__NEEDK_3X4_D3X4, false);
 
          break;
       case schema_4x4_lines_concentric:
@@ -6761,7 +6949,7 @@ static bool do_misc_schema(
             fail("You must specify a matrix.");
 
          if (ss->kind == s2x4)
-            do_matrix_expansion(ss, CONCPROP__NEEDK_4X4, false);
+            ss->do_matrix_expansion(CONCPROP__NEEDK_4X4, false);
 
          break;
       }
@@ -7076,7 +7264,7 @@ static void matrixmovewrapper(setup *ss,
 void really_inner_move(
    setup *ss,
    bool qtfudged,
-   calldefn *callspec,
+   const calldefn *callspec,
    calldef_schema the_schema,
    uint32_t callflags1,
    uint32_t callflagsf,
@@ -7109,7 +7297,7 @@ void really_inner_move(
 
    uint32_t tbonetest = 0;
    if (attr::slimit(ss) >= 0) {
-      tbonetest = or_all_people(ss);
+      tbonetest = ss->or_all_people();
       if (!(tbonetest & 011) && the_schema != schema_by_array) {
          result->kind = nothing;
          result->rotation = 0;
@@ -7147,7 +7335,7 @@ void really_inner_move(
       ss->cmd.cmd_final_flags.herit &= ~INHERITFLAG_FUNNY;
 
       // We have to do this -- we need to know who is facing *now*.
-      update_id_bits(ss);
+      ss->update_id_bits();
       foo1 = ss->cmd;
       special_selector = selector_thosefacing;
       goto do_special_select_stuff;
@@ -7269,7 +7457,7 @@ void really_inner_move(
 
          if (ss->kind == s_qtag &&
              ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_12_MATRIX)) {
-            do_matrix_expansion(ss, CONCPROP__NEEDK_3X4, true);
+            ss->do_matrix_expansion(CONCPROP__NEEDK_3X4, true);
             ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_12_MATRIX);
          }
          else if (ss->kind == s2x2 &&
@@ -7377,7 +7565,7 @@ void really_inner_move(
 
                // Expand to 4x6 matrix and try again.
                the_setups[i] = tempsetup;
-               do_matrix_expansion(&the_setups[i], CONCPROP__NEEDK_4X6, false);
+               the_setups[i].do_matrix_expansion(CONCPROP__NEEDK_4X6, false);
 
                matrixmovewrapper(&the_setups[i], the_schema, flags, callstuff, i == which_to_mirror, &the_results[i]);
             }
@@ -7401,7 +7589,7 @@ void really_inner_move(
             uint32_t livemask;
 
             result->result_flags.misc &= ~3;
-            big_endian_get_directions32(result, dirjunk, livemask);
+            result->big_endian_get_directions32(dirjunk, livemask);
 
             if (result->kind == s4x4 && (livemask & 0x3F3F3F3F) == 0) {
                result->result_flags.misc |= 3;
@@ -7498,10 +7686,8 @@ void really_inner_move(
          // Fix special case of yoyo/generous/stingy.
          heritflags hhhh = callflagsh;
          fix_gensting_weirdness(&ss->cmd, hhhh);
+         heritflags unaccepted_flags = ss->cmd.cmd_final_flags.herit & ~hhhh;
 
-         heritflags unaccepted_flags;
-         unaccepted_flags = ss->cmd.cmd_final_flags.herit & ~hhhh;
-             
          // Special case:  Some calls do not specify "magic" inherited
          // to their children, but can nevertheless be executed magically.
          // In such a case, the whole setup is divided into magic lines
@@ -7656,7 +7842,7 @@ void really_inner_move(
          if (the_schema == schema_split_sequential && result->kind == s2x6 &&
              ((ss->cmd.cmd_final_flags.herit & INHERITFLAG_MXNMASK) == INHERITFLAGMXNK_1X3 ||
               (ss->cmd.cmd_final_flags.herit & INHERITFLAG_MXNMASK) == INHERITFLAGMXNK_3X1)) {
-            switch(little_endian_live_mask(result)) {
+            switch(result->little_endian_live_mask()) {
             case 02727:
                expand::compress_setup(exp27, result);
                break;
@@ -7823,8 +8009,40 @@ static void move_with_real_call(
 
    heritflags herit_concepts = ss->cmd.cmd_final_flags.herit;
 
-   calldefn *this_defn = &ss->cmd.callspec->the_defn;
-   calldefn *deferred_array_defn = (calldefn *) 0;
+   // Deal with RECTIFY substitution.
+   if (ss->cmd.cmd_final_flags.herit & INHERITFLAG_RECTIFY) {
+      ss->cmd.cmd_final_flags.herit &= ~INHERITFLAG_RECTIFY;
+
+      if (ss->cmd.callspec == base_calls[base_call_circulate] ||
+          ss->cmd.callspec == base_calls[base_call_motcirc] ||
+          ss->cmd.callspec == base_calls[base_call_couples_circ] ||
+          ss->cmd.callspec == base_calls[base_call_circ_for_coord] ||
+          ss->cmd.callspec == base_calls[base_call_colcirc] ||
+          ss->cmd.callspec == base_calls[base_call_circulateforacey] ||
+          ss->cmd.callspec == base_calls[base_call_box_circulate_maybe_diamond] ||
+          ss->cmd.callspec == base_calls[base_call_circulate_for_tally_ho]) {
+         ss->cmd.callspec = base_calls[base_call_ctrrot];
+      }
+      else if (ss->cmd.callspec == base_calls[base_call_ctrrot] ||
+               ss->cmd.callspec == base_calls[base_call_ctr_rot_for_sidetrack]) {
+         ss->cmd.callspec = base_calls[base_call_circulate];
+      }
+      else if (ss->cmd.callspec == base_calls[base_call_splctrrot] ||
+               ss->cmd.callspec == base_calls[base_call_ctr_rot_for_splitsidetrack]) {
+         ss->cmd.callspec = base_calls[base_call_boxcirc];
+      }
+      else if (ss->cmd.callspec == base_calls[base_call_splitcirc] ||
+               ss->cmd.callspec == base_calls[base_call_boxcirc] ||
+               ss->cmd.callspec == base_calls[base_call_boxcirc1] ||
+               ss->cmd.callspec == base_calls[base_call_boxcirc2]) {
+         ss->cmd.callspec = base_calls[base_call_splctrrot];
+      }
+      else
+         ss->cmd.cmd_final_flags.herit |= INHERITFLAG_RECTIFY;  // Didn't use it; leave the flag on.
+   }
+
+   const calldefn *this_defn = &ss->cmd.callspec->the_defn;
+   const calldefn *deferred_array_defn = (calldefn *) 0;
    warning_info saved_warnings = configuration::save_warnings();
    call_conc_option_state saved_options = current_options;
    setup saved_ss = *ss;
@@ -8026,7 +8244,7 @@ static void move_with_real_call(
             // Basic_move or matrixmove will handle them.
 
             // We skip all of this if the incoming setup is empty.
-            if (attr::slimit(ss) < 0 || or_all_people(ss) != 0) {
+            if (attr::slimit(ss) < 0 || ss->or_all_people() != 0) {
                heritflags bit_to_set = 0ULL;
 
                if ((callflagsf & CFLAG2_FRACTIONAL_NUMBERS) &&
@@ -8241,7 +8459,7 @@ static void move_with_real_call(
                }
 
                ss->cmd.cmd_misc_flags |= CMD_MISC__ALREADY_STEPPED;  // Can only do it once.
-               touch_or_rear_back(ss, mirror, callflags1);
+               ss->touch_or_rear_back(mirror, callflags1);
 
                // But, if the "left_means_touch_or_check" flag is set,
                // we only wanted the "left" flag for the purpose of what
@@ -8293,7 +8511,8 @@ static void move_with_real_call(
             break;
          case schema_single_concentric:
          case schema_single_cross_concentric:
-            force_split = split_command_1x4_dmd;
+            if (!ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_INTLK))
+               force_split = split_command_1x4_dmd;
             break;
          case schema_single_concentric_together_if_odd:
          case schema_single_cross_concentric_together_if_odd:
@@ -8302,7 +8521,7 @@ static void move_with_real_call(
          case schema_single_concentric_together:
          case schema_single_cross_concentric_together:
             if (ss->kind == s2x6) {
-               uint32_t mask = little_endian_live_mask(ss);
+               uint32_t mask = ss->little_endian_live_mask();
                if (mask == 01717 || mask == 07474)
                   force_split = split_command_1x4_dmd;
             }
@@ -8479,7 +8698,7 @@ static void move_with_real_call(
          uint64_t nxnflags = ss->cmd.cmd_final_flags.test_heritbits(INHERITFLAG_NXNMASK);
          uint64_t mxnflags = ss->cmd.cmd_final_flags.test_heritbits(INHERITFLAG_MXNMASK);
          int limits = attr::slimit(ss);
-         uint32_t mask = little_endian_live_mask(ss);
+         uint32_t mask = ss->little_endian_live_mask();
 
          // ***** This of course needs a lot more work.
          if (ss->kind == s_galaxy || ss->kind == s_hrglass || ss->kind == s_crosswave)
@@ -8631,6 +8850,12 @@ static void handle_expiration(setup *ss, uint32_t *bit_to_set)
          *bit_to_set |= RESULTFLAG__TWISTED_EXPIRED;
       }
 
+      if (ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_RECTIFY)) {
+         if (ss->cmd.prior_expire_bits & RESULTFLAG__RECTIFY_EXPIRED)
+            ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_RECTIFY);   // Already did that.
+         *bit_to_set |= RESULTFLAG__RECTIFY_EXPIRED;
+      }
+
       // Take care of generous and stingy; they are complicated.
 
       switch (ss->cmd.cmd_final_flags.test_heritbits(INHERITFLAG_YOYOETCMASK)) {
@@ -8764,6 +8989,10 @@ void move(
             else {
                parseptrtemp = process_final_concepts(parseptr, true, &ss->cmd.cmd_final_flags, true, false);
 
+               // This one takes additional action.
+               if (ss->cmd.cmd_final_flags.herit & INHERITFLAG_RECTIFY)
+                  ss->cmd.cmd_misc3_flags |= CMD_MISC3__RECTIFY;
+
                if (parseptrtemp->concept->kind > marker_end_of_list)
                   fail("Incomplete supercall.");
             }
@@ -8792,7 +9021,14 @@ void move(
          }
 
          p3.no_check_call_level = true;
-         p3.options = current_options;
+
+         // Some parse blocks carry their options with them, and need those options switched to shallow binding.
+         if (concept_table[p3.concept->kind].concept_prop & 
+             (CONCPROP__USE_NUMBER|CONCPROP__USE_TWO_NUMBERS|CONCPROP__USE_FOUR_NUMBERS|CONCPROP__USE_SELECTOR))
+            current_options = p3.options;
+         else
+            p3.options = current_options;   // Otherwise, just read out the shallow binding.
+
          ss->cmd.parseptr = &p1;
          ss->cmd.callspec = (call_with_name *) 0;
          ss->cmd.restrained_final = &p2.subsidiary_root;
@@ -8841,7 +9077,9 @@ void move(
          uint32_t savemisc3 = ss->cmd.cmd_misc3_flags;
          final_and_herit_flags ssheritsave = ss->cmd.cmd_final_flags;
          parse_block **save_restr_fin = ss->cmd.restrained_final;
-         parse_block *save_restr_fin_ptr = *ss->cmd.restrained_final;
+         parse_block *save_restr_fin_ptr = (parse_block *) 0;
+         if (ss->cmd.restrained_final)
+            save_restr_fin_ptr = *ss->cmd.restrained_final;
          call_with_name *z0callsave = z0->call;
          bool z0levelsave = z0->no_check_call_level;
          final_and_herit_flags z0heritsave = z0->more_finalherit_flags;
@@ -8857,7 +9095,8 @@ void move(
          z0->more_finalherit_flags = ss->cmd.cmd_final_flags;
 
          ss->cmd.parseptr = t;
-         *ss->cmd.restrained_final = ssparseptrsave;
+         if (ss->cmd.restrained_final)
+            *ss->cmd.restrained_final = ssparseptrsave;
          ss->cmd.restrained_final = 0;
          ss->cmd.cmd_misc3_flags |= CMD_MISC3__RESTRAIN_MODIFIERS;
          ss->cmd.restrained_super8flags = ss->cmd.cmd_final_flags.herit;
@@ -8884,7 +9123,8 @@ void move(
          ss->cmd.cmd_misc3_flags = savemisc3;
          ss->cmd.cmd_final_flags = ssheritsave;
          ss->cmd.restrained_final = save_restr_fin;
-         *ss->cmd.restrained_final = save_restr_fin_ptr;
+         if (ss->cmd.restrained_final)
+            *ss->cmd.restrained_final = save_restr_fin_ptr;
          z0->call = z0callsave;
          z0->options = saved_options;
          z0->no_check_call_level = z0levelsave;
@@ -8948,6 +9188,9 @@ void move(
 
    save_incoming_final = ss->cmd.cmd_final_flags;   // In case we need to punt.
    parseptrcopy = process_final_concepts(parseptrcopy, true, &ss->cmd.cmd_final_flags, true, false);
+   // This one takes additional action.
+   if (ss->cmd.cmd_final_flags.herit & INHERITFLAG_RECTIFY)
+      ss->cmd.cmd_misc3_flags |= CMD_MISC3__RECTIFY;
    saved_magic_diamond = last_magic_diamond;
 
    // Handle expired concepts.
@@ -9025,7 +9268,7 @@ void move(
          if ((ss->cmd.cmd_fraction.flags & CMD_FRAC_PART_MASK) == 0 ||
              (((ss->cmd.cmd_fraction.flags & CMD_FRAC_CODE_MASK) != CMD_FRAC_CODE_ONLY) &&
               ((ss->cmd.cmd_fraction.flags & CMD_FRAC_CODE_MASK) != CMD_FRAC_CODE_ONLYREV))) {
-            FuckingThingToTryToKeepTheFuckingStupidMicrosoftCompilerFromScrewingUp();
+            ThingToTryToKeepTheStupidMicrosoftCompilerFromScrewingUp();
             switch (search_defn->schema) {
             case schema_concentric:
             case schema_concentric_6_2:
@@ -9042,10 +9285,10 @@ void move(
             case schema_concentric_6p_or_normal_or_2x6_2x3:
             case schema_1221_concentric:
             case schema_conc_o:
-               FuckingThingToTryToKeepTheFuckingStupidMicrosoftCompilerFromScrewingUp();
+               ThingToTryToKeepTheStupidMicrosoftCompilerFromScrewingUp();
                break;
             default:
-               FuckingThingToTryToKeepTheFuckingStupidMicrosoftCompilerFromScrewingUp();
+               ThingToTryToKeepTheStupidMicrosoftCompilerFromScrewingUp();
                goto punt;
             }
          }

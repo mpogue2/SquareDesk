@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2021  William B. Ackerman.
+//    Copyright (C) 1990-2024  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -154,6 +154,8 @@ enum concept_kind {
    concept_twinorbit,
    concept_rotary,
    concept_scatter,
+   concept_intpgram,
+   concept_trap,
    concept_zoomroll,
    LAST_SIMPLE_HERIT_CONCEPT = concept_zoomroll,
 
@@ -230,6 +232,7 @@ enum concept_kind {
    concept_active_phantoms,
    concept_mirror,
    concept_central,
+   concept_rectify,
    concept_snag_mystic,
    concept_crazy,
    concept_frac_crazy,
@@ -247,8 +250,6 @@ enum concept_kind {
    concept_so_and_so_stable,
    concept_frac_stable,
    concept_so_and_so_frac_stable,
-   concept_paranoid,
-   concept_so_and_so_paranoid,
    concept_nose,
    concept_so_and_so_nose,
    concept_emulate,
@@ -271,8 +272,11 @@ enum concept_kind {
    concept_n_times,
    concept_sequential,
    concept_special_sequential,
+   concept_special_sequential_sel,
    concept_special_sequential_num,
    concept_special_sequential_4num,
+   concept_special_sequential_no_2nd,
+   concept_special_sequential_sel_no_2nd,
    concept_meta,
    concept_meta_one_arg,
    concept_meta_two_args,
@@ -595,6 +599,7 @@ enum warning_index {
    warn__tasteless_junk,
    warn__tasteless_slide_thru,
    warn__went_to_other_side,
+   warn__maybe_use_concentric,
    warn__horrible_conc_hinge,
    warn__this_is_tight,
    warn__compress_carefully,
@@ -759,9 +764,9 @@ enum {
    STABLE_VLBIT     = 0x00100000U,  // this is low bit
    STABLE_VRMASK    = 0x000F0000U,  // stability "V" field for right turns, 4 bits
    STABLE_VRBIT     = 0x00010000U,  // this is low bit
-   STABLE_RMASK     = 0x0000F000U,  // stability "R" field, 4 bits
-   STABLE_RBIT      = 0x00001000U,  // this is low bit
-   STABLE_ALL_MASK  = STABLE_ENAB|STABLE_VLMASK|STABLE_VRMASK|STABLE_RMASK, // This is 0x01FFF000.
+   STABLE_REMMASK   = 0x0000F000U,  // stability "REM" field, 4 bits
+   STABLE_REMBIT    = 0x00001000U,  // this is low bit
+   STABLE_ALL_MASK  = STABLE_ENAB|STABLE_VLMASK|STABLE_VRMASK|STABLE_REMMASK, // This is 0x01FFF000.
 
    BIT_PERSON       = 0x00000800U,  // live person (just so at least one bit is always set)
    BIT_ACT_PHAN     = 0x00000400U,  // active phantom (see below, under XPID_MASK)
@@ -1085,7 +1090,9 @@ enum {
    NUMBER_FIELD_MASK = (1<<BITS_PER_NUMBER_FIELD)-1,
    NUMBER_FIELD_MASK_SECOND_ONE = NUMBER_FIELD_MASK << (BITS_PER_NUMBER_FIELD*2),
    NUMBER_FIELD_MASK_RIGHT_TWO = (1<<(BITS_PER_NUMBER_FIELD*2))-1,
+   PAIR_MASK_END = NUMBER_FIELD_MASK_RIGHT_TWO,
    NUMBER_FIELD_MASK_LEFT_TWO = NUMBER_FIELD_MASK_RIGHT_TWO << (BITS_PER_NUMBER_FIELD*2),
+   PAIR_MASK_START = NUMBER_FIELD_MASK_LEFT_TWO,
    NUMBER_FIELDS_1_0 = 00100U,          // A few useful canned values.
    NUMBER_FIELDS_2_1 = 00201U,
    NUMBER_FIELDS_1_1 = 00101U,
@@ -1115,18 +1122,18 @@ enum {
 // are now 6 bits, in the "flags" word.
 
 enum {
-   CMD_FRAC_PART_BIT        = 00001U,  // This is "N".
-   CMD_FRAC_PART_MASK       = 00077U,
-   CMD_FRAC_PART2_BIT       = 00100U,  // This is "K".
-   CMD_FRAC_PART2_MASK      = 07700U,
+   CMD_FRAC_PART_BIT        = 0x00000001U,  // This is "N", 1-based.
+   CMD_FRAC_PART_MASK       = 0x0000003FU,
+   CMD_FRAC_PART2_BIT       = 0x00000040U,  // This is "K", 1-based.
+   CMD_FRAC_PART2_MASK      = 0x00000FC0U,
 
    CMD_FRAC_IMPROPER_BIT    = 0x00200000U,
    CMD_FRAC_THISISLAST      = 0x00400000U,
    CMD_FRAC_REVERSE         = 0x00800000U,
-   CMD_FRAC_CODE_MASK       = 0x07000000U,    // This is a 3 bit field.  Could easily be increased.
+   CMD_FRAC_CODE_MASK       = 0x07000000U,    // This is a 3 bit field.  Could be increased to 4.
 
    // Here are the codes that can be inside.  We require that CMD_FRAC_CODE_ONLY be zero.
-   // We require that the PART_MASK field be nonzero (we use 1-based part numbering)
+   // We require that the PART_MASK field (N) be nonzero (we use 1-based part numbering)
    // when these are in use.  If the PART_MASK field is zero, the code must be zero
    // (that is, CMD_FRAC_CODE_ONLY), and this stuff is not in use.
 
@@ -1668,6 +1675,7 @@ public:
 
    const concept_descriptor *concept; // the concept or end marker
    call_with_name *call;          // if this is end mark, gives the call; otherwise unused
+   setup *setup_for_print;        // may need to know actual setup to decide whether we can say "outer pairs".
    call_with_name *call_to_print; // the original call, for printing (sometimes the field
                                   // above gets changed temporarily)
    parse_block *next;             // next concept, or, if this is end mark,
@@ -1684,6 +1692,9 @@ public:
                                   // is at the level
    bool say_and;                  // Used by "randomize" -- put "AND" in front of this
 
+   static parse_block *get_parse_block_mark();    // In sdutil.cpp
+   static parse_block *get_parse_block();         // In sdutil.cpp
+
    // We allow static instantiation of these things with just
    // the "concept" field filled in.
    parse_block(const concept_descriptor & ccc) { initialize(&ccc); }
@@ -1695,6 +1706,13 @@ public:
    // In case someone runs a some kind of global memory leak detector, this releases all blocks.
    static void final_cleanup();
 
+   void set_parse_block_next(parse_block *thing) { next = thing; }
+   void set_parse_block_concept(const concept_descriptor *thing) { concept = thing; }
+   void set_parse_block_call(call_with_name *thing) { call = thing; }
+   void set_parse_block_call_to_print(call_with_name *thing) { call_to_print = thing; }
+   void set_parse_block_replacement_key(short int key) { replacement_key = key; }
+   parse_block **get_parse_block_subsidiary_root_addr() { return &subsidiary_root; }
+
    static parse_block *parse_active_list;
 
    // Being "old school", and not fully trusting the de-fragmentation mechanism,
@@ -1704,6 +1722,7 @@ public:
 
    static parse_block *parse_inactive_list;
 };
+
 
 struct setup_command {
    parse_block *parseptr;
@@ -1731,6 +1750,32 @@ struct setup_command {
    parse_block *skippable_concept;
    heritflags skippable_heritflags;
    heritflags cmd_heritflags_to_save_from_mxn_expansion;
+
+   void initialize() {
+      cmd_misc_flags = 0;
+      cmd_misc2_flags = 0;
+      cmd_misc3_flags = 0;
+      do_couples_her8itflags = 0ULL;
+      cmd_fraction.set_to_null();
+      cmd_assume.assumption = cr_none;
+      cmd_assume.assump_cast = 0;
+      prior_elongation_bits = 0;
+      prior_expire_bits = 0;
+      skippable_concept = (parse_block *) 0;
+      skippable_heritflags = 0ULL;
+      cmd_heritflags_to_save_from_mxn_expansion = 0ULL;
+      restrained_concept = (parse_block *) 0;
+      restrained_super8flags = 0ULL;
+      restrained_super9flags = 0ULL;
+      restrained_do_as_couples = false;
+      restrained_miscflags = 0;
+      restrained_misc2flags = 0;
+      restrained_selector_decoder[0] = 0;
+      restrained_selector_decoder[1] = 0;
+      restrained_fraction.flags = 0;
+      restrained_fraction.fraction = 0;
+      cmd_final_flags.clear_all_herit_and_final_bits();
+   }
 
    void promote_restrained_fraction() {
       if (restrained_fraction.fraction != 0) {
@@ -1811,6 +1856,7 @@ struct setup {
    small_setup outer;
    int concsetup_outer_elongation;
 
+   inline uint32_t or_all_people() const;
    inline void clear_people();
    inline void clear_person(int resultplace);
    inline void suppress_roll(int place);
@@ -1852,6 +1898,36 @@ struct setup {
          clear_person(j+(MAX_PEOPLE/2));
       }
    }
+
+// in sdtop.cpp.
+
+void do_matrix_expansion(
+   uint32_t concprops,
+   bool recompute_id) THROW_DECL;
+
+// These get a ===> BIG-ENDIAN <=== mask of people's facing directions.
+// Each person occupies 2 bits in the resultant masks.  The "livemask"
+// bits are both on if the person is live.
+void big_endian_get_directions64(
+   uint64_t & directions,
+   uint64_t & livemask) const;
+
+void big_endian_get_directions32(
+   uint32_t & directions,      // These get only the low 32 bits,
+   uint32_t & livemask) const; // Which are good enough for most clients.
+
+uint32_t little_endian_live_mask() const;
+
+void update_id_bits();
+void clear_bits_for_update();
+void clear_absolute_proximity_bits();
+void clear_absolute_proximity_and_facing_bits();
+void put_in_absolute_proximity_and_facing_bits();
+
+void touch_or_rear_back(
+   bool did_mirror,
+   int callflags1) THROW_DECL;
+
 };
 
 
@@ -2077,10 +2153,6 @@ enum resolve_command_kind {
    resolve_command_kind_enum_extent    // Not a resolve kind; indicates extent of the enum.
 };
 
-
-
-parse_block *get_parse_block_mark();
-parse_block *get_parse_block();
 
 /* in SDPREDS */
 extern bool selector_used;
@@ -3103,8 +3175,18 @@ class select {
       fx_fgalctb,
       fx_f3x1ctl,
       fx_f2x2pl,
+      fx_fxwvpos1,
+      fx_fxwvpos2,  
+      fx_fxwvpos3,
+      fx_fxwvpos4,
+      fx_fxwvpos5,
+      fx_fxwvpos6,
+      fx_fxwvrig1,
+      fx_fxwvrig2,  
       fx_f1x4pl,
       fx_fdmdpl,
+      fx_fdmdpb,
+      fx_fdmdpe,
       fx_f1x2pl,
       fx_f3x1d_2,
       fx_f1x8_88,
@@ -3268,6 +3350,8 @@ class select {
       fx_f1x8hidbt4,
       fx_fqtglowf,
       fx_fqtghif,
+      fx_fqtgnear,
+      fx_fqtgfar,
       fx_fdmdlowf,
       fx_fdmdhif,
       fx_fdmdlow3,
@@ -3383,8 +3467,9 @@ class select {
       setup_kind ink;
       setup_kind outk;
       uint32_t rot;
-      short prior_elong;
-      short numsetups;
+      uint16_t prior_elong;
+      uint16_t numsetups;  // Special merge code in high 4, stuff for rotation
+                           // (see ~ conc\8171) in 2nd 4, num setups in low 8.
       int8_t indices[24];
       fixerkey next1x2;
       fixerkey next1x2rot;
@@ -3445,6 +3530,8 @@ class tglmap {
       tgl0,        // The null table entry.
       tglmap1b,
       tglmap2b,
+      utglmap1c,
+      utglmap1ci,
       tglmap1w,
       tglmap2w,
       tglmap1i,
@@ -3510,6 +3597,18 @@ class tglmap {
       tgl_ENUM_EXTENT   // Not a key; indicates extent of the enum.
    };
 
+   // Low two bits have rotation for first triangle.
+   // Next two bits give rotation of second triangle, beyond the first,
+   // and beyond the usual 180 degress.  So these bits are usually zero.
+   enum flags {
+      tg99chooseptpdrigger    =  0x400,
+      tg99startingrotfieldbit =  0x800,
+      tg99onlyonetriangle     = 0x1000,
+      tg99spectgl             = 0x2000,
+      tgl_rev_ord_if_1x3      = 0x4000,
+      tgl_nointlkshapechange  = 0x8000,
+   };
+
    // We make this a struct inside the class, rather than having its
    // fields just comprise the class itself (note that there are no
    // fields in this class, and it is never instantiated) so that
@@ -3521,8 +3620,7 @@ class tglmap {
       setup_kind kind;
       setup_kind kind1x3;
       tglmapkey otherkey;
-      int8_t nointlkshapechange;
-      int8_t randombits;
+      uint16_t flags;
       int8_t mapqt1[6];   // In quarter-tag: first triangle (upright),
                           // then second triangle (inverted).
       int8_t mapcp1[6];   // In C1 phantom: first triangle (inverted),
@@ -3583,6 +3681,7 @@ class tglmap {
    static const tglmapkey b6tglmap1[];
    static const tglmapkey c1tglmap1[];
    static const tglmapkey c1tglmap2[];
+   static const tglmapkey uc1tglmap1[];
    static const tglmapkey dbqtglmap1[];
    static const tglmapkey dbqtglmap2[];
    static const tglmapkey qttglmap1[];
@@ -3624,8 +3723,8 @@ class tglmap {
    static const tglmapkey s434map14[];
 };
 
-//typedef int id_bit_table[4];
-typedef unsigned int id_bit_table[4];  // -mpogue
+
+typedef uint32_t id_bit_table[4]; // -mpogue, 2025/01/21: some values don't fit in a signed int32, but all are OK in unsigned int32
 
 struct ctr_end_mask_rec {
    uint32_t mask_normal;
@@ -3666,7 +3765,7 @@ struct coordrec {
 
 // Beware!  There are >= tests lying around, so order is important.
 // In particular, sdconc (search for "brute_force_merge") has such tests.
-enum merge_action {
+enum merge_action_type {
    merge_strict_matrix,
    merge_for_own,
    merge_c1_phantom,
@@ -3729,7 +3828,7 @@ class merge_table {
    static const concmerge_thing map_24r24d;
 
    static void merge_setups(setup *ss,   // In sdconc.
-                            merge_action action,
+                            merge_action_type action,
                             setup *result,
                             call_with_name *maybe_the_call = (call_with_name *) 0) THROW_DECL;
 
@@ -3973,14 +4072,15 @@ enum {
    RESULTFLAG__DID_MXN_EXPANSION    = 0x00000080U,
    RESULTFLAG__COMPRESSED_FROM_2X3  = 0x00000100U,
    RESULTFLAG__EMPTY_1X4_TO_2X2     = 0x00000200U,
-   // 1 spare bit here
-   RESULTFLAG__ACTIVE_PHANTOMS_ON   = 0x00000800U,
-   RESULTFLAG__ACTIVE_PHANTOMS_OFF  = 0x00001000U,
-   RESULTFLAG__EXPAND_TO_2X3        = 0x00002000U,
-   RESULTFLAG__PRESERVE_INCOMING_EXPIRATIONS = 0x00004000U,
 
-   // This is a 5 bit field.
-   RESULTFLAG__EXPIRATION_BITS      = 0x000F8000U,
+   RESULTFLAG__ACTIVE_PHANTOMS_ON   = 0x00000400U,
+   RESULTFLAG__ACTIVE_PHANTOMS_OFF  = 0x00000800U,
+   RESULTFLAG__EXPAND_TO_2X3        = 0x00001000U,
+   RESULTFLAG__PRESERVE_INCOMING_EXPIRATIONS = 0x00002000U,
+
+   // This is a 6 bit field.
+   RESULTFLAG__EXPIRATION_BITS      = 0x000FC000U,
+   RESULTFLAG__RECTIFY_EXPIRED      = 0x00004000U,
    RESULTFLAG__YOYO_ONLY_EXPIRED    = 0x00008000U,
    RESULTFLAG__GEN_STING_EXPIRED    = 0x00010000U,
    RESULTFLAG__TWISTED_EXPIRED      = 0x00020000U,
@@ -4002,7 +4102,7 @@ enum {
    RESULTFLAG__FORCE_SPOTS_ALWAYS   = 0x20000000U,
    RESULTFLAG__INVADED_SPACE        = 0x40000000U,
    RESULTFLAG__STOP_OVERCAST_CHECK  = 0x80000000U
-   // No spares!  Actually, 3 spares above.
+   // No spares!
 };
 
 
@@ -4280,10 +4380,6 @@ class configuration {
    been done the same way without the "split" concept.  This prevents superfluous
    things like "split pass thru".
 
-   CMD_MISC__REDUCED_BY_TANDEM means that we are at a level of recursion in which
-   some couples or tandem concept is in effect.  If we see a call with schema_concentric,
-   change it to schema_single_concentric.
-
    CMD_MISC__NO_CHK_ELONG means that the elongation of the incoming setup is for
    informational purposes only (to tell where people should finish) and should not
    be used for raising error messages.  It suppresses the error that would be
@@ -4324,6 +4420,10 @@ class configuration {
    bits in "do_couples_heritflags" control this.  If INHERITFLAG_SINGLE is on,
    do not do it as couples.  If off, do it as couples.  If various other bits
    are on (e.g. INHERITFLAG_1X3), do the appropriate thing.
+
+   CMD_MISC3__REDUCED_BY_TANDEM means that we are at a level of recursion in which
+   some couples or tandem concept is in effect.  If we see a call with schema_concentric,
+   change it to schema_single_concentric.
 */
 
 
@@ -4362,13 +4462,13 @@ enum {
    CMD_MISC__OFFSET_Z             = 0x00080000U,
    CMD_MISC__SAID_SPLIT           = 0x00100000U,
    CMD_MISC__EXPLICIT_MIRROR      = 0x00200000U,
-   CMD_MISC__REDUCED_BY_TANDEM    = 0x00400000U,
+   CMD_MISC__QUASI_PHANTOMS       = 0x00400000U,  // A concept, like trace, isn't explicit, but allows pass thru
    CMD_MISC__SAID_PG_OFFSET       = 0x00800000U,  // Explicitly said it, so space-invasion rules don't apply.
    CMD_MISC__NO_CHECK_MOD_LEVEL   = 0x01000000U,
    CMD_MISC__MUST_SPLIT_HORIZ     = 0x02000000U,
    CMD_MISC__MUST_SPLIT_VERT      = 0x04000000U,
    CMD_MISC__NO_CHK_ELONG         = 0x08000000U,
-   CMD_MISC__PHANTOMS             = 0x10000000U,
+   CMD_MISC__PHANTOMS             = 0x10000000U,  // A concept, like sp ph lines, is explicitly invoking phantoms.
    CMD_MISC__NO_STEP_TO_WAVE      = 0x20000000U,
    CMD_MISC__ALREADY_STEPPED      = 0x40000000U,
    CMD_MISC__DID_LEFT_MIRROR      = 0x80000000U,
@@ -4471,7 +4571,7 @@ enum {
    CMD_MISC3__NO_ANYTHINGERS_SUBST = 0x00000400U,    // Treat "<anything> motivate" as plain motivate.
    CMD_MISC3__PARENT_COUNT_IS_ONE  = 0x00000800U,
    CMD_MISC3__IMPOSE_Z_CONCEPT     = 0x00001000U,
-   // spare:                       = 0x00002000U,
+   CMD_MISC3__PARTS_OVER_THIS_CONCEPT = 0x00002000U,
    CMD_MISC3__STOP_OVERCAST_CHECK  = 0x00004000U,    // Off at start of utterance, gets turned on after first part.
                                                      // This is how we enforce the "no overcast warnings for actions
                                                      // internal to a compound call" rule.
@@ -4494,7 +4594,9 @@ enum {
    // This refers to the special invocation of a "optional_special_number" call;
    // call is being given an optional numeric arg because of really hairy fraction.
    CMD_MISC3__SPECIAL_NUMBER_INVOKE= 0x08000000U,
-   CMD_MISC3__NO_FUDGY_2X3_FIX     = 0x10000000U
+   CMD_MISC3__NO_FUDGY_2X3_FIX     = 0x10000000U,
+   CMD_MISC3__RECTIFY              = 0x20000000U,
+   CMD_MISC3__REDUCED_BY_TANDEM    = 0x40000000U
 };
 
 enum normalize_action {
@@ -4711,7 +4813,8 @@ enum tandem_key {
    tandem_key_anyone_tgls = 30,
    tandem_key_3x1tgls = 31,
    tandem_key_ys = 32,
-   tandem_key_special_triangles = 33
+   tandem_key_zs = 33,
+   tandem_key_special_triangles = 34
 };
 
 enum part_key_kind {
@@ -4722,7 +4825,8 @@ enum part_key_kind {
    part_key_use,
    part_key_half_and_half,
    part_key_frac_and_frac,
-   part_key_use_last_part
+   part_key_use_last_part,
+   part_key_paranoid
 };
 
 // BEWARE!!  This list is keyed to the table "meta_key_props" in sdtables.cpp .
@@ -4811,6 +4915,7 @@ extern short int *good_concept_sublists[call_list_extent];          /* in SDTOP 
 
 extern predicate_descriptor pred_table[];                           /* in SDPREDS */
 extern int selector_preds;                                          /* in SDPREDS */
+extern int start_of_facing_tests;                                   /* in SDPREDS */
 
 
 extern const ctr_end_mask_rec dead_masks;                           /* in SDTABLES */
@@ -4913,6 +5018,7 @@ enum mpkind {
    MPKIND__NONE,
    MPKIND__SPLIT,
    MPKIND__SPLIT_OTHERWAY_TOO,
+   MPKIND__SPLIT_SPLIT_ANISOTROPIC_THAR,
    MPKIND__SPLIT_WITH_45_ROTATION,
    MPKIND__SPLIT_WITH_M45_ROTATION,
    MPKIND__SPLIT_WITH_45_ROTATION_OTHERWAY_TOO,
@@ -5239,35 +5345,6 @@ void initialize_getout_tables();
 
 /* In SDTOP */
 
-extern void update_id_bits(setup *ss);
-extern void clear_bits_for_update(setup *ss);
-extern void clear_absolute_proximity_bits(setup *ss);
-extern void clear_absolute_proximity_and_facing_bits(setup *ss);
-extern void put_in_absolute_proximity_and_facing_bits(setup *ss);
-
-// This gets a ===> BIG-ENDIAN <=== mask of people's facing directions.
-// Each person occupies 2 bits in the resultant masks.  The "livemask"
-// bits are both on if the person is live.
-extern void big_endian_get_directions64(
-   const setup *ss,
-   uint64_t & directions,
-   uint64_t & livemask);
-
-extern void big_endian_get_directions32(
-   const setup *ss,
-   uint32_t & directions,    // These get only the low 32 bits,
-   uint32_t & livemask);     // Which are good enough for most clients.
-
-extern void touch_or_rear_back(
-   setup *scopy,
-   bool did_mirror,
-   int callflags1) THROW_DECL;
-
-extern void do_matrix_expansion(
-   setup *ss,
-   uint32_t concprops,
-   bool recompute_id) THROW_DECL;
-
 void initialize_sdlib();
 void finalize_sdlib();
 
@@ -5327,23 +5404,12 @@ inline uint32_t rotccw(uint32_t n)
 { if (n == 0) return 0; else return (n + 033) & ~064; }
 
 
-inline uint32_t little_endian_live_mask(const setup *ss)
-{
-   int i;
-   uint32_t j, result;
-   for (i=0, j=1, result = 0; i<=attr::slimit(ss); i++, j<<=1) {
-      if (ss->people[i].id1) result |= j;
-   }
-   return result;
-}
-
-
-inline uint32_t or_all_people(const setup *ss)
+inline uint32_t setup::or_all_people() const
 {
    uint32_t result = 0;
 
-   for (int i=0 ; i<=attr::slimit(ss) ; i++)
-      result |= ss->people[i].id1;
+   for (int i=0 ; i<=attr::slimit(this) ; i++)
+      result |= people[i].id1;
 
    return result;
 }
@@ -5445,7 +5511,8 @@ bool fix_n_results(
    uint32_t & rotstates,
    uint32_t & pointclip,
    uint32_t fudgystupidrot,
-   bool allow_hetero_and_notify = false) THROW_DECL;
+   bool allow_hetero_and_notify = false,
+   bool ignore_mismatched_rotations = false) THROW_DECL;
 
 bool warnings_are_unacceptable(bool strict);
 
@@ -5550,10 +5617,20 @@ class fraction_info {
    // This one is in sdmoves.cpp
    fracfrac get_fracs_for_this_part();
 
+   uint32_t rplacstart(uint32_t base)
+   {
+      return (base & ~PAIR_MASK_START) | (m_do_last_half_of_first_part & PAIR_MASK_START);
+   }
+
+   uint32_t rplacend(uint32_t base)
+   {
+      return (base & ~PAIR_MASK_END) | (m_do_half_of_last_part & PAIR_MASK_END);
+   }
+
    // This one is in sdmoves.cpp
    bool query_instant_stop(uint32_t & result_flag_wordmisc) const;
 
-   void demand_this_part_exists()  const THROW_DECL
+   void demand_this_part_exists() const THROW_DECL
       {
          if (m_fetch_index >= m_fetch_total || m_fetch_index < 0)
             fail("The indicated part number doesn't exist.");
@@ -5566,7 +5643,7 @@ class fraction_info {
          m_end_point = m_highlimit-1;
       }
 
-   bool not_yet_in_active_section()
+   bool not_yet_in_active_section() const
       {
          if (m_reverse_order) {
             if (m_client_index > m_start_point) return true;
@@ -5577,7 +5654,7 @@ class fraction_info {
          return false;
       }
 
-   bool ran_off_active_section()
+   bool ran_off_active_section() const
       {
          if (m_reverse_order) {
             if (m_client_index < m_end_point) return true;
@@ -5588,7 +5665,7 @@ class fraction_info {
          return false;
       }
 
-   inline bool this_starts_at_beginning()
+   inline bool this_starts_at_beginning() const
       { return
            m_start_point == 0 &&
            !m_do_last_half_of_first_part &&
@@ -5660,7 +5737,7 @@ public:
    }
 
    void note_prefilled_result()
-      { m_result_mask = little_endian_live_mask(m_result_ptr); }
+      { m_result_mask = m_result_ptr->little_endian_live_mask(); }
 
    uint32_t * install_with_collision(
       int resultplace,
@@ -5668,7 +5745,7 @@ public:
       int rot,
       bool force_moved_bit = false) THROW_DECL;
 
-   void fix_possible_collision(merge_action action = merge_strict_matrix,
+   void fix_possible_collision(merge_action_type action = merge_strict_matrix,
                                uint32_t callarray_flags = 0,
                                setup *ss = (setup *) 0) THROW_DECL;
 
@@ -5707,7 +5784,7 @@ extern bool check_restriction(
 
 extern void basic_move(
    setup *ss,
-   calldefn *the_calldefn,
+   const calldefn *the_calldefn,
    int tbonetest,
    bool fudged,
    bool mirror,
@@ -5746,7 +5823,7 @@ extern uint32_t do_call_in_series(
    bool qtfudged) THROW_DECL;
 
 extern void brute_force_merge(const setup *res1, const setup *res2,
-                              merge_action action, setup *result) THROW_DECL;
+                              merge_action_type action, setup *result) THROW_DECL;
 
 extern void drag_someone_and_move(setup *ss, parse_block *parseptr, setup *result) THROW_DECL;
 
@@ -5784,7 +5861,7 @@ void do_stuff_inside_sequential_call(setup *result, uint32_t this_mod1,
 void really_inner_move(
    setup *ss,
    bool qtfudged,
-   calldefn *callspec,
+   const calldefn *callspec,
    calldef_schema the_schema,
    uint32_t callflags1,
    uint32_t callflagsf,
@@ -6000,7 +6077,7 @@ extern void inner_selective_move(
 
 /* In SDUTIL */
 
-extern void FuckingThingToTryToKeepTheFuckingStupidMicrosoftCompilerFromScrewingUp();
+extern void ThingToTryToKeepTheStupidMicrosoftCompilerFromScrewingUp();
 
 SDLIB_API extern parse_block *copy_parse_tree(parse_block *original_tree);
 SDLIB_API extern void reset_parse_tree(parse_block *original_tree, parse_block *final_head);
@@ -6335,13 +6412,6 @@ extern SDLIB_API const concept_descriptor *access_concept_descriptor_table(int i
 extern SDLIB_API bool get_yield_if_ambiguous_flag(call_with_name *foo);
 extern SDLIB_API call_with_name *access_base_calls(int i);
 
-void set_parse_block_concept(parse_block *p, const concept_descriptor *concept);
-void set_parse_block_next(parse_block *p, parse_block *next);
-void set_parse_block_call(parse_block *p, call_with_name *call);
-void set_parse_block_call_to_print(parse_block *p, call_with_name *call);
-void set_parse_block_replacement_key(parse_block *p, short int key);
-parse_block **get_parse_block_subsidiary_root_addr(parse_block *p);
-
 // Well, these are more than just accessors.
 warning_info config_save_warnings();
 void config_restore_warnings(const warning_info & rhs);
@@ -6389,9 +6459,7 @@ extern SDLIB_API bool showing_has_stopped;                    // in SDMATCH
 extern SDLIB_API int session_index;                           // in SDSI
 extern SDLIB_API bool rewrite_with_new_style_filename;        // in SDSI
 extern SDLIB_API int random_number;                           // in SDSI
-extern SDLIB_API uint32_t random_recent_history[128];
-extern SDLIB_API int random_count;
-extern SDLIB_API int random_top_level_start;
+extern SDLIB_API int resolve_test_count;                      // in SDSI
 extern SDLIB_API const char *database_filename;               // in SDSI
 extern SDLIB_API const char *new_outfile_string;              // in SDSI
 extern SDLIB_API char abridge_filename[MAX_TEXT_LINE_LENGTH]; // in SDSI

@@ -240,7 +240,7 @@ static void test_starting_setup(call_list_kind cl, const setup & test_setup)
    global_callcount = 0;
    /* Mark the parse block allocation, so that we throw away the garbage
       created by failing attempts. */
-   parse_mark = get_parse_block_mark();
+   parse_mark = parse_block::get_parse_block_mark();
 
  try_again:
 
@@ -2296,9 +2296,9 @@ bool open_session(int argc, char **argv)
       file, in which case we will get the file name also, or we will have to query
       the user.  In the latter case, we will do this step again. */
 
-   snprintf(outfile_string, 10, SEQUENCE_FILENAME); // -mpogue, initialize the string EVERY time to avoid sequence.Plus.A1.C1 bug
+   snprintf(outfile_string, 10, SEQUENCE_FILENAME); // -mpogue, 2025/01/21: initialize the string EVERY time to avoid sequence.Plus.A1.C1 bug
    if (calling_level != l_nonexistent_concept)
-       strncat(outfile_string, filename_strings[calling_level], MAX_FILENAME_LENGTH-80);
+      strncat(outfile_string, filename_strings[calling_level], MAX_FILENAME_LENGTH-80);
 
    /* At this point, the command-line arguments, and the preferences in the "[Options]"
       section of the initialization file, have been processed.  Some of those things

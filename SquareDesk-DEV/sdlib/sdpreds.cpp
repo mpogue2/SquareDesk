@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2021  William B. Ackerman.
+//    Copyright (C) 1990-2024  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -49,7 +49,7 @@ bool mandatory_call_used;
 extern bool selectp(const setup *ss, int place, int allow_some /*= 0*/) THROW_DECL
 {
    uint32_t p1, p2, p2bg, p3;
-   selector_kind s;
+   selector_kind s = selector_uninitialized;
    int thing_to_test = 0;
    int other_thing_to_test = 0;
    int other_other_thing_to_test = 0;
@@ -58,7 +58,7 @@ extern bool selectp(const setup *ss, int place, int allow_some /*= 0*/) THROW_DE
 
    uint32_t directions;
    uint32_t livemask;
-   big_endian_get_directions32(ss, directions, livemask);
+   ss->big_endian_get_directions32(directions, livemask);
 
    selector_used = true;
    selector_kind local_selector = current_options.who.who[0];
@@ -277,7 +277,8 @@ extern bool selectp(const setup *ss, int place, int allow_some /*= 0*/) THROW_DE
       else if (ss->kind == s4x4 && local_selector == selector_center2) {
          // Demand that there not be too many in the center.
          if ((livemask & 0x01010101) == 0x00010001 || (livemask & 0x01010101) == 0x01000100)
-         return ((place&3) == 3);
+            return ((place&3) == 3);
+         else break;
       }
       else if (ss->kind == s1x6) {
          p2 = pid2 & (ID2_CTR2|ID2_OUTRPAIRS);
@@ -1208,12 +1209,15 @@ static const int32_t dbl_tab01[5]        = {0, 1, 0, 1, 0};
 static const int32_t dbl_tab21[5]        = {2, 1, 1, 0, 0};
 static const int32_t dbl_tab01n[5]       = {0, 1, 0, 1, 1};
 static const int32_t dbl_tab21n[5]       = {2, 1, 1, 0, 1};
-static const int32_t x22tabtandem[4]     = {3, 0, 1, 0};
-static const int32_t x22tabantitandem[4] = {3, 2, 1, 0};
-static const int32_t x22tabfacing[4]     = {3, 2, 1, 0x1B};
-static const int32_t x24tabtandem[4]     = {7, 0, 1, 0};
-static const int32_t x24tabantitandem[4] = {7, 2, 1, 0};
-static const int32_t x24tabfacing[4]     = {7, 2, 1, 0x1B1B};
+static const int32_t x22tabtandem[6]     = {3, 0, 1, 0,      0, 0};
+static const int32_t x22tabantitandem[6] = {3, 2, 1, 0,      0, 0};
+static const int32_t x22tabfacing[6]     = {3, 2, 1, 0x1B,   0, 0};
+static const int32_t x24tabtandem[6]     = {7, 0, 1, 0,      0, 0};
+static const int32_t x24tabantitandem[6] = {7, 2, 1, 0,      0, 0};
+static const int32_t x24tabfacing[6]     = {7, 2, 1, 0x1B1B, 0, 0};
+static const int32_t x21tabfacing[6]     = {7, 2, 1, 0,      (int32_t) 0x00000001L, (int32_t) 0x000000F0L};
+static const int32_t x41tabfacing[6]     = {7, 2, 1, 0,      (int32_t) 0x0000F021L, (int32_t) 0x0000E1F0L};
+static const int32_t x81tabfacing[6]     = {7, 2, 1, 0,      (int32_t) 0xE1F0F421L, (int32_t) 0xFC21E1F0L};
 
 static const int32_t boystuff_no_rh[3]   = {ID2_PERM_BOY,  ID2_PERM_GIRL, 0};
 static const int32_t girlstuff_no_rh[3]  = {ID2_PERM_GIRL, ID2_PERM_BOY,  0};
@@ -1532,15 +1536,38 @@ static bool whos_on_base(setup *real_people, int real_index,
 static bool facing_test(setup *real_people, int real_index,
    int real_direction, int northified_index, const int32_t *extra_stuff)
 {
-   // If the "trailer only" word is nonzero, figure out whether person is a trailer.
-   // The word has 2-bit fields in little-endian order, indexed by the person's
-   // position.  That 2-bit field is added to the direction, and the result must
-   // have the "2" bit off.
-   if (extra_stuff[3] &&
-       (((extra_stuff[3] >> (real_index*2)) + real_direction) & 2))
-      return false;
+   // First extra_word is for east-facers; second is for west-facers.
+   uint32_t extra_word = (uint32_t) extra_stuff[4+((real_direction>>1)&1)];
+   int other_index;
 
-   int other_index = real_index ^ extra_stuff[(real_direction << 1) & 2];
+   if (extra_word != 0) {
+      // New way, doing special "facing someone directly" stuff, with
+      // "2x1_facing_someone", "4x1_facing_someone", and "8x1_facing_someone".
+      // Allow a pass thru with a phantom for things like "trace".
+      if (real_people->cmd.cmd_misc_flags & (CMD_MISC__PHANTOMS|CMD_MISC__QUASI_PHANTOMS))
+         return true;
+      //      but    if ((extra_word & 0xFFFF0000 != 0))   we are doing a 1x8,
+      //  which is believed to be well-behaved, so maybe that dhould be left in place.
+      uint32_t delta = (extra_word >> (real_index<<2)) & 0xF;
+      if (delta == 0)
+         return false;
+      other_index = (real_index+delta)&0xF;
+   }
+   else {
+      // Not doing the special "facing someone directly" stuff.
+
+      // If the "trailer only" word is nonzero, figure out whether person is a trailer.
+      // The word has 2-bit fields in little-endian order, indexed by the person's
+      // position.  That 2-bit field is added to the direction, and the result must
+      // have the "2" bit off.
+      if (extra_stuff[3] &&
+          (((extra_stuff[3] >> (real_index*2)) + real_direction) & 2))
+         return false;
+
+      other_index = real_index ^ extra_stuff[(real_direction << 1) & 2];
+   }
+
+
    return ((real_people->people[real_index].id1 ^
             real_people->people[other_index].id1) & DIR_MASK) == (uint32_t) extra_stuff[1];
 }
@@ -3179,6 +3206,10 @@ static bool q_tag_check(setup *real_people, int real_index,
 // BEWARE!!  This list must track the array "predtab" in mkcalls.cpp.
 // BEWARE!!  Obey the correctness of SELECTOR_PREDS.
 
+// BEWARE!!!!!!  Some things below are tagged as #57 or so.  See sdtop\4080 and START_OF_FACING_TESTS.
+// Note that START_OF_FACING_TESTS is defined both here and in sdtop.
+// This is, needless to say, extremely dangerous.  Will fix someday.
+
 // The first several of these (the ones before "SELECTOR_PREDS") take a selector.
 // Any call that uses one of these predicates will have its "need_a_selector"
 // flag set during initialization.
@@ -3238,6 +3269,16 @@ predicate_descriptor pred_table[] = {
       {kicker_coming,                (const int32_t *) 0},       // "kicker_coming"
 // End of predicates that force use of selector.
 #define SELECTOR_PREDS 52
+#define START_OF_FACING_TESTS 52
+      {facing_test,                    x22tabtandem},            // "2x2_tandem_with_someone"
+      {facing_test,                    x22tabantitandem},        // "2x2_antitandem"
+      {facing_test,                    x22tabfacing},            // "2x2_facing_someone"
+      {facing_test,                    x24tabtandem},            // "2x4_tandem_with_someone"
+      {facing_test,                    x24tabantitandem},        // "2x4_antitandem"
+      {facing_test,                    x21tabfacing},            // "2x1_facing_someone"   // WARNING!!  This is tagged as #57.
+      {facing_test,                    x41tabfacing},            // "4x1_facing_someone"   // WARNING!!  This is tagged as #58.
+      {facing_test,                    x81tabfacing},            // "8x1_facing_someone"   // WARNING!!  This is tagged as #59.
+      {facing_test,                    x24tabfacing},            // "2x4_facing_someone"
       {always,                       (const int32_t *) 0},       // "always"
       {plus_mod_real,                 &iden_tab[1]},             // "person_real_plus1"
       {plus_mod_real,                 &iden_tab[2]},             // "person_real_plus2"
@@ -3268,12 +3309,6 @@ predicate_descriptor pred_table[] = {
       {x22_cpltest,                    dbl_tab01},               // "2x2_couple"
       {x22_cpltest,                    dbl_tab21n},              // "2x2_miniwave_nocycle_wheel"
       {x22_cpltest,                    dbl_tab01n},              // "2x2_couple_nocycle_wheel"
-      {facing_test,                    x22tabtandem},            // "2x2_tandem_with_someone"
-      {facing_test,                    x22tabantitandem},        // "2x2_antitandem"
-      {facing_test,                    x22tabfacing},            // "2x2_facing_someone"
-      {facing_test,                    x24tabtandem},            // "2x4_tandem_with_someone"
-      {facing_test,                    x24tabantitandem},        // "2x4_antitandem"
-      {facing_test,                    x24tabfacing},            // "2x4_facing_someone"
       {x14_side_of_line_facing,       &iden_tab[0]},             // "1x4_end_of_this_side_is_linelike_facing_cw"
       {x14_side_of_line_facing,       &iden_tab[1]},             // "1x4_end_of_far_side_is_linelike_facing_cw"
       {x14_side_of_line_facing,       &iden_tab[2]},             // "1x4_end_of_this_side_is_linelike_facing_ccw"
@@ -3409,3 +3444,4 @@ predicate_descriptor pred_table[] = {
       {whos_on_base,                   &iden_tab[12]}};          // "base_is_left"
 
 int selector_preds = SELECTOR_PREDS;
+int start_of_facing_tests = START_OF_FACING_TESTS;

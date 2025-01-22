@@ -5,7 +5,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2022  William B. Ackerman.
+//    Copyright (C) 1990-2024  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -45,7 +45,7 @@
 // database format version.
 
 #define DATABASE_MAGIC_NUM 21316
-#define DATABASE_FORMAT_VERSION 398
+#define DATABASE_FORMAT_VERSION 412
 
 
 // We used to do some stuff to cater to compiler vendors (e.g. Sun
@@ -205,17 +205,35 @@ enum base_call_index {
    base_call_tradethewave,
    base_call_ctrrot,
    base_call_splctrrot,
+   base_call_ctr_rot_for_sidetrack,
+   base_call_ctr_rot_for_splitsidetrack,
+   base_call_ctrrot_roll,
+   base_call_circ_and_quarter_in,
    base_call_backemup,
    base_call_circulate,
+   base_call_motcirc,
+   base_call_couples_circ,
+   base_call_circ_for_coord,
+   base_call_colcirc,
+   base_call_circulate_for_tally_ho,
+   base_call_circulateforacey,
+   base_call_box_circulate_maybe_diamond,
    base_call_trade,
+   base_call_splitcirc,
+   base_call_boxcirc,
+   base_call_boxcirc1,
+   base_call_boxcirc2,
+   base_call_turndmdn,
    base_call_touch,
    base_call_plainprom,
    base_call_plainpromeighths,
    base_call_any_hand_remake,
+   base_call_any_hand_remake_with_step,
    base_call_passthru,
    base_call_passin,
    base_call_passout,
    base_call_check_cross_counter,
+   base_call_ends_counter,
    base_call_lockit,
    base_call_disband1,
    base_call_slither,
@@ -245,6 +263,8 @@ enum base_call_index {
    base_call_extend_n,
    base_call_inrollcirc,
    base_call_outrollcirc,
+   base_call_uturnback,
+   base_call_anyoneuturnback,
    num_base_call_indices    // Not an actual enumeration item.
 };
 
@@ -261,7 +281,7 @@ enum base_call_index {
 
 // This (heritflags) used to be an enum (two of them, in fact, because these things were
 // divided into 32-bit fields.  But apparently enums aren't 64 bits, even with 64 bit
-// compilers, so they are now nakes uint64's.
+// compilers, so they are now naked uint64's.
 
 const uint64_t INHERITFLAG_DIAMOND    = 0x0000000000000001ULL;
 const uint64_t INHERITFLAG_REVERSE    = 0x0000000000000002ULL;
@@ -348,9 +368,12 @@ const uint64_t INHERITFLAG_ORBIT      = 0x0000002000000000ULL;
 const uint64_t INHERITFLAG_TWINORBIT  = 0x0000004000000000ULL;
 const uint64_t INHERITFLAG_ROTARY     = 0x0000008000000000ULL;
 const uint64_t INHERITFLAG_SCATTER    = 0x0000010000000000ULL;
-const uint64_t INHERITFLAG_ZOOMROLL   = 0x0000020000000000ULL;
-const uint64_t INHERITFLAG_TRADE      = 0x0000040000000000ULL;
-const uint64_t INHERITFLAG_CROSSOVER  = 0x0000080000000000ULL;
+const uint64_t INHERITFLAG_INTPGRAM   = 0x0000020000000000ULL;
+const uint64_t INHERITFLAG_TRAP       = 0x0000040000000000ULL;
+const uint64_t INHERITFLAG_ZOOMROLL   = 0x0000080000000000ULL;
+const uint64_t INHERITFLAG_TRADE      = 0x0000100000000000ULL;
+const uint64_t INHERITFLAG_CROSSOVER  = 0x0000200000000000ULL;
+const uint64_t INHERITFLAG_RECTIFY    = 0x0000400000000000ULL;
 
 
 typedef uint64_t heritflags;
@@ -431,8 +454,8 @@ enum {
    CFLAG2_NO_RAISE_OVERCAST         = 0x08000000U,
    CFLAG2_OVERCAST_TRANSPARENT      = 0x10000000U,
    CFLAG2_IS_STAR_CALL              = 0x20000000U,
-   CFLAG2_CAN_DO_IN_Z               = 0x40000000U
-   // 1 spare.
+   CFLAG2_CAN_DO_IN_Z               = 0x40000000U,
+   CFLAG2_WARN_ON_ELONGATION        = 0x80000000U       // no spares!
 };
 
 // Beware!!  This list must track the table "matrixcallflagtab" in mkcalls.cpp .
@@ -511,6 +534,7 @@ enum dance_level {
    face_the_music_level = l_c3a,
    beau_belle_level = l_a2,
    cross_by_level = l_c1,
+   concentric_level = l_c1,
    intlk_triangle_level = l_c1,
    magic_triangle_level = l_c2,
    triangle_in_box_level = l_c2,
@@ -1113,6 +1137,7 @@ enum call_restriction {
    cr_socker_is_cw,
    cr_socker_is_ccw,
    cr_ends_didnt_move,
+   cr_facing_someone,
    cr_levelplus,
    cr_levela1,
    cr_levela2,

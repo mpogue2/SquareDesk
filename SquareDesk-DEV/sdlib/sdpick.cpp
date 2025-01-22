@@ -50,9 +50,6 @@ and the following external variables:
 enum pick_type {
    pick_starting_first_scan,
    pick_plain_nice_only,       // Just calls, very picky about quality.
-   pick_concept_nice_only,     // Concept/call, very picky about quality.
-   pick_plain_accept_all,      // Just calls, but accept anything.
-   pick_concept_accept_all,    // Concept/call, accept anything.
    pick_in_random_search,
    pick_not_in_any_pick_at_all
 };
@@ -70,9 +67,6 @@ struct pick_type_descriptor {
 pick_type_descriptor pick_type_table[] = {
    { false, false, false, "pick start first scan"},  // pick_starting_first_scan
    { true,  true,  false, "pick plain nice scan"},   // pick_plain_nice_only
-   { true,  true,  true,  "pick concept nice scan"}, // pick_concept_nice_only
-   { true,  false, false, "pick plain any scan"},    // pick_plain_accept_all
-   { true,  false, true,  "pick concept any scan"},  // pick_concept_accept_all
    { false, false, false, "pick random search"},     // pick_in_random_search
    { false, false, false, 0}};                       // pick_not_in_any_pick_at_all
 
@@ -582,20 +576,24 @@ bool pick_allow_multiple_items()
 
 void start_pick()
 {
-   /* Following a suggestion of Eric Brosius, we initially scan the entire database once,
-      looking for one-call resolves, before we start the complex search.  This way, we
-      will never show a multiple-call resolve if a single-call one exists.  Of course,
-      it's not really that simple -- if a call takes a number, direction, or person,
-      we will only use one canned value for it, so we could miss a single call resolve
-      on this first pass if that call involves an interesting number, etc. */
+   // Following a suggestion of Eric Brosius, we initially scan the entire database once,
+   // looking for one-call resolves, before we start the complex search.  This way, we
+   // will never show a multiple-call resolve if a single-call one exists.  Of course,
+   // it's not really that simple -- if a call takes a number, direction, or person,
+   // we will only use one canned value for it, so we could miss a single call resolve
+   // on this first pass if that call involves an interesting number, etc.
+
+   // But we don't do any of that if doing a resolve test; just random search;
+   // We need completely consistent use of the random numbers.
 
    interactivity = interactivity_picking;
 
-   if (search_goal == command_resolve ||
-       search_goal == command_reconcile ||
-       search_goal == command_normalize ||
-       search_goal == command_standardize ||
-       search_goal >= command_create_any_lines)
+   if (ui_options.resolve_test_minutes == 0 &&
+       (search_goal == command_resolve ||
+        search_goal == command_reconcile ||
+        search_goal == command_normalize ||
+        search_goal == command_standardize ||
+        search_goal >= command_create_any_lines))
       current_pick_type = pick_starting_first_scan;
    else
       current_pick_type = pick_in_random_search;

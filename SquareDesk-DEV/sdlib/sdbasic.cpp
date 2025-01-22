@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2021  William B. Ackerman.
+//    Copyright (C) 1990-2024  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -137,7 +137,7 @@ s_tinyhyperbone -- like s_hyperbone, but all 4 trngl4's are on top of each other
 typedef struct {
    int size;                 // how many people in the maps
    // These masks are little-endian.
-   uint32_t lmask;           // which people are facing E-W in original double-length setup
+   uint64_t lmask;           // which people are facing E-W in original double-length setup
    uint32_t rmask;           // where in original setup can people be found
    uint32_t cmask;           // where in original setup have people collided
    int8_t source[12];        // where to get the people
@@ -158,330 +158,342 @@ typedef struct {
 static collision_map collision_map_table[] = {
    // These items handle various types of "1/2 circulate" calls from 2x4's.
 
-   {4, 0x00000000, 0x33, 0x33, {0, 1, 4, 5},         {0, 3, 5, 6},          {1, 2, 4, 7},
+   {4, 0x0000000000000000, 0x33, 0x33, {0, 1, 4, 5},         {0, 3, 5, 6},          {1, 2, 4, 7},
     s_crosswave, s1x8,        0, warn__really_no_collision, 0x20000000},   // from lines out
-   {4, 0x00000000, 0x33, 0x33, {0, 1, 4, 5},         {0, 1, 7, 6},          {3, 2, 4, 5},
+   {4, 0x0000000000000000, 0x33, 0x33, {0, 1, 4, 5},         {0, 1, 7, 6},          {3, 2, 4, 5},
     s_crosswave, s1x8,        0, warn__really_no_collision, 0},            // alternative if couples
-   {2, 0x00000000, 0x11, 0x11, {0, 4},               {0, 5},                {1, 4},
+   {2, 0x0000000000000000, 0x11, 0x11, {0, 4},               {0, 5},                {1, 4},
     s_crosswave, s1x8,        0, warn__really_no_collision, 0},   // from lines out, only ends exist
-   {2, 0x00000000, 0x22, 0x22, {1, 5},               {3, 6},                {2, 7},
+   {2, 0x0000000000000000, 0x22, 0x22, {1, 5},               {3, 6},                {2, 7},
     s_crosswave, s1x8,        0, warn__really_no_collision, 3},   // from lines out, only centers exist
-   {2, 0x00000000, 0x30, 0x30, {4, 5},               {5, 6},                {4, 7},
+   {2, 0x0000000000000000, 0x30, 0x30, {4, 5},               {5, 6},                {4, 7},
     s_crosswave, s1x8,        0, warn__really_no_collision, 0},   // more of same
-   {2, 0x00000000, 0x03, 0x03, {0, 1},               {0, 3},                {1, 2},
+   {2, 0x0000000000000000, 0x03, 0x03, {0, 1},               {0, 3},                {1, 2},
     s_crosswave, s1x8,        0, warn__really_no_collision, 0},
 
-   {4, 0x00CC00CC, 0xCC, 0xCC, {2, 3, 6, 7},         {0, 3, 5, 6},          {1, 2, 4, 7},
+   {4, 0x000000CC000000CC, 0xCC, 0xCC, {2, 3, 6, 7},         {0, 3, 5, 6},          {1, 2, 4, 7},
     s_crosswave, s1x8,        1, warn__really_no_collision, 0x20000000},   // from lines in
-   {4, 0x00CC00CC, 0xCC, 0xCC, {2, 3, 6, 7},         {0, 1, 7, 6},          {3, 2, 4, 5},
+   {4, 0x000000CC000000CC, 0xCC, 0xCC, {2, 3, 6, 7},         {0, 1, 7, 6},          {3, 2, 4, 5},
     s_crosswave, s1x8,        1, warn__really_no_collision, 0},            // alternative if couples
-   {2, 0x00440044, 0x44, 0x44, {2, 6},               {0, 5},                {1, 4},
+   {2, 0x0000004400000044, 0x44, 0x44, {2, 6},               {0, 5},                {1, 4},
     s_crosswave, s1x8,        1, warn__really_no_collision, 0},   // from lines in, only ends exist
-   {2, 0x00880088, 0x88, 0x88, {3, 7},               {3, 6},                {2, 7},
+   {2, 0x0000008800000088, 0x88, 0x88, {3, 7},               {3, 6},                {2, 7},
     s_crosswave, s1x8,        1, warn__really_no_collision, 2},   // from lines in, only centers exist
-   {2, 0x00C000C0, 0xC0, 0xC0, {6, 7},               {5, 6},                {4, 7},
+   {2, 0x000000C0000000C0, 0xC0, 0xC0, {6, 7},               {5, 6},                {4, 7},
     s_crosswave, s1x8,        1, warn__really_no_collision, 0},   // more of same
-   {2, 0x000C000C, 0x0C, 0x0C, {2, 3},               {0, 3},                {1, 2},
+   {2, 0x0000000C0000000C, 0x0C, 0x0C, {2, 3},               {0, 3},                {1, 2},
     s_crosswave, s1x8,        1, warn__really_no_collision, 0},
 
-   {4, 0x00000000, 0x0F, 0x0F, {0, 1, 2, 3},         {0, 3, 5, 6},          {1, 2, 4, 7},
+   {4, 0x0000000000000000, 0x0F, 0x0F, {0, 1, 2, 3},         {0, 3, 5, 6},          {1, 2, 4, 7},
     s1x4,        s1x8,        0, warn__really_no_collision, 0},   // more of same
 
    // Counter rotates from 1x8's in various unsymmetrical onfigurations.
    // Follow your arc.
    // 2
-   {7, 0x00000000, 0xF7, 0x80, {7, 0, 1, 2, 6, 5, 4},   {8, 1, 2, 4, 9, 6, 5},  {7, 1, 2, 4, 9, 6, 5},
+   {7, 0x0000000000000000, 0xF7, 0x80, {7, 0, 1, 2, 6, 5, 4},   {8, 1, 2, 4, 9, 6, 5},  {7, 1, 2, 4, 9, 6, 5},
     s1x8,        s1x10,       0, warn__really_no_collision, 0},
-   {7, 0x00000000, 0x7F, 0x08, {3, 0, 1, 2, 6, 5, 4},   {2, 0, 1, 4, 9, 7, 6},  {3, 0, 1, 4, 9, 7, 6},
+   {7, 0x0000000000000000, 0x7F, 0x08, {3, 0, 1, 2, 6, 5, 4},   {2, 0, 1, 4, 9, 7, 6},  {3, 0, 1, 4, 9, 7, 6},
     s1x8,        s1x10,       0, warn__really_no_collision, 0},
    // 4
-   {7, 0x00000000, 0xFD, 0x20, {0, 5, 4, 3, 2, 6, 7},   {1, 7, 5, 3, 4, 9, 8},  {1, 6, 5, 3, 4, 9, 8},
+   {7, 0x0000000000000000, 0xFD, 0x20, {0, 5, 4, 3, 2, 6, 7},   {1, 7, 5, 3, 4, 9, 8},  {1, 6, 5, 3, 4, 9, 8},
     s1x8,        s1x10,       0, warn__really_no_collision, 0},
-   {7, 0x00000000, 0xDF, 0x02, {0, 1, 4, 3, 2, 6, 7},   {0, 1, 6, 3, 4, 9, 8},  {0, 2, 6, 3, 4, 9, 8},
+   {7, 0x0000000000000000, 0xDF, 0x02, {0, 1, 4, 3, 2, 6, 7},   {0, 1, 6, 3, 4, 9, 8},  {0, 2, 6, 3, 4, 9, 8},
     s1x8,        s1x10,       0, warn__really_no_collision, 0},
    // 6
-   {6, 0x00000000, 0xF5, 0xA0, {7, 5, 0, 2, 6, 4},   {10, 8, 2, 5, 11, 6},  {9, 7, 2, 5, 11, 6},
+   {6, 0x0000000000000000, 0xF5, 0xA0, {7, 5, 0, 2, 6, 4},   {10, 8, 2, 5, 11, 6},  {9, 7, 2, 5, 11, 6},
     s1x8,        s1x12,       0, warn__really_no_collision, 0},
-   {6, 0x00000000, 0x5F, 0x0A, {1, 3, 0, 2, 6, 4},   {1, 3, 0, 5, 11, 8},  {2, 4, 0, 5, 11, 8},
+   {6, 0x0000000000000000, 0x5F, 0x0A, {1, 3, 0, 2, 6, 4},   {1, 3, 0, 5, 11, 8},  {2, 4, 0, 5, 11, 8},
     s1x8,        s1x12,       0, warn__really_no_collision, 0},
    // 8
-   {7, 0x00000000, 0xFE, 0x10, {4, 1, 3, 2, 6, 7, 5},   {6, 2, 3, 4, 9, 8, 7},  {5, 2, 3, 4, 9, 8, 7},
+   {7, 0x0000000000000000, 0xFE, 0x10, {4, 1, 3, 2, 6, 7, 5},   {6, 2, 3, 4, 9, 8, 7},  {5, 2, 3, 4, 9, 8, 7},
     s1x8,        s1x10,       0, warn__really_no_collision, 0},
-   {7, 0x00000000, 0xEF, 0x01, {0, 1, 3, 2, 6, 7, 5},   {0, 2, 3, 4, 9, 8, 7},  {1, 2, 3, 4, 9, 8, 7},
+   {7, 0x0000000000000000, 0xEF, 0x01, {0, 1, 3, 2, 6, 7, 5},   {0, 2, 3, 4, 9, 8, 7},  {1, 2, 3, 4, 9, 8, 7},
     s1x8,        s1x10,       0, warn__really_no_collision, 0},
    // A   (fixed)
-   {6, 0x00000000, 0xF6, 0x90, {7, 4, 1, 2, 6, 5},   {10, 7, 3, 5, 11, 8},  {9, 6, 3, 5, 11, 8},
+   {6, 0x0000000000000000, 0xF6, 0x90, {7, 4, 1, 2, 6, 5},   {10, 7, 3, 5, 11, 8},  {9, 6, 3, 5, 11, 8},
     s1x8,        s1x12,       0, warn__really_no_collision, 0},
-   {6, 0x00000000, 0x6F, 0x09, {0, 3, 1, 2, 6, 5},   {0, 3, 2, 5, 11, 9},  {1, 4, 2, 5, 11, 9},
+   {6, 0x0000000000000000, 0x6F, 0x09, {0, 3, 1, 2, 6, 5},   {0, 3, 2, 5, 11, 9},  {1, 4, 2, 5, 11, 9},
     s1x8,        s1x12,       0, warn__really_no_collision, 0},
    // C
-   {6, 0x00000000, 0xFC, 0x30, {5, 4, 3, 2, 6, 7},   {9, 7, 4, 5, 11, 10},  {8, 6, 4, 5, 11, 10},
+   {6, 0x0000000000000000, 0xFC, 0x30, {5, 4, 3, 2, 6, 7},   {9, 7, 4, 5, 11, 10},  {8, 6, 4, 5, 11, 10},
     s1x8,        s1x12,       0, warn__really_no_collision, 0},
-   {6, 0x00000000, 0xCF, 0x03, {0, 1, 3, 2, 6, 7},   {0, 2, 4, 5, 11, 10},  {1, 3, 4, 5, 11, 10},
+   {6, 0x0000000000000000, 0xCF, 0x03, {0, 1, 3, 2, 6, 7},   {0, 2, 4, 5, 11, 10},  {1, 3, 4, 5, 11, 10},
     s1x8,        s1x12,       0, warn__really_no_collision, 0},
    // E
-   {5, 0x00000000, 0xF4, 0xB0, {7, 5, 4, 2, 6},   {12, 10, 8, 6, 13},  {11, 9, 7, 6, 13},
+   {5, 0x0000000000000000, 0xF4, 0xB0, {7, 5, 4, 2, 6},   {12, 10, 8, 6, 13},  {11, 9, 7, 6, 13},
     s1x8,        s1x14,       0, warn__really_no_collision, 0},
-   {5, 0x00000000, 0x4F, 0x0B, {0, 1, 3, 2, 6},   {0, 2, 4, 6, 13},  {1, 3, 5, 6, 13},
+   {5, 0x0000000000000000, 0x4F, 0x0B, {0, 1, 3, 2, 6},   {0, 2, 4, 6, 13},  {1, 3, 5, 6, 13},
     s1x8,        s1x14,       0, warn__really_no_collision, 0},
 
    // F
-   {4, 0x00000000, 0xF0, 0xF0, {6, 7, 5, 4},   {15, 13, 11, 9},  {14, 12, 10, 8},
+   {4, 0x0000000000000000, 0xF0, 0xF0, {6, 7, 5, 4},   {15, 13, 11, 9},  {14, 12, 10, 8},
     s1x8,        s1x16,       0, warn_bad_collision, 0},
-   {4, 0x00000000, 0x0F, 0x0F, {0, 1, 3, 2},   {0, 2, 4, 6},  {1, 3, 5, 7},
+   {4, 0x0000000000000000, 0x0F, 0x0F, {0, 1, 3, 2},   {0, 2, 4, 6},  {1, 3, 5, 7},
     s1x8,        s1x16,       0, warn_bad_collision, 0},
 
-   {4, 0x00220022, 0xAA, 0xAA, {1, 3, 5, 7},         {2, 5, 7, 0},          {3, 4, 6, 1},
+   {4, 0x0000002200000022, 0xAA, 0xAA, {1, 3, 5, 7},         {2, 5, 7, 0},          {3, 4, 6, 1},
     s_spindle,   s_crosswave, 0, warn__none, 0},   // from trade by
-   {2, 0x00220022, 0x22, 0x22, {1, 5},               {2, 7},                {3, 6},
+   {2, 0x0000002200000022, 0x22, 0x22, {1, 5},               {2, 7},                {3, 6},
     s_spindle,   s_crosswave, 0, warn__none, 1},   // from trade by with no ends
-   {2, 0x00000000, 0x88, 0x88, {3, 7},               {5, 0},                {4, 1},
+   {2, 0x0000000000000000, 0x88, 0x88, {3, 7},               {5, 0},                {4, 1},
     s_spindle,   s_crosswave, 0, warn__none, 0},   // from trade by with no centers
-   {3, 0x00000022, 0x2A, 0x08, {1, 3, 5},            {3, 5, 7},             {3, 4, 7},
+   {3, 0x0000000000000022, 0x2A, 0x08, {1, 3, 5},            {3, 5, 7},             {3, 4, 7},
     s_spindle,   s_crosswave, 0, warn__none, 0},   // from trade by with no left half
-   {3, 0x00000022, 0xA2, 0x80, {1, 5, 7},            {3, 7, 0},             {3, 7, 1},
+   {3, 0x0000000000000022, 0xA2, 0x80, {1, 5, 7},            {3, 7, 0},             {3, 7, 1},
     s_spindle,   s_crosswave, 0, warn__none, 0},   // from trade by with no right half
 
-   {3, 0x00000000, 0x7, 0x2, {0, 1, 2},              {0, 1, 2},             {0, 3, 2},
+   {3, 0x0000000000000000, 0x7, 0x2, {0, 1, 2},              {0, 1, 2},             {0, 3, 2},
     s1x3,   s1x4, 0, warn__none, 0},
 
-   {6, 0x008800CC, 0xDD, 0x88, {0, 2, 3, 4, 6, 7},   {7, 0, 1, 3, 4, 6},    {7, 0, 2, 3, 4, 5},
+   {6, 0x00000088000000CC, 0xDD, 0x88, {0, 2, 3, 4, 6, 7},   {7, 0, 1, 3, 4, 6},    {7, 0, 2, 3, 4, 5},
     s_crosswave, s3x1dmd,     1, warn__none, 0},   // from 3&1 lines w/ centers in
-   {6, 0x00000044, 0x77, 0x22, {0, 1, 2, 4, 5, 6},   {0, 1, 3, 4, 6, 7},    {0, 2, 3, 4, 5, 7},
+   {6, 0x0000000000000044, 0x77, 0x22, {0, 1, 2, 4, 5, 6},   {0, 1, 3, 4, 6, 7},    {0, 2, 3, 4, 5, 7},
     s_crosswave, s3x1dmd,     0, warn__none, 0},   // from 3&1 lines w/ centers out
-   {6, 0x004400CC, 0xEE, 0x44, {1, 2, 3, 5, 6, 7},   {7, 0, 2, 3, 5, 6},    {7, 1, 2, 3, 4, 6},
+   {6, 0x00000044000000CC, 0xEE, 0x44, {1, 2, 3, 5, 6, 7},   {7, 0, 2, 3, 5, 6},    {7, 1, 2, 3, 4, 6},
     s_crosswave, s3x1dmd,     1, warn__none, 0},   // from 3&1 lines w/ ends in
-   {6, 0x00000088, 0xBB, 0x11, {0, 1, 3, 4, 5, 7},   {0, 2, 3, 5, 6, 7},    {1, 2, 3, 4, 6, 7},
+   {6, 0x0000000000000088, 0xBB, 0x11, {0, 1, 3, 4, 5, 7},   {0, 2, 3, 5, 6, 7},    {1, 2, 3, 4, 6, 7},
     s_crosswave, s1x3dmd,     0, warn__none, 0},   // from 3&1 lines w/ ends out
-   {4, 0x00880088, 0x99, 0x99, {0, 3, 4, 7},         {0, 2, 5, 7},          {1, 3, 4, 6},
+   {4, 0x0000008800000088, 0x99, 0x99, {0, 3, 4, 7},         {0, 2, 5, 7},          {1, 3, 4, 6},
     s_crosswave, s_crosswave, 0, warn__none, 0},   // from inverted lines w/ centers in
-   {4, 0x00440044, 0x66, 0x66, {1, 2, 5, 6},         {6, 0, 3, 5},          {7, 1, 2, 4},
+   {4, 0x0000004400000044, 0x66, 0x66, {1, 2, 5, 6},         {6, 0, 3, 5},          {7, 1, 2, 4},
     s_crosswave, s_crosswave, 1, warn__ctrs_stay_in_ctr, 0}, // from inverted lines w/ centers out
 
    // Collision after 1/2 circulate from C1 phantoms, going to a thar.
-   {4, 0x00440044, 0x55, 0x55, {0, 2, 4, 6},         {0, 2, 5, 7},          {1, 3, 4, 6},
+   {4, 0x0000004400000044, 0x55, 0x55, {0, 2, 4, 6},         {0, 2, 5, 7},          {1, 3, 4, 6},
     s_thar, s_thar, 0, warn__none, 0},
 
    // Collision after circulate from lines all facing same way.
-   {4, 0x00000000, 0x0F, 0x0F,  {0, 1, 2, 3},         {0, 2, 4, 6},          {1, 3, 5, 7},
+   {4, 0x0000000000000000, 0x0F, 0x0F,  {0, 1, 2, 3},         {0, 2, 4, 6},          {1, 3, 5, 7},
     s2x4,        s2x8,        0, warn__none, 0},
-   {4, 0x00000000, 0xF0, 0xF0,  {4, 5, 6, 7},         {9, 11, 13, 15},       {8, 10, 12, 14},
+   {4, 0x0000000000000000, 0xF0, 0xF0,  {4, 5, 6, 7},         {9, 11, 13, 15},       {8, 10, 12, 14},
     s2x4,        s2x8,        0, warn__none, 0},
    // Collision after checkmate from a 8-chain
-   {4, 0x00000000, 0x66, 0x66,  {1, 2, 5, 6},         {0, 2, 5, 7},          {1, 3, 4, 6},
+   {4, 0x0000000000000000, 0x66, 0x66,  {1, 2, 5, 6},         {0, 2, 5, 7},          {1, 3, 4, 6},
     s2x4,        s2x4,        0, warn__none, 0},
 
    // Collision after column circulate from 3/4 box or similar 3x1-column-type things.
-   {6, 0x008800DD, 0xDD, 0x88,  {0, 2, 3, 4, 6, 7},   {10, 3, 0, 2, 11, 9},  {10, 3, 1, 2, 11, 8},
+   {6, 0x00000088000000DD, 0xDD, 0x88,  {0, 2, 3, 4, 6, 7},   {10, 3, 0, 2, 11, 9},  {10, 3, 1, 2, 11, 8},
     s2x4,        s4x4,        0, warn__none, 0},
-   {6, 0x001100BB, 0xBB, 0x11,  {0, 1, 3, 4, 5, 7},   {12, 15, 1, 2, 7, 9},  {10, 15, 1, 4, 7, 9},
+   {6, 0x00000011000000BB, 0xBB, 0x11,  {0, 1, 3, 4, 5, 7},   {12, 15, 1, 2, 7, 9},  {10, 15, 1, 4, 7, 9},
     s2x4,        s4x4,        0, warn__none, 0},
-   {6, 0x00220077, 0x77, 0x22,  {0, 1, 2, 4, 5, 6},   {10, 13, 3, 2, 7, 11}, {10, 15, 3, 2, 5, 11},
+   {6, 0x0000002200000077, 0x77, 0x22,  {0, 1, 2, 4, 5, 6},   {10, 13, 3, 2, 7, 11}, {10, 15, 3, 2, 5, 11},
     s2x4,        s4x4,        0, warn__none, 0},
-   {6, 0x004400EE, 0xEE, 0x44,  {1, 2, 3, 5, 6, 7},   {15, 14, 1, 7, 11, 9}, {15, 3, 1, 7, 6, 9},
+   {6, 0x00000044000000EE, 0xEE, 0x44,  {1, 2, 3, 5, 6, 7},   {15, 14, 1, 7, 11, 9}, {15, 3, 1, 7, 6, 9},
     s2x4,        s4x4,        0, warn__none, 0},
    // These are used for exchange the boxes 1/4 from magic columns, and for unwrap from interlocked diamonds.
-   {6, 0x00110077, 0x77, 0x11,  {0, 1, 2, 4, 5, 6},   {12, 15, 3, 2, 7, 11}, {10, 15, 3, 4, 7, 11},
+   {6, 0x0000001100000077, 0x77, 0x11,  {0, 1, 2, 4, 5, 6},   {12, 15, 3, 2, 7, 11}, {10, 15, 3, 4, 7, 11},
     s2x4,        s4x4,        0, warn__none, 0},
-   {6, 0x008800EE, 0xEE, 0x88,  {1, 2, 3, 5, 6, 7},   {15, 3, 0, 7, 11, 9},  {15, 3, 1, 7, 11, 8},
+   {6, 0x00000088000000EE, 0xEE, 0x88,  {1, 2, 3, 5, 6, 7},   {15, 3, 0, 7, 11, 9},  {15, 3, 1, 7, 11, 8},
     s2x4,        s4x4,        0, warn__none, 0},
-   {6, 0x002200BB, 0xBB, 0x22,  {0, 1, 3, 4, 5, 7},   {10, 13, 1, 2, 7, 9},  {10, 15, 1, 2, 5, 9},
+   {6, 0x00000022000000BB, 0xBB, 0x22,  {0, 1, 3, 4, 5, 7},   {10, 13, 1, 2, 7, 9},  {10, 15, 1, 2, 5, 9},
     s2x4,        s4x4,        0, warn__none, 0},
-   {6, 0x004400DD, 0xDD, 0x44,  {0, 2, 3, 4, 6, 7},   {10, 14, 1, 2, 11, 9}, {10, 3, 1, 2, 6, 9},
+   {6, 0x00000044000000DD, 0xDD, 0x44,  {0, 2, 3, 4, 6, 7},   {10, 14, 1, 2, 11, 9}, {10, 3, 1, 2, 6, 9},
     s2x4,        s4x4,        0, warn__none, 0},
    // These arise in common spot circulate from columns in which the ends are trucked.
-   {4, 0x008800CC, 0xCC, 0x88,  {2, 3, 6, 7},         {3, 0, 11, 9},         {3, 1, 11, 8},
+   {4, 0x00000088000000CC, 0xCC, 0x88,  {2, 3, 6, 7},         {3, 0, 11, 9},         {3, 1, 11, 8},
     s2x4,        s4x4,        0, warn__none, 0},
-   {4, 0x00110033, 0x33, 0x11,  {0, 1, 4, 5},         {12, 15, 2, 7},        {10, 15, 4, 7},
+   {4, 0x0000001100000033, 0x33, 0x11,  {0, 1, 4, 5},         {12, 15, 2, 7},        {10, 15, 4, 7},
     s2x4,        s4x4,        0, warn__none, 0},
    // These arise in common spot exchange 1/4 from columns in which the ends are trucked.
-   {4, 0x008800AA, 0xAA, 0x88,  {1, 3, 5, 7},         {15, 0, 7, 9},         {15, 1, 7, 8},
+   {4, 0x00000088000000AA, 0xAA, 0x88,  {1, 3, 5, 7},         {15, 0, 7, 9},         {15, 1, 7, 8},
     s2x4,        s4x4,        0, warn__none, 0},
-   {4, 0x00110055, 0x55, 0x11,  {0, 2, 4, 6},         {12, 3, 2, 11},        {10, 3, 4, 11},
+   {4, 0x0000001100000055, 0x55, 0x11,  {0, 2, 4, 6},         {12, 3, 2, 11},        {10, 3, 4, 11},
     s2x4,        s4x4,        0, warn__none, 0},
 
    // This one is marked as dangerous, meaning it can't be used from
    // merge_setups, but can be used when normalizing the result of basic_move.
-   {6, 0x00440044, 0x77, 0x44, {0, 1, 2, 4, 5, 6},   {0, 1, 2, 4, 5, 7},   {0, 1, 3, 4, 5, 6},
+   {6, 0x0000004400000044, 0x77, 0x44, {0, 1, 2, 4, 5, 6},   {0, 1, 2, 4, 5, 7},   {0, 1, 3, 4, 5, 6},
     s_crosswave, s_crosswave, 0, warn__ctrs_stay_in_ctr, UINT32_C(0x80000000)}, // From inverted lines w/ centers out.
 
-   {4, 0x00440044, 0x55, 0x55, {0, 2, 4, 6},         {0, 2, 5, 7},          {1, 3, 4, 6},
+   {4, 0x0000004400000044, 0x55, 0x55, {0, 2, 4, 6},         {0, 2, 5, 7},          {1, 3, 4, 6},
     s_crosswave, s_crosswave, 0, warn__ctrs_stay_in_ctr, 0},      // from trade-by w/ ctrs 1/4 out
    // This was put in so that "1/2 circulate" would work from lines in with centers counter rotated.
-   {4, 0x00880088, 0xAA, 0xAA, {1, 3, 5, 7},         {0, 2, 5, 7},          {1, 3, 4, 6},
+   {4, 0x0000008800000088, 0xAA, 0xAA, {1, 3, 5, 7},         {0, 2, 5, 7},          {1, 3, 4, 6},
     s_crosswave, s_crosswave, 0, warn__ctrs_stay_in_ctr, 0},      // from lines in and centers face
-   {6, 0x00000082, 0xAAA, 0x820, {1, 3, 5, 7, 9, 11},{3, 4, 6, 7, 0, 1},    {3, 4, 5, 7, 0, 2},
+   {6, 0x0000000000000082, 0xAAA, 0x820, {1, 3, 5, 7, 9, 11},{3, 4, 6, 7, 0, 1},    {3, 4, 5, 7, 0, 2},
     s3dmd,       s3x1dmd,     0, warn__none, 0},                  // from trade by with some outside quartered out
-   {6, 0x00000088, 0x0DD, 0x044, {3, 4, 6, 7, 0, 2}, {3, 4, 6, 7, 0, 1},    {3, 4, 5, 7, 0, 2},
+   {6, 0x0000000000000088, 0x0DD, 0x044, {3, 4, 6, 7, 0, 2}, {3, 4, 6, 7, 0, 1},    {3, 4, 5, 7, 0, 2},
     s3x1dmd,     s3x1dmd,     0, warn__none, 0},                  // Same.
-   {6, 0x00000088, 0x0EE, 0x022, {3, 5, 6, 7, 1, 2}, {3, 5, 6, 7, 0, 2},    {3, 4, 6, 7, 1, 2},
+   {6, 0x0000000000000088, 0x0EE, 0x022, {3, 5, 6, 7, 1, 2}, {3, 5, 6, 7, 0, 2},    {3, 4, 6, 7, 1, 2},
     s3x1dmd,     s3x1dmd,     0, warn__none, 0},                  // Same.
+
+   // 1/2 circulate.
+   {6, 0x0000000000000088, 0x0BB, 0x022, {0, 1, 3, 4, 5, 7}, {0, 1, 3, 4, 6, 7},    {0, 2, 3, 4, 5, 7},
+    s3x1dmd,     s3x1dmd,     0, warn__none, 0},                  // Same.
+
    // Phantom 1/2 circulate.
-   {6, 0x00000000, 0x077, 0x022, {0, 1, 2, 4, 5, 6}, {0, 1, 2, 4, 7, 6},    {0, 3, 2, 4, 5, 6},
+   {6, 0x0000000000000000, 0x077, 0x022, {0, 1, 2, 4, 5, 6}, {0, 1, 2, 4, 7, 6},    {0, 3, 2, 4, 5, 6},
     s3x1dmd,     s1x8,        0, warn__none, 0},
-   {6, 0x00880088, 0xBB, 0x88, {0, 1, 3, 4, 5, 7},   {0, 1, 2, 4, 5, 7},    {0, 1, 3, 4, 5, 6},
+   {6, 0x0000008800000088, 0xBB, 0x88, {0, 1, 3, 4, 5, 7},   {0, 1, 2, 4, 5, 7},    {0, 1, 3, 4, 5, 6},
     s_crosswave, s_crosswave, 0, warn__none, 0},
-   {6, 0x000000CC, 0xDD, 0x11, {0, 2, 3, 4, 6, 7},   {0, 2, 3, 5, 6, 7},    {1, 2, 3, 4, 6, 7},
+   {6, 0x00000000000000CC, 0xDD, 0x11, {0, 2, 3, 4, 6, 7},   {0, 2, 3, 5, 6, 7},    {1, 2, 3, 4, 6, 7},
     s_crosswave, s_crosswave, 0, warn__none, 0},
-   {6, 0x000000CC, 0xEE, 0x22, {1, 2, 3, 5, 6, 7},   {0, 2, 3, 5, 6, 7},    {1, 2, 3, 4, 6, 7},
+   {6, 0x00000000000000CC, 0xEE, 0x22, {1, 2, 3, 5, 6, 7},   {0, 2, 3, 5, 6, 7},    {1, 2, 3, 4, 6, 7},
     s_crosswave, s_crosswave, 0, warn__none, 0},
-   {6, 0x00000000,  077, 011,  {0, 1, 2, 3, 4, 5},   {0, 3, 2, 5, 7, 6},    {1, 3, 2, 4, 7, 6},
+   {6, 0x0000000000000000,  077, 011,  {0, 1, 2, 3, 4, 5},   {0, 3, 2, 5, 7, 6},    {1, 3, 2, 4, 7, 6},
     s1x6,        s1x8,        0, warn__none, 0},
-   {6, 0x00000000,  077, 022,  {0, 1, 2, 3, 4, 5},   {0, 1, 2, 4, 7, 6},    {0, 3, 2, 4, 5, 6},
+   {6, 0x0000000000000000,  077, 022,  {0, 1, 2, 3, 4, 5},   {0, 1, 2, 4, 7, 6},    {0, 3, 2, 4, 5, 6},
     s1x6,        s1x8,        0, warn__none, 0x20000000},
-   {6, 0x00000000,  077, 022,  {0, 1, 2, 3, 4, 5},   {0, 3, 2, 4, 5, 6},    {0, 1, 2, 4, 7, 6},
+   {6, 0x0000000000000000,  077, 022,  {0, 1, 2, 3, 4, 5},   {0, 3, 2, 4, 5, 6},    {0, 1, 2, 4, 7, 6},
     s1x6,        s1x8,        0, warn__really_no_collision, 0},            // alternative if couples
-   {6, 0x00000000,  077, 044,  {0, 1, 2, 3, 4, 5},   {0, 1, 3, 4, 5, 6},    {0, 1, 2, 4, 5, 7},
+   {6, 0x0000000000000000,  077, 044,  {0, 1, 2, 3, 4, 5},   {0, 1, 3, 4, 5, 6},    {0, 1, 2, 4, 5, 7},
     s1x6,        s1x8,        0, warn__none, 0},
-   {4, 0x00000000,  055, 055,  {0, 2, 3, 5},         {0, 3, 5, 6},          {1, 2, 4, 7},
+   {4, 0x0000000000000000,  055, 055,  {0, 2, 3, 5},         {0, 3, 5, 6},          {1, 2, 4, 7},
     s1x6,        s1x8,        0, warn__none, 0},
    // For tally ho from 5&3 lines.
-   {5, 0x00000000,  067, 064,  {0, 1, 2, 4, 5},      {0, 1, 3, 5, 6},       {0, 1, 2, 4, 7},
+   {5, 0x0000000000000000,  067, 064,  {0, 1, 2, 4, 5},      {0, 1, 3, 5, 6},       {0, 1, 2, 4, 7},
     s1x6,        s1x8,        0, warn__none, 0},
-   {5, 0x00000000,  076, 046,  {1, 2, 3, 4, 5},      {0, 3, 4, 5, 6},       {1, 2, 4, 5, 7},
+   {5, 0x0000000000000000,  076, 046,  {1, 2, 3, 4, 5},      {0, 3, 4, 5, 6},       {1, 2, 4, 5, 7},
     s1x6,        s1x8,        0, warn__none, 0},
 
    // These items handle parallel lines with people wedged on one end, and hence handle flip or cut the hourglass.
-   {6, 0x00000000, 0x77, 0x11, {0, 1, 2, 4, 5, 6},   {0, 2, 3, 7, 8, 9},    {1, 2, 3, 6, 8, 9},
+   {6, 0x0000000000000000, 0x77, 0x11, {0, 1, 2, 4, 5, 6},   {0, 2, 3, 7, 8, 9},    {1, 2, 3, 6, 8, 9},
     s2x4,        s2x6,        0, warn__none, 0},
-   {6, 0x00000000, 0xEE, 0x88, {1, 2, 3, 5, 6, 7},   {2, 3, 4, 8, 9, 11},   {2, 3, 5, 8, 9, 10},
+   {6, 0x0000000000000000, 0xEE, 0x88, {1, 2, 3, 5, 6, 7},   {2, 3, 4, 8, 9, 11},   {2, 3, 5, 8, 9, 10},
     s2x4,        s2x6,        0, warn__none, 0},
-   {6, 0x00000000, 0x7E, 0x18, {1, 2, 3, 4, 5, 6},   {2, 3, 4, 7, 8, 9},    {2, 3, 5, 6, 8, 9},
+   {6, 0x0000000000000000, 0x7E, 0x18, {1, 2, 3, 4, 5, 6},   {2, 3, 4, 7, 8, 9},    {2, 3, 5, 6, 8, 9},
     s2x4,        s2x6,        0, warn__none, 0},
-   {6, 0x00000000, 0xE7, 0x81, {0, 1, 2, 5, 6, 7},   {0, 2, 3, 8, 9, 11},   {1, 2, 3, 8, 9, 10},
+   {6, 0x0000000000000000, 0xE7, 0x81, {0, 1, 2, 5, 6, 7},   {0, 2, 3, 8, 9, 11},   {1, 2, 3, 8, 9, 10},
     s2x4,        s2x6,        0, warn__none, 0},
 
    // These items handle single lines with people wedged on one end, and hence handle flip or cut the diamond.
-   {3, 0x00000000, 0x0B, 0x01, {0, 1, 3},            {0, 2, 5},             {1, 2, 5},
+   {3, 0x0000000000000000, 0x0B, 0x01, {0, 1, 3},            {0, 2, 5},             {1, 2, 5},
     s1x4,        s1x6,        0, warn__none, 0},
-   {3, 0x00000000, 0x0E, 0x04, {1, 2, 3},            {2, 4, 5},             {2, 3, 5},
+   {3, 0x0000000000000000, 0x0E, 0x04, {1, 2, 3},            {2, 4, 5},             {2, 3, 5},
     s1x4,        s1x6,        0, warn__none, 0},
    // These items handle single diamonds with people wedged on one end, and hence handle diamond circulate.
-   {3, 0x0000000A, 0x0E, 0x04, {1, 2, 3},            {2, 4, 5},             {2, 3, 5},
+   {3, 0x000000000000000A, 0x0E, 0x04, {1, 2, 3},            {2, 4, 5},             {2, 3, 5},
     sdmd,    s_1x2dmd,        0, warn__none, 0},
-   {3, 0x0000000A, 0x0B, 0x01, {0, 1, 3},            {0, 2, 5},             {1, 2, 5},
+   {3, 0x000000000000000A, 0x0B, 0x01, {0, 1, 3},            {0, 2, 5},             {1, 2, 5},
     sdmd,    s_1x2dmd,        0, warn__none, 0},
    // These items handle columns with people wedged everywhere, and hence handle unwraps of facing diamonds etc.
-   {4, 0x00550055, 0x55, 0x55, {0, 2, 4, 6},         {12, 14, 2, 11},       {10, 3, 4, 6},
+   {4, 0x0000005500000055, 0x55, 0x55, {0, 2, 4, 6},         {12, 14, 2, 11},       {10, 3, 4, 6},
     s2x4,        s4x4,        0, warn__none, 0x40000000},
-   {4, 0x00AA00AA, 0xAA, 0xAA, {1, 3, 5, 7},         {13, 0, 7, 9},         {15, 1, 5, 8},
+   {4, 0x000000AA000000AA, 0xAA, 0xAA, {1, 3, 5, 7},         {13, 0, 7, 9},         {15, 1, 5, 8},
     s2x4,        s4x4,        0, warn__none, 0x40000000},
    // These items handle columns with people wedged in clumps, and hence handle gravitate from lefties etc.
-   {4, 0x00330033, 0x33, 0x33, {0, 1, 4, 5},         {12, 13, 2, 7},        {10, 15, 4, 5},
+   {4, 0x0000003300000033, 0x33, 0x33, {0, 1, 4, 5},         {12, 13, 2, 7},        {10, 15, 4, 5},
     s2x4,        s4x4,        0, warn__none, 0x40000000},
-   {4, 0x00CC00CC, 0xCC, 0xCC, {2, 3, 6, 7},         {14, 0, 11, 9},        {3, 1, 6, 8},
+   {4, 0x000000CC000000CC, 0xCC, 0xCC, {2, 3, 6, 7},         {14, 0, 11, 9},        {3, 1, 6, 8},
     s2x4,        s4x4,        0, warn__none, 0x40000000},
    // Collision on ends of an "erase".
-   {1, 0x00000000, 0x02, 0x02, {1},                  {3},                   {2},
+   {1, 0x0000000000000000, 0x02, 0x02, {1},                  {3},                   {2},
     s1x2,        s1x4,        0, warn__none, 0},
-   {1, 0x00000000, 0x01, 0x01, {0},                  {0},                   {1},
+   {1, 0x0000000000000000, 0x01, 0x01, {0},                  {0},                   {1},
     s1x2,        s1x4,        0, warn__none, 0},
 
-   {6, 0x20202020, 0xA2A2, 0x2020, {15, 1, 13, 7, 9, 5},  {20, 2, 18, 8, 14, 7},  {20, 2, 19, 8, 14, 6},
+   {6, 0x0000202000002020, 0xA2A2, 0x2020, {15, 1, 13, 7, 9, 5},  {20, 2, 18, 8, 14, 7},  {20, 2, 19, 8, 14, 6},
     s4x4,        s4x6,        1, warn__none, 0},
-   {6, 0x40404040, 0x4c4c, 0x4040, {10, 3, 14, 2, 11, 6}, {15, 9, 11, 3, 21, 22},  {15, 9, 10, 3, 21, 23},
+   {6, 0x0000404000004040, 0x4c4c, 0x4040, {10, 3, 14, 2, 11, 6}, {15, 9, 11, 3, 21, 22},  {15, 9, 10, 3, 21, 23},
     s4x4,        s4x6,        1, warn__none, 0},
 
    // These items handle colliding 2FL-type circulates.
-   {2, 0x00000000, 0x03, 0x03, {0, 1},               {0, 2},                {1, 3},
+   {2, 0x0000000000000000, 0x03, 0x03, {0, 1},               {0, 2},                {1, 3},
     s2x4,        s2x8,        0, warn__none, 0},
-   {2, 0x00000000, 0x0C, 0x0C, {2, 3},               {4, 6},                {5, 7},
+   {2, 0x0000000000000000, 0x0C, 0x0C, {2, 3},               {4, 6},                {5, 7},
     s2x4,        s2x8,        0, warn__none, 0},
-   {2, 0x00000000, 0x30, 0x30, {5, 4},               {11, 9},               {10, 8},
+   {2, 0x0000000000000000, 0x30, 0x30, {5, 4},               {11, 9},               {10, 8},
     s2x4,        s2x8,        0, warn__none, 0},
-   {2, 0x00000000, 0xC0, 0xC0, {7, 6},               {15, 13},              {14, 12},
+   {2, 0x0000000000000000, 0xC0, 0xC0, {7, 6},               {15, 13},              {14, 12},
     s2x4,        s2x8,        0, warn__none, 0},
 
    // The warning "warn_bad_collision" in the warning field is special -- it means give that warning if it appears illegal.
    // If it doesn't appear illegal, don't say anything at all (other than the usual "take right hands".)
    // If anything appears illegal but does not have "warn_bad_collision" in this field, it is an ERROR.
-   {4, 0x00000000, 0xAA, 0xAA, {1, 3, 5, 7},        {2, 6, 11, 15},        {3, 7, 10, 14},
+   {4, 0x0000000000000000, 0xAA, 0xAA, {1, 3, 5, 7},        {2, 6, 11, 15},        {3, 7, 10, 14},
     s2x4,        s2x8,        0, warn_bad_collision, 0},
-   {4, 0x00000000, 0x55, 0x55, {0, 2, 4, 6},        {0, 4, 9, 13},         {1, 5, 8, 12},
+   {4, 0x0000000000000000, 0x55, 0x55, {0, 2, 4, 6},        {0, 4, 9, 13},         {1, 5, 8, 12},
     s2x4,        s2x8,        0, warn_bad_collision, 0},
-   {4, 0x00000000, 0x33, 0x33, {0, 1, 4, 5},        {0, 2, 9, 11},         {1, 3, 8, 10},
+   {4, 0x0000000000000000, 0x33, 0x33, {0, 1, 4, 5},        {0, 2, 9, 11},         {1, 3, 8, 10},
     s2x4,        s2x8,        0, warn_bad_collision, 0},
-   {4, 0x00000000, 0xCC, 0xCC, {2, 3, 6, 7},        {4, 6, 13, 15},        {5, 7, 12, 14},
+   {4, 0x0000000000000000, 0xCC, 0xCC, {2, 3, 6, 7},        {4, 6, 13, 15},        {5, 7, 12, 14},
     s2x4,        s2x8,        0, warn_bad_collision, 0},
    // Next two are unsymmetrical.
-   {4, 0x00000000, 0xC3, 0xC3, {0, 1, 6, 7},        {0, 2, 13, 15},        {1, 3, 12, 14},
+   {4, 0x0000000000000000, 0xC3, 0xC3, {0, 1, 6, 7},        {0, 2, 13, 15},        {1, 3, 12, 14},
     s2x4,        s2x8,        0, warn_bad_collision, 0},
-   {4, 0x00000000, 0x3C, 0x3C, {2, 3, 4, 5},        {4, 6, 9, 11},         {5, 7, 8, 10},
+   {4, 0x0000000000000000, 0x3C, 0x3C, {2, 3, 4, 5},        {4, 6, 9, 11},         {5, 7, 8, 10},
+    s2x4,        s2x8,        0, warn_bad_collision, 0},
+   {4, 0x0000000000000000, 0x5A, 0x5A, {1, 3, 4, 6},        {2, 6, 9, 13},         {3, 7, 8, 12},
+    s2x4,        s2x8,        0, warn_bad_collision, 0},
+   {4, 0x0000000000000000, 0xA5, 0xA5, {0, 2, 5, 7},        {0, 4, 11, 15},        {1, 5, 10, 14},
     s2x4,        s2x8,        0, warn_bad_collision, 0},
 
    // These items handle various types of "1/2 circulate" calls from 2x2's.
-   {2, 0x00000000, 0x05, 0x05, {0, 2},               {0, 3},                {1, 2},
+   {2, 0x0000000000000000, 0x05, 0x05, {0, 2},               {0, 3},                {1, 2},
     sdmd,        s1x4,        0, warn__none, 0},                  // From couples out if it went to diamond.
-   {1, 0x00000000, 0x01, 0x01, {0},                  {0},                   {1},
+   {1, 0x0000000000000000, 0x01, 0x01, {0},                  {0},                   {1},
     sdmd,        s1x4,        0, warn__none, 0},                  // Same, but with missing people.
-   {1, 0x00000000, 0x04, 0x04, {2},                  {3},                   {2},
+   {1, 0x0000000000000000, 0x04, 0x04, {2},                  {3},                   {2},
     sdmd,        s1x4,        0, warn__none, 0},                  // same, but with missing people.
-   {2, 0x00000000, 0x05, 0x05, {0, 2},               {0, 3},                {1, 2},
+   {2, 0x0000000000000000, 0x05, 0x05, {0, 2},               {0, 3},                {1, 2},
     s1x4,        s1x4,        0, warn__really_no_collision, 0},   // From couples out if it went to line.
-   {1, 0x00000000, 0x01, 0x01, {0},                  {0},                   {1},
+   {1, 0x0000000000000000, 0x01, 0x01, {0},                  {0},                   {1},
     s1x4,        s1x4,        0, warn__really_no_collision, 0},   // Same, but with missing people.
-   {1, 0x00000000, 0x04, 0x04, {2},                  {3},                   {2},
+   {1, 0x0000000000000000, 0x04, 0x04, {2},                  {3},                   {2},
     s1x4,        s1x4,        0, warn__really_no_collision, 0},   // Same, but with missing people.
-   {2, 0x000A000A, 0x0A, 0x0A, {1, 3},               {0, 3},                {1, 2},
+   {2, 0x0000000A0000000A, 0x0A, 0x0A, {1, 3},               {0, 3},                {1, 2},
     sdmd,        s1x4,        1, warn__none, 0},                  // From couples in if it went to diamond.
-   {2, 0x00000000, 0x0A, 0x0A, {1, 3},               {0, 3},                {1, 2},
+   {2, 0x0000000000000000, 0x0A, 0x0A, {1, 3},               {0, 3},                {1, 2},
     s1x4,        s1x4,        0, warn__really_no_collision, 0},   // From couples in if it went to line.
-   {2, 0x00000000, 0x06, 0x06, {1, 2},               {0, 3},                {1, 2},
+   {2, 0x0000000000000000, 0x06, 0x06, {1, 2},               {0, 3},                {1, 2},
     s1x4,        s1x4,        0, warn__none, 0},                  // From "head pass thru, all split circulate".
-   {2, 0x00000000, 0x09, 0x09, {0, 3},               {0, 3},                {1, 2},
+   {2, 0x0000000000000000, 0x09, 0x09, {0, 3},               {0, 3},                {1, 2},
     s1x4,        s1x4,        0, warn__none, 0},                  // From "head pass thru, all split circulate".
 
+   {6, 0x0000000000000033, 0xBB, 0x88, {0, 1, 3, 4, 5, 7},   {0, 1, 3, 4, 5, 6},   {0, 1, 2, 4, 5, 7},
+    s_rigger,        s_rigger,        0, warn__none, 0},          // Ends 1/2 trade in lines.
+
    // These items handle single-spot collisions in a 1x4 from a T-boned 2x2.
-   {3, 0x00000000, 0x07, 0x04, {0, 1, 2},            {0, 1, 3},             {0, 1, 2},
+   {3, 0x0000000000000000, 0x07, 0x04, {0, 1, 2},            {0, 1, 3},             {0, 1, 2},
     s1x4,        s1x4,        0, warn__none, 0},                  // From nasty T-bone.
-   {3, 0x00000000, 0x0D, 0x01, {0, 2, 3},            {0, 2, 3},             {1, 2, 3},
+   {3, 0x0000000000000000, 0x0D, 0x01, {0, 2, 3},            {0, 2, 3},             {1, 2, 3},
     s1x4,        s1x4,        0, warn__none, 0},                  // From nasty T-bone.
-   {3, 0x00000000, 0x0B, 0x08, {0, 1, 3},            {0, 1, 3},             {0, 1, 2},
+   {3, 0x0000000000000000, 0x0B, 0x08, {0, 1, 3},            {0, 1, 3},             {0, 1, 2},
     s1x4,        s1x4,        0, warn__none, 0},                  // From nasty T-bone.
-   {3, 0x00000000, 0x0E, 0x02, {1, 2, 3},            {0, 2, 3},             {1, 2, 3},
+   {3, 0x0000000000000000, 0x0E, 0x02, {1, 2, 3},            {0, 2, 3},             {1, 2, 3},
     s1x4,        s1x4,        0, warn__none, 0},                  // From nasty T-bone.
 
    // These items handle "1/2 split trade circulate" from 2x2's.
    // They also do "switch to a diamond" when the ends come to the same spot in the center.
    // They don't allow NO_CUTTING_THROUGH.
-   {3, 0x00080008, 0x0D, 0x08, {0, 2, 3},            {0, 2, 1},             {0, 2, 3},
+   {3, 0x0000000800000008, 0x0D, 0x08, {0, 2, 3},            {0, 2, 1},             {0, 2, 3},
     sdmd,        sdmd,        0, warn_bad_collision, UINT32_C(0x08000000)},
-   {3, 0x00020002, 0x07, 0x02, {0, 2, 1},            {0, 2, 1},             {0, 2, 3},
+   {3, 0x0000000200000002, 0x07, 0x02, {0, 2, 1},            {0, 2, 1},             {0, 2, 3},
     sdmd,        sdmd,        0, warn_bad_collision, UINT32_C(0x08000000)},
 
    // If phantoms, and only diamond centers of result are present (and colliding), use these.
    // Tests are t62 and lo03.
    // Reject these two if incoming setup is diamond.
-   {1, 0x00080008, 0x08, 0x08, {3},            {3},             {2},
+   {1, 0x0000000800000008, 0x08, 0x08, {3},            {3},             {2},
     sdmd,        s1x4,        1, warn_bad_collision, UINT32_C(0x10000000)},
-   {1, 0x00020002, 0x02, 0x02, {1},            {0},             {1},
+   {1, 0x0000000200000002, 0x02, 0x02, {1},            {0},             {1},
     sdmd,        s1x4,        1, warn_bad_collision, UINT32_C(0x10000000)},
    // Use these instead.
-   {1, 0x00080008, 0x08, 0x08, {3},            {1},             {3},
+   {1, 0x0000000800000008, 0x08, 0x08, {3},            {1},             {3},
     sdmd,        sdmd,        0, warn_bad_collision, 0},
-   {1, 0x00020002, 0x02, 0x02, {1},            {1},             {3},
+   {1, 0x0000000200000002, 0x02, 0x02, {1},            {1},             {3},
     sdmd,        sdmd,        0, warn_bad_collision, 0},
 
    // These items handle various types of "circulate" calls from 2x2's.
-   {2, 0x00090009, 0x09, 0x09, {0, 3},               {7, 5},                {6, 4},
+   {2, 0x0000000900000009, 0x09, 0x09, {0, 3},               {7, 5},                {6, 4},
     s2x2,        s2x4,        1, warn_bad_collision, 0},   // from box facing all one way
-   {2, 0x00060006, 0x06, 0x06, {1, 2},               {0, 2},                {1, 3},
+   {2, 0x0000000600000006, 0x06, 0x06, {1, 2},               {0, 2},                {1, 3},
     s2x2,        s2x4,        1, warn_bad_collision, 0},   // we need all four cases
-   {2, 0x00000000, 0x0C, 0x0C, {3, 2},               {7, 5},                {6, 4},
+   {2, 0x0000000000000000, 0x0C, 0x0C, {3, 2},               {7, 5},                {6, 4},
     s2x2,        s2x4,        0, warn_bad_collision, 0},   // sigh
-   {2, 0x00000000, 0x03, 0x03, {0, 1},               {0, 2},                {1, 3},
+   {2, 0x0000000000000000, 0x03, 0x03, {0, 1},               {0, 2},                {1, 3},
     s2x2,        s2x4,        0, warn_bad_collision, 0},   // sigh
-   {2, 0x00000000, 0x09, 0x09, {0, 3},               {0, 7},                {1, 6},
+   {2, 0x0000000000000000, 0x09, 0x09, {0, 3},               {0, 7},                {1, 6},
     s2x2,        s2x4,        0, warn_bad_collision, 0},   // from "inverted" box
-   {2, 0x00000000, 0x06, 0x06, {1, 2},               {2, 5},                {3, 4},
+   {2, 0x0000000000000000, 0x06, 0x06, {1, 2},               {2, 5},                {3, 4},
     s2x2,        s2x4,        0, warn_bad_collision, 0},   // we need all four cases
-   {2, 0x00030003, 0x03, 0x03, {1, 0},               {0, 7},                {1, 6},
+   {2, 0x0000000300000003, 0x03, 0x03, {1, 0},               {0, 7},                {1, 6},
     s2x2,        s2x4,        1, warn_bad_collision, 0},   // sigh
-   {2, 0x000C000C, 0x0C, 0x0C, {2, 3},               {2, 5},                {3, 4},
+   {2, 0x0000000C0000000C, 0x0C, 0x0C, {2, 3},               {2, 5},                {3, 4},
     s2x2,        s2x4,        1, warn_bad_collision, 0},   // sigh
 
    // This handles circulate from a starting DPT.
-   {4, 0x00660066, 0x66, 0x66, {1, 2, 5, 6},         {7, 0, 2, 5},          {6, 1, 3, 4},
+   {4, 0x0000006600000066, 0x66, 0x66, {1, 2, 5, 6},         {7, 0, 2, 5},          {6, 1, 3, 4},
     s2x4,        s2x4,        1, warn_bad_collision, 0},
 
    // These items handle horrible lockit collisions in the middle
@@ -489,143 +501,143 @@ static collision_map collision_map_table[] = {
    // Of course, such a collision is ILLEGAL in the center of a lockit or fan the top.
    // (This sort of thing was called at NACC in 1996, but is simply bogus now.)
    // However, we *DO* allow it when reassembling "own the anyone" operations.
-   {2, 0x00000000, 0x06, 0x06, {1, 2},               {3, 5},                {2, 4},
+   {2, 0x0000000000000000, 0x06, 0x06, {1, 2},               {3, 5},                {2, 4},
     s1x4,        s1x8,        0, warn_bad_collision, 0},
-   {2, 0x00000000, 0x09, 0x09, {0, 3},               {0, 6},                {1, 7},
+   {2, 0x0000000000000000, 0x09, 0x09, {0, 3},               {0, 6},                {1, 7},
     s1x4,        s1x8,        0, warn_bad_collision, 0},
-   {2, 0x00000000, 0x03, 0x03, {0, 1},               {0, 3},                {1, 2},
+   {2, 0x0000000000000000, 0x03, 0x03, {0, 1},               {0, 3},                {1, 2},
     s1x4,        s1x8,        0, warn_bad_collision, 0},
-   {2, 0x00000000, 0x0C, 0x0C, {3, 2},               {6, 5},                {7, 4},
+   {2, 0x0000000000000000, 0x0C, 0x0C, {3, 2},               {6, 5},                {7, 4},
     s1x4,        s1x8,        0, warn_bad_collision, 0},
 
-   {3, 0x00000000, 0x0D, 0x08, {0, 3, 2},               {0, 5, 3},                {0, 4, 3},
+   {3, 0x0000000000000000, 0x0D, 0x08, {0, 3, 2},               {0, 5, 3},                {0, 4, 3},
     s1x4,        s1x6,        0, warn_bad_collision, 0},
-   {3, 0x00000000, 0x07, 0x02, {0, 1, 2},               {0, 1, 3},                {0, 2, 3},
+   {3, 0x0000000000000000, 0x07, 0x02, {0, 1, 2},               {0, 1, 3},                {0, 2, 3},
     s1x4,        s1x6,        0, warn_bad_collision, 0},
 
-   {6, 0x00000033, 0xBB, 0x88, {0, 1, 3, 4, 5, 7},   {0, 1, 3, 4, 5, 6},    {0, 1, 2, 4, 5, 7},
+   {6, 0x0000000000000033, 0xBB, 0x88, {0, 1, 3, 4, 5, 7},   {0, 1, 3, 4, 5, 6},    {0, 1, 2, 4, 5, 7},
     s_qtag,      s_qtag,      0, warn_bad_collision, 0},
 
    // These items handle circulate in a short6, and hence handle collisions in 6X2 acey deucey.
 
-   {6, 022,  077,  055,  {0, 1, 2, 3, 4, 5},       {0, 2, 3, 6, 7, 9},    {1, 2, 4, 5, 7, 8},
+   {6, 0x0000000000000012,  077,  055,  {0, 1, 2, 3, 4, 5},       {0, 2, 3, 6, 7, 9},    {1, 2, 4, 5, 7, 8},
     s_short6,    sdeep2x1dmd, 0, warn__none, 0x40000000},
-   {4, 000,  055,  044,  {0, 2, 3, 5},       {1, 2, 5, 7},    {1, 3, 5, 6},
+   {4, 0x0000000000000000,  055,  044,  {0, 2, 3, 5},       {1, 2, 5, 7},    {1, 3, 5, 6},
     s_short6,    s2x4,        0, warn__none, 0x40000000},
-   {4, 000,  055,  011,  {0, 2, 3, 5},       {0, 2, 5, 6},    {1, 2, 4, 6},
+   {4, 0x0000000000000000,  055,  011,  {0, 2, 3, 5},       {0, 2, 5, 6},    {1, 2, 4, 6},
     s_short6,    s2x4,        0, warn__none, 0x40000000},
 
-   {5, 022,  073,  001,  {0, 1, 3, 4, 5},          {0, 2, 6, 7, 8},       {1, 2, 6, 7, 8},
+   {5, 0x0000000000000012,  073,  001,  {0, 1, 3, 4, 5},          {0, 2, 6, 7, 8},       {1, 2, 6, 7, 8},
     s_short6,    sdeep2x1dmd, 0, warn__none, 0},
-   {5, 022,  067,  040,  {0, 1, 2, 4, 5},          {1, 2, 3, 7, 9},       {1, 2, 3, 7, 8},
+   {5, 0x0000000000000012,  067,  040,  {0, 1, 2, 4, 5},          {1, 2, 3, 7, 9},       {1, 2, 3, 7, 8},
     s_short6,    sdeep2x1dmd, 0, warn__none, 0},
-   {5, 022,  076,  004,  {1, 2, 3, 4, 5},          {2, 3, 6, 7, 8},       {2, 4, 6, 7, 8},
+   {5, 0x0000000000000012,  076,  004,  {1, 2, 3, 4, 5},          {2, 3, 6, 7, 8},       {2, 4, 6, 7, 8},
     s_short6,    sdeep2x1dmd, 0, warn__none, 0},
-   {5, 022,  037,  010,  {0, 1, 2, 3, 4},          {1, 2, 3, 6, 7},       {1, 2, 3, 5, 7},
+   {5, 0x0000000000000012,  037,  010,  {0, 1, 2, 3, 4},          {1, 2, 3, 6, 7},       {1, 2, 3, 5, 7},
     s_short6,    sdeep2x1dmd, 0, warn__none, 0},
-   {6, 0x00120012, 0x3F, 022, {0, 1, 2, 3, 4, 5},    {5, 6, 0, 1, 3, 4},    {5, 7, 0, 1, 2, 4},
+   {6, 0x0000001200000012, 0x3F, 022, {0, 1, 2, 3, 4, 5},    {5, 6, 0, 1, 3, 4},    {5, 7, 0, 1, 2, 4},
     s_short6,    s_rigger,    1, warn__none, 0},
-   {4, 0x00120012, 0x36, 0x12, {1, 2, 4, 5},         {6, 0, 3, 4},          {7, 0, 2, 4},
+   {4, 0x0000001200000012, 0x36, 0x12, {1, 2, 4, 5},         {6, 0, 3, 4},          {7, 0, 2, 4},
     s_short6,    s_rigger,    1, warn__none, 0},
-   {4, 0x00120012, 0x1B, 0x12, {1, 0, 4, 3},         {6, 5, 3, 1},          {7, 5, 2, 1},
+   {4, 0x0000001200000012, 0x1B, 0x12, {1, 0, 4, 3},         {6, 5, 3, 1},          {7, 5, 2, 1},
     s_short6,    s_rigger,    1, warn__none, 0},
 
    // These 4 items handle more 2x2 stuff, including the "special drop in"
    // that makes chain reaction/motivate etc. work.
-   {2, 0x00050005, 0x05, 0x05, {0, 2},               {7, 2},                {6, 3},
+   {2, 0x0000000500000005, 0x05, 0x05, {0, 2},               {7, 2},                {6, 3},
     s2x2,        s2x4,        1, warn__none, 0},
-   {2, 0x000A000A, 0x0A, 0x0A, {1, 3},               {0, 5},                {1, 4},
+   {2, 0x0000000A0000000A, 0x0A, 0x0A, {1, 3},               {0, 5},                {1, 4},
     s2x2,        s2x4,        1, warn__none, 0},
 
-   {3, 0x0008000B, 0x0B, 0x08, {0, 1, 3},            {6, 1, 5},             {6, 1, 4},
+   {3, 0x000000080000000B, 0x0B, 0x08, {0, 1, 3},            {6, 1, 5},             {6, 1, 4},
     s2x2,        s2x4,        1, warn__none, 0},
-   {3, 0x0008000D, 0x0D, 0x08, {0, 2, 3},            {6, 2, 5},             {6, 2, 4},
+   {3, 0x000000080000000D, 0x0D, 0x08, {0, 2, 3},            {6, 2, 5},             {6, 2, 4},
     s2x2,        s2x4,        1, warn__none, 0},
-   {3, 0x0002000E, 0x0E, 0x02, {1, 2, 3},            {0, 2, 5},             {1, 2, 5},
+   {3, 0x000000020000000E, 0x0E, 0x02, {1, 2, 3},            {0, 2, 5},             {1, 2, 5},
     s2x2,        s2x4,        1, warn__none, 0},
-   {3, 0x00020007, 0x07, 0x02, {0, 1, 2},            {6, 0, 2},             {6, 1, 2},
+   {3, 0x0000000200000007, 0x07, 0x02, {0, 1, 2},            {6, 0, 2},             {6, 1, 2},
     s2x2,        s2x4,        1, warn__none, 0},
-   {3, 0x0001000B, 0x0B, 0x01, {0, 1, 3},            {7, 1, 5},             {6, 1, 5},
+   {3, 0x000000010000000B, 0x0B, 0x01, {0, 1, 3},            {7, 1, 5},             {6, 1, 5},
     s2x2,        s2x4,        1, warn__none, 0},
-   {3, 0x0001000D, 0x0D, 0x01, {0, 2, 3},            {7, 2, 5},             {6, 2, 5},
+   {3, 0x000000010000000D, 0x0D, 0x01, {0, 2, 3},            {7, 2, 5},             {6, 2, 5},
     s2x2,        s2x4,        1, warn__none, 0},
-   {3, 0x0004000E, 0x0E, 0x04, {1, 2, 3},            {1, 2, 5},             {1, 3, 5},
+   {3, 0x000000040000000E, 0x0E, 0x04, {1, 2, 3},            {1, 2, 5},             {1, 3, 5},
     s2x2,        s2x4,        1, warn__none, 0},
-   {3, 0x00040007, 0x07, 0x04, {0, 1, 2},            {6, 1, 2},             {6, 1, 3},
+   {3, 0x0000000400000007, 0x07, 0x04, {0, 1, 2},            {6, 1, 2},             {6, 1, 3},
     s2x2,        s2x4,        1, warn__none, 0},
 
    // These 2 in particular are what make a crossfire from waves go to a 2x4 instead of a 2x3.
    // If they are changed to give a 2x3, test lg02 fails on a "single presto" from a tidal wave.
-   {2, 0x00000000, 0x05, 0x05, {0, 2},               {0, 5},                {1, 4},
+   {2, 0x0000000000000000, 0x05, 0x05, {0, 2},               {0, 5},                {1, 4},
     s2x2,        s2x4,        0, warn__none, 0},
-   {2, 0x00000000, 0x0A, 0x0A, {1, 3},               {2, 7},                {3, 6},
+   {2, 0x0000000000000000, 0x0A, 0x0A, {1, 3},               {2, 7},                {3, 6},
     s2x2,        s2x4,        0, warn__none, 0},
 
    // Same, but with missing people.
-   {1, 0x00040004, 0x04, 0x04, {2},                  {2},                   {3},
+   {1, 0x0000000400000004, 0x04, 0x04, {2},                  {2},                   {3},
     s2x2,        s2x4,        1, warn__none, 0},
-   {1, 0x00010001, 0x01, 0x01, {0},                  {7},                   {6},
+   {1, 0x0000000100000001, 0x01, 0x01, {0},                  {7},                   {6},
     s2x2,        s2x4,        1, warn__none, 0},
-   {1, 0x00080008, 0x08, 0x08, {3},                  {5},                   {4},
+   {1, 0x0000000800000008, 0x08, 0x08, {3},                  {5},                   {4},
     s2x2,        s2x4,        1, warn__none, 0},
-   {1, 0x00020002, 0x02, 0x02, {1},                  {0},                   {1},
+   {1, 0x0000000200000002, 0x02, 0x02, {1},                  {0},                   {1},
     s2x2,        s2x4,        1, warn__none, 0},
-   {1, 0x00000000, 0x04, 0x01, {2},                  {5},                   {4},
+   {1, 0x0000000000000000, 0x04, 0x01, {2},                  {5},                   {4},
     s2x2,        s2x4,        0, warn__none, 0},
-   {1, 0x00000000, 0x01, 0x01, {0},                  {0},                   {1},
+   {1, 0x0000000000000000, 0x01, 0x01, {0},                  {0},                   {1},
     s2x2,        s2x4,        0, warn__none, 0},
-   {1, 0x00000000, 0x08, 0x08, {3},                  {7},                   {6},
+   {1, 0x0000000000000000, 0x08, 0x08, {3},                  {7},                   {6},
     s2x2,        s2x4,        0, warn__none, 0},
-   {1, 0x00000000, 0x02, 0x02, {1},                  {2},                   {3},
+   {1, 0x0000000000000000, 0x02, 0x02, {1},                  {2},                   {3},
     s2x2,        s2x4,        0, warn__none, 0},
 
    // Unsymmetrical collisions.
-   {3, 0x00000000, 0x0E, 0x04, {1, 3, 2},               {2, 6, 5},                {2, 6, 4},
+   {3, 0x0000000000000000, 0x0E, 0x04, {1, 3, 2},               {2, 6, 5},                {2, 6, 4},
     s2x2,        s2x4,        0, warn_bad_collision, 0},
-   {3, 0x00000000, 0x0B, 0x01, {0, 1, 3},               {0, 2, 6},                {1, 2, 6},
+   {3, 0x0000000000000000, 0x0B, 0x01, {0, 1, 3},               {0, 2, 6},                {1, 2, 6},
     s2x2,        s2x4,        0, warn_bad_collision, 0},
-   {3, 0x00000000, 0x07, 0x02, {0, 1, 2},               {1, 2, 5},                {1, 3, 5},
+   {3, 0x0000000000000000, 0x07, 0x02, {0, 1, 2},               {1, 2, 5},                {1, 3, 5},
     s2x2,        s2x4,        0, warn_bad_collision, 0},
-   {3, 0x00000000, 0x0D, 0x08, {0, 2, 3},               {1, 5, 7},                {1, 5, 6},
+   {3, 0x0000000000000000, 0x0D, 0x08, {0, 2, 3},               {1, 5, 7},                {1, 5, 6},
     s2x2,        s2x4,        0, warn_bad_collision, 0},
 
-   {3, 0x0002000B, 0x0B, 0x02, {0, 1, 3},            {6, 0, 5},             {6, 1, 5},
+   {3, 0x000000020000000B, 0x0B, 0x02, {0, 1, 3},            {6, 0, 5},             {6, 1, 5},
     s2x2,        s2x4,        1, warn__none, 0},
-   {3, 0x0004000D, 0x0D, 0x04, {0, 2, 3},            {6, 2, 5},             {6, 3, 5},   
+   {3, 0x000000040000000D, 0x0D, 0x04, {0, 2, 3},            {6, 2, 5},             {6, 3, 5},   
     s2x2,        s2x4,        1, warn__none, 0},
 
    // Same spot at ends of bone (first choice from 2FL.)
-   {6, 0x00000000, 0xEE, 0x22, {1, 2, 3, 5, 6, 7},   {4, 8, 9, 11, 2, 3},   {5, 8, 9, 10, 2, 3},
+   {6, 0x0000000000000000, 0xEE, 0x22, {1, 2, 3, 5, 6, 7},   {4, 8, 9, 11, 2, 3},   {5, 8, 9, 10, 2, 3},
     s_bone,      sbigbone,     0, warn__none, 0},
-   {6, 0x00000000, 0xDD, 0x11, {0, 2, 3, 4, 6, 7},   {0, 8, 9, 7, 2, 3},    {1, 8, 9, 6, 2, 3},
+   {6, 0x0000000000000000, 0xDD, 0x11, {0, 2, 3, 4, 6, 7},   {0, 8, 9, 7, 2, 3},    {1, 8, 9, 6, 2, 3},
     s_bone,      sbigbone,     0, warn__none, 0},
 
    // Collision at ends of center line during exchange the diamonds.
-   {6, 0x33, 0x77, 0x44, {0, 1, 2, 4, 5, 6},   {0, 1, 3, 5, 6, 7},    {0, 1, 2, 5, 6, 8},
+   {6, 0x0000000000000033, 0x77, 0x44, {0, 1, 2, 4, 5, 6},   {0, 1, 3, 5, 6, 7},    {0, 1, 2, 5, 6, 8},
     s_qtag,      swqtag,     0, warn__none, 0},
 
    // Same spot as points of diamonds.
-   {6, 0x00220022, 0xEE, 0x22, {1, 2, 3, 5, 6, 7},   {0, 2, 3, 7, 8, 9},    {1, 2, 3, 6, 8, 9},
+   {6, 0x0000002200000022, 0xEE, 0x22, {1, 2, 3, 5, 6, 7},   {0, 2, 3, 7, 8, 9},    {1, 2, 3, 6, 8, 9},
     s_qtag,      sbigdmd,     1, warn__none, 0x40000000},
-   {6, 0x00110011, 0xDD, 0x11, {0, 2, 3, 4, 6, 7},   {11, 2, 3, 4, 8, 9},   {10, 2, 3, 5, 8, 9},
+   {6, 0x0000001100000011, 0xDD, 0x11, {0, 2, 3, 4, 6, 7},   {11, 2, 3, 4, 8, 9},   {10, 2, 3, 5, 8, 9},
     s_qtag,      sbigdmd,     1, warn__none, 0x40000000},
    // Same spot as points of hourglass.
-   {6, 0x002200AA, 0xEE, 0x22, {1, 2, 3, 5, 6, 7},   {0, 2, 9, 7, 8, 3},    {1, 2, 9, 6, 8, 3},
+   {6, 0x00000022000000AA, 0xEE, 0x22, {1, 2, 3, 5, 6, 7},   {0, 2, 9, 7, 8, 3},    {1, 2, 9, 6, 8, 3},
     s_hrglass,   sbighrgl,    1, warn__none, 0x40000000},
-   {6, 0x00110099, 0xDD, 0x11, {0, 2, 3, 4, 6, 7},   {11, 2, 9, 4, 8, 3},   {10, 2, 9, 5, 8, 3},
+   {6, 0x0000001100000099, 0xDD, 0x11, {0, 2, 3, 4, 6, 7},   {11, 2, 9, 4, 8, 3},   {10, 2, 9, 5, 8, 3},
     s_hrglass,   sbighrgl,    1, warn__none, 0x40000000},
 
    // Collisions at the points of a galaxy.
-   {6, 0x004400EE, 0xEE, 0x44, {1, 2, 3, 5, 6, 7},   {5, 6, 0, 1, 3, 4},   {5, 7, 0, 1, 2, 4},
+   {6, 0x00000044000000EE, 0xEE, 0x44, {1, 2, 3, 5, 6, 7},   {5, 6, 0, 1, 3, 4},   {5, 7, 0, 1, 2, 4},
     s_galaxy,    s_rigger,    1, warn_bad_collision, 0x40000000},
-   {6, 0x00440044, 0xEE, 0x44, {1, 2, 3, 5, 6, 7},   {5, 6, 0, 1, 3, 4},   {5, 7, 0, 1, 2, 4},
+   {6, 0x0000004400000044, 0xEE, 0x44, {1, 2, 3, 5, 6, 7},   {5, 6, 0, 1, 3, 4},   {5, 7, 0, 1, 2, 4},
     s_galaxy,    s_rigger,    1, warn_bad_collision, 0x40000000},
-   {6, 0x000000AA, 0xBB, 0x11, {0, 1, 3, 4, 5, 7},   {6, 0, 1, 3, 4, 5},   {7, 0, 1, 2, 4, 5},
+   {6, 0x00000000000000AA, 0xBB, 0x11, {0, 1, 3, 4, 5, 7},   {6, 0, 1, 3, 4, 5},   {7, 0, 1, 2, 4, 5},
     s_galaxy,    s_rigger,    0, warn_bad_collision, 0x40000000},
-   {6, 0x00000000, 0xBB, 0x11, {0, 1, 3, 4, 5, 7},   {6, 0, 1, 3, 4, 5},   {7, 0, 1, 2, 4, 5},
+   {6, 0x0000000000000000, 0xBB, 0x11, {0, 1, 3, 4, 5, 7},   {6, 0, 1, 3, 4, 5},   {7, 0, 1, 2, 4, 5},
     s_galaxy,    s_rigger,    0, warn_bad_collision, 0x40000000},
 
-   {6, 0x00000024, 0x3F, 0x09, {0, 1, 2, 3, 4, 5},   {0, 2, 3, 5, 6, 7},   {1, 2, 3, 4, 6, 7},
+   {6, 0x0000000000000024, 0x3F, 0x09, {0, 1, 2, 3, 4, 5},   {0, 2, 3, 5, 6, 7},   {1, 2, 3, 4, 6, 7},
     s_wingedstar6, s_wingedstar, 0, warn__none, 0x40000000},
 
    {-1}};
@@ -697,7 +709,7 @@ uint32_t * collision_collector::install_with_collision(
 
 
 
-void collision_collector::fix_possible_collision(merge_action action /*= merge_strict_matrix*/,
+void collision_collector::fix_possible_collision(merge_action_type action /*= merge_strict_matrix*/,
                                                  uint32_t callarray_flags /*= 0*/,
                                                  setup *ss /*= (setup *) 0*/) THROW_DECL
 {
@@ -706,14 +718,14 @@ void collision_collector::fix_possible_collision(merge_action action /*= merge_s
    int i;
    setup spare_setup = *m_result_ptr;
    bool kill_ends = false;
-   uint32_t lowbitmask = 0;
+   uint64_t lowbitmask = 0ULL;
    collision_map *c_map_ptr;
 
    m_result_ptr->clear_people();
 
    for (i=0; i<MAX_PEOPLE; i++) {
-      lowbitmask |= ((spare_setup.people[i].id1) & 1) << i;
-      lowbitmask |= ((m_extra_collided_people.people[i].id1) & 1) << (i+16);
+      lowbitmask |= ((uint64_t) (spare_setup.people[i].id1) & UINT64_C(1)) << i;
+      lowbitmask |= ((uint64_t) (m_extra_collided_people.people[i].id1) & UINT64_C(1)) << (i+32);
    }
 
    for (c_map_ptr = collision_map_table ; c_map_ptr->size >= 0 ; c_map_ptr++) {
@@ -729,7 +741,7 @@ void collision_collector::fix_possible_collision(merge_action action /*= merge_s
       if (!masksmatch &&
           (c_map_ptr->assume_key & 0x40000000) != 0 &&
           (m_result_mask & ~c_map_ptr->rmask) == 0 &&
-          ((m_result_mask | (m_result_mask << 16)) & c_map_ptr->lmask) == lowbitmask &&
+          ((((uint64_t) m_result_mask) | (((uint64_t) m_result_mask) << 32)) & c_map_ptr->lmask) == lowbitmask &&
           (m_result_mask & c_map_ptr->cmask) == m_collision_mask) {
          masksmatch = true;
       }
@@ -1207,6 +1219,9 @@ extern void do_stability(uint32_t *personp,
                          int turning,
                          bool mirror) THROW_DECL
 {
+   // This is the amount the person turned for stability calculation.  Applying that
+   // turning to the person's position in the result setup has already been done; we
+   // are just calculating stability info here.
    turning &= 3;
 
    switch (field & STB_MASK) {
@@ -1218,11 +1233,21 @@ extern void do_stability(uint32_t *personp,
       if (turning != 0)
          fail("Person turned but was marked 'Z' stability.");
       break;
-   case STB_A:
-      turning -= 4;
+   case STB_A:                            // Call literally said "A"
+      if (!mirror) {
+         turning -= 4;
+      }
+      else {
+         if (turning == 0) turning = 4;   // But meant "C"
+      }
       break;
-   case STB_A+STB_REVERSE:
-      if (turning == 0) turning = 4;
+   case STB_A+STB_REVERSE:                // Call literally said "C"
+      if (!mirror) {
+         if (turning == 0) turning = 4;
+      }
+      else {
+         turning -= 4;                    // But meant "A"
+      }
       break;
    case STB_AC:
       // Turn one quadrant anticlockwise.
@@ -1282,27 +1307,26 @@ extern void do_stability(uint32_t *personp,
       return;
    }
 
-   // Now turning has the number of quadrants the person turned, clockwise or anticlockwise.
-
-   if (mirror) turning = -turning;
+   // Now turning has the number of quadrants the person turned.
+   // -4 for all the way around CCW; +4 for all the way around CW.
 
    int absturning_in_eighths = turning * 2;     // Measured in eighths!
    if (absturning_in_eighths < 0) absturning_in_eighths = -absturning_in_eighths;
 
    int abs_overturning_in_eighths = absturning_in_eighths -
-      ((*personp & STABLE_RMASK) / STABLE_RBIT);
+      ((*personp & STABLE_REMMASK) / STABLE_REMBIT);
 
    if (abs_overturning_in_eighths <= 0)
-      *personp -= absturning_in_eighths*STABLE_RBIT;
+      *personp -= absturning_in_eighths*STABLE_REMBIT;  // We haven't run over; just reduce REM
    else {
       if (turning < 0) {
-         *personp =
-            (*personp & ~(STABLE_RMASK|STABLE_VLMASK)) |
+         *personp =            // We have run over, to the left.  Clear REM and set VL.
+            (*personp & ~(STABLE_REMMASK|STABLE_VLMASK)) |
             ((*personp + (STABLE_VLBIT * abs_overturning_in_eighths)) & STABLE_VLMASK);
       }
       else {
-         *personp =
-            (*personp & ~(STABLE_RMASK|STABLE_VRMASK)) |
+         *personp =            // We have run over, to the right.  Clear REM and set VR.
+            (*personp & ~(STABLE_REMMASK|STABLE_VRMASK)) |
             ((*personp + (STABLE_VRBIT * abs_overturning_in_eighths)) & STABLE_VRMASK);
       }
    }
@@ -1430,7 +1454,7 @@ extern bool check_restriction(
          }
          break;
       case cr_not_tboned:
-         if ((or_all_people(ss) & 011) == 011) goto restr_failed;
+         if ((ss->or_all_people() & 011) == 011) goto restr_failed;
          break;
       }
    }
@@ -2126,17 +2150,28 @@ static bool handle_4x4_division(
 
    if ((callflags1 & CFLAG1_SPLIT_LARGE_SETUPS) ||
        (ss->cmd.cmd_misc_flags & CMD_MISC__EXPLICIT_MATRIX)) {
-      if ((!(newtb & 010) || assoc(b_4x2, ss, calldeflist)) &&
-          (!(newtb & 001) || assoc(b_2x4, ss, calldeflist))) {
+      if (((newtb & 8) == 0 || assoc(b_4x2, ss, calldeflist)) &&
+          ((newtb & 1) == 0 || assoc(b_2x4, ss, calldeflist))) {
          // Split to left and right halves.
          finalrot++;
          division_code = MAPCODE(s2x4,2,MPKIND__SPLIT,1);
          return true;
       }
-      else if ((!(newtb & 001) || assoc(b_4x2, ss, calldeflist)) &&
-               (!(newtb & 010) || assoc(b_2x4, ss, calldeflist))) {
+      else if (((newtb & 1) == 0 || assoc(b_4x2, ss, calldeflist)) &&
+               ((newtb & 8) == 0 || assoc(b_2x4, ss, calldeflist))) {
          // Split to bottom and top halves.
          division_code = MAPCODE(s2x4,2,MPKIND__SPLIT,1);
+         return true;
+      }
+      else if (((newtb & 8) == 0 || assoc(b_4x1, ss, calldeflist)) &&
+               ((newtb & 1) == 0 || assoc(b_1x4, ss, calldeflist))) {
+         finalrot++;
+         division_code = MAPCODE(s1x4,4,MPKIND__SPLIT,1);
+         return true;
+      }
+      else if (((newtb & 1) == 0 || assoc(b_4x1, ss, calldeflist)) && 
+               ((newtb & 8) == 0 || assoc(b_1x4, ss, calldeflist))) {
+         division_code = MAPCODE(s1x4,4,MPKIND__SPLIT,1);
          return true;
       }
    }
@@ -2615,7 +2650,7 @@ static int divide_the_setup(
       ss->cmd.cmd_final_flags.test_heritbits(INHERITFLAG_NXNMASK|INHERITFLAG_MXNMASK);
 
    // It will be helpful to have a mask of where the live people are.
-   uint32_t livemask = little_endian_live_mask(ss);
+   uint32_t livemask = ss->little_endian_live_mask();
 
    // Take care of "snag" and "mystic".  "Central" is illegal, and was already caught.
    // We first limit it to just the few setups for which it can possibly be legal, to make
@@ -2640,6 +2675,7 @@ static int divide_the_setup(
    switch (ss->kind) {
       uint32_t tbi, tbo;    // Many clauses will use these.
       bool temp;
+      uint32_t tinytb;
 
    case s_thar:
       if (ss->cmd.cmd_misc_flags & CMD_MISC__MUST_SPLIT_MASK)
@@ -2655,7 +2691,7 @@ static int divide_the_setup(
       // The call has no applicable 2x8 or 8x2 definition.
 
       // Check whether it has 2x4/4x2/1x8/8x1 definitions, and divide the setup if so,
-      // or if the caller explicitly said "2x8 matrix".
+      // or if the caller explicitly said some matrix thing.
 
       temp =
          (callflags1 & CFLAG1_SPLIT_LARGE_SETUPS) &&
@@ -2664,8 +2700,15 @@ static int divide_the_setup(
       if (temp ||
           ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_16_MATRIX) ||
           (ss->cmd.cmd_misc_flags & (CMD_MISC__EXPLICIT_MATRIX|CMD_MISC__PHANTOMS))) {
-         if ((!(newtb & 010) || assoc(b_2x4, ss, calldeflist)) &&
-             (!(newtb & 001) || assoc(b_4x2, ss, calldeflist))) {
+         if ((!(newtb & 0x8) || assoc(b_1x8, ss, calldeflist)) &&
+             (!(newtb & 0x1) || assoc(b_8x1, ss, calldeflist))) {
+            division_code = MAPCODE(s1x8,2,MPKIND__SPLIT,1);
+            if (!temp) warn(warn__split_to_1x8s);
+            goto divide_us_no_recompute;
+         }
+
+         if ((!(newtb & 0x8) || assoc(b_2x4, ss, calldeflist)) &&
+             (!(newtb & 0x1) || assoc(b_4x2, ss, calldeflist))) {
             division_code = MAPCODE(s2x4,2,MPKIND__SPLIT,0);
 
             // I consider it an abomination to call such a thing as "2x8 matrix
@@ -2681,10 +2724,10 @@ static int divide_the_setup(
             if (!temp) warn(warn__split_to_2x4s);
             goto divide_us_no_recompute;
          }
-         else if ((!(newtb & 010) ||
+         else if ((!(newtb & 0x8) ||
                    assoc(b_1x4, ss, calldeflist) ||
                    assoc(b_1x8, ss, calldeflist)) &&
-                  (!(newtb & 001) ||
+                  (!(newtb & 0x1) ||
                    assoc(b_4x1, ss, calldeflist) ||
                    assoc(b_8x1, ss, calldeflist))) {
             division_code = MAPCODE(s1x8,2,MPKIND__SPLIT,1);
@@ -2752,7 +2795,7 @@ static int divide_the_setup(
       if (!(ss->cmd.cmd_misc_flags & (CMD_MISC__NO_EXPAND_MATRIX|CMD_MISC__MUST_SPLIT_MASK)) &&
           (!(newtb & 010) || assoc(b_2x8, ss, calldeflist)) &&
           (!(newtb & 001) || assoc(b_8x2, ss, calldeflist))) {
-         do_matrix_expansion(ss, CONCPROP__NEEDK_2X8, true);
+         ss->do_matrix_expansion(CONCPROP__NEEDK_2X8, true);
          // Should never fail, but we don't want a loop.
          if (ss->kind != s2x8) fail("Failed to expand to 2X8.");
          return 2;        // And try again.
@@ -2888,7 +2931,7 @@ static int divide_the_setup(
                assoc(b_2x2, ss, calldeflist) ||
                assoc(b_1x2, ss, calldeflist) || assoc(b_2x1, ss, calldeflist)) {
          // Need to turn it into a mundane matrix setup.
-         do_matrix_expansion(ss, CONCPROP__NEEDK_4X6, false);
+         ss->do_matrix_expansion(CONCPROP__NEEDK_4X6, false);
          normalize_setup(ss, plain_normalize, qtag_no_compress);
          // Check that it did something.  (Otherwise, divide_us_no_recompute will raise an error.)
          if (ss->kind == s2x4 || ss->kind == s4x4 || ss->kind == s4x6)
@@ -2998,7 +3041,7 @@ static int divide_the_setup(
       if (  !(ss->cmd.cmd_misc_flags & CMD_MISC__NO_EXPAND_MATRIX) &&
             (!(newtb & 010) || assoc(b_1x16, ss, calldeflist)) &&
             (!(newtb & 001) || assoc(b_16x1, ss, calldeflist))) {
-         do_matrix_expansion(ss, CONCPROP__NEEDK_1X16, true);
+         ss->do_matrix_expansion(CONCPROP__NEEDK_1X16, true);
          if (ss->kind != s1x16) fail("Failed to expand to 1X16.");  // Should never fail, but we don't want a loop.
          return 2;        // And try again.
       }
@@ -3073,7 +3116,7 @@ static int divide_the_setup(
       if (!(ss->cmd.cmd_misc_flags & CMD_MISC__NO_EXPAND_MATRIX) &&
           (!(newtb & 010) || assoc(b_1x12, ss, calldeflist)) &&
           (!(newtb & 001) || assoc(b_12x1, ss, calldeflist))) {
-         do_matrix_expansion(ss, CONCPROP__NEEDK_1X12, true);
+         ss->do_matrix_expansion(CONCPROP__NEEDK_1X12, true);
          if (ss->kind != s1x12) fail("Failed to expand to 1X12.");  // Should never fail, but we don't want a loop.
          return 2;        // And try again.
       }
@@ -3091,7 +3134,7 @@ static int divide_the_setup(
       if (  !(ss->cmd.cmd_misc_flags & CMD_MISC__NO_EXPAND_MATRIX) &&
             (!(newtb & 010) || assoc(b_1x16, ss, calldeflist)) &&
             (!(newtb & 001) || assoc(b_16x1, ss, calldeflist))) {
-         do_matrix_expansion(ss, CONCPROP__NEEDK_1X16, true);
+         ss->do_matrix_expansion(CONCPROP__NEEDK_1X16, true);
          if (ss->kind != s1x16) fail("Failed to expand to 1X16.");  // Should never fail, but we don't want a loop.
          return 2;        // And try again.
       }
@@ -3234,7 +3277,7 @@ static int divide_the_setup(
             have_1x2 = assoc(b_1x2, ss, calldeflist, &specialpass);
             have_2x1 = assoc(b_2x1, ss, calldeflist, &specialpass);
             if (ss->cmd.cmd_assume.assumption != cr_none) specialpass = true;
-            if (have_1x2 || have_2x1) specialpass = true;
+            if (have_1x2 || have_2x1 || assoc(b_star, ss, calldeflist, &specialpass)) specialpass = true;
             if (livemask == 0x0F0F) finalrot++;   // The 8-way map can only take one occupation.
 
             // If the planets are auspicious, do a direct 8-way division.
@@ -3374,6 +3417,13 @@ static int divide_the_setup(
             else {
                uint32_t foo = (ss->cmd.prior_elongation_bits | ~elong) & 3;
 
+               /* This was put in for 2022.8.9@1901.  Unfortunately, it broke
+                  everything.  Revisit.
+               if (ss->cmd.cmd_misc3_flags & CMD_MISC3__DOING_ENDS) {
+                  foo = ss->cmd.prior_elongation_bits ^ 3;
+               }
+*/
+
                if (foo == 0) {
                   fail("Can't figure out who should be working with whom.");
                }
@@ -3438,24 +3488,23 @@ static int divide_the_setup(
       if (must_do_mystic)
          goto do_mystically;
 
-      {
-         uint32_t tinytb =
-            ss->people[2].id1 | ss->people[3].id1 |
-            ss->people[6].id1 | ss->people[7].id1;
+      tinytb =
+         ss->people[2].id1 | ss->people[3].id1 |
+         ss->people[6].id1 | ss->people[7].id1;
 
-         // See if this call has applicable 1x2 or 2x1 definitions,
-         // and the people in the wings are facing appropriately.
-         // Then do it concentrically, which will break it into 4-person triangles
-         // first and 1x2/2x1's later.  If it has a 1x1 definition,
-         // do it no matter how people are facing.
+      // See if this call has applicable 1x2 or 2x1 definitions,
+      // and the people in the wings are facing appropriately.
+      // Then do it concentrically, which will break it into 4-person triangles
+      // first and 1x2/2x1's later.  If it has a 1x1 definition,
+      // do it no matter how people are facing.
 
-         if ((!(tinytb & 010) || assoc(b_1x2, ss, calldeflist)) &&
-             (!(tinytb & 1) || assoc(b_2x1, ss, calldeflist)))
-            goto do_concentrically;
+      if ((!(tinytb & 0x8) || assoc(b_1x2, ss, calldeflist)) &&
+          (!(tinytb & 0x1) || assoc(b_2x1, ss, calldeflist)))
+         goto do_concentrically;
 
-         if (assoc(b_1x1, ss, calldeflist))
-            goto do_concentrically;
-      }
+      if (assoc(b_1x1, ss, calldeflist))
+         goto do_concentrically;
+
       break;
    case s3x4:
       if (handle_3x4_division(ss, callflags1, callflagsf, newtb, livemask,
@@ -3908,7 +3957,7 @@ static int divide_the_setup(
       if (  !(ss->cmd.cmd_misc_flags & CMD_MISC__NO_EXPAND_MATRIX) &&
             (!(newtb & 010) || assoc(b_1x12, ss, calldeflist) || assoc(b_1x16, ss, calldeflist)) &&
             (!(newtb & 1) || assoc(b_12x1, ss, calldeflist) || assoc(b_16x1, ss, calldeflist))) {
-         do_matrix_expansion(ss, CONCPROP__NEEDK_1X12, true);
+         ss->do_matrix_expansion(CONCPROP__NEEDK_1X12, true);
          if (ss->kind != s1x12) fail("Failed to expand to 1X12.");  /* Should never fail, but we don't want a loop. */
          return 2;                        /* And try again. */
       }
@@ -4015,7 +4064,7 @@ static int divide_the_setup(
          if (must_do_mystic)
             fail("Can't do \"snag/mystic\" with this call.");
 
-         do_matrix_expansion(ss, CONCPROP__NEEDK_2X6, true);
+         ss->do_matrix_expansion(CONCPROP__NEEDK_2X6, true);
 
          // Should never fail, but we don't want a loop.
          if (ss->kind != s2x6) fail("Failed to expand to 2X6.");
@@ -4883,7 +4932,12 @@ static uint32_t do_actual_array_call(
           !(ss->cmd.cmd_misc_flags & CMD_MISC__NO_CHK_ELONG)) {
          if (callspec->callflagsf & CFLAG2_NO_ELONGATION_ALLOWED)
             fail_no_retry("Call can't be done around the outside of the set.");
-
+         if (callspec->callflagsf & CFLAG2_WARN_ON_ELONGATION) {
+            if (calling_level >= concentric_level)
+               warn(warn__maybe_use_concentric);
+            else
+               warn(warn__went_to_other_side);
+         }
          if (goodies->callarray_flags & CAF__NO_CUTTING_THROUGH) {
             if (result->kind == s1x4)
                check_peeloff_migration = true;
@@ -5971,7 +6025,7 @@ static uint32_t do_actual_array_call(
                                     ss->cmd.parseptr->concept->kind == marker_end_of_list) ?
          ss->cmd.parseptr->call : (call_with_name *) 0;
 
-      merge_action action = (maybe_call && (maybe_call->the_defn.callflags1 & CFLAG1_TAKE_RIGHT_HANDS_AS_COUPLES)) ?
+      merge_action_type action = (maybe_call && (maybe_call->the_defn.callflags1 & CFLAG1_TAKE_RIGHT_HANDS_AS_COUPLES)) ?
          merge_c1_phantom_real_couples : merge_strict_matrix;
 
       CC.fix_possible_collision(action, goodies->callarray_flags, ss);
@@ -5983,7 +6037,7 @@ static uint32_t do_actual_array_call(
        result->kind == s2x2) {
       // We just did a "dixie 1/2 tag" but will want to back up to the 1/4 position.
       // Need to change handedness.
-      uint32_t newtb99 = or_all_people(result);
+      uint32_t newtb99 = result->or_all_people();
       if (!(newtb99 & 001)) {
          result->swap_people(0, 1);
          result->swap_people(2, 3);
@@ -5999,7 +6053,7 @@ static uint32_t do_actual_array_call(
    // If a star went to a 2x2, set outer_elongation to make people laterally far and vertically close.
    // This is a hack to make Load the Boat work when the outsides are a facing star.
    if (ss->kind == s_star && result->kind == s2x2) {
-      uint32_t newtb99 = or_all_people(result);
+      uint32_t newtb99 = result->or_all_people();
       if (!(newtb99 & 001))
          desired_elongation = 1;
       else if (!(newtb99 & 010))
@@ -6113,7 +6167,7 @@ static uint32_t do_actual_array_call(
 // Also, result->people have been cleared.
 extern void basic_move(
    setup *ss,
-   calldefn *the_calldefn,
+   const calldefn *the_calldefn,
    int tbonetest,
    bool fudged,
    bool mirror,
@@ -6217,7 +6271,7 @@ extern void basic_move(
             // directions of the live people.  Demand that it be unambiguous.
 
             uint32_t directions, livemask;
-            big_endian_get_directions32(ss, directions, livemask);
+            ss->big_endian_get_directions32(directions, livemask);
             int i1 = -1;
 
             for (int i=0 ; i<4 ; i++) {
@@ -6238,6 +6292,18 @@ extern void basic_move(
                ss->swap_people(i1, i2);
                copy_rot(ss, i1, ss, i1, 033);
                copy_rot(ss, i2, ss, i2, 011);
+
+               if (ss->people[i1].id1 & STABLE_ENAB) {
+                  if ((ss->people[i1].id1 & (STABLE_VRMASK|STABLE_VLMASK)) != 0)
+                     fail("Sorry, can't do this.");
+                  ss->people[i1].id1 += 2*STABLE_REMBIT;
+               }
+
+               if (ss->people[i2].id1 & STABLE_ENAB) {
+                  if ((ss->people[i2].id1 & (STABLE_VRMASK|STABLE_VLMASK)) != 0)
+                     fail("Sorry, can't do this.");
+                  ss->people[i2].id1 += 2*STABLE_REMBIT;
+               }
 
                // Repair the damage.
                newtb = ss->people[0].id1 | ss->people[1].id1 | ss->people[2].id1 | ss->people[3].id1;
@@ -6265,6 +6331,19 @@ extern void basic_move(
                copy_rot(ss, 1, ss, 1, 011);
                copy_rot(ss, 2, ss, 2, 011);
                copy_rot(ss, 3, ss, 3, 033);
+
+               if (ss->people[2].id1 & STABLE_ENAB) {
+                  if ((ss->people[2].id1 & (STABLE_VRMASK|STABLE_VLMASK)) != 0)
+                     fail("Sorry, can't do this.");
+                  ss->people[2].id1 += 4*STABLE_REMBIT;
+               }
+
+               if (ss->people[3].id1 & STABLE_ENAB) {
+                  if ((ss->people[3].id1 & (STABLE_VRMASK|STABLE_VLMASK)) != 0)
+                     fail("Sorry, can't do this.");
+                  ss->people[3].id1 += 4*STABLE_REMBIT;
+               }
+
                ss->rotation--;
                ss->kind = s1x4;
                canonicalize_rotation(ss);
@@ -6479,13 +6558,13 @@ foobar:
                   *ss = qtagtemp;
                }
             }
-
-            newtb = or_all_people(ss);
          }
          else if (k == s2x2) {
             *ss = linetemp;
-            newtb = or_all_people(ss);
+
          }
+
+         newtb = ss->or_all_people();
       }
 
       begin_kind key1 = setup_attrs[ss->kind].keytab[0];
@@ -6531,7 +6610,7 @@ foobar:
 
                   if (!whuzzis2)
                      result->result_flags.misc |= RESULTFLAG__COMPRESSED_FROM_2X3;
-                  newtb = or_all_people(ss);
+                  newtb = ss->or_all_people();
                   linedefinition = assoc(b_2x2, ss, calldeflist);
                   coldefinition = linedefinition;
                   four_way_startsetup = true;
@@ -6690,8 +6769,7 @@ foobar:
 
             if (!(ss->cmd.cmd_misc_flags & CMD_MISC__NO_EXPAND_MATRIX)) {
                if ((search_concepts_without_funny & INHERITFLAG_12_MATRIX) != 0ULL) {
-                  do_matrix_expansion(
-                     ss,
+                  ss->do_matrix_expansion(
                      (ss->kind == s2x4) ? CONCPROP__NEEDK_2X6 : CONCPROP__NEEDK_TRIPLE_1X4,
                      true);
 
@@ -6701,11 +6779,11 @@ foobar:
                }
                else if ((search_concepts_without_funny & INHERITFLAG_16_MATRIX) != 0ULL) {
                   if (ss->kind == s2x6)
-                     do_matrix_expansion(ss, CONCPROP__NEEDK_2X8, true);
+                     ss->do_matrix_expansion(CONCPROP__NEEDK_2X8, true);
                   else if (ss->kind == s_alamo)
-                     do_matrix_expansion(ss, CONCPROP__NEEDK_4X4, true);
+                     ss->do_matrix_expansion(CONCPROP__NEEDK_4X4, true);
                   else if (ss->kind != s2x4)
-                     do_matrix_expansion(ss, CONCPROP__NEEDK_1X16, true);
+                     ss->do_matrix_expansion(CONCPROP__NEEDK_1X16, true);
 
                   // Take no action (and hence cause an error) if the setup was a 2x4.
                   // If someone wants to say "16 matrix 4x4 peel off" from normal columns,
@@ -6717,7 +6795,7 @@ foobar:
                }
             }
 
-            newtb = or_all_people(ss);
+            newtb = ss->or_all_people();
          }
 
          search_concepts_without_funny &= ~matrix_check_flag;

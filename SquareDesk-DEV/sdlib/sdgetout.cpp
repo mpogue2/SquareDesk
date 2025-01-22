@@ -896,10 +896,6 @@ void configuration::calculate_resolve()
 
 
 
-uint32_t random_recent_history[128];
-int random_count;
-int random_top_level_start;
-
 
 void ui_utils::write_aproximately()
 {
@@ -1029,12 +1025,12 @@ static bool inner_search(command_kind goal,
 {
    int i, j;
    uint32_t directions, p, q;
-   double CLOCKS_TO_RESOLVE;
+   uint64_t CLOCKS_TO_RESOLVE;
 
    if (ui_options.resolve_test_minutes > 0)
-      CLOCKS_TO_RESOLVE = (double) ui_options.resolve_test_minutes * 60.0 * ((double) CLOCKS_PER_SEC);
+      CLOCKS_TO_RESOLVE = ui_options.resolve_test_minutes * 60ULL * ((uint64_t) CLOCKS_PER_SEC);
    else
-      CLOCKS_TO_RESOLVE = 5.0 * ((double) CLOCKS_PER_SEC);
+      CLOCKS_TO_RESOLVE = 5ULL * ((uint64_t) CLOCKS_PER_SEC);
 
    history_insertion_point = huge_history_ptr;
 
@@ -1069,12 +1065,12 @@ static bool inner_search(command_kind goal,
    volatile int little_count = 0;
    volatile int attempt_count = 0;
 
-   int32_t air_start_time = clock();
-   double big_resolve_time = 0.0;
+   uint64_t air_start_time = clock();
+   uint64_t big_resolve_time = 0;
    hashed_random_list[0] = 0;
 
    // Mark the parse block allocation, so that we throw away the garbage created by failing attempts.
-   inner_parse_mark = outer_parse_mark = get_parse_block_mark();
+   inner_parse_mark = outer_parse_mark = parse_block::get_parse_block_mark();
 
    // This loop searches through a group of twenty single-call resolves, then a group
    // of twenty two-call resolves, then a group of twenty three-call resolves,
@@ -1098,10 +1094,6 @@ static bool inner_search(command_kind goal,
       release_parse_blocks_to_mark(inner_parse_mark);
       testing_fidelity = false;
       config_history_ptr = history_save;
-      random_top_level_start = random_count;
-      random_number = (int) rand();
-      srand(random_number);
-      random_recent_history[(random_count++) & 127] = random_number*1000;
       attempt_count++;
 
       // Check whether we have been trying too long.  If so, give up and report failure.
@@ -1130,17 +1122,17 @@ static bool inner_search(command_kind goal,
       if (!(attempt_count & 4095)) {
          // Come up for air; see how much clock time has elapsed.  It will be about 100
          // ticks on Windows, and 100,000 ticks on Linux.  Tally that in a
-         // doubleprecision floating variable.  36 billion is trivial for such a thing.
+         // 64 bit variable.  36 billion is trivial for such a thing.
 
-         int32_t air_time = clock() - air_start_time;
+         uint64_t air_time = clock() - air_start_time;
          air_start_time += air_time; // Reset it for the next time we come up for air.
 
          // But what if the system clock wrapped around (overflowed) during this time?
-         // No problem; the signed 32-bit subtract will do the right thing.  That is,
+         // No problem; the signed 64-bit subtract will do the right thing.  That is,
          // assuming the system clock didn't advance by more than 2 billion during this
          // time.
 
-         big_resolve_time += (double) air_time;
+         big_resolve_time += air_time;
 
          if (big_resolve_time > CLOCKS_TO_RESOLVE) {
             // Too many tries -- too bad.
@@ -1209,6 +1201,15 @@ static bool inner_search(command_kind goal,
       // Select the call.  Selecting one that says "don't use in resolve"
       // will signal and go to cant_consider_this_call.
       // This may, of course, add more concepts.
+
+
+      if (ui_options.resolve_test_minutes > 0 && (++resolve_test_count & 0x3FFFF) == 0) {
+         char tempstuff[200];
+
+         sprintf(tempstuff, "Random number is %d.", random_number);
+         gg77->writestuff(tempstuff);
+         gg77->newline();
+      }
 
       query_for_call();
 
@@ -1665,7 +1666,7 @@ static bool inner_search(command_kind goal,
          }
 
          history_save = config_history_ptr + 1;
-         inner_parse_mark = get_parse_block_mark();
+         inner_parse_mark = parse_block::get_parse_block_mark();
          hashed_random_list[history_save - history_insertion_point] = hashed_randoms;
       }
    }

@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2021  William B. Ackerman.
+//    Copyright (C) 1990-2024  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -160,7 +160,7 @@ void remove_z_distortion(setup *ss) THROW_DECL
       fail("Can't figure out \"Z\" offset.");
 
    expand::compress_setup(*fixer, ss);
-   update_id_bits(ss);
+   ss->update_id_bits();
 }
 
 
@@ -193,7 +193,7 @@ void remove_tgl_distortion(setup *ss) THROW_DECL
    static const expand::thing thingqtga = {{6, 7, 1, 2, 3, 5}, s_ntrgl6ccw, s_qtag, 0};
    static const expand::thing thingqtgb = {{0, 3, 2, 4, 7, 6}, s_ntrgl6cw,  s_qtag, 0};
 
-   uint32_t where = little_endian_live_mask(ss);
+   uint32_t where = ss->little_endian_live_mask();
 
    switch (ss->kind) {
    case s2x4:
@@ -438,7 +438,7 @@ static void multiple_move_innards(
          if (map_kind != MPKIND__SPLIT && map_kind != MPKIND__SPLIT_OTHERWAY_TOO)
             x[i].cmd.cmd_misc_flags |= CMD_MISC__DISTORTED;
          x[i].cmd.cmd_assume = new_assume;
-         if (recompute_id) update_id_bits(&x[i]);
+         if (recompute_id) x[i].update_id_bits();
 
          if (mirror) {
             mirror_this(&x[i]);
@@ -455,7 +455,7 @@ static void multiple_move_innards(
             uint32_t map_code;
 
             if (thing->k == concept_do_phantom_2x4) {
-               do_matrix_expansion(&x[i], CONCPROP__NEEDK_4X4, false);
+               x[i].do_matrix_expansion(CONCPROP__NEEDK_4X4, false);
                if (x[i].kind != s4x4) fail("Must have a 4x4 setup for this concept.");
                x[i].rotation += thing->rot;
                canonicalize_rotation(&x[i]);
@@ -463,13 +463,13 @@ static void multiple_move_innards(
             }
             else if (thing->k == concept_do_phantom_boxes) {
                // This is split phantom boxes.
-               do_matrix_expansion(&x[i], CONCPROP__NEEDK_2X8, false);
+               x[i].do_matrix_expansion(CONCPROP__NEEDK_2X8, false);
                if (x[i].kind != s2x8) fail("Not in proper setup for this concept.");
                map_code = MAPCODE(s2x4,2,MPKIND__SPLIT,0);
             }
             else {
                // This is triple boxes.
-               do_matrix_expansion(&x[i], CONCPROP__NEEDK_2X6, false);
+               x[i].do_matrix_expansion(CONCPROP__NEEDK_2X6, false);
                if (x[i].kind != s2x6) fail("Not in proper setup for this concept.");
                map_code = MAPCODE(s2x2,3,MPKIND__SPLIT,0);
             }
@@ -637,11 +637,17 @@ static void multiple_move_innards(
          map_kind = MPKIND__4_QUADRANTS_WITH_45_ROTATION;
       }
       else if (map_kind == MPKIND__4_EDGES) {
-         if ((vert & 1) || (z[0].rotation & 1)) {
-            z[1].rotation += 2;
-            z[3].rotation += 2;
+         if (((z[0].rotation ^ z[1].rotation) & 1) == 1 ||
+             maps->outer_kind == s_thar) {
+            map_kind = MPKIND__SPLIT_SPLIT_ANISOTROPIC_THAR;
          }
-         map_kind = MPKIND__4_QUADRANTS;
+         else {
+            if ((vert & 1) || (z[0].rotation & 1)) {
+               z[1].rotation += 2;
+               z[3].rotation += 2;
+            }
+            map_kind = MPKIND__4_QUADRANTS;
+         }
       }
       else
          fail("Can't handle this rotation.");
@@ -707,7 +713,7 @@ static void multiple_move_innards(
       }
    }
 
-   // If did a "colliding call like circulate in a 2x2, going to parallel waves
+   // If did a "colliding" call like circulate in a 2x2, going to parallel waves
    // with just one wave occupied, strip the 2x4 down to a 1x4.
    if (map_kind == MPKIND__REMOVED && arity == 2 && !(sscmd->cmd_misc_flags & CMD_MISC__PHANTOMS) &&
             z[0].kind == s2x4 && z[1].kind == s2x4 &&
@@ -716,7 +722,7 @@ static void multiple_move_innards(
       static const expand::thing thing_bot = {{7, 6, 4, 5}, s1x4, s2x4, 0};
 
       for (i=0; i<2; i++) {
-         switch (little_endian_live_mask(&z[i])) {
+         switch (z[i].little_endian_live_mask()) {
          case 0xF0:
             expand::compress_setup(thing_bot, &z[i]);
             break;
@@ -778,7 +784,12 @@ static void multiple_move_innards(
 
       if (fix_n_results(arity,
                         (map_kind == MPKIND__NONE && maps->inner_kind == sdmd) ? 9 : funnymap ? 7 : -1,
-                        z, rotstate, pointclip, rot & 0xF, true)) {
+                        z,
+                        rotstate,
+                        pointclip,
+                        rot & 0xF,
+                        true,
+                        map_kind == MPKIND__SPLIT_SPLIT_ANISOTROPIC_THAR)) {
          if (map_kind != MPKIND__SPLIT)
             fail("This is an inconsistent shape or orientation changer.");
          map_kind = MPKIND__HET_SPLIT;
@@ -831,7 +842,7 @@ static void multiple_move_innards(
       }
 
       if (!hetero_mapkind(map_kind) && (arity != 2 || (setup_attrs[z[0].kind].setup_props & SPROP_NO_SYMMETRY) == 0)) {
-         if ((rotstate & 0xF03) == 0) {
+         if (map_kind != MPKIND__SPLIT_SPLIT_ANISOTROPIC_THAR && (rotstate & 0xF03) == 0) {
             // Rotations are alternating.  Aside from the two map kinds just below,
             // we demand funnymap on.  These are the maps that want alternating rotations.
             if (map_kind == MPKIND__SPLIT || map_kind == MPKIND__CONCPHAN) {
@@ -840,15 +851,15 @@ static void multiple_move_innards(
                map_kind = (map_kind == MPKIND__SPLIT) ? MPKIND__HET_SPLIT : MPKIND__HET_CONCPHAN;
             }
             else if (arity == 4 && map_kind == MPKIND__DMD_STUFF) {
-               if (!(rotstate & 0x0F0))
-                  fail("Can't do this orientation changer.");
-
                if (vert) {
                   z[1].rotation += 2;
                   canonicalize_rotation(&z[1]);
                   z[3].rotation += 2;
                   canonicalize_rotation(&z[3]);
                }
+
+               if (!(rotstate & 0x0F0))
+                  fail("Can't do this orientation changer.");
 
                map_kind = MPKIND__NONISOTROPDMD;
             }
@@ -899,6 +910,7 @@ static void multiple_move_innards(
       for (i=0; i<arity; i++) {
          if (z[i].kind == nothing) {
             z[i] = z[goodindex[i&1]];
+            xorigrot[i] = xorigrot[goodindex[i&1]];
             z[i].clear_people();
          }
 
@@ -1121,6 +1133,16 @@ static void multiple_move_innards(
             map_kind = MPKIND__OVERLAP34;
          }
          else if (before_distance == after_distance*2 && arity == 2) {
+            /* This used to be
+            if (map_kind == MPKIND__SPLIT && z[0].kind == s2x3 && z[0].rotation == 1) {
+               z[0].do_matrix_expansion(CONCPROP__NEEDK_3X4, false);
+               z[1].do_matrix_expansion(CONCPROP__NEEDK_3X4, false);
+            }
+            As usual, there are multiple ways to get the desired effect.
+            */
+
+            if (map_kind == MPKIND__SPLIT && z[0].kind == s2x3 && z[0].rotation == 1)
+               result->result_flags.misc &= ~RESULTFLAG__EXPAND_TO_2X3;
             map_kind = MPKIND__SPLIT;
             z[2] = z[1];
             z[1].clear_people();
@@ -1217,7 +1239,7 @@ static void multiple_move_innards(
    }
 
    if (arity == 1 && z[0].kind == s_c1phan) {
-      uint32_t livemask = little_endian_live_mask(&z[0]);
+      uint32_t livemask = z[0].little_endian_live_mask();
 
       if (map_kind == MPKIND__OFFS_L_HALF) {
          if ((livemask & ~0x5555) == 0) {
@@ -1323,8 +1345,8 @@ static void multiple_move_innards(
       // We allow the special case of appending two 4x4's or 2x8's, if the
       // real people (this includes active phantoms!) can fit inside a 4x4 or 2x8.
       if (arity == 2 && z[0].kind == s4x4 && map_kind == MPKIND__SPLIT) {
-         uint32_t mask0 = little_endian_live_mask(&z[0]);
-         uint32_t mask1 = little_endian_live_mask(&z[1]);
+         uint32_t mask0 = z[0].little_endian_live_mask();
+         uint32_t mask1 = z[1].little_endian_live_mask();
 
          if (vert == 1) {
             if (((mask0 | mask1) & 0x1717) != 0)
@@ -1341,8 +1363,8 @@ static void multiple_move_innards(
       }
       else if (arity == 2 && z[0].kind == s2x8 && map_kind == MPKIND__SPLIT) {
          if (vert != z[0].rotation) {
-            uint32_t mask0 = little_endian_live_mask(&z[0]);
-            uint32_t mask1 = little_endian_live_mask(&z[1]);
+            uint32_t mask0 = z[0].little_endian_live_mask();
+            uint32_t mask1 = z[1].little_endian_live_mask();
 
             if (((mask0 | mask1) & 0xC3C3) != 0)
                final_mapcode = spcmap_f2x8_2x8;
@@ -1363,7 +1385,8 @@ static void multiple_move_innards(
    insize = attr::klimit(final_map->inner_kind)+1;
 
    // The low 2 bits of the ten thousands digit give additional rotation info.
-   result->rotation = (z[0].rotation + (final_map->rot >> 16) - final_map->rot) & 3;
+   result->rotation = (map_kind == MPKIND__SPLIT_SPLIT_ANISOTROPIC_THAR) ? 0 :
+      ((z[0].rotation + (final_map->rot >> 16) - final_map->rot) & 3);
 
    if (map_kind == MPKIND__HET_SPLIT || map_kind == MPKIND__HET_TWICEREM || map_kind == MPKIND__HET_CONCPHAN) {
 
@@ -1392,8 +1415,8 @@ static void multiple_move_innards(
       // All other maps are comparatively straightforward.  Action is only required
       // if the actual setups are stacked vertically and are rotated.
 	
-      if (vert && (z[0].rotation & 1)) {
-         //dont do this if MPKIND__NONISOTROPDMD and final_map->rot & 100
+      if (vert && (z[0].rotation & 1) && map_kind != MPKIND__SPLIT_SPLIT_ANISOTROPIC_THAR) {
+         // Don't do this if MPKIND__NONISOTROPDMD and final_map->rot & 100
          if (z[0].rotation == z[1].rotation || map_kind != MPKIND__SPLIT) {    // **** New code.
             if (((final_map->rot+1) & 2) == 0) {
                for (i=0; i<arity; i++) {
@@ -1474,14 +1497,31 @@ static void multiple_move_innards(
    vrot = final_map->per_person_rot;
 
    for (j=0,rot=final_map->rot ; j<arity ; j++,rot>>=2) {
-      if ((j&1) && hetero_mapkind(final_map->map_kind))
-         insize = attr::klimit((setup_kind) (final_map->rot >> 24))+1;
-      else
-         insize = attr::klimit(final_map->inner_kind)+1;
+      if (final_map->map_kind == MPKIND__SPLIT_SPLIT_ANISOTROPIC_THAR && z[0].eighth_rotation == 1) {
+         // Special handling of thars under 45 degree rotations.
 
-      for (i=0 ; i<insize ; i++) {
-         install_rot(result, *getptr++, &z[j], i, 011*((rot+vrot) & 3));
-         vrot >>= 2;
+         for (i=0 ; i<insize ; i++) {
+            int q = *getptr++;
+            if (z[j].rotation != 0) {
+               q++;
+               if ((q&3)==0) q-= 4;
+               install_rot(result, q, &z[j], i, j&1 ? 022 : 011);
+            }
+            else {
+               install_rot(result, q, &z[j], i, j&1 ? 011 : 0);
+            }
+         }
+      }
+      else {
+         if ((j&1) && hetero_mapkind(final_map->map_kind))
+            insize = attr::klimit((setup_kind) (final_map->rot >> 24))+1;
+         else
+            insize = attr::klimit(final_map->inner_kind)+1;
+
+         for (i=0 ; i<insize ; i++) {
+            install_rot(result, *getptr++, &z[j], i, 011*((rot+vrot) & 3));
+            vrot >>= 2;
+         }
       }
    }
 
@@ -1497,7 +1537,7 @@ static void multiple_move_innards(
       static const expand::thing thingy0F0Fgoto2x8 = {
          {0, 1, 2, 3, -1, -1, -1, -1, 8, 9, 10, 11, -1, -1, -1, -1}, s2x8, s1p5x8, 0};
 
-      switch (little_endian_live_mask(result)) {
+      switch (result->little_endian_live_mask()) {
       case 0xF0F0:
          if (result->result_flags.misc & RESULTFLAG__INVADED_SPACE) {
             expand::compress_setup(thingyF0F0goto2x6, result);
@@ -2461,14 +2501,14 @@ extern void distorted_2x2s_move(
       // A quadruple 1/4-tag is always construed as a matrix formation.
       // Maybe they fit into a 3x6; maybe not.  We expand to a 3x8
       // and then try to cut it back to a 3x6 or whatever.
-      do_matrix_expansion(ss, CONCPROP__NEEDK_3X8, false);
+      ss->do_matrix_expansion(CONCPROP__NEEDK_3X8, false);
       normalize_setup(ss, simple_normalize, qtag_compress);
    }
 
    arity = 2;
 
    uint64_t directionsBE64, livemaskBE64;
-   big_endian_get_directions64(ss, directionsBE64, livemaskBE64);
+   ss->big_endian_get_directions64(directionsBE64, livemaskBE64);
 
    result->clear_people();
    setup_kind inner_kind = s2x2;
@@ -2541,7 +2581,7 @@ extern void distorted_2x2s_move(
          case s2x7:
             expand::expand_setup(expand_2x7_2x9, ss);
             // Need to get these again.
-            big_endian_get_directions64(ss, directionsBE64, livemaskBE64);
+            ss->big_endian_get_directions64(directionsBE64, livemaskBE64);
             // FALL THROUGH!
          case s2x9:
             // FELL THROUGH!
@@ -2746,7 +2786,7 @@ extern void distorted_2x2s_move(
             break;
          case s2x2:
             if (arity == 1) {
-               update_id_bits(ss);
+               ss->update_id_bits();
                move(ss, false, result);   // Just do it.
                return;
             }
@@ -2820,7 +2860,7 @@ extern void distorted_2x2s_move(
             *ss = stemp;
 
             // Need to do this again.
-            big_endian_get_directions64(ss, directionsBE64, livemaskBE64);
+            ss->big_endian_get_directions64(directionsBE64, livemaskBE64);
          }
       }
 
@@ -2928,7 +2968,7 @@ extern void distorted_2x2s_move(
             inputs[i].eighth_rotation = 0;
             inputs[i].cmd = ss->cmd;
             inputs[i].cmd.cmd_misc_flags |= CMD_MISC__DISTORTED;
-            update_id_bits(&inputs[i]);
+            inputs[i].update_id_bits();
             move(&inputs[i], false, &results[i]);
             if (results[i].kind != s2x2 || (results[i].rotation & 1))
                fail("Can only do non-shape-changing calls in Z or distorted setups.");
@@ -2966,7 +3006,7 @@ extern void distorted_2x2s_move(
       inputs[i].kind = inner_kind;
       inputs[i].cmd.cmd_misc_flags |= CMD_MISC__DISTORTED;
       inputs[i].cmd.cmd_assume.assumption = cr_none;
-      update_id_bits(&inputs[i]);
+      inputs[i].update_id_bits();
       move(&inputs[i], false, &results[i]);
 
       if (results[i].kind != inner_kind || results[i].rotation != 0) {
@@ -3356,7 +3396,7 @@ extern void distorted_move(
          else if (global_livemask == 06666) { map_code = spcmap_dqtag2; }
          break;
       case s4x4:
-         big_endian_get_directions32(ss, dirs, lives);
+         ss->big_endian_get_directions32(dirs, lives);
          dirs &= 0x55555555;
 
          // In order to pick out the diamond spots unambigously from block spots
@@ -3545,7 +3585,7 @@ extern void distorted_move(
          warn(warn__fudgy_half_offset);
 
          // This line taken from do_matrix_expansion.  Would like to do it right.
-         clear_absolute_proximity_bits(ss);
+         ss->clear_absolute_proximity_bits();
       }
 
       // Now we have the setup we want.
@@ -3619,7 +3659,7 @@ extern void distorted_move(
    if ((linesp & 7) == 3)
       a1.cmd.cmd_misc_flags |= CMD_MISC__VERIFY_WAVES;
 
-   update_id_bits(&a1);
+   a1.update_id_bits();
    impose_assumption_and_move(&a1, &res1);
 
    if (res1.kind != k || (res1.rotation & 1)) fail("Can only do non-shape-changing calls in Z or distorted setups.");
@@ -3680,7 +3720,7 @@ extern void distorted_move(
             !junk_concepts.test_for_any_herit_or_final_bit() &&
             next_parseptr->concept->arg3 == MPKIND__SPLIT) {
       ss->cmd.cmd_misc_flags |= CMD_MISC__PHANTOMS;
-      do_matrix_expansion(ss, CONCPROP__NEEDK_3X8, false);
+      ss->do_matrix_expansion(CONCPROP__NEEDK_3X8, false);
       if (ss->kind != s3x8) fail("Must have a 3x4 setup for this concept.");
 
       ss->cmd.parseptr = next_parseptr->next;
@@ -3720,7 +3760,7 @@ extern void distorted_move(
    ss->cmd.parseptr = next_parseptr->next;
    // ***** What's this for????
    // We *don't* need to do it?  At least, if did 3x4 -> 4x5?
-   clear_absolute_proximity_bits(ss);
+   ss->clear_absolute_proximity_bits();
 
    if (disttest != disttest_offset)
       fail("You must specify offset lines/columns when in this setup.");
@@ -4097,7 +4137,7 @@ void do_concept_wing(
       warn(warn__meta_on_xconc);
 
    int i;
-   update_id_bits(ss);
+   ss->update_id_bits();
 
    setup normal = *ss;
    setup winged = *ss;
@@ -4192,7 +4232,7 @@ void do_concept_wing(
    // If so, use the other setup.  After checking that it has all people.
 
    try {
-      update_id_bits(&normal);
+      normal.update_id_bits();
       move(&normal, false, &the_results[0]);
 
       if (all_people == normal_people) {
@@ -4209,7 +4249,7 @@ void do_concept_wing(
    // We need to use the winged people.
 
    try {
-      update_id_bits(&winged);
+      winged.update_id_bits();
       move(&winged, false, &the_results[1]);
    }
    catch(error_flag_type) {
@@ -4676,14 +4716,14 @@ extern void common_spot_move(
    // common spot point-to-point diamonds      : 0x400
 
    if (ss->kind == s_c1phan) {
-      do_matrix_expansion(ss, CONCPROP__NEEDK_4X4, false);
+      ss->do_matrix_expansion(CONCPROP__NEEDK_4X4, false);
       // Shut off any "check a 4x4 matrix" warning that this raised.
       configuration::clear_one_warning(warn__check_4x4_start);
       // Unless, of course, we already had that warning.
       configuration::set_multiple_warnings(saved_warnings);
    }
 
-   uint32_t livemask = little_endian_live_mask(ss);
+   uint32_t livemask = ss->little_endian_live_mask();
 
    uint32_t alternate_map_check = 0;
 
@@ -4781,10 +4821,10 @@ extern void common_spot_move(
          a1.cmd.cmd_misc3_flags |= CMD_MISC3__SAID_DIAMOND;
       }
 
-      update_id_bits(&a0);
+      a0.update_id_bits();
       impose_assumption_and_move(&a0, &the_results[0]);
       the_results[0].clear_all_overcasts();
-      update_id_bits(&a1);
+      a1.update_id_bits();
       impose_assumption_and_move(&a1, &the_results[1]);
       the_results[1].clear_all_overcasts();
 
@@ -4796,9 +4836,9 @@ extern void common_spot_move(
                   the_results[0].rotation != the_results[1].rotation)
             expand::expand_setup(s_2x3_qtg, &the_results[0]);
          else if (the_results[0].kind == s2x4 && the_results[1].kind == s4x4)
-            do_matrix_expansion(&the_results[0], CONCPROP__NEEDK_4X4, false);
+            the_results[0].do_matrix_expansion(CONCPROP__NEEDK_4X4, false);
          else if (the_results[1].kind == s2x4 && the_results[0].kind == s4x4)
-            do_matrix_expansion(&the_results[1], CONCPROP__NEEDK_4X4, false);
+            the_results[1].do_matrix_expansion(CONCPROP__NEEDK_4X4, false);
 
          if (the_results[0].kind != the_results[1].kind ||
              the_results[0].rotation != the_results[1].rotation)
@@ -4895,15 +4935,15 @@ extern void common_spot_move(
 
 
 static void reassemble_triangles(const int8_t *mapnums,
-                                 uint32_t ri,
-                                 uint32_t r,
+                                 uint32_t r1,
+                                 uint32_t r2,
                                  int swap_res,
                                  const setup res[2],
                                  setup *result) THROW_DECL
 {
-   scatter(result, &res[swap_res], mapnums, 2, r^022);
+   scatter(result, &res[swap_res], mapnums, 2, r1);
    if (result->kind != sdmd)
-      scatter(result, &res[swap_res^1], &mapnums[3], 2, r);
+      scatter(result, &res[swap_res^1], &mapnums[3], 2, r2);
 }
 
 
@@ -4913,13 +4953,13 @@ void tglmap::do_glorious_triangles(
    int indicator,
    setup *result) THROW_DECL
 {
-   int i, r, startingrot;
+   int i, startingrot;
    uint32_t rotstate, pointclip;
    setup a1, a2;
    setup res[2];
    const int8_t *mapnums;
    const map *map_ptr = ptrtable[map_ptr_table[(indicator >> 6) & 3]];
-   bool specttgls = (map_ptr->randombits & 4) != 0;
+   bool specttgls = (map_ptr->flags & tg99spectgl) != 0;
 
    if (ss->kind == s_c1phan || ss->kind == sdeepbigqtg || specttgls) {
       mapnums = map_ptr->mapcp1;
@@ -4939,15 +4979,14 @@ void tglmap::do_glorious_triangles(
    }
    else if (ss->kind == s2x4) {
       mapnums = map_ptr->map241;
-      startingrot = map_ptr->randombits;
+      startingrot = map_ptr->flags & 3;
    }
    else {   // s_qtag, s_ptpd, s_323, or single diamond.
       mapnums = map_ptr->mapqt1;
-      startingrot = (map_ptr->randombits & 16) ? 1 : 0;
+      startingrot = map_ptr->flags & 3;
    }
 
-   r = ((-startingrot) & 3) * 011;
-   gather(&a1, ss, mapnums, 2, r);
+   gather(&a1, ss, mapnums, 2, (((map_ptr->flags >> 2) - startingrot) & 3) * 011);
    a1.cmd = ss->cmd;
    a1.kind = s_trngl;
    a1.rotation = 0;
@@ -4955,17 +4994,17 @@ void tglmap::do_glorious_triangles(
    a1.cmd.cmd_misc_flags |= CMD_MISC__DISTORTED;
    move(&a1, false, &res[0]);
 
-   if (!(map_ptr->randombits & 32)) {
-      gather(&a2, ss, &mapnums[3], 2, r^022);
+   if (!(map_ptr->flags & tg99onlyonetriangle)) {
+      gather(&a2, ss, &mapnums[3], 2, ((2 - startingrot) & 3) * 011);
       a2.cmd = ss->cmd;
       a2.kind = s_trngl;
-      a2.rotation = 2;
+      a2.rotation = ((map_ptr->flags >> 2) + 2) & 3;
       a2.eighth_rotation = 0;
       a2.cmd.cmd_misc_flags |= CMD_MISC__DISTORTED;
       move(&a2, false, &res[1]);
       fix_n_results(2, -1, res, rotstate, pointclip, 0);
       result->result_flags = get_multiple_parallel_resultflags(res, 2);
-      res[1].rotation += 2;
+      res[1].rotation += ((2 + (map_ptr->flags >> 2)) & 3);
       canonicalize_rotation(&res[1]);
    }
    else {
@@ -4994,7 +5033,8 @@ void tglmap::do_glorious_triangles(
       result->kind = ss->kind;
       result->rotation = 0;
       result->eighth_rotation = 0;
-      reassemble_triangles(mapnums, 0, (startingrot^2) * 011, 0, res, result);
+      reassemble_triangles(mapnums, ((startingrot + (map_ptr->flags >> 2)) & 3) * 011,
+                           ((startingrot + 2) & 3) * 011, 0, res, result);
       return;
    }
 
@@ -5008,8 +5048,6 @@ void tglmap::do_glorious_triangles(
 
    result->rotation = res[0].rotation;
    result->eighth_rotation = 0;
-
-   r = ((-res[0].rotation) & 3) * 011;
 
    if (res[0].rotation & 2)
       result->kind = ptrtable[map_ptr->otherkey]->kind;
@@ -5036,10 +5074,10 @@ void tglmap::do_glorious_triangles(
             r = 011;
          }
 
-         reassemble_triangles(map_ptr->mapqt1, 0, r, 0, res, result);
+         reassemble_triangles(map_ptr->mapqt1, r^022, r, 0, res, result);
       }
       else if (res[0].rotation == 2 && ss->kind != s_bone6) {
-         if (map_ptr->nointlkshapechange)
+         if (map_ptr->flags & tgl_nointlkshapechange)
             goto shapechangeerror;
 
          result->kind = s_c1phan;
@@ -5047,40 +5085,30 @@ void tglmap::do_glorious_triangles(
          scatter(result, &res[1], map_ptr->mapcp1, 2, 022);
       }
       else {
-         if (result->kind == nothing || map_ptr->nointlkshapechange)
+         if (result->kind == nothing || map_ptr->flags & tgl_nointlkshapechange)
             goto shapechangeerror;
 
          map_ptr = ptrtable[map_ptr->otherkey];
 
          if (specttgls) {
-            uint32_t ri = 0;
             uint32_t r = 0;
 
-            if (!((map_ptr->randombits ^ res[0].rotation) & 2)) {
-               if (map_ptr->randombits & 8) {
-                  result->kind = s_ptpd;
-                  result->rotation += 3;
-                  if (map_ptr->randombits & 2) ri = 022;
-               }
-               else {
-                  result->kind = s_bone6;
-                  result->rotation += 3;
-               }
-
-               reassemble_triangles(map_ptr->map241, ri, 011, 1, res, result);
+            if (!(((map_ptr->flags) ^ res[0].rotation) & 2)) {
+               result->rotation += 3;
+               result->kind = (map_ptr->flags & tg99chooseptpdrigger) ? s_ptpd : s_bone6;
+               reassemble_triangles(map_ptr->map241, 033, 011, 1, res, result);
             }
             else {
-               if (map_ptr->randombits & 8) {
+               if (map_ptr->flags & tg99chooseptpdrigger) {
                   result->kind = s_rigger;
                   r = 011;
-                  if (!(map_ptr->randombits & 2)) ri = 022;
                   result->rotation += 3;
                }
                else {
                   result->kind = s_short6;
                }
 
-               reassemble_triangles(map_ptr->map261, ri, r, 1, res, result);
+               reassemble_triangles(map_ptr->map261, r^022, r, 1, res, result);
             }
          }
          else if (ss->kind == s_short6) {
@@ -5093,7 +5121,7 @@ void tglmap::do_glorious_triangles(
          }
          else if (ss->kind == s_bone6) {
             if (res[0].rotation & 1) {
-               reassemble_triangles(map_ptr->map261, 0, 0, 1, res, result);
+               reassemble_triangles(map_ptr->map261, 022, 0, 1, res, result);
             }
             else {
                if (!(res[0].rotation & 2))
@@ -5103,7 +5131,7 @@ void tglmap::do_glorious_triangles(
             }
          }
          else if (result->kind == s_c1phan) {
-            reassemble_triangles(map_ptr->mapcp1, r, 0, 1, res, result);
+            reassemble_triangles(map_ptr->mapcp1, 022, 0, 1, res, result);
          }
          else {
             // Copy the triangles.
@@ -5113,7 +5141,7 @@ void tglmap::do_glorious_triangles(
       }
    }
    else if (res[0].kind == s1x3) {
-      if (result->kind == nothing || map_ptr->nointlkshapechange)
+      if (result->kind == nothing || map_ptr->flags & tgl_nointlkshapechange)
          goto shapechangeerror;
 
       if (res[0].rotation == 0) {
@@ -5137,26 +5165,24 @@ void tglmap::do_glorious_triangles(
             fail("Can't do this shape-changer.");
 
          if (map_ptr->kind == s_323) {
-            mapnums = map_ptr->map261;
             result->kind = s2x5;
             warn(warn__check_2x5);
-            reassemble_triangles(mapnums, 0, 022, 0, res, result);
+            reassemble_triangles(map_ptr->map261, 0, 022, 0, res, result);
          }
          else {
             map_ptr = ptrtable[map_ptr->otherkey];
 
             result->kind = map_ptr->kind1x3;
 
-            if (map_ptr->randombits & 1) {    // What a crock!
+            if (map_ptr->flags & tgl_rev_ord_if_1x3) {
                for (i=0; i<3; i++) {
                   copy_person(result, map_ptr->map241[i+3], &res[0], 2-i);
                   copy_rot(result, map_ptr->map241[i], &res[1], 2-i, 022);
                }
             }
             else {
-               mapnums = map_ptr->map241;
-               scatter(result, &res[0], mapnums, 2, 0);
-               scatter(result, &res[1], &mapnums[3], 2, 022);
+               scatter(result, &res[0], map_ptr->map241, 2, 0);
+               scatter(result, &res[1], map_ptr->map241+3, 2, 022);
             }
          }
       }

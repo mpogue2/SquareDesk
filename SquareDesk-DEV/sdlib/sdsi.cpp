@@ -51,6 +51,7 @@ and the following external variables:
    session_index
    rewrite_with_new_style_filename
    random_number
+   resolve_test_count
    database_filename
    new_outfile_string
    abridge_filename
@@ -124,6 +125,7 @@ bool rewrite_with_new_style_filename = false;   // User gave "change to new file
 
 
 int random_number;
+int resolve_test_count;
 const char *database_filename = DATABASE_FILENAME;
 const char *new_outfile_string = (char *) 0;
 char abridge_filename[MAX_TEXT_LINE_LENGTH];
@@ -143,16 +145,15 @@ extern void general_initialize()
    // on a multiprocessor, by giving them slightly
    // different timeouts.
    unsigned int seed = (ui_options.resolve_test_random_seed != 0) ?
-      ui_options.resolve_test_random_seed : (uint32_t) time((time_t *)0);
-   srand(seed);
-   random_count = 0;
+      ui_options.resolve_test_random_seed : (uint32_t) time((time_t *) 0);
+   random_number = seed;
+   resolve_test_count = 0;
 }
 
 
 extern int generate_random_number(int modulus)
 {
-   random_number = (int) rand();
-   random_recent_history[(random_count++) & 127] = random_number;
+   random_number = ((random_number*0x915F77F5UL)+1) & 0xFFFF;
    return random_number % modulus;
 }
 
