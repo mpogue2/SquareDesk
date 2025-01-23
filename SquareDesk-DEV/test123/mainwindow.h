@@ -1126,6 +1126,12 @@ private:
 
     void refreshAllPlaylists();  // used when View > TAGS changes
 
+    // APPLE MUSIC PLAYLISTS ---------
+    void getAppleMusicPlaylists(); // get only the user-defined playlists
+
+    QList<QStringList> allAppleMusicPlaylists; // 3 cols: playlistName, title, pathname
+    QStringList allAppleMusicPlaylistNames;
+
     // Lyrics stuff ----------
     QString loadLyrics(QString MP3FileName);
     int lyricsTabNumber;

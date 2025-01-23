@@ -1,0 +1,56 @@
+tell application "Music"
+	set output to "Playlist,Title,Pathname" & return
+	
+	set userPlaylists to every user playlist whose smart is false
+	
+	repeat with pl in userPlaylists
+		set plName to name of pl
+		set trackList to every track of pl
+		
+		if length of trackList is 0 then
+			set output to output & quote & plName & quote & ",," & return
+		else
+			repeat with tr in trackList
+				set trName to name of tr
+				set trPath to ""
+				
+				try
+					if class of tr is file track then
+						set trPath to (get location of tr) as text
+						set trPath to my trim_volume_path(trPath)
+					end if
+				end try
+				
+				set output to output & quote & plName & quote & "," & quote & trName & quote & "," & quote & trPath & quote & return
+			end repeat
+		end if
+	end repeat
+	
+	return output
+end tell
+
+on trim_volume_path(full_path)
+	-- Remove volume name, ensuring path starts with /Users
+	set oldTID to AppleScript's text item delimiters
+	set AppleScript's text item delimiters to ":"
+	set pathItems to text items of full_path
+	
+	-- Find the index where /Users begins
+	set usersIndex to 0
+	repeat with i from 1 to count of pathItems
+		if first word of (item i of pathItems) is "Users" then
+			set usersIndex to I
+			exit repeat
+		end if
+	end repeat
+	
+	-- Reconstruct path if Users found
+	set trimmedPath to ""
+	if usersIndex > 0 then
+		set AppleScript's text item delimiters to "/"
+		set trimmedPath to "/" & (text items usersIndex thru -1 of pathItems) as text
+	end if
+	
+	set AppleScript's text item delimiters to oldTID
+	return trimmedPath
+end trim_volume_path

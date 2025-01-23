@@ -6438,7 +6438,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
     int initialBPM = prefsManager.GetinitialBPM();
 
-//    qDebug() << "tryToSetInitialBPM: " << tryToSetInitialBPM;
+   // qDebug() << "tryToSetInitialBPM: " << tryToSetInitialBPM << initialBPM;
 
     if (tryToSetInitialBPM && tempoIsBPM) {
 //        qDebug() << "tryToSetInitialBPM overrides to: " << initialBPM;
@@ -6447,7 +6447,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
         ui->tempoSlider->setValue(initialBPM);
         emit ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
     } else {
-//        qDebug() << "using targetTempo" << targetTempo;
+        // qDebug() << "using targetTempo" << targetTempo;
         if (targetTempo != "0" && targetTempo != "0%") {
             // iff tempo is known, then update the table
             QString tempo2 = targetTempo.replace("%",""); // if percentage (not BPM) just get rid of the "%" (setValue knows what to do)
@@ -6456,6 +6456,12 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
             {
                 ui->tempoSlider->setValue(tempoInt); // set slider to target BPM or percent, as per songTable (overriding DB)
             }
+        }
+
+        if (targetTempo == "0" && initialBPM != 0) { // 0 means "set to default value", this is used by initial Apple Music playlists, where tempo = 0 initially
+            // qDebug() << "setting slider to default value";
+            ui->tempoSlider->setValue(ui->tempoSlider->GetOrigin());
+            emit ui->tempoSlider->valueChanged(ui->tempoSlider->GetOrigin());
         }
     }
 
@@ -6697,7 +6703,10 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
     findFilesRecursively(rootDir1, pathStack, "", ui, &soundFXfilenames, &soundFXname);  // appends to the pathstack
 
 #ifdef DARKMODE
-    updateTreeWidget();
+    // APPLE MUSIC ------------
+    getAppleMusicPlaylists();
+
+    updateTreeWidget(); // this will also show the Apple Music playlists, found just now
 #endif
 }
 
@@ -6819,6 +6828,74 @@ void MainWindow::updateTreeWidget() {
             childItem->setText(0, splitFileName.last());
         }
     }
+
+
+    // --------------------------------------------------------------------
+    // GET LIST OF PLAYLISTS AND POPULATE TREEWIDGET > APPLE MUSIC ----------
+
+    // if (allAppleMusicPlaylistNames.size() == 0) {
+    //     return; // if no Apple Music playlists
+    // }
+
+    // qDebug() << "***** APPLE MUSIC";
+
+    // top level Apple Music item with icon
+    QTreeWidgetItem *appleMusicItem = new QTreeWidgetItem();
+    appleMusicItem->setText(0, "Apple Music");
+    appleMusicItem->setIcon(0, QIcon(":/graphics/icons8-menu-64.png"));
+
+    foreach (const QString &playlistName, allAppleMusicPlaylistNames) {
+                // qDebug() << "playlistName: " << playlistName;
+                QTreeWidgetItem *childItem2 = new QTreeWidgetItem(appleMusicItem);
+                childItem2->setText(0, playlistName);
+    }
+
+    ui->treeWidget->addTopLevelItem(appleMusicItem);  // add this one to the tree
+    appleMusicItem->setExpanded(true);
+
+    // // insert filenames
+    // QTreeWidgetItem *topLevelItem = playlistsItem;
+    // foreach (const QString &fileName, playlists)
+    // {
+    //     QStringList splitFileName = (QString("Playlists/") + fileName).split("/"); // tack on "Playlists/" so they will populate under the icon item
+
+    //     // add root folder as top level item if treeWidget doesn't already have it
+    //     if (ui->treeWidget->findItems(splitFileName[0], Qt::MatchFixedString).isEmpty())
+    //     {
+    //         topLevelItem = new QTreeWidgetItem;
+    //         topLevelItem->setText(0, splitFileName[0]);
+    //         ui->treeWidget->addTopLevelItem(topLevelItem);
+    //     }
+
+    //     QTreeWidgetItem *parentItem = topLevelItem;
+
+    //     if (splitFileName.length() > 1) {
+    //         // iterate through non-root directories (file name comes after)
+    //         for (int i = 1; i < splitFileName.size() - 1; ++i)
+    //         {
+    //             // iterate through children of parentItem to see if this directory exists
+    //             bool thisDirectoryExists = false;
+    //             for (int j = 0; j < parentItem->childCount(); ++j)
+    //             {
+    //                 if (splitFileName[i] == parentItem->child(j)->text(0))
+    //                 {
+    //                         thisDirectoryExists = true;
+    //                         parentItem = parentItem->child(j);
+    //                         break;
+    //                 }
+    //             }
+
+    //             if (!thisDirectoryExists)
+    //             {
+    //                 parentItem = new QTreeWidgetItem(parentItem);
+    //                 parentItem->setText(0, splitFileName[i]);
+    //             }
+    //         }
+
+    //         QTreeWidgetItem *childItem = new QTreeWidgetItem(parentItem);
+    //         childItem->setText(0, splitFileName.last());
+    //     }
+    // }
 
 }
 #endif

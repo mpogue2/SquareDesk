@@ -119,7 +119,7 @@ QStringList MainWindow::parseCSV(const QString &string)
 QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCount) {
 
     if (!QFileInfo::exists(PlaylistFileName)) {
-        qDebug() << "loadPlaylistFromFile could not find playlist: " << PlaylistFileName;
+        // qDebug() << "loadPlaylistFromFile could not find playlist: " << PlaylistFileName;
         return("FILE NOT FOUND");
     }
 
@@ -283,7 +283,7 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
     firstBadSongLine = loadPlaylistFromFile(PlaylistFileName, songCount);
 
     if (firstBadSongLine == "FILE NOT FOUND") {
-        qDebug() << "finishLoadingPlaylist could not find: " << PlaylistFileName;
+        // qDebug() << "finishLoadingPlaylist could not find: " << PlaylistFileName;
         stopLongSongTableOperation("finishLoadingPlaylist");
         return;
     }
@@ -1537,7 +1537,11 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     else if (songTypeNamesForCalled.contains(cType)) {
         textCol = QColor(calledColorString);
     } else {
-        textCol = QColor("#A0A0A0");  // if not a recognized type, color it white-ish (dark mode!)
+        if (darkmode) { // BUG: I don't think this is set yet by this point
+            textCol = QColor("#808080");  // if not a recognized type, color it white-ish (dark mode!)
+        } else {
+            textCol = QColor("#808080");  // if not a recognized type, color it black (light mode!)
+        }
     }
 
     // darkPaletteSongTitleLabel *title = new darkPaletteSongTitleLabel(this, (MyTableWidget *)whichTable);
@@ -1566,7 +1570,14 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
 
     whichTable->setCellWidget(whichRow, 1, title);
 
+    // qDebug() << "setTitleField: " << relativePath;
+
     QString absPath = musicRootPath + relativePath;
+
+    if (relativePath.startsWith("/Users/")) {
+        absPath = relativePath; // SPECIAL HANDLING for items that point into the local Apple Music library
+    }
+
     QFileInfo fi(absPath);
     if (isPlaylist && !fi.exists()) {
         QFont f = title->font();
@@ -1731,6 +1742,8 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
     //  e.g. "/Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/playlists/Jokers/2018/Jokers_2018.02.14.csv"
     // OR it could be a FAKE Track filter specifier path
     //  e.g. "/Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/Tracks/vocals.csv"
+    // OR it could be a FAKE Apple Music playlist specifier
+    //  e.g. "/Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/Apple Music/Mike's playlist.csv" // FAKE APPLE MUSIC
 
     if (slotModified[slotNumber]) {
         // if the current resident of the slot has been modified, and the playlistSlotWatcherTimer
@@ -1860,9 +1873,125 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
         return ""; // no errors
     }
 
+    // ===============================================================================
+    if (relativePath.startsWith("/Apple Music/")) {
+        // WE KNOW IT'S AN APPLE MUSIC PLAYLIST
+        //   e.g. /Apple Music/
+
+        // qDebug() << "WE KNOW IT'S AN APPLE MUSIC PLAYLIST!";
+
+        // but, it could be
+
+        QString relPath = relativePath;
+        relPath = relPath.replace("/Apple Music/", "").replace(".csv", ""); // relPath is e.g. "Second playlist"
+
+        // qDebug() << "PLAYLIST relPathInSlot: " << relPathInSlot[0] << relPathInSlot[1] << relPathInSlot[2];
+        // qDebug() << "PLAYLIST relativePath: " << relativePath;
+        // qDebug() << "PLAYLIST relPath: " << relPath;
+
+        QString applePlaylistName = relPath;
+
+        // ALLOW ONLY ONE COPY OF A PLAYLIST LOADED IN THE SLOT PALETTE AT A TIME ------
+        //  previous one will be saved, and same one may be loaded into a subsequent slot
+        //  so, e.g. starting with no slots filled, double-click loads into slot 1. Double-click same playlist again, MOVES it to slot 2.
+        if (relPath == relPathInSlot[0]) {
+            saveSlotNow(0);  // save it, if it has something in there
+            clearSlot(0);    // clear the table and the label
+            prefsManager.SetlastPlaylistLoaded("");
+        } else if (relPath == relPathInSlot[1]) {
+            saveSlotNow(1);  // save it, if it has something in there
+            clearSlot(1);    // clear the table and the label
+            prefsManager.SetlastPlaylistLoaded2("");
+        } else if (relPath == relPathInSlot[2]) {
+            saveSlotNow(2);  // save it, if it has something in there
+            clearSlot(2);    // clear the table and the label
+            prefsManager.SetlastPlaylistLoaded3("");
+        }
+
+        QTableWidget *theTableWidget;
+        QLabel *theLabel;
+
+        switch (slotNumber) {
+        case 0: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; prefsManager.SetlastPlaylistLoaded("playlists/" + relPath); break;
+        case 1: theTableWidget = ui->playlist2Table; theLabel = ui->playlist2Label; prefsManager.SetlastPlaylistLoaded2("playlists/" + relPath); break;
+        case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; prefsManager.SetlastPlaylistLoaded3("playlists/" + relPath); break;
+        }
+
+        //        theTableWidget->clear();  // this just clears the items/text, it doesn't delete the rows
+        theTableWidget->setRowCount(0); // delete all the rows
+
+        linesInCurrentPlaylist = 0;
+        int songCount = 0;
+        foreach (const QStringList& sl, allAppleMusicPlaylists) {
+            // look at each one
+            if (sl[0] == applePlaylistName)  {
+                // YES! it belongs to the playlist we want
+                songCount++;
+
+                // make a new row, if needed
+                if (songCount > theTableWidget->rowCount()) {
+                    theTableWidget->insertRow(theTableWidget->rowCount());
+                }
+
+                // # column
+                QTableWidgetItem *num = new TableNumberItem(QString::number(songCount)); // use TableNumberItem so that it sorts numerically
+                theTableWidget->setItem(songCount-1, 0, num);
+
+                // TITLE column
+                // QString absPath = musicRootPath + sl[0];
+                // qDebug() << "loading playlist:" << list1[0] << PlaylistFileName;
+                // setTitleField(theTableWidget, songCount-1, list1[0], true, PlaylistFileName); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
+                QTableWidgetItem *tit = new QTableWidgetItem(sl[1]); // defaults to no pitch change
+                theTableWidget->setItem(songCount-1, 1, tit); // title
+
+                // PITCH column
+                QTableWidgetItem *pit = new QTableWidgetItem("0"); // defaults to no pitch change
+                theTableWidget->setItem(songCount-1, 2, pit);
+
+                // TEMPO column
+                QTableWidgetItem *tem = new QTableWidgetItem("0"); // defaults to tempo 0 = "unknown".  Set to midpoint on load.
+                theTableWidget->setItem(songCount-1, 3, tem);
+
+                // PATH column
+                QTableWidgetItem *fullPath = new QTableWidgetItem(sl[2]); // full ABSOLUTE path
+                theTableWidget->setItem(songCount-1, 4, fullPath);
+
+                // if (pathsOfCalledSongs.contains(absPath)) {
+                //     ((darkPaletteSongTitleLabel *)(theTableWidget->cellWidget(songCount-1, 1)))->setSongUsed(true);
+                // }
+
+                // LOADED column
+                QTableWidgetItem *loaded = new QTableWidgetItem("");  // NOT LOADED
+                theTableWidget->setItem(songCount-1, 5, loaded);
+            }
+        }
+
+        theTableWidget->resizeColumnToContents(0);
+
+        QString theRelativePath = relativePath.replace("/Apple Music/","").replace(".csv","");
+        theRelativePath = "Untitled playlist";
+        theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">") + theRelativePath);
+
+        // relPathInSlot[slotNumber] = PlaylistFileName;
+        // relPathInSlot[slotNumber] = relPathInSlot[slotNumber].replace(musicRootPath + "/Apple Music/", "").replace(".csv","");
+        //  qDebug() << "PLAYLIST: Setting relPath[" << slotNumber << "] to: " << relPathInSlot[slotNumber];
+        relPathInSlot[slotNumber] = ""; // this is an "Untitled playlist"
+        slotModified[slotNumber] = true; // but we've stuck something in it, so must be saved
+        // addFilenameToRecentPlaylist(PlaylistFileName); // remember it in the Recents menu, full absolute pathname
+
+        // qDebug() << "setting focus item to item 0 in slot" << slotNumber;
+        theTableWidget->setCurrentItem(theTableWidget->item(0,0)); // select first item
+        theTableWidget->setFocus();
+
+        // qDebug() << "Exiting the handling of Apple Music playlist -------";
+        return ""; // no errors
+    }
+
+    // ===============================================================================
+    // ELSE:
     // WE KNOW IT'S A PLAYLIST ----------------------
 
-    QString relPath = relativePath;
+    QString relPath = relativePath; // this is the name of a playlist
     relPath = relPath.replace("/playlists/", "").replace(".csv", ""); // relPath is e.g. "5thWed/5thWed_2021.12.29" same as relPathInSlot now
 
 //    qDebug() << "PLAYLIST relPathInSlot: " << relPathInSlot[0] << relPathInSlot[1] << relPathInSlot[2];
@@ -1945,6 +2074,9 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 
                     // TITLE column
                     QString absPath = musicRootPath + list1[0];
+                    if (list1[0].startsWith("/Users/")) {
+                        absPath = list1[0]; // override for absolute pathnames
+                    }
                     // qDebug() << "loading playlist:" << list1[0] << PlaylistFileName;
                     setTitleField(theTableWidget, songCount-1, list1[0], true, PlaylistFileName); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
 
@@ -2755,4 +2887,58 @@ void MainWindow::refreshAllPlaylists() {
         }
 
     }
+}
+
+void MainWindow::getAppleMusicPlaylists() {
+    // qDebug() << "getAppleMusicPlaylists ==================";
+
+    QFile applescriptfile(":/applescript/getAppleMusicPlaylists.txt");
+
+    if (!applescriptfile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        // Handle error, e.g., return an empty string or throw an exception
+        qDebug() << "Could not find getAppleMusicPlaylists.txt file in resources";
+        return;
+    }
+
+    QTextStream in(&applescriptfile);
+    QString aScript = in.readAll();
+    applescriptfile.close();
+
+    // qDebug() << aScript;
+
+    // RUN IT -----------------
+    QString osascript = "/usr/bin/osascript";
+    QStringList processArguments;
+    processArguments << "-l" << "AppleScript";
+
+    QProcess p;
+    p.start(osascript, processArguments);
+    p.write(aScript.toUtf8());
+    p.closeWriteChannel();
+    p.waitForReadyRead(-1);
+    QByteArray result = p.readAll();
+    QString resultAsString(result); // <-- RESULT IS HERE
+
+    // qDebug() << "the result of the script is --------\n" << resultAsString;
+
+    // qDebug() << "in nicer format --------";
+    QStringList s = resultAsString.split("\r"); // split into lines
+
+    for (int i = 1; i < s.size(); ++i) { // skip the header line, process lines one at a time
+        // qDebug() << "--------";
+        QStringList sl = parseCSV(s[i]);
+        if (sl.size() != 3) continue;  // removes empty Apple Music playlists
+        // qDebug() << "LINE: " << qUtf8Printable(s[i]);
+        // qDebug() << "RESULT:" << parseCSV(s[i]);
+        allAppleMusicPlaylistNames.append(sl[0]);
+        allAppleMusicPlaylists.append(sl);
+    }
+
+    allAppleMusicPlaylistNames.removeDuplicates();          // Remove duplicates
+    allAppleMusicPlaylistNames.sort(Qt::CaseInsensitive);   // Sort (case INsensitive)
+
+    // qDebug() << "allAppleMusicPlaylistNames" << allAppleMusicPlaylistNames;
+    // qDebug() << "allAppleMusicPlaylists" << allAppleMusicPlaylists;
+
+    p.waitForFinished();
 }
