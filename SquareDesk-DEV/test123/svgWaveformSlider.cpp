@@ -177,16 +177,19 @@ void svgWaveformSlider::setValue(int val) {
 };
 
 // MOUSE EVENTS ============
+#define XADJUST 3
 void svgWaveformSlider::mousePressEvent(QMouseEvent* e) {
     double val;
 
     switch (e->button()) {
         case Qt::LeftButton:
             // val = this->maximum() * (fmax(0,(e->pos().rx() - 6))/(width()-4));
-            val = this->maximum() * (fmax(0,(e->pos().rx()))/(width()-4));
+            val = this->maximum() * (fmax(0,(e->pos().rx()-XADJUST))/(width()-4));
             val = round(val);
             // qDebug() << "LEFT BUTTON:" << e->pos().rx() << width()-4 << this->maximum() << val;
             this->setValue(val);
+            // qDebug() << "* mousePressEvent, set to:" << val;
+            emit sliderMoved(val);
             break;
         case Qt::MiddleButton:
         case Qt::RightButton:
@@ -197,9 +200,12 @@ void svgWaveformSlider::mousePressEvent(QMouseEvent* e) {
 }
 
 void svgWaveformSlider::mouseMoveEvent(QMouseEvent* e) {
-    Q_UNUSED(e)
-    double val = this->maximum() * (fmax(0,(e->pos().rx() - 6))/(width()-4));
+    // Q_UNUSED(e)
+    double val = this->maximum() * (fmax(0,(e->pos().rx()-XADJUST))/(width()-4));
+    val = round(val);
     this->setValue(val);
+    // qDebug() << "* mouseMoveEvent, set to:" << val;
+    emit sliderMoved(val);
 }
 
 void svgWaveformSlider::mouseDoubleClickEvent(QMouseEvent* e) {
@@ -208,7 +214,12 @@ void svgWaveformSlider::mouseDoubleClickEvent(QMouseEvent* e) {
 }
 
 void svgWaveformSlider::mouseReleaseEvent(QMouseEvent* e) {
-    Q_UNUSED(e)
+    // Q_UNUSED(e)
+    double val = this->maximum() * (fmax(0,(e->pos().rx()-XADJUST))/(width()-4));
+    val = round(val);
+    this->setValue(val);
+    // qDebug() << "* mouseReleaseEvent, set to:" << val << e->pos().rx();
+    emit sliderMoved(val);
 }
 
 void svgWaveformSlider::finishInit() {
@@ -791,6 +802,14 @@ double svgWaveformSlider::getIntro() {
 
 double svgWaveformSlider::getOutro() {
     return(outroPosition);
+}
+
+double svgWaveformSlider::getIntroFrac() {
+    return(introFrac);
+}
+
+double svgWaveformSlider::getOutroFrac() {
+    return(outroFrac);
 }
 
 void svgWaveformSlider::setWholeTrackPeak(double p) {

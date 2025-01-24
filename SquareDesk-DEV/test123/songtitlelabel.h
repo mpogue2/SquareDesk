@@ -46,7 +46,6 @@ public:
     QString textColor;  // saved so that we can restore it when not selected
 };
 
-#ifdef DARKMODE
 // ================================================================
 class darkSongTitleLabel : public QLabel {
 private:
@@ -77,6 +76,5 @@ public:
     void setSongUsed(bool b);  // true = song was used recently (Recent == "*")
     QString textColor;  // saved so that we can restore it when not selected
 };
-#endif
 
 #endif /* ifndef SONGTITLELABEL_H_INCLUDED */

@@ -1,10 +1,6 @@
 #ifndef GLOBALDEFINES_H
 #define GLOBALDEFINES_H
 
-// define this if you want the DarkMode tab, and all the new stuff that goes with it
-#define DARKMODE
-#define DARKMUSICTABNAME "Music"
-
 // from: https://raymii.org/s/blog/Qt_Property_Macro_Q_PROPERTY_with_95_percent_less_code.html
 /* Macro to define Q_PROPERTY backed by a regular value
  * QP_V = Q_Property, value (not reference) */
@@ -25,7 +21,7 @@ private: \
 #define DEBUG_LIGHT_MODE
 
 // define this to play with JUCE
-#define USE_JUCE
+// #define USE_JUCE
 
 #ifdef USE_JUCE
 #define JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED 1

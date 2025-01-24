@@ -547,13 +547,13 @@ void MainWindow::initialize_internal_sd_tab()
     
     if (nullptr != shortcutSDTabUndo)
         delete shortcutSDTabUndo;
-    shortcutSDTabUndo = new QShortcut(ui->tabSDIntegration);
+    shortcutSDTabUndo = new QShortcut(ui->SDtab);
     connect(shortcutSDTabUndo, SIGNAL(activated()), this, SLOT(undo_last_sd_action()));
     shortcutSDTabUndo->setKey(QKeySequence::Undo);
 
     if (nullptr != shortcutSDTabRedo)
         delete shortcutSDTabRedo;
-    shortcutSDTabRedo = new QShortcut(ui->tabSDIntegration);
+    shortcutSDTabRedo = new QShortcut(ui->SDtab);
     connect(shortcutSDTabRedo, SIGNAL(activated()), this, SLOT(redo_last_sd_action()));
     shortcutSDTabRedo->setKey(QKeySequence::Redo);
 
@@ -3328,9 +3328,7 @@ void MainWindow::refreshSDframes() {
 
     QString FColor = "#0433ff"; // BLUE for non-dark mode
 
-#ifdef DARKMODE
     FColor = "#6493ff";
-#endif
 
 //    QString frameTitleString("<html><head/><body><p><span style=\"font-weight:700; color:#0433ff;\">F%1</span><span style=\"font-weight:700;\"> %2%5 [%06%3/%4]</span></p></body></html>"); // %06 is intentional, do not use just %6
     QString frameTitleString("<html><head/><body><p><span style=\"font-weight:700; color:%7;\">F%1</span><span style=\"font-weight:700;\"> %2%5 [%06%3/%4]</span></p></body></html>"); // %06 is intentional, do not use just %6
@@ -3832,7 +3830,7 @@ void MainWindow::SDExitEditMode() {
     editSequenceInProgress = false;
     refreshSDframes();  // clear the * editing indicator
 
-    analogClock->setSDEditMode(false);
+    // analogClock->setSDEditMode(false);
 }
 
 void MainWindow::SDSetCurrentSeqs(int i) {

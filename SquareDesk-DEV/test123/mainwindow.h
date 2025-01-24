@@ -325,7 +325,6 @@ public slots:
     void PlaylistItemsMoveDown();        // moves down one position (must already be on the list)
     void PlaylistItemsRemove();      // removes item from the playlist (must already be on the list)
 
-#ifdef DARKMODE
     // void darkAddPlaylistItemToTop(int slot);
     void darkAddPlaylistItemsToBottom(int slot);    // adds multiple selected darkSongTable items to the bottom of playlist in slot n
     void darkAddPlaylistItemToBottom(int whichSlot, QString title, QString thePitch, QString theTempo, QString theFullPath, QString isLoaded); // single item add
@@ -335,7 +334,6 @@ public slots:
 
     void customPlaylistMenuRequested(QPoint pos);
     void customTreeWidgetMenuRequested(QPoint pos);
-#endif
 
 protected:
     bool maybeSave();
@@ -380,15 +378,7 @@ private slots:
     void themeTriggered(QAction *action);
 #endif
 
-    void on_stopButton_clicked();
-    void on_playButton_clicked();
-    void on_pitchSlider_valueChanged(int value);
-    void on_volumeSlider_valueChanged(int value);
     void on_actionMute_triggered();
-    void on_tempoSlider_valueChanged(int value);
-    void on_mixSlider_valueChanged(int value);
-    void on_seekBar_valueChanged(int value);
-    void on_clearSearchButton_clicked();
     void on_actionLoop_triggered();
 
     void on_actionSDSquareYourSets_triggered();
@@ -412,19 +402,8 @@ private slots:
     void on_actionStop_triggered();
     void on_actionForce_Mono_Aahz_mode_triggered();
 
-    void on_bassSlider_valueChanged(int value);
-    void on_midrangeSlider_valueChanged(int value);
-    void on_trebleSlider_valueChanged(int value);
-
     void on_actionOpen_MP3_file_triggered();
-    void on_songTable_itemDoubleClicked(QTableWidgetItem *item);
-#ifdef DARKMODE
     void on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item);
-#endif
-
-    void on_labelSearch_textChanged();
-    void on_typeSearch_textChanged();
-    void on_titleSearch_textChanged();
 
     void on_actionClear_Search_triggered();
     void on_actionPitch_Up_triggered();
@@ -480,37 +459,22 @@ private slots:
 
     void reloadPaletteSlots(); // called twice, once at constructor time, once after changing preferences colors
 
-#ifdef DARKMODE
     void saveSlotAsPlaylist(int whichSlot); // SAVE AS a playlist in a slot to a CSV file
     void saveSlotNow(int whichSlot);           // SAVE a playlist in a slot to a CSV file
 
     void clearSlot(int whichSlot);  // clears out the slot, both table and label
-#endif
 
     void on_actionNext_Playlist_Item_triggered();
     void on_actionPrevious_Playlist_Item_triggered();
-
-    void on_previousSongButton_clicked();
-    void on_nextSongButton_clicked();
-
-    void on_songTable_itemSelectionChanged();
 
     void on_actionClear_Playlist_triggered();
 
     void showInFinderOrExplorer(QString s);
 
-#ifdef DARKMODE
     void on_darkSongTable_customContextMenuRequested(const QPoint &pos);
-#endif
 
-    void on_songTable_customContextMenuRequested(const QPoint &pos);
-
-    void editTags();
-#ifdef DARKMODE
     void darkEditTags();
-#endif
 
-    void loadSong();
     void revealInFinder();
     void revealLyricsFileInFinder();
     void revealAttachedLyricsFileInFinder();
@@ -527,12 +491,8 @@ private slots:
 
     void tableItemChanged(QTableWidgetItem* item);
 
-    void on_warningLabel_clicked();
     void on_warningLabelCuesheet_clicked();
-
-#ifdef DARKMODE
     void on_darkWarningLabel_clicked();
-#endif
 
     void on_tabWidget_currentChanged(int index);
 
@@ -594,9 +554,7 @@ private slots:
     void maybeLyricsChanged();
     void lockForEditing();
 
-#ifdef DARKMODE
     void playlistSlotWatcherTriggered();
-#endif
 
     void readAbbreviations();
     QString expandAbbreviations(QString s);
@@ -797,7 +755,6 @@ private slots:
     void on_actionPrint_Sequence_triggered();
 
     void on_pushButtonRevertEdits_clicked();
-#ifdef DARKMODE
     void on_darkStopButton_clicked();
 
     void on_darkPlayButton_clicked();
@@ -821,6 +778,7 @@ private slots:
     void on_darkBassKnob_valueChanged(int value);
 
     void on_darkSeekBar_valueChanged(int value);
+    void on_darkSeekBar_sliderMoved(int value);
 
     void on_darkSearch_textChanged(const QString &arg1);
 
@@ -845,7 +803,6 @@ private slots:
     void on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item);
 
     void on_treeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column);
-#endif
 
     void on_actionSwitch_to_Light_Mode_triggered();
 
@@ -896,9 +853,7 @@ public:
     void highlight_sd_replaceables();
     void populateMenuSessionOptions();
     void titleLabelDoubleClicked(QMouseEvent * /* event */);
-#ifdef DARKMODE
     void darkTitleLabelDoubleClicked(QMouseEvent * /* event */);
-#endif
 #ifndef NO_TIMING_INFO
     void sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */);
 #endif
@@ -984,7 +939,6 @@ private:
 
     QMap<int,QPair<QWidget *,QString> > tabmap; // keep track of experimental tabs
 
-//    unsigned char currentState;
     int currentPitch;
     unsigned short currentVolume;
     int previousVolume;
@@ -1072,21 +1026,15 @@ private:
     bool cuesheetIsUnlockedForEditing;
 
     void findMusic(QString mainRootDir, bool refreshDatabase);    // get the filenames into pathStack
-#ifdef DARKMODE
     void updateTreeWidget();
-#endif
     void filterMusic();  // filter them into the songTable
     void loadMusicList();  // filter them into the songTable
-#ifdef DARKMODE
     void darkFilterMusic();  // filter them into the songTable
     void darkLoadMusicList();  // filter them into the darkSongTable
-#endif
     QString FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags, QString titleColor = "");
 
     void changeTagOnCurrentSongSelection(QString tag, bool add);
-#ifdef DARKMODE
     void darkChangeTagOnCurrentSongSelection(QString tag, bool add);
-#endif
     void loadChoreographyList();
     void filterChoreography();
     QStringList getUncheckedItemsFromCurrentCallList();
@@ -1162,17 +1110,13 @@ private:
     int selectedSongRow();  // returns -1 if none selected
     int previousVisibleSongRow();   // previous visible row or -1
     int nextVisibleSongRow();       // return next visible row or -1
-#ifdef DARKMODE
     int darkPreviousVisibleSongRow();   // previous visible row or -1
     int darkNextVisibleSongRow();       // return next visible row or -1
-#endif
     int PlaylistItemCount(); // returns the number of items in the currently loaded playlist
     int getSelectionRowForFilename(const QString &filePath);
 
-#ifdef DARKMODE
     int darkGetSelectionRowForFilename(const QString &filePath);
     int darkSelectedSongRow();  // returns -1 if none selected
-#endif
     // Song types
     QStringList songTypeNamesForPatter;
     QStringList songTypeNamesForSinging;
@@ -1464,11 +1408,9 @@ public:
 
     bool darkmode; // true if we're using the new dark UX
 
-#ifdef DARKMODE
     QIcon *darkStopIcon;
     QIcon *darkPlayIcon;
     QIcon *darkPauseIcon;
-#endif
 
     float *waveform;
 
@@ -1504,12 +1446,6 @@ public:
     void scanForPlugins();
 #endif
 };
-
-// currentState:
-#define kStopped 0
-#define kPlaying 1
-#define kPaused  2
-
 
 // font sizes
 #define SMALLESTZOOM (11)

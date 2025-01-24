@@ -128,10 +128,8 @@ public:
     bool editModeSD;
     QLabel *timerLabelCuesheet;
 
-#ifdef DARKMODE
     bool darkmode;  // what mode we are currently in
     QLabel *timerLabelDark;
-#endif
 
     TypeTracker typeTracker;
     void resetPatter(void);

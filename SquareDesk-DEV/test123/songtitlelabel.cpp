@@ -36,7 +36,6 @@ void SongTitleLabel::mouseDoubleClickEvent(QMouseEvent *e)
     mw->titleLabelDoubleClicked(e);
 }
 
-#ifdef DARKMODE
 // ===============================================================
 static QRegularExpression title_tags_remover3("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
 static QRegularExpression spanPrefixRemover3("<span style=\"color:.*\">(.*)</span>", QRegularExpression::InvertedGreedinessOption);
@@ -266,6 +265,3 @@ void darkPaletteSongTitleLabel::setSongUsed(bool b) {
 #endif
     songUsed = b;
 }
-
-
-#endif
