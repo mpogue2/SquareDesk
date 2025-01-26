@@ -755,7 +755,7 @@ public:
 
 private:
     unsigned int m_volume;
-    double       m_pan;
+    double       m_pan = 0.0; // currently MIX is not used, so make sure it's set to zero
     bool         m_mono;  // true when Force Mono is on
 
     double       m_peakLevelL_mono;     // for VU meter
