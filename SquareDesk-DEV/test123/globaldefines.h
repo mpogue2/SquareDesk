@@ -35,4 +35,9 @@ private: \
 #define JUCE_MAC 1
 #endif
 
+// this needs to match the version of the sd_doc.pdf that is in the Resources folder
+// This will be copied to the user's Reference folder, if "196.SD_<SD_VERSION>.pdf" does not exist.
+// User must delete the old one, if they don't want to see it.
+#define SD_VERSION "39.71"
+
 #endif // GLOBALDEFINES_H

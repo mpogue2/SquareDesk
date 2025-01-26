@@ -9657,21 +9657,28 @@ void MainWindow::maybeInstallReferencefiles() {
         // ---------------
         // and populate it with the SD doc, if it didn't exist (somewhere) already
         bool hasSDpdf = false;
+        bool hasNOSD = false;
+        QString latestSDFilename = "196.SD_V";
+        latestSDFilename = latestSDFilename + SD_VERSION + ".pdf";
+
         QDirIterator it(referenceDir);
         while(it.hasNext()) {
             QString s2 = it.next();
             QString s1 = it.fileName();
-            // if 123.SD.pdf or SD.pdf, then do NOT copy one in as 195.SD.pdf
-            static QRegularExpression re10("^[0-9]+\\.SD.pdf");
-            static QRegularExpression re11("^SD.pdf");
-            if (s1.contains(re10) || s1.contains(re11)) {
+
+            // if already has a "196.SD.pdf" don't copy the latest SD doc into the Resources folder in musicDir
+            if (s1.contains(latestSDFilename)) {
                hasSDpdf = true;
+            } else if (s1.contains("NOSD", Qt::CaseInsensitive)) {  // if user has done "touch NOSD", then they do NOT want the latest SD_doc.pdf copied in to "196.SD_V<version>.pdf"
+                hasNOSD = true;
             }
+            // qDebug() << "Resource: " << s1 << hasSDpdf << hasNOSD;
         }
 
-        if (!hasSDpdf) {
+        if (!hasSDpdf && !hasNOSD) {
+            qDebug() << "Copying in...";
             QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToResources + "/sd_doc.pdf";
-            QString destination = referenceDir + "/195.SD.pdf";
+            QString destination = referenceDir + "/" + latestSDFilename;
             QFile::copy(source, destination);
         }
 
