@@ -4068,7 +4068,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
     // float currentPos_f = static_cast<float>(cBass->Current_Position);
     int currentPos_i   = static_cast<int>(cBass->Current_Position);
 
-    // update text fields --------------------------------
+    // UPDATE TEXT FIELDS --------------------------------
     int fileLen_i = static_cast<int>(cBass->FileLength);
 
     if (prefsManager.GetuseTimeRemaining()) {
@@ -4086,7 +4086,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
     ui->timeSlash->setVisible(true);
     ui->songLengthLabel2->setText(position2String(fileLen_i));          // no padding, intentionally no prefix "/"
 
-    // singing call sections ----------------------
+    // SINGING CALL SECTIONS ----------------------------------------------
     if (currentSongIsSinger || currentSongIsVocal) {
         double introLength = static_cast<double>(ui->darkSeekBar->getIntroFrac()) * cBass->FileLength; // seconds
         double outroTime = static_cast<double>(ui->darkSeekBar->getOutroFrac()) * cBass->FileLength; // seconds
@@ -4141,7 +4141,44 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         ui->darkWarningLabel->setText(""); // not a singing call
     }
 
-    // Now forcibly move the darkSeekBar slider, if true
+    // FLASHCALLS ------------------------------------------------------
+    int flashCallEverySeconds = prefsManager.Getflashcalltiming().toInt();
+    if (currentPos_i % flashCallEverySeconds == 0 && currentPos_i != 0) {
+        // Now pick a new random number, but don't pick the same one twice in a row.
+        // TODO: should really do a permutation over all the allowed calls, with no repeats
+        //   but this should be good enough for now, if the number of calls is sufficiently
+        //   large.
+        randomizeFlashCall();
+    }
+
+    if (flashCalls.length() != 0) {
+        // if there are flash calls on the list, then Flash Calls are enabled.
+        if (cBass->currentStreamState() == BASS_ACTIVE_PLAYING && (currentSongIsPatter || currentSongIsUndefined)) { // FLASH calls enabled if Patter OR Unknown type
+             // if playing, and Patter type
+             // TODO: don't show any random calls until at least the end of the first N seconds
+             setNowPlayingLabelWithColor(flashCalls[randCallIndex], true);
+
+             flashCallsVisible = true;
+         } else {
+             // flash calls on the list, but not playing, or not patter
+             if (flashCallsVisible) {
+                 // if they were visible, they're not now
+                 setNowPlayingLabelWithColor(currentSongTitle);
+
+                 flashCallsVisible = false;
+             }
+         }
+    } else {
+        // no flash calls on the list
+        if (flashCallsVisible) {
+            // if they were visible, they're not now
+            setNowPlayingLabelWithColor(currentSongTitle);
+
+            flashCallsVisible = false;
+        }
+    }
+
+    // FORCIBLY MOVE THE SLIDER ----------------------------------------
     if (forceSlider) {
         // force the sliders to reflect current position in the song ----------------
         SetSeekBarPositionWithoutValueChanged(ui->seekBarCuesheet, currentPos_i); // don't generate a ValueChanged event
