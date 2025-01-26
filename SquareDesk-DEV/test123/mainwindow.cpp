@@ -8806,11 +8806,26 @@ void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int ne
 
 }
 
+// HELPER FUNCTIONS ----------------------
+// The Old Light Mode sliders are gone, but we need to convert to/from their ranges for settings.
+// EQ Knob range is 0 to 100
+// EQ Slider range is -15 to +15
+
+int KnobToSlider(int knobValue) {
+    int equivalentSliderValue = round(-15 + 30 * (knobValue/100.0)); // rounded to nearest int
+    return(equivalentSliderValue);
+}
+
+int SliderToKnob(int sliderValue) {
+    int equivalentKnobValue = round((sliderValue + 15) * (100.0/30.0));
+    return(equivalentKnobValue);
+}
+
 // ----------------------------------------------------------------------
 void MainWindow::saveCurrentSongSettings()
 {
     if (loadingSong) {
-        qDebug() << "***** WARNING: MainWindow::saveCurrentSongSettings tried to save while loadingSong was true";
+        // qDebug() << "***** WARNING: MainWindow::saveCurrentSongSettings tried to save while loadingSong was true";
         return;
     }
 //    qDebug() << "MainWindow::saveCurrentSongSettings trying to save settings...";
@@ -8841,9 +8856,9 @@ void MainWindow::saveCurrentSongSettings()
         }
         setting.setSongLength(static_cast<double>(ui->seekBarCuesheet->maximum()));
 
-        setting.setTreble( ui->darkTrebleKnob->value() );
-        setting.setBass( ui->darkBassKnob->value() );
-        setting.setMidrange( ui->darkMidKnob->value() );
+        setting.setTreble(   KnobToSlider(ui->darkTrebleKnob->value()) );
+        setting.setBass(     KnobToSlider(ui->darkBassKnob->value())   );
+        setting.setMidrange( KnobToSlider(ui->darkMidKnob->value())    );
         // setting.setMix( ui->mixSlider->value() );
 
 //        setting.setReplayGain();  // TODO:
@@ -8879,7 +8894,9 @@ void MainWindow::saveCurrentSongSettings()
 void MainWindow::loadSettingsForSong(QString songTitle)
 {
     Q_UNUSED(songTitle)
-//    qDebug() << "loadSettingsForSong";
+
+    // qDebug() << "loadSettingsForSong" << songTitle;
+
     int pitch = ui->darkPitchSlider->value();
     int tempo = ui->darkTempoSlider->value();  // qDebug() << "loadSettingsForSong, current tempo slider: " << tempo;
     int volume = ui->darkVolumeSlider->value();
@@ -8963,29 +8980,30 @@ void MainWindow::loadSettingsForSong(QString songTitle)
                 }
             }
         }
+        // qDebug() << "loadSettingsForSong:" << settings.getTreble() << settings.getBass() << settings.getMidrange();
         if (settings.isSetTreble())
         {
-            ui->darkTrebleKnob->setValue(settings.getTreble() );
+            ui->darkTrebleKnob->setValue( SliderToKnob(settings.getTreble()) );
         }
         else
         {
-            ui->darkTrebleKnob->setValue(0) ;
+            ui->darkTrebleKnob->setValue( SliderToKnob(0) ) ;
         }
         if (settings.isSetBass())
         {
-            ui->darkBassKnob->setValue( settings.getBass() );
+            ui->darkBassKnob->setValue( SliderToKnob(settings.getBass()) );
         }
         else
         {
-            ui->darkBassKnob->setValue(0);
+            ui->darkBassKnob->setValue( SliderToKnob(0) );
         }
         if (settings.isSetMidrange())
         {
-            ui->darkMidKnob->setValue( settings.getMidrange() );
+            ui->darkMidKnob->setValue( SliderToKnob(settings.getMidrange()) );
         }
         else
         {
-            ui->darkMidKnob->setValue(0);
+            ui->darkMidKnob->setValue( SliderToKnob(0) );
         }
         // if (settings.isSetMix())
         // {
