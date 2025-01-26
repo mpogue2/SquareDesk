@@ -362,6 +362,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     testRestartingSquareDesk = true;  // set to false for NORMAL operation, TRUE to test restarting
 #endif
 
+    doNotCallDarkLoadMusicList = false;
+
     QString darkTextColor = "black";
     lastMinuteInHour = -1;
     lastSessionID = -2; // initial startup
@@ -842,7 +844,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     t.elapsed(__LINE__);
 
     ui->actionViewTags->setChecked(prefsManager.GetshowSongTags()); // tags setting must persist
-    on_actionViewTags_toggled(prefsManager.GetshowSongTags()); // THIS WILL CALL loadMusicList().  Doing it this way to avoid loading twice at startup.
+
+    on_actionViewTags_toggled(prefsManager.GetshowSongTags()); // Calls darkLoadMusicList
 
     // connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
     //         this, &MainWindow::columnHeaderResized);
@@ -1349,6 +1352,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     QString themePreference = prefsManager.GetactiveTheme();
     // qDebug() << "themePreference:" << themePreference;
 
+    // set the theme, but do not call darkLoadSongList again
+    doNotCallDarkLoadMusicList = true;  // avoid calling it twice at startup, but allow later for it to be called by both actionViewTags and ThemeToggled
     if (themePreference == "Light") {
         // qDebug() << "    setting to Light";
         ui->actionLight->setChecked(true);
@@ -1358,6 +1363,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
         ui->actionDark->setChecked(true);
         themeTriggered(ui->actionDark);
     }
+    doNotCallDarkLoadMusicList = false;
+
 #endif
 
     QString snapSetting = prefsManager.Getsnap();
@@ -2721,6 +2728,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
             abbrevsWatcher.addPath(musicRootPath + "/sd/abbrevs.txt");
             QObject::connect(&abbrevsWatcher, SIGNAL(fileChanged(QString)), this, SLOT(readAbbreviations()));
 
+            ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
         });
 }
 
@@ -2909,7 +2917,7 @@ void MainWindow::musicRootModified(QString s)
 
    // qDebug() << "Music root modified (File Watcher awakened for real!): " << s;
     if (!filewatcherShouldIgnoreOneFileSave) { // yes, we need this here, too...because root watcher watches playlists (don't ask me!)
-        // qDebug() << "*** musicRootModified!!!";
+        // qDebug() << "*** File watcher awakens!!!";
         // Qt::SortOrder sortOrder(ui->songTable->horizontalHeader()->sortIndicatorOrder());
         // int sortSection(ui->songTable->horizontalHeader()->sortIndicatorSection());
         // reload the musicTable.  Note that it will switch to default sort order.
@@ -2920,11 +2928,7 @@ void MainWindow::musicRootModified(QString s)
         // if (darkmode) {
         darkLoadMusicList(); // also filter them into the darkSongTable
         darkFilterMusic();   // and redo the filtering (NOTE: might still scroll the darkSongTable)
-        // } else {
-        //     loadMusicList(); // and filter them into the songTable (LIGHT MODE ONLY)
-        //     filterMusic();
-        // }
-        // ui->songTable->horizontalHeader()->setSortIndicator(sortSection, sortOrder);
+        // ui->darkSongTable->horizontalHeader()->setSortIndicator(sortSection, sortOrder);
     }
     filewatcherShouldIgnoreOneFileSave = false;
 }
@@ -6515,6 +6519,7 @@ void MainWindow::clearLockFile(QString musicRootPath) {
 
 void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
 {
+    // qDebug() << "***** findMusic";
     PerfTimer t("findMusic", __LINE__);
     QString databaseDir(mainRootDir + "/.squaredesk");
 
@@ -6989,14 +6994,14 @@ void MainWindow::loadMusicList()
     // qDebug() << "LOAD MUSIC LIST()" << songSettings.getCurrentSession();
 //    ui->songTable->clearSelection();  // DEBUG DEBUG
 
-    PerfTimer t("loadMusicList", __LINE__);
-    t.start(__LINE__);
+    // PerfTimer t("loadMusicList", __LINE__);
+    // t.start(__LINE__);
 
-    startLongSongTableOperation("loadMusicList");  // for performance, hide and sorting off
+    // startLongSongTableOperation("loadMusicList");  // for performance, hide and sorting off
 
-    // Need to remember the PL# mapping here, and reapply it after the filter
-    // left = path, right = number string
-    QMap<QString, QString> path2playlistNum;
+    // // Need to remember the PL# mapping here, and reapply it after the filter
+    // // left = path, right = number string
+    // QMap<QString, QString> path2playlistNum;
 
 // SONGTABLEREFACTOR
     // Iterate over the songTable, saving the mapping in "path2playlistNum"
@@ -7191,6 +7196,7 @@ void MainWindow::loadMusicList()
 // --------------------------------------------------------------------------------
 void MainWindow::darkLoadMusicList()
 {
+    // qDebug() << "***** darkLoadMusicList()";
     PerfTimer t("darkLoadMusicList", __LINE__);
     t.start(__LINE__);
 
@@ -7494,8 +7500,7 @@ void MainWindow::darkLoadMusicList()
         ui->darkSongTable->setFocus();
     }
 
-    ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
-
+    // ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
     ui->darkSearch->setFocus();
 
     t.elapsed(__LINE__);
@@ -7757,7 +7762,7 @@ void MainWindow::on_actionImport_triggered()
     if (dialogCode == QDialog::Accepted)
     {
         importDialog->importSongs(songSettings, pathStack);
-        loadMusicList();
+        darkLoadMusicList();
     }
     delete importDialog;
     importDialog = nullptr;
@@ -8091,12 +8096,8 @@ void MainWindow::on_actionPreferences_triggered()
         if (prefDialog->songTableReloadNeeded) {
 //            qDebug() << "LOAD MUSIC LIST TRIGGERED FROM PREFERENCES TRIGGERED";
 
-            if (darkmode) {
-                darkLoadMusicList();
-                reloadPaletteSlots();
-            } else {
-                loadMusicList();
-            }
+            darkLoadMusicList();
+            reloadPaletteSlots();
         }
 
         if (prefsManager.GetenableAutoAirplaneMode()) {
@@ -9368,7 +9369,7 @@ void MainWindow::on_actionStartup_Wizard_triggered()
         findMusic(musicRootPath, true);  // get the filenames from the user's directories
         filterMusic(); // and filter them into the songTable
 //        qDebug() << "LOAD MUSIC LIST FROM STARTUP WIZARD TRIGGERED";
-        loadMusicList();
+        darkLoadMusicList();
 
         // install soundFX if not already present
         maybeInstallSoundFX();
@@ -9808,9 +9809,10 @@ void MainWindow::on_actionViewTags_toggled(bool checked)
     // prefsManager.SetshowSongTags(ui->actionViewTags->isChecked());
     prefsManager.SetshowSongTags(checked);
 
-    loadMusicList();
-    refreshAllPlaylists(); // tags changed, so update the playlist views based on ui->actionViewTags->isChecked()
-    darkLoadMusicList();
+    if (!doNotCallDarkLoadMusicList) { // I hate this, but I can't change the signature of actionViewTags or ThemeToggled, or they won't match
+        refreshAllPlaylists(); // tags changed, so update the playlist views based on ui->actionViewTags->isChecked()
+        darkLoadMusicList();
+    }
 
     // if (darkmode) {
     //         refreshAllPlaylists(); // tags changed, so update the playlist views based on ui->actionViewTags->isChecked()
@@ -10214,7 +10216,7 @@ void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
 
     // set in fractional form
     double frac = position_sec/length;
-    qDebug() << "dateTimeEditOutro:" << frac;
+    // qDebug() << "dateTimeEditOutro:" << frac;
     ui->seekBarCuesheet->SetOutro(frac);  // after the events are done, do this.
     // ui->seekBar->SetOutro(frac);
 
