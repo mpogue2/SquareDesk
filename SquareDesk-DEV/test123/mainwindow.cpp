@@ -3025,7 +3025,7 @@ void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent colu
         ui->darkSongTable->item(i,kRecentCol)->setText(theRecentString);
         ui->darkSongTable->item(i,kRecentCol)->setTextAlignment(Qt::AlignCenter);
 
-        ((darkSongTitleLabel *)(ui->darkSongTable->cellWidget(i, kTitleCol)))->setSongUsed(theRecentString != ""); // rewrite the song's title to be strikethrough and/or green background
+        // ((darkSongTitleLabel *)(ui->darkSongTable->cellWidget(i, kTitleCol)))->setSongUsed(theRecentString != ""); // rewrite the song's title to be strikethrough and/or green background
         QString thePath = ui->darkSongTable->item(i, kPathCol)->data(Qt::UserRole).toString();
         if (theRecentString != "") {
             pathsOfCalledSongs.insert(thePath);
@@ -3052,27 +3052,27 @@ void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent colu
     // now that we know what's strikethrough and what's not, update the palette slots, too
     // TODO: THIS IS DUPLICATED CODE, FACTOR IT OUT
     // qDebug() << "TIMERTICK pathsOfCalledSongs:" << pathsOfCalledSongs;
-    for (int r = 0; r < ui->playlist1Table->rowCount(); r++) {
-        if (ui->playlist1Table->item(r,4) != nullptr) {
-            QString pathToMP3 = ui->playlist1Table->item(r,4)->text();
-            // qDebug() << "TIMERTICK playlist1Table thePath:" << pathToMP3;
-            ((darkPaletteSongTitleLabel *)(ui->playlist1Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
-        }
-    }
-    for (int r = 0; r < ui->playlist2Table->rowCount(); r++) {
-        if (ui->playlist2Table->item(r,4) != nullptr) {
-            QString pathToMP3 = ui->playlist2Table->item(r,4)->text();
-            // qDebug() << "TIMERTICK playlist2Table thePath:" << pathToMP3;
-            ((darkPaletteSongTitleLabel *)(ui->playlist2Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
-        }
-    }
-    for (int r = 0; r < ui->playlist3Table->rowCount(); r++) {
-        if (ui->playlist3Table->item(r,4) != nullptr) {
-            QString pathToMP3 = ui->playlist3Table->item(r,4)->text();
-            // qDebug() << "TIMERTICK playlist3Table thePath:" << pathToMP3;
-            ((darkPaletteSongTitleLabel *)(ui->playlist3Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
-        }
-    }
+    // for (int r = 0; r < ui->playlist1Table->rowCount(); r++) {
+    //     if (ui->playlist1Table->item(r,4) != nullptr) {
+    //         QString pathToMP3 = ui->playlist1Table->item(r,4)->text();
+    //         // qDebug() << "TIMERTICK playlist1Table thePath:" << pathToMP3;
+    //         ((darkPaletteSongTitleLabel *)(ui->playlist1Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
+    //     }
+    // }
+    // for (int r = 0; r < ui->playlist2Table->rowCount(); r++) {
+    //     if (ui->playlist2Table->item(r,4) != nullptr) {
+    //         QString pathToMP3 = ui->playlist2Table->item(r,4)->text();
+    //         // qDebug() << "TIMERTICK playlist2Table thePath:" << pathToMP3;
+    //         ((darkPaletteSongTitleLabel *)(ui->playlist2Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
+    //     }
+    // }
+    // for (int r = 0; r < ui->playlist3Table->rowCount(); r++) {
+    //     if (ui->playlist3Table->item(r,4) != nullptr) {
+    //         QString pathToMP3 = ui->playlist3Table->item(r,4)->text();
+    //         // qDebug() << "TIMERTICK playlist3Table thePath:" << pathToMP3;
+    //         ((darkPaletteSongTitleLabel *)(ui->playlist3Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
+    //     }
+    // }
 }
 
 void MainWindow::setCurrentSessionIdReloadSongAges(int id)
@@ -4986,31 +4986,31 @@ void MainWindow::on_UIUpdateTimerTick(void)
                 ui->darkSongTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
 
                 pathsOfCalledSongs.insert(ui->darkSongTable->item(row, kPathCol)->data(Qt::UserRole).toString());
-                ((darkSongTitleLabel *)(ui->darkSongTable->cellWidget(row,kTitleCol)))->setSongUsed(true);
+                // ((darkSongTitleLabel *)(ui->darkSongTable->cellWidget(row,kTitleCol)))->setSongUsed(true);
 
-                // TODO: THIS IS DUPLICATED CODE, FACTOR IT OUT
-                // qDebug() << "TIMERTICK pathsOfCalledSongs:" << pathsOfCalledSongs;
-                for (int r = 0; r < ui->playlist1Table->rowCount(); r++) {
-                    if (ui->playlist1Table->item(r,4) != nullptr) {
-                        QString pathToMP3 = ui->playlist1Table->item(r,4)->text();
-                        // qDebug() << "TIMERTICK playlist1Table thePath:" << pathToMP3;
-                        ((darkPaletteSongTitleLabel *)(ui->playlist1Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
-                    }
-                }
-                for (int r = 0; r < ui->playlist2Table->rowCount(); r++) {
-                    if (ui->playlist2Table->item(r,4) != nullptr) {
-                        QString pathToMP3 = ui->playlist2Table->item(r,4)->text();
-                        // qDebug() << "TIMERTICK playlist2Table thePath:" << pathToMP3;
-                        ((darkPaletteSongTitleLabel *)(ui->playlist2Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
-                    }
-                }
-                for (int r = 0; r < ui->playlist3Table->rowCount(); r++) {
-                    if (ui->playlist3Table->item(r,4) != nullptr) {
-                        QString pathToMP3 = ui->playlist3Table->item(r,4)->text();
-                        // qDebug() << "TIMERTICK playlist3Table thePath:" << pathToMP3;
-                        ((darkPaletteSongTitleLabel *)(ui->playlist3Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
-                    }
-                }
+                // // TODO: THIS IS DUPLICATED CODE, FACTOR IT OUT
+                // // qDebug() << "TIMERTICK pathsOfCalledSongs:" << pathsOfCalledSongs;
+                // for (int r = 0; r < ui->playlist1Table->rowCount(); r++) {
+                //     if (ui->playlist1Table->item(r,4) != nullptr) {
+                //         QString pathToMP3 = ui->playlist1Table->item(r,4)->text();
+                //         // qDebug() << "TIMERTICK playlist1Table thePath:" << pathToMP3;
+                //         ((darkPaletteSongTitleLabel *)(ui->playlist1Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
+                //     }
+                // }
+                // for (int r = 0; r < ui->playlist2Table->rowCount(); r++) {
+                //     if (ui->playlist2Table->item(r,4) != nullptr) {
+                //         QString pathToMP3 = ui->playlist2Table->item(r,4)->text();
+                //         // qDebug() << "TIMERTICK playlist2Table thePath:" << pathToMP3;
+                //         ((darkPaletteSongTitleLabel *)(ui->playlist2Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
+                //     }
+                // }
+                // for (int r = 0; r < ui->playlist3Table->rowCount(); r++) {
+                //     if (ui->playlist3Table->item(r,4) != nullptr) {
+                //         QString pathToMP3 = ui->playlist3Table->item(r,4)->text();
+                //         // qDebug() << "TIMERTICK playlist3Table thePath:" << pathToMP3;
+                //         ((darkPaletteSongTitleLabel *)(ui->playlist3Table->cellWidget(r,1)))->setSongUsed(pathsOfCalledSongs.contains(pathToMP3));
+                //     }
+                // }
 
             }
         }
@@ -6412,7 +6412,8 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
 
             // add to the pathStack iff it's not a sound FX .mp3 file (those are internal) AND iff it's not sd, choreography, or reference
             if (newType != "sd" && newType != "choreography" && newType != "reference") {
-//                qDebug() << "FFR: " << fi.path() << resolvedFilePath << type << newType;
+               // qDebug() << "FFR: " << fi.path() << resolvedFilePath << type << newType;
+                // qDebug() << "FFR adding:" << newType + "#!#" + resolvedFilePath;
                 pathStack->append(newType + "#!#" + resolvedFilePath);
             }
         } else {
@@ -6552,7 +6553,7 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
     findFilesRecursively(rootDir1, pathStack, "", ui, &soundFXfilenames, &soundFXname);  // appends to the pathstack
 
     // APPLE MUSIC ------------
-    getAppleMusicPlaylists();
+    getAppleMusicPlaylists(); // and add them to the pathStack, with newType == "AppleMusic$$$AMtitle", fullPath = path to MP3 file on disk
 
     updateTreeWidget(); // this will also show the Apple Music playlists, found just now
 }
@@ -6570,7 +6571,7 @@ void MainWindow::updateTreeWidget() {
         QStringList sl1 = type1.split("#!#");
         QString theType = sl1[0];  // the type (of original pathname, before following aliases)
 
-        if (theType != "" && theType != "lyrics") {
+        if (theType != "" && theType != "lyrics" && !theType.contains("$!$")) {  // screen OUT the Apple Music entries
 //            types[theType] += 1;
             types.append(theType);
         }
@@ -7286,11 +7287,24 @@ void MainWindow::darkLoadMusicList()
         QString labelnum_extra = "";
         QString title = "";
         QString shortTitle = "";
-        QString baseName = fi.completeBaseName();
+        QString baseName = fi.completeBaseName();        
 
         // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
         breakFilenameIntoParts(baseName, label, labelnum, labelnum_extra, title, shortTitle);
         labelnum += labelnum_extra;
+
+        if (type.contains("$!$")) {
+            // This is Apple Music, so we're going to override everything that breakFilenameIntoParts did (or tried to do)
+            QStringList sl10 = type.split("$!$");
+            label = "Apple Music";
+            title = sl10[1];
+            shortTitle = title;
+
+            QString appleSymbol = QChar(0xF8FF);
+            type = appleSymbol + " " + sl10[0]; // this is tricky.  Leading EN QUAD space to force sort to bottom for "<NBR>Apple Playlsit Name".
+            labelnum = "";
+            labelnum_extra = "";
+        }
 
         // User preferences for colors
         QString cType = type.toLower();  // type for Color purposes
@@ -7434,7 +7448,7 @@ void MainWindow::darkLoadMusicList()
         twi4b->setFlags(twi4b->flags() & ~Qt::ItemIsEditable);      // not editable
         ui->darkSongTable->setItem(i, kRecentCol, twi4b);
 
-        ((darkSongTitleLabel *)(ui->darkSongTable->cellWidget(i, kTitleCol)))->setSongUsed(true || recentString != ""); // rewrite the song's title to be strikethrough and/or green background
+        // ((darkSongTitleLabel *)(ui->darkSongTable->cellWidget(i, kTitleCol)))->setSongUsed(true || recentString != ""); // rewrite the song's title to be strikethrough and/or green background
 
         // PITCH FIELD -----
         int pitch = 0;
@@ -11013,16 +11027,33 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
     if (items.length() > 0) {
         QTreeWidgetItem *thisItem = items[0];
         QTreeWidgetItem *maybeParentsItem = thisItem->parent();
+
+        if (thisItem != nullptr) {
+            QString theText = thisItem->text(0);
+            if (theText == "Tracks") {
+                ui->darkSearch->setText(""); // clear the search to show all Local Tracks
+                return;
+            } else if (theText == "Apple Music") {
+                ui->darkSearch->setText(":Apple Music:"); // clear the search to show just Apple Music playlist items
+                return;
+            }
+        }
+
         if (maybeParentsItem == nullptr) {
 //            qDebug() << "PARENT ITEM:" << thisItem->text(0);
             ui->darkSearch->setText(""); // clear the search to show all Tracks
         } else {
 //            qDebug() << "CHILD ITEM:" << thisItem->text(0);
-            if (maybeParentsItem != nullptr && maybeParentsItem->text(0) == "Tracks") {
+            // for sure maybeParentsItem != nullptr
+            if (maybeParentsItem->text(0) == "Tracks") {
                 ui->darkSearch->setText(thisItem->text(0) + "::"); // just show tracks with the selected item as Type
                 ui->darkSongTable->setFocus();
+            } else if (maybeParentsItem->text(0) == "Apple Music") {
+                QString AppleMusicSearch(thisItem->text(0));
+                ui->darkSearch->setText(AppleMusicSearch + ":"); // set search field to narrow darkSongTable to an Apple Music playlist
+                ui->darkSongTable->setFocus();
             } else {
-                ui->darkSearch->setText(""); // clear the search, if a playlist is clicked on (TODO: FOR NOW)
+                ui->darkSearch->setText(""); // clear the search, if a Local Playlist is clicked on (TODO: FOR NOW)
                 ui->treeWidget->setFocus();  // focus remains in the TreeWidget so arrows work (FIX: DOES NOT WORK)
             }
         }

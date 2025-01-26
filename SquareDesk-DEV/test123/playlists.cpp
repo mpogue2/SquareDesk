@@ -2089,9 +2089,9 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                     QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
                     theTableWidget->setItem(songCount-1, 4, fullPath);
 
-                    if (pathsOfCalledSongs.contains(absPath)) {
-                        ((darkPaletteSongTitleLabel *)(theTableWidget->cellWidget(songCount-1, 1)))->setSongUsed(true);
-                    }
+                    // if (pathsOfCalledSongs.contains(absPath)) {
+                    //     ((darkPaletteSongTitleLabel *)(theTableWidget->cellWidget(songCount-1, 1)))->setSongUsed(true);
+                    // }
 
                     // LOADED column
                     QTableWidgetItem *loaded = new QTableWidgetItem("");
@@ -2920,14 +2920,38 @@ void MainWindow::getAppleMusicPlaylists() {
     // qDebug() << "in nicer format --------";
     QStringList s = resultAsString.split("\r"); // split into lines
 
+    QString currentPlaylistName = "";
+    int currentItemNumber = 1;
+
     for (int i = 1; i < s.size(); ++i) { // skip the header line, process lines one at a time
         // qDebug() << "--------";
         QStringList sl = parseCSV(s[i]);
         if (sl.size() != 3) continue;  // removes empty Apple Music playlists
         // qDebug() << "LINE: " << qUtf8Printable(s[i]);
         // qDebug() << "RESULT:" << parseCSV(s[i]);
-        allAppleMusicPlaylistNames.append(sl[0]);
-        allAppleMusicPlaylists.append(sl);
+
+        QString playlistName = sl[0];
+
+        if (playlistName != currentPlaylistName) {
+            currentPlaylistName = playlistName;
+            currentItemNumber = 1;
+        }
+
+        QString shortTitle = QString::number(currentItemNumber++) + " - "  + sl[1];
+        QString pathName = sl[2];
+        allAppleMusicPlaylistNames.append(playlistName);
+
+        // append an entry to the pathStack for Apple Music playlist items, that looks like
+        //   "Christmas$!$Use This Title#!#/Users/mpogue/foo/bar/baz/07 - Use This Title.mp3"
+        QString AppleMusicPathStackEntry(playlistName); // type == AppleMusicPlaylistName, e.g. "Christmas"
+        AppleMusicPathStackEntry += "$!$";
+        AppleMusicPathStackEntry += shortTitle; // title to use for the title column
+        AppleMusicPathStackEntry += "#!#";
+        AppleMusicPathStackEntry += pathName; // full path to audio file
+        // qDebug() << "Appending: " << AppleMusicPathStackEntry;
+        pathStack->append(AppleMusicPathStackEntry);
+
+        allAppleMusicPlaylists.append(sl); // FIX: is this still needed?
     }
 
     allAppleMusicPlaylistNames.removeDuplicates();          // Remove duplicates

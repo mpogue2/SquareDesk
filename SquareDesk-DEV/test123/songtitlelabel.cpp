@@ -208,6 +208,7 @@ void darkPaletteSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
 
 // true = song was used recently (Recent == "*")
 void darkSongTitleLabel::setSongUsed(bool b) {
+    return; // DISABLED FOR NOW
 #if ENABLESTRIKETHROUGH==1
     // qDebug() << "setSongUsed: current text =" << this->text() << songUsed << b;
 
