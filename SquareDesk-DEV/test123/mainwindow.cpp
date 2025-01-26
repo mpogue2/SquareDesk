@@ -3595,50 +3595,46 @@ void MainWindow::updateSongTableColumnView()
 void MainWindow::on_loopButton_toggled(bool checked)
 {
     Q_UNUSED(checked)
-//     if (checked) {
-//         ui->actionLoop->setChecked(true);
+    if (checked) {
+        ui->actionLoop->setChecked(true);
 
-//         ui->seekBar->SetLoop(true);
-//         ui->seekBarCuesheet->SetLoop(true);
+        // ui->seekBar->SetLoop(true);
+        ui->seekBarCuesheet->SetLoop(true);
 
-// #ifdef DARKMODE
-//         ui->darkSeekBar->setLoop(true);
-// #endif
-//         double songLength = cBass->FileLength;
-// //        qDebug() << "songLength: " << songLength << ", Intro: " << ui->seekBar->GetIntro();
+        ui->darkSeekBar->setLoop(true);
+        double songLength = cBass->FileLength;
+//        qDebug() << "songLength: " << songLength << ", Intro: " << ui->seekBar->GetIntro();
 
-// //        cBass->SetLoop(songLength * 0.9, songLength * 0.1); // FIX: use parameters in the MP3 file
-//         cBass->SetLoop(songLength * static_cast<double>(ui->seekBar->GetOutro()),
-//                       songLength * static_cast<double>(ui->seekBar->GetIntro()));
-//     }
-//     else {
-//         ui->actionLoop->setChecked(false);
+//        cBass->SetLoop(songLength * 0.9, songLength * 0.1); // FIX: use parameters in the MP3 file
+        cBass->SetLoop(songLength * static_cast<double>(ui->darkSeekBar->getOutroFrac()),
+                      songLength * static_cast<double>(ui->darkSeekBar->getIntroFrac()));
+    }
+    else {
+        ui->actionLoop->setChecked(false);
 
-//         ui->seekBar->SetLoop(false);
-//         ui->seekBarCuesheet->SetLoop(false);
-// #ifdef DARKMODE
-//         ui->darkSeekBar->setLoop(false);
-// #endif
+        // ui->seekBar->SetLoop(false);
+        ui->seekBarCuesheet->SetLoop(false);
+        ui->darkSeekBar->setLoop(false);
 
-//         cBass->ClearLoop();
-//     }
+        cBass->ClearLoop();
+    }
 }
 
 // ----------------------------------------------------------------------
 void MainWindow::on_monoButton_toggled(bool checked)
 {
     Q_UNUSED(checked)
-    // if (checked) {
-    //     ui->actionForce_Mono_Aahz_mode->setChecked(true);
-    //     cBass->SetMono(true);
-    // }
-    // else {
-    //     ui->actionForce_Mono_Aahz_mode->setChecked(false);
-    //     cBass->SetMono(false);
-    // }
+    if (checked) {
+        ui->actionForce_Mono_Aahz_mode->setChecked(true);
+        cBass->SetMono(true);
+    }
+    else {
+        ui->actionForce_Mono_Aahz_mode->setChecked(false);
+        cBass->SetMono(false);
+    }
 
-    // // the Force Mono (Aahz Mode) setting is persistent across restarts of the application
-    // prefsManager.Setforcemono(ui->actionForce_Mono_Aahz_mode->isChecked());
+    // the Force Mono (Aahz Mode) setting is persistent across restarts of the application
+    prefsManager.Setforcemono(ui->actionForce_Mono_Aahz_mode->isChecked());
 }
 
 // ----------------------------------------------------------------------
@@ -10189,7 +10185,7 @@ void MainWindow::on_actionTest_Loop_triggered()
 
     double songLength = cBass->FileLength;
 //    double intro = ui->seekBar->GetIntro(); // 0.0 - 1.0
-    double outro = ui->darkSeekBar->getOutro(); // 0.0 - 1.0
+    double outro = ui->darkSeekBar->getOutroFrac(); // 0.0 - 1.0
 
     double startPosition_sec = fmax(0.0, songLength*outro - 5.0);
 
