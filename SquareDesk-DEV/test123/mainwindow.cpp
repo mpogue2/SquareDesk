@@ -2704,6 +2704,10 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     scanForPlugins();
 #endif
 
+    // SEARCH -----------
+    typeSearch = labelSearch = titleSearch = ""; // no filters at startup
+    searchAllFields = true; // search is OR, not AND
+
     // NOTE: This MUST be down here at the end of the constructor now.
     //   The startup sequence takes longer now, and we don't want the
     //   timer to start too early, or it won't affect the focus.
@@ -6891,7 +6895,7 @@ void MainWindow::filterMusic()
 // --------------------------------------------------------------------------------
 void MainWindow::darkFilterMusic()
 {
-    // qDebug() << "darkFilterMusic()";
+    // qDebug() << "darkFilterMusic()" << typeSearch << labelSearch << titleSearch << searchAllFields;
 
     PerfTimer t("darkFilterMusic", __LINE__);
     t.start(__LINE__);
@@ -6899,14 +6903,9 @@ void MainWindow::darkFilterMusic()
     //    static QRegularExpression rx("(\\ |\\,|\\.|\\:|\\t\\')"); //RegEx for ' ' or ',' or '.' or ':' or '\t', includes ' to handle the "it's" case.
     static QRegularExpression rx("(\\ |\\,|\\.|\\:|\\t)"); //RegEx for ' ' or ',' or '.' or ':' or '\t', does NOT include ' now
 
-    // QStringList label = ui->labelSearch->text().split(rx);
-    // QStringList type = ui->typeSearch->text().split(rx);
-    // QStringList title = ui->titleSearch->text().split(rx);
-    // No need to involve darkSearch here, because it will set label/type/title search fields
-
-    QStringList label("");
-    QStringList type("");
-    QStringList title("");
+    QStringList label = labelSearch.split(rx);
+    QStringList type  = typeSearch.split(rx);
+    QStringList title = titleSearch.split(rx);
 
     //    qDebug() << "filterMusic: title: " << title;
     ui->darkSongTable->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);  // DO NOT SET height of rows (for now)
@@ -6925,12 +6924,32 @@ void MainWindow::darkFilterMusic()
 
         bool show = true;
 
-        if (!filterContains(songLabel,label)
-            || !filterContains(songType, type)
-            || !filterContains(songTitle, title))
-        {
-            show = false;
+        // if (!filterContains(songLabel,label)
+        //     || !filterContains(songType, type)
+        //     || !filterContains(songTitle, title))
+        // {
+        //     show = false;
+        // }
+
+        // qDebug() << "filter: " << searchAllFields << songTitle << title << filterContains(songTitle, title);
+        // show = (searchAllFields
+        //           ? filterContains(songLabel,label) || filterContains(songType, type) || filterContains(songTitle, title)
+        //           : !(!filterContains(songLabel,label) || !filterContains(songType, type) || !filterContains(songTitle, title))
+        //             );
+
+        if (!searchAllFields) {
+            if (!filterContains(songLabel,label) || !filterContains(songType, type) || !filterContains(songTitle, title))
+            {
+                show = false;
+            }
+        } else {
+            // search all fields with a single word, e.g. "foo",
+            // in this case, the titleSearch variable contains the thing to search for
+            if (!filterContains(songLabel,title) && !filterContains(songType, title) && !filterContains(songTitle, title)) {
+                show = false;
+            }
         }
+
         ui->darkSongTable->setRowHidden(i, !show);
         rowsVisible -= (show ? 0 : 1); // decrement row count, if hidden
         if (show && firstVisibleRow == -1) {
@@ -10916,40 +10935,61 @@ void MainWindow::on_darkBassKnob_valueChanged(int value)
 void MainWindow::on_darkSearch_textChanged(const QString &s)
 {
     QStringList pieces = s.split(u':'); // use ":" to delimit type:label:title search fields
-
-//    qDebug() << pieces.length() << pieces;
     int count = pieces.length();
 
+    // qDebug() << pieces.length() << count << pieces;
+
     // EXAMPLES:
-    //    foo = search for titles containing 'foo'
+    //    foo = search for types OR labels OR titles containing 'foo'
     //    s::foo = search for singing calls containing 'foo' (NOTE the double colon, because "label" is blank
-    //    s::riv = search for singing calls from Riverboat
+    //    s:riv = search for singing calls from Riverboat
     //    :riv:world = search for anything (patter or singing etc.) from Riverboat containing 'world'
     //    p:riv:bar  = search for patter from riverboat containing 'bar'
 
     switch (count) {
         case 0:
+            // e.g. ""
             // ui->typeSearch->setText("");
             // ui->labelSearch->setText("");
             // ui->titleSearch->setText("");
+            typeSearch = "";
+            labelSearch = "";
+            titleSearch = "";
+            searchAllFields = true;  // search is OR, not AND (really doesn't matter here)
             break;
         case 1:
+            // e.g. "foo" = search ALL 3 fields for "foo"
             // ui->typeSearch->setText("");
             // ui->labelSearch->setText("");
             // ui->titleSearch->setText(pieces[0]);
+            typeSearch = "";
+            labelSearch = "";
+            titleSearch = pieces[0];
+            searchAllFields = true;  // search is OR, not AND
             break;
         case 2:
+            // e.g. "p:riv" = search for "patter" records from "Riverboat"
             // ui->typeSearch->setText(pieces[0]);
             // ui->labelSearch->setText(pieces[1]);
             // ui->titleSearch->setText("");
+            typeSearch = pieces[0];
+            labelSearch = pieces[1];
+            titleSearch = "";
+            searchAllFields = false;  // search is OR, not AND
             break;
         default: // 3 or more (only look at first 3 pieces, if 4 or more)
+            // e.g. "p:riv:hello" = search for "patter" records from "Riverboat" where the title contains "hello"
             // ui->typeSearch->setText(pieces[0]);
             // ui->labelSearch->setText(pieces[1]);
             // ui->titleSearch->setText(pieces[2]);
+            typeSearch = pieces[0];
+            labelSearch = pieces[1];
+            titleSearch = pieces[2];
+            searchAllFields = false;  // search is OR, not AND
             break;
     }
 
+    darkFilterMusic();
 }
 
 

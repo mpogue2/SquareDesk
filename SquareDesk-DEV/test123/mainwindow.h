@@ -969,6 +969,10 @@ private:
     bool fileModified;
     bool lyricsForDifferentSong;
 
+    // SEARCH --------------
+    QString typeSearch, labelSearch, titleSearch;
+    bool searchAllFields;
+
     // SONG METADATA ------------------
     QString currentMP3filename;
     QString currentMP3filenameWithPath;
