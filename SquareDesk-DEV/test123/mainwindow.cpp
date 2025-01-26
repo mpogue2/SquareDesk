@@ -8809,69 +8809,69 @@ void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int ne
 // ----------------------------------------------------------------------
 void MainWindow::saveCurrentSongSettings()
 {
-//     if (loadingSong) {
-// //        qDebug() << "***** WARNING: MainWindow::saveCurrentSongSettings tried to save while loadingSong was true";
-//         return;
-//     }
-// //    qDebug() << "MainWindow::saveCurrentSongSettings trying to save settings...";
-//     QString currentSong = ui->nowPlayingLabel->text();
+    if (loadingSong) {
+        qDebug() << "***** WARNING: MainWindow::saveCurrentSongSettings tried to save while loadingSong was true";
+        return;
+    }
+//    qDebug() << "MainWindow::saveCurrentSongSettings trying to save settings...";
+    QString currentSong = ui->darkTitle->text();
 
-//     if (!currentSong.isEmpty()) {
-//         int pitch = ui->pitchSlider->value();
-//         int tempo = ui->tempoSlider->value();
-//         int cuesheetIndex = ui->comboBoxCuesheetSelector->currentIndex();
-//         QString cuesheetFilename = !lyricsForDifferentSong && cuesheetIndex >= 0 ?
-//             ui->comboBoxCuesheetSelector->itemData(cuesheetIndex).toString()
-//             : "";
+    if (!currentSong.isEmpty()) {
+        int pitch = ui->darkPitchSlider->value();
+        int tempo = ui->darkTempoSlider->value();
+        int cuesheetIndex = ui->comboBoxCuesheetSelector->currentIndex();
+        QString cuesheetFilename = !lyricsForDifferentSong && cuesheetIndex >= 0 ?
+            ui->comboBoxCuesheetSelector->itemData(cuesheetIndex).toString()
+            : "";
 
-//         SongSetting setting;
-//         setting.setFilename(currentMP3filename);
-//         setting.setFilenameWithPath(currentMP3filenameWithPath);
-//         setting.setSongname(currentSong);
-//         setting.setVolume(currentVolume);
-//         setting.setPitch(pitch);
-//         setting.setTempo(tempo);
-//         setting.setTempoIsPercent(!tempoIsBPM);
-//         setting.setIntroPos(ui->seekBarCuesheet->GetIntro());
-//         setting.setOutroPos(ui->seekBarCuesheet->GetOutro());
-// //        qDebug() << "saveCurrentSongSettings: " << ui->seekBarCuesheet->GetIntro() << ui->seekBarCuesheet->GetOutro();
-//         setting.setIntroOutroIsTimeBased(false);
-//         if (!lyricsForDifferentSong) {
-//             setting.setCuesheetName(cuesheetFilename);
-//         }
-//         setting.setSongLength(static_cast<double>(ui->seekBarCuesheet->maximum()));
+        SongSetting setting;
+        setting.setFilename(currentMP3filename);
+        setting.setFilenameWithPath(currentMP3filenameWithPath);
+        setting.setSongname(currentSong);
+        setting.setVolume(currentVolume);
+        setting.setPitch(pitch);
+        setting.setTempo(tempo);
+        setting.setTempoIsPercent(!tempoIsBPM);
+        setting.setIntroPos(ui->seekBarCuesheet->GetIntro());
+        setting.setOutroPos(ui->seekBarCuesheet->GetOutro());
+//        qDebug() << "saveCurrentSongSettings: " << ui->seekBarCuesheet->GetIntro() << ui->seekBarCuesheet->GetOutro();
+        setting.setIntroOutroIsTimeBased(false);
+        if (!lyricsForDifferentSong) {
+            setting.setCuesheetName(cuesheetFilename);
+        }
+        setting.setSongLength(static_cast<double>(ui->seekBarCuesheet->maximum()));
 
-//         setting.setTreble( ui->trebleSlider->value() );
-//         setting.setBass( ui->bassSlider->value() );
-//         setting.setMidrange( ui->midrangeSlider->value() );
-//         setting.setMix( ui->mixSlider->value() );
+        setting.setTreble( ui->darkTrebleKnob->value() );
+        setting.setBass( ui->darkBassKnob->value() );
+        setting.setMidrange( ui->darkMidKnob->value() );
+        // setting.setMix( ui->mixSlider->value() );
 
-// //        setting.setReplayGain();  // TODO:
+//        setting.setReplayGain();  // TODO:
 
-//         if (ui->actionLoop->isChecked()) {
-//             setting.setLoop( 1 );
-//         } else {
-//             setting.setLoop( -1 );
-//         }
+        if (ui->actionLoop->isChecked()) {
+            setting.setLoop( 1 );
+        } else {
+            setting.setLoop( -1 );
+        }
 
-// //        // When it comes time to save the replayGain value, it should be done being calculated.
-// //        // So, save it, whatever it is.  This will fail, if the song is quickly clicked through.
-// //        // We guard against this by NOT saving, if it's exactly 0.0 dB (meaning not calculated yet).
-// //        if (cBass->Stream_replayGain_dB != 0.0) {
-// ////            qDebug() << "***** saveCurrentSongSettings: saving replayGain value for" << currentSong << "= " << cBass->Stream_replayGain_dB;
-// //            setting.setReplayGain(cBass->Stream_replayGain_dB);
-// //        } else {
-// ////            qDebug() << "***** saveCurrentSongSettings: NOT saving replayGain value for" << currentSong << ", because it's 0.0dB, so not set yet";
-// //        }
+//        // When it comes time to save the replayGain value, it should be done being calculated.
+//        // So, save it, whatever it is.  This will fail, if the song is quickly clicked through.
+//        // We guard against this by NOT saving, if it's exactly 0.0 dB (meaning not calculated yet).
+//        if (cBass->Stream_replayGain_dB != 0.0) {
+////            qDebug() << "***** saveCurrentSongSettings: saving replayGain value for" << currentSong << "= " << cBass->Stream_replayGain_dB;
+//            setting.setReplayGain(cBass->Stream_replayGain_dB);
+//        } else {
+////            qDebug() << "***** saveCurrentSongSettings: NOT saving replayGain value for" << currentSong << ", because it's 0.0dB, so not set yet";
+//        }
 
-//         songSettings.saveSettings(currentMP3filenameWithPath,
-//                                   setting);
+        songSettings.saveSettings(currentMP3filenameWithPath,
+                                  setting);
 
-// //        if (ui->checkBoxAutoSaveLyrics->isChecked())
-// //        {
-// //            //writeCuesheet(cuesheetFilename);
-// //        }
-//     }
+//        if (ui->checkBoxAutoSaveLyrics->isChecked())
+//        {
+//            //writeCuesheet(cuesheetFilename);
+//        }
+    }
 
 
 }
@@ -8879,146 +8879,146 @@ void MainWindow::saveCurrentSongSettings()
 void MainWindow::loadSettingsForSong(QString songTitle)
 {
     Q_UNUSED(songTitle)
-// //    qDebug() << "loadSettingsForSong";
-//     int pitch = ui->pitchSlider->value();
-//     int tempo = ui->tempoSlider->value();  // qDebug() << "loadSettingsForSong, current tempo slider: " << tempo;
-//     int volume = ui->volumeSlider->value();
-//     double intro = ui->seekBarCuesheet->GetIntro();
-//     double outro = ui->seekBarCuesheet->GetOutro();
-//     QString cuesheetName = "";
+//    qDebug() << "loadSettingsForSong";
+    int pitch = ui->darkPitchSlider->value();
+    int tempo = ui->darkTempoSlider->value();  // qDebug() << "loadSettingsForSong, current tempo slider: " << tempo;
+    int volume = ui->darkVolumeSlider->value();
+    double intro = ui->seekBarCuesheet->GetIntro();
+    double outro = ui->seekBarCuesheet->GetOutro();
+    QString cuesheetName = "";
 
-//     SongSetting settings;
-//     settings.setFilename(currentMP3filename);
-//     settings.setFilenameWithPath(currentMP3filenameWithPath);
-//     settings.setSongname(songTitle);
-//     settings.setVolume(volume);
-//     settings.setPitch(pitch);
-//     settings.setTempo(tempo);
-//     settings.setIntroPos(intro);
-//     settings.setOutroPos(outro);
+    SongSetting settings;
+    settings.setFilename(currentMP3filename);
+    settings.setFilenameWithPath(currentMP3filenameWithPath);
+    settings.setSongname(songTitle);
+    settings.setVolume(volume);
+    settings.setPitch(pitch);
+    settings.setTempo(tempo);
+    settings.setIntroPos(intro);
+    settings.setOutroPos(outro);
 
-//     if (songSettings.loadSettings(currentMP3filenameWithPath,
-//                                   settings))
-//     {
-//         if (settings.isSetPitch()) { pitch = settings.getPitch(); }
-//         if (settings.isSetTempo()) { tempo = settings.getTempo(); /*qDebug() << "loadSettingsForSong: " << tempo;*/ }
-//         if (settings.isSetVolume()) { volume = settings.getVolume(); }
-//         if (settings.isSetIntroPos()) { intro = settings.getIntroPos(); }
-//         if (settings.isSetOutroPos()) { outro = settings.getOutroPos(); }
+    if (songSettings.loadSettings(currentMP3filenameWithPath,
+                                  settings))
+    {
+        if (settings.isSetPitch()) { pitch = settings.getPitch(); }
+        if (settings.isSetTempo()) { tempo = settings.getTempo(); /*qDebug() << "loadSettingsForSong: " << tempo;*/ }
+        if (settings.isSetVolume()) { volume = settings.getVolume(); }
+        if (settings.isSetIntroPos()) { intro = settings.getIntroPos(); }
+        if (settings.isSetOutroPos()) { outro = settings.getOutroPos(); }
 
-//         if (settings.isSetCuesheetName()) { cuesheetName = settings.getCuesheetName(); } // ADDED *****
+        if (settings.isSetCuesheetName()) { cuesheetName = settings.getCuesheetName(); } // ADDED *****
 
-//         // double length = (double)(ui->seekBarCuesheet->maximum());  // This is not correct, results in non-round-tripping
-//         double length = cBass->FileLength;  // This seems to work better, and round-tripping looks like it is working now.
-//         if (settings.isSetIntroOutroIsTimeBased() && settings.getIntroOutroIsTimeBased())
-//         {
-//             // qDebug() << "INTRO/OUTRO ARE IN SECONDS, CONVERTING TO FRACTION NOW..."; // I think this is old
-//             intro = intro / length;
-//             outro = outro / length;
-//         }
-//         // qDebug() << "loadSettingsForSong: INTRO/OUTRO ARE: " << intro << outro;
+        // double length = (double)(ui->seekBarCuesheet->maximum());  // This is not correct, results in non-round-tripping
+        double length = cBass->FileLength;  // This seems to work better, and round-tripping looks like it is working now.
+        if (settings.isSetIntroOutroIsTimeBased() && settings.getIntroOutroIsTimeBased())
+        {
+            // qDebug() << "INTRO/OUTRO ARE IN SECONDS, CONVERTING TO FRACTION NOW..."; // I think this is old
+            intro = intro / length;
+            outro = outro / length;
+        }
+        // qDebug() << "loadSettingsForSong: INTRO/OUTRO ARE: " << intro << outro;
 
-//         // setup Markers for this song in the seekBar ----------------------------------
-//         // ui->seekBar->AddMarker(20.0/length);  // stored as fraction of the song length  // DEBUG DEBUG DEBUG, 20 sec for now
-//         // TODO: key to toggle a marker at (OR NEAR WITHIN A THRESHOLD) the current song position
-//         // TODO: repurpose |<< and >>| to jump to the next/previous marker (and if at beginning, go to prev song, at end, go to next song)
-//         // TODO: load from/store to DB for this song
-//         // -----------------------------------------------------------------------------
+        // setup Markers for this song in the seekBar ----------------------------------
+        // ui->seekBar->AddMarker(20.0/length);  // stored as fraction of the song length  // DEBUG DEBUG DEBUG, 20 sec for now
+        // TODO: key to toggle a marker at (OR NEAR WITHIN A THRESHOLD) the current song position
+        // TODO: repurpose |<< and >>| to jump to the next/previous marker (and if at beginning, go to prev song, at end, go to next song)
+        // TODO: load from/store to DB for this song
+        // -----------------------------------------------------------------------------
 
-//         ui->pitchSlider->setValue(pitch);
-//         ui->tempoSlider->setValue(tempo); // qDebug() << "loadSettingsForSong: just set tempo slider to: " << tempo;
-//         ui->volumeSlider->setValue(volume);
+        ui->darkPitchSlider->setValue(pitch);
+        ui->darkTempoSlider->setValue(tempo); // qDebug() << "loadSettingsForSong: just set tempo slider to: " << tempo;
+        ui->darkVolumeSlider->setValue(volume);
 
-//         ui->seekBarCuesheet->SetIntro(intro);
-//         ui->seekBarCuesheet->SetOutro(outro);
+        ui->seekBarCuesheet->SetIntro(intro);
+        ui->seekBarCuesheet->SetOutro(outro);
 
-//         if (darkmode) {
-//             // we need to set this in both places
-//             ui->darkSeekBar->setIntro(intro);
-//             ui->darkSeekBar->setOutro(outro);
-//         } else {
-//             // we need to set this in both places
-//             ui->seekBar->SetIntro(intro);
-//             ui->seekBar->SetOutro(outro);
-//         }
+        // if (darkmode) {
+            // we need to set this in both places
+        ui->darkSeekBar->setIntro(intro);
+        ui->darkSeekBar->setOutro(outro);
+        // } else {
+            // we need to set this in both places
+            // ui->seekBar->SetIntro(intro);
+            // ui->seekBar->SetOutro(outro);
+        // }
 
-//         QTime iTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*intro*length+0.5));
-//         QTime oTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*outro*length+0.5));
-//         ui->dateTimeEditIntroTime->setTime(iTime); // milliseconds
-//         ui->dateTimeEditOutroTime->setTime(oTime);
-// #ifdef DARKMODE
-//         ui->darkStartLoopTime->setTime(iTime); // milliseconds
-//         ui->darkEndLoopTime->setTime(oTime); // milliseconds
-// #endif
+        QTime iTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*intro*length+0.5));
+        QTime oTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*outro*length+0.5));
+        ui->dateTimeEditIntroTime->setTime(iTime); // milliseconds
+        ui->dateTimeEditOutroTime->setTime(oTime);
+#ifdef DARKMODE
+        ui->darkStartLoopTime->setTime(iTime); // milliseconds
+        ui->darkEndLoopTime->setTime(oTime); // milliseconds
+#endif
 
-//         if (cuesheetName.length() > 0)
-//         {
-//             for (int i = 0; i < ui->comboBoxCuesheetSelector->count(); ++i)
-//             {
-//                 QString itemName = ui->comboBoxCuesheetSelector->itemData(i).toString();
-//                 if (itemName == cuesheetName)
-//                 {
-//                     ui->comboBoxCuesheetSelector->setCurrentIndex(i);
-//                     break;
-//                 }
-//             }
-//         }
-//         if (settings.isSetTreble())
-//         {
-//             ui->trebleSlider->setValue(settings.getTreble() );
-//         }
-//         else
-//         {
-//             ui->trebleSlider->setValue(0) ;
-//         }
-//         if (settings.isSetBass())
-//         {
-//             ui->bassSlider->setValue( settings.getBass() );
-//         }
-//         else
-//         {
-//             ui->bassSlider->setValue(0);
-//         }
-//         if (settings.isSetMidrange())
-//         {
-//             ui->midrangeSlider->setValue( settings.getMidrange() );
-//         }
-//         else
-//         {
-//             ui->midrangeSlider->setValue(0);
-//         }
-//         if (settings.isSetMix())
-//         {
-//             ui->mixSlider->setValue( settings.getMix() );
-//         }
-//         else
-//         {
-//             ui->mixSlider->setValue(0);
-//         }
+        if (cuesheetName.length() > 0)
+        {
+            for (int i = 0; i < ui->comboBoxCuesheetSelector->count(); ++i)
+            {
+                QString itemName = ui->comboBoxCuesheetSelector->itemData(i).toString();
+                if (itemName == cuesheetName)
+                {
+                    ui->comboBoxCuesheetSelector->setCurrentIndex(i);
+                    break;
+                }
+            }
+        }
+        if (settings.isSetTreble())
+        {
+            ui->darkTrebleKnob->setValue(settings.getTreble() );
+        }
+        else
+        {
+            ui->darkTrebleKnob->setValue(0) ;
+        }
+        if (settings.isSetBass())
+        {
+            ui->darkBassKnob->setValue( settings.getBass() );
+        }
+        else
+        {
+            ui->darkBassKnob->setValue(0);
+        }
+        if (settings.isSetMidrange())
+        {
+            ui->darkMidKnob->setValue( settings.getMidrange() );
+        }
+        else
+        {
+            ui->darkMidKnob->setValue(0);
+        }
+        // if (settings.isSetMix())
+        // {
+        //     ui->mixSlider->setValue( settings.getMix() );
+        // }
+        // else
+        // {
+        //     ui->mixSlider->setValue(0);
+        // }
 
-//         // Looping is similar to Mix, but it's a bit more complicated:
-//         //   If the DB says +1, turn on loop.
-//         //   If the DB says -1, turn looping off.
-//         //   otherwise, the DB says "NULL", so use the default that we currently have (patter = loop).
-//         if (settings.isSetLoop())
-//         {
-//             if (settings.getLoop() == -1) {
-//                 on_loopButton_toggled(false);
-//             } else if (settings.getLoop() == 1) {
-//                 on_loopButton_toggled(true);
-//             } else {
-//                 // DO NOTHING
-//             }
-//         }
+        // Looping is similar to Mix, but it's a bit more complicated:
+        //   If the DB says +1, turn on loop.
+        //   If the DB says -1, turn looping off.
+        //   otherwise, the DB says "NULL", so use the default that we currently have (patter = loop).
+        if (settings.isSetLoop())
+        {
+            if (settings.getLoop() == -1) {
+                on_loopButton_toggled(false);
+            } else if (settings.getLoop() == 1) {
+                on_loopButton_toggled(true);
+            } else {
+                // DO NOTHING
+            }
+        }
 
-//     }
-//     else
-//     {
-//         ui->trebleSlider->setValue(0);
-//         ui->bassSlider->setValue(0);
-//         ui->midrangeSlider->setValue(0);
-//         ui->mixSlider->setValue(0);
-//     }
+    }
+    else
+    {
+        ui->darkTrebleKnob->setValue(0);
+        ui->darkBassKnob->setValue(0);
+        ui->darkMidKnob->setValue(0);
+        // ui->mixSlider->setValue(0);
+    }
 }
 
 void MainWindow::loadGlobalSettingsForSong(QString songTitle) {
