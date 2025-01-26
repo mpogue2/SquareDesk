@@ -7300,7 +7300,8 @@ void MainWindow::darkLoadMusicList()
             title = sl10[1];
             shortTitle = title;
 
-            QString appleSymbol = QChar(0xF8FF);
+            QString appleSymbol = QChar(0xF8FF);  // use APPLE symbol for Apple Music (sorts at the bottom)
+            // QString appleSymbol = QChar(0x039E);  // use GREEK XI for Local Playlists (sorts almost at the bottom, and looks like a playlist!)
             type = appleSymbol + " " + sl10[0]; // this is tricky.  Leading EN QUAD space to force sort to bottom for "<NBR>Apple Playlsit Name".
             labelnum = "";
             labelnum_extra = "";
