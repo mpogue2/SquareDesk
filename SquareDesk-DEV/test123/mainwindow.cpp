@@ -5501,14 +5501,10 @@ void MainWindow::actionNextTab()
 {
     int currentTabNumber = ui->tabWidget->currentIndex();
 
-    if (currentTabNumber == 0 || currentTabNumber == 1) {
+    if (currentTabNumber == 0) {
         ui->tabWidget->setCurrentIndex(lyricsTabNumber);
     } else {
-        // if (darkmode) {
         ui->tabWidget->setCurrentIndex(0); // Dark Music tab (name: "Music")
-        // } else {
-        //     ui->tabWidget->setCurrentIndex(1); // Light Music tab (name: "Music")
-        // }
     }
 }
 
