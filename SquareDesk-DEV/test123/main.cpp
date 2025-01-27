@@ -135,12 +135,12 @@ int main(int argc, char *argv[])
         qInstallMessageHandler(MainWindow::customMessageOutputQt); // custom message handler for debugging inside QtCreator
     }
 
-//    a.processEvents();
+   a.processEvents();
 
     t.elapsed(__LINE__);
 
     MainWindow w(&splash, darkmode);  // setMessage() will be called several times in here while loading...
-//    a.processEvents();  // force events to be processed, before closing the window
+   a.processEvents();  // force events to be processed, before closing the window
 
     t.elapsed(__LINE__);
 
