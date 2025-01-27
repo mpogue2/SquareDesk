@@ -362,6 +362,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     testRestartingSquareDesk = true;  // set to false for NORMAL operation, TRUE to test restarting
 #endif
 
+    PerfTimer t("MainWindow::MainWindow", __LINE__);
+    t.start(__LINE__);
+
     doNotCallDarkLoadMusicList = false;
 
     QString darkTextColor = "black";
@@ -397,7 +400,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     filewatcherShouldIgnoreOneFileSave = false;
     filewatcherIsTemporarilyDisabled = false;
 
-    PerfTimer t("MainWindow::MainWindow", __LINE__);
+    t.elapsed(__LINE__);
 
     theSplash = splash;
     checkLockFile(); // warn, if some other copy of SquareDesk has database open
@@ -1257,10 +1260,18 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
         static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()); // preference setting
 
     if (sessionDefault == SessionDefaultDOW) {
+        t.elapsed(__LINE__);
+
         int currentSessionID = songSettings.currentSessionIDByTime(); // what session are we in?
         setCurrentSessionId(currentSessionID); // save it in songSettings
+        t.elapsed(__LINE__);
+
         populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
+        t.elapsed(__LINE__);
+
         reloadSongAges(ui->actionShow_All_Ages->isChecked());
+        t.elapsed(__LINE__);
+
         lastSessionID = currentSessionID;
         currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
         currentSongSecondsPlayedRecorded = false; // not reported yet, because this is a new session
@@ -1268,6 +1279,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
         // do this once at startup, and never again.  I think that was the intent of this mode.
         int practiceID = 1; // wrong, if there are deleted rows in Sessions table
         QList<SessionInfo> sessions = songSettings.getSessionInfo();
+        t.elapsed(__LINE__);
+
         foreach (const SessionInfo &s, sessions) {
             // qDebug() << s.day_of_week << s.id << s.name << s.order_number << s.start_minutes;
             if (s.order_number == 0) { // 0 is the first non-deleted row where order_number == 0
@@ -1275,8 +1288,14 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
                 practiceID = s.id; // now it's right!
             }
         }
+        t.elapsed(__LINE__);
+
         setCurrentSessionId(practiceID); // save it in songSettings
+        t.elapsed(__LINE__);
+
         reloadSongAges(ui->actionShow_All_Ages->isChecked());
+        t.elapsed(__LINE__);
+
         populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
         lastSessionID = practiceID;
         currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
@@ -1284,8 +1303,12 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
         // qDebug() << "***** We are now in Practice Session, id =" << practiceID;
     }
 
+    t.elapsed(__LINE__);
+
     // qDebug() << "Constructor sets initial session to:" << songSettings.getCurrentSession();
     populateMenuSessionOptions();  // update the Session menu
+
+    t.elapsed(__LINE__);
 
     {
         // Now that the current_session_id is setup, we can load the call lists,
@@ -1318,6 +1341,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
         ui->tableWidgetCallList->resizeColumnToContents(kCallListNameCol);  // and force resizing of column width to match names
     }
 
+    t.elapsed(__LINE__);
 
     // mutually exclusive items in Flash Call Timing menu
     flashCallTimingActionGroup = new QActionGroup(this);
@@ -1348,6 +1372,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     updateFlashFileMenu();
     readFlashCallsList();
 
+    t.elapsed(__LINE__);
+
 #ifdef DEBUG_LIGHT_MODE
     QString themePreference = prefsManager.GetactiveTheme();
     // qDebug() << "themePreference:" << themePreference;
@@ -1365,6 +1391,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     }
     doNotCallDarkLoadMusicList = false;
 
+    t.elapsed(__LINE__);
+
 #endif
 
     QString snapSetting = prefsManager.Getsnap();
@@ -1378,6 +1406,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     }
 
     lastSongTableRowSelected = -1;  // meaning "no selection"
+
+    t.elapsed(__LINE__);
 
     lockForEditing();
 
@@ -1456,6 +1486,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
         ui->splitterSDTabHorizontal->addWidget(ui->splitterSDTabHorizontal->widget(0));
     }
 
+    t.elapsed(__LINE__);
+
     connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
             this, SLOT(LyricsCopyAvailable(bool)));
 
@@ -1493,6 +1525,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     on_actionShow_Frames_triggered(); // show or hide frames
 //    ui->actionSequence_Designer->setChecked(true);
     ui->actionDance_Arranger->setChecked(true);  // this sets the default view
+
+    t.elapsed(__LINE__);
 
     // hide both menu items for now
     ui->actionSequence_Designer->setVisible(false);
@@ -1561,6 +1595,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->boy4->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE4COLOR.name() + "; color: #000000;}");
     ui->girl4->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE4COLOR.name() + "; color: #000000;}");
 
+    t.elapsed(__LINE__);
+
     // restore SD level from saved
     QString sdLevel = prefsManager.GetSDLevel();
 //    qDebug() << "RESTORING SD LEVEL TO: " << sdLevel;
@@ -1623,6 +1659,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     sdActionGroupDances->setExclusive(true);
     connect(sdActionGroupDances, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredDances(QAction*)));
 
+    t.elapsed(__LINE__);
+
     QString parentFolder = musicRootPath + "/sd/dances";
     QStringList allDances;
 //    QStringList allDancesShortnames;
@@ -1636,6 +1674,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     }
 
     auto dances = allDances;
+
+    t.elapsed(__LINE__);
 
     QCollator collator;
     collator.setNumericMode(true);
@@ -1673,6 +1713,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
         // NOTE: if there was SOME frame (dance) found, then don't load it until later, when we make the menu
     }
 
+    t.elapsed(__LINE__);
+
     ui->menuSequence->insertMenu(ui->actionDance, dancesSubmenu);
     ui->actionDance->setVisible(false);  // TODO: This is a kludge, because it's just a placeholder, so I could stick the Dances item at the top
     // ------------------
@@ -1694,6 +1736,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     // TODO: passing parameters in the SLOT portion?  THIS IS THE IDIOMATIC WAY TO DO IT **********
     //   from: https://stackoverflow.com/questions/5153157/passing-an-argument-to-a-slot
+
+    t.elapsed(__LINE__);
 
     // TODO: These strings must be dynamically created, based on current selections for F1-F7 frame files
     QMenu* submenuMove = saveSDMenu->addMenu("Move Sequence to");
@@ -1730,6 +1774,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     getMetadata();
 
+    t.elapsed(__LINE__);
+
 //    debugCSDSfile("plus"); // DEBUG DEBUG DEBUG THIS HELPS TO DEBUG IMPORT OF CSDS SEQUENCES TO SD FORMAT *********
 
     newSequenceInProgress = editSequenceInProgress = false; // no sequence being edited right now.
@@ -1759,6 +1805,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     //     ui->tabWidget->setCurrentIndex(0);
     // }
 
+    t.elapsed(__LINE__);
+
     // CLOCK COLORING =============
     ui->theSVGClock->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->theSVGClock, SIGNAL(customContextMenuRequested(QPoint)), ui->theSVGClock, SLOT(customMenuRequested(QPoint)));
@@ -1774,6 +1822,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkWarningLabel->setToolTip("Shows Time-in-Tip (Patter) in MM:SS, and Section-in-Tip (Singer).");
     ui->currentLocLabel3->setToolTip("Shows Position-in-Song in MM:SS.");
     ui->songLengthLabel2->setToolTip("Shows Length-of-Song in MM:SS.");
+
+    t.elapsed(__LINE__);
 
     // LOOP CONTROLS =========
 #ifndef DEBUG_LIGHT_MODE
@@ -1825,6 +1875,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 #ifndef DEBUG_LIGHT_MODE
     ui->darkVolumeLabel->setStyleSheet("color: " + darkTextColor);
 #endif
+
+    t.elapsed(__LINE__);
 
     connect(ui->darkVolumeSlider, &svgDial::valueChanged, this,
             [this](int i) {
@@ -1899,20 +1951,28 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
                 this->ui->darkPitchLabel->setText(s);
             });
 
+    t.elapsed(__LINE__);
+
     // SONGTABLE:
     ui->darkSongTable->setAutoScroll(true); // Ensure that selection is always visible
 
     QHeaderView *verticalHeader = ui->darkSongTable->verticalHeader();
     verticalHeader->setSectionResizeMode(QHeaderView::ResizeToContents);
 
+    t.elapsed(__LINE__);
+
     ui->darkSongTable->setAlternatingRowColors(true);
 //    ui->darkSongTable->setStyleSheet("alternate-background-color: #1F1F1F; background-color: #0A0A0A;");
 //    ui->darkSongTable->setStyleSheet("::section { background-color: #393234; color: #C2AC9E; } alternate-background-color: #1F1F1F; background-color: #0A0A0A;");
 //    ui->darkSongTable->setStyleSheet("::section { background-color: #393234; color: #C2AC9E; }");
 
+    t.elapsed(__LINE__);
+
 #ifndef DEBUG_LIGHT_MODE
     ui->darkSongTable->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
 #endif
+
+    t.elapsed(__LINE__);
 
     ui->darkSongTable->resizeColumnToContents(kNumberCol);  // and force resizing of column widths to match songs
     ui->darkSongTable->resizeColumnToContents(kTypeCol);
@@ -1920,7 +1980,11 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkSongTable->resizeColumnToContents(kPitchCol);
     ui->darkSongTable->resizeColumnToContents(kTempoCol);
 
+    t.elapsed(__LINE__);
+
     ui->darkSongTable->setMainWindow(this);
+
+    t.elapsed(__LINE__);
 
     // PLAYLISTS:
 #ifndef DEBUG_LIGHT_MODE
@@ -2061,6 +2125,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
             );
 
     // -----
+    t.elapsed(__LINE__);
+
 #ifndef DEBUG_LIGHT_MODE
     ui->playlist2Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
 #endif
@@ -2197,6 +2263,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
             );
 
     // -----
+    t.elapsed(__LINE__);
+
     ui->playlist3Table->setMainWindow(this);
 #ifndef DEBUG_LIGHT_MODE
     ui->playlist3Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
@@ -2350,6 +2418,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customTreeWidgetMenuRequested(QPoint)));
 
 
+    t.elapsed(__LINE__);
+
     // SPLITTER BETWEEN TREEWIDGET AND SONGTABLE:
     int largeWidth = QGuiApplication::primaryScreen ()->virtualSize ().width ();
     ui->splitter_3->setSizes(QList<int>({largeWidth, 4 * largeWidth})); // split in 1:4 ratio
@@ -2370,6 +2440,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
 //    ui->splitter7->setCollapsible(0, false); // TEST TEST TEST
     ui->splitter7->setCollapsible(1, false); // TEST TEST TEST
+
+    t.elapsed(__LINE__);
 
     // STATUSBAR:
     //    ui->statusBar->setStyleSheet("color: #AC8F7E;");
@@ -2434,6 +2506,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     ui->darkStopButton->setIcon(*darkStopIcon);  // SET THE INITIAL STOP BUTTON ICON
     ui->darkPlayButton->setIcon(*darkPlayIcon);  // SET THE INITIAL PLAY BUTTON ICON
+
+    t.elapsed(__LINE__);
 
 // Note: I don't do it this way below, because changing color then requires editing the resource files.
 //  Instead, the above method allows me to change colors at any time by regenerating the cached icons from pixmaps.
@@ -2510,6 +2584,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     clearSlot(0);
     clearSlot(1);
     clearSlot(2);
+
+    t.elapsed(__LINE__);
 
     if (darkmode) {
         // light mode already loaded the playlist above
@@ -2609,6 +2685,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 //    ui->seekBarCuesheet->setMouseTracking(false);
 
 
+    t.elapsed(__LINE__);
+
     if (darkmode) {
         ui->seekBarCuesheet->setFusionMode(true); // allow click-to-move-there
 #define NOPLAYLISTMENU
@@ -2667,13 +2745,19 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
 #ifdef DEBUG_LIGHT_MODE
     // THEME STUFF -------------
+    t.elapsed(__LINE__);
+
     analogClockStateChanged("UNINITIALIZED");
 
     // initial stylesheet loaded here -----------
+    t.elapsed(__LINE__);
+
     themesFileModified(); // load the Themes.qss file for the first time
 
     // // and set the dynamic properties for LIGHT mode to start with
     // themeTriggered(ui->actionLight); // start out with the mandatory "Light" theme (do NOT delete "Light")
+
+    t.elapsed(__LINE__);
 
     ui->actionSwitch_to_Light_Mode->setVisible(false);  // in NEW LIGHT/DARK MODES, don't show the old Switch to X Mode menu item
 #else
@@ -2682,26 +2766,38 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 #endif
 
     // and update the caches ---------
+    t.elapsed(__LINE__);
+
     ui->theSVGClock->finishInit();
     ui->darkSeekBar->finishInit();  // load everything up!
 
     // qDebug() << "trigger!";
 
+    t.elapsed(__LINE__);
+
     ui->darkTrebleKnob->finishInit();
     ui->darkMidKnob->finishInit();
     ui->darkBassKnob->finishInit();
+
+    t.elapsed(__LINE__);
 
     ui->darkPitchSlider->finishInit();
     ui->darkTempoSlider->finishInit();
     ui->darkVolumeSlider->finishInit();
 
+    t.elapsed(__LINE__);
+
     ui->FXbutton->setVisible(false); // if USE_JUCE is enabled, and if LoudMax AU is present, this button will be made visible
     ui->FXbutton->setChecked(false); // checked = LoudMaxWin is visible
+
+    t.elapsed(__LINE__);
 
 #ifdef USE_JUCE
     // JUCE ---------------
     juce::initialiseJuce_GUI(); // not sure this is needed
     scanForPlugins();
+    t.elapsed(__LINE__);
+
 #endif
 
     // SEARCH -----------
@@ -2734,6 +2830,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
             ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
         });
+
+    t.elapsed(__LINE__);
 }
 
 void MainWindow::newFromTemplate() {
@@ -6532,12 +6630,16 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
 {
     // qDebug() << "***** findMusic";
     PerfTimer t("findMusic", __LINE__);
+    t.start(__LINE__);
+
     QString databaseDir(mainRootDir + "/.squaredesk");
 
     if (refreshDatabase)
     {
         songSettings.openDatabase(databaseDir, mainRootDir, false);
     }
+    t.elapsed(__LINE__);
+
     // always gets rid of the old pathstack...
     if (pathStack) {
         delete pathStack;
@@ -6564,15 +6666,25 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
 
     rootDir1.setNameFilters(qsl);
 
+    t.elapsed(__LINE__);
+
     findFilesRecursively(rootDir1, pathStack, "", ui, &soundFXfilenames, &soundFXname);  // appends to the pathstack
+
+    t.elapsed(__LINE__);
 
     // APPLE MUSIC ------------
     getAppleMusicPlaylists(); // and add them to the pathStack, with newType == "AppleMusicPlaylistName$!$AppleMusicTitle", and fullPath = path to MP3 file on disk
 
+    t.elapsed(__LINE__);
+
     // LOCAL SQUAREDESK PLAYLISTS -------
     getLocalPlaylists();  // and add them to the pathStack, with newType == "PlaylistName%!% ", and fullPath = path to MP3 file on disk
 
+    t.elapsed(__LINE__);
+
     updateTreeWidget(); // this will also show the Apple Music playlists, found just now
+    t.elapsed(__LINE__);
+    t.stop();
 }
 
 void MainWindow::updateTreeWidget() {
@@ -7612,7 +7724,25 @@ void MainWindow::darkLoadMusicList()
     ui->darkSongTable->setSortingEnabled(true);
     ui->darkSongTable->show();
 
+    // // PERFORMANCE TESTING --------
+    // QFile file("/Users/mpogue/pathStack.txt");
+    // if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    //     QTextStream out(&file);
+    //     for (const QString &str : *pathStack) {
+    //         out << str << "\n";
+    //     }
+    //     file.close();
+    // } else {
+    //     // Handle file opening error
+    //     qDebug() << "Error opening file for pathStack:" << file.errorString();
+    // }
+
+
     // QString msg1 = QString::number(ui->darkSongTable->rowCount()) + QString(" audio files found");
+    // QString msg1 = QString("Songs found: %1 SquareDesk + %2 Apple Music, pathStack: %3")
+    //         .arg(QString::number(totalNumberOfSquareDeskSongs))
+    //         .arg(QString::number(totalNumberOfAppleSongs))
+    //         .arg(pathStack->size());
     QString msg1 = QString("Songs found: %1 SquareDesk + %2 Apple Music")
             .arg(QString::number(totalNumberOfSquareDeskSongs))
             .arg(QString::number(totalNumberOfAppleSongs));
