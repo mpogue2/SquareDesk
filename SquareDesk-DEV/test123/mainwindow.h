@@ -28,6 +28,8 @@
 
 #include "globaldefines.h"
 
+#include "splashscreen.h"
+
 #include "mytablewidget.h"
 #include "svgWaveformSlider.h"
 #define NO_TIMING_INFO 1
@@ -235,7 +237,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QSplashScreen *splash, bool dark, QWidget *parent = nullptr);
+    // explicit MainWindow(QSplashScreen *splash, bool dark, QWidget *parent = nullptr);
+    explicit MainWindow(SplashScreen *splash, bool dark, QWidget *parent = nullptr);
     ~MainWindow() override;
 
     friend class updateID3TagsDialog; // it can access private members of MainWindow
@@ -243,6 +246,7 @@ public:
 //    double songLoadedReplayGain_dB;
 
     QString currentThemeString;
+    bool mainWindowReady = false;
 
     int longSongTableOperationCount;
 
@@ -289,7 +293,8 @@ public:
 
     QActionGroup *themesActionGroup; // mutually exclusive themes
 
-    QSplashScreen *theSplash;
+    // QSplashScreen *theSplash;
+    SplashScreen *theSplash;
     void checkLockFile();  // implicitly accesses theSplash
     void clearLockFile(QString path);
 

@@ -329,7 +329,8 @@ void MainWindow::haveDuration2(void) {
 }
 
 // ----------------------------------------------------------------------
-MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
+// MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
+MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     oldFocusWidget(nullptr),
@@ -364,6 +365,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     PerfTimer t("MainWindow::MainWindow", __LINE__);
     t.start(__LINE__);
+
+    splash->setProgress(0, "Initializing UI components...");
 
     doNotCallDarkLoadMusicList = false;
 
@@ -843,6 +846,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     // t.elapsed(__LINE__);
 
     findMusic(musicRootPath, true);  // get the filenames from the user's directories
+    splash->setProgress(20, "Loading song table...");
 
     t.elapsed(__LINE__);
 
@@ -1269,7 +1273,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
         populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
         t.elapsed(__LINE__);
 
+        splash->setProgress(40, "Setting up Ages/Recent...");
         reloadSongAges(ui->actionShow_All_Ages->isChecked());
+
         t.elapsed(__LINE__);
 
         lastSessionID = currentSessionID;
@@ -1973,6 +1979,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 #endif
 
     t.elapsed(__LINE__);
+
+    splash->setProgress(60, "Resizing columns...");
 
     ui->darkSongTable->resizeColumnToContents(kNumberCol);  // and force resizing of column widths to match songs
     ui->darkSongTable->resizeColumnToContents(kTypeCol);
@@ -2751,6 +2759,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     // initial stylesheet loaded here -----------
     t.elapsed(__LINE__);
+    splash->setProgress(80, "Setting up theme...");
 
     themesFileModified(); // load the Themes.qss file for the first time
 
@@ -2832,6 +2841,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
         });
 
     t.elapsed(__LINE__);
+    splash->setProgress(90, "Almost there...");
+
+    mainWindowReady = true;
 }
 
 void MainWindow::newFromTemplate() {
@@ -4859,6 +4871,10 @@ void MainWindow::on_actionLoop_triggered()
 // ----------------------------------------------------------------------
 void MainWindow::on_UIUpdateTimerTick(void)
 {
+    if (!mainWindowReady) {
+        return;
+    }
+
     int xx = mp3Results.size();
     int outOf = mp3FilenamesToProcess.size();
     if (xx < outOf) {

@@ -30,6 +30,7 @@
 
 #include <QApplication>
 #include <QSplashScreen>
+#include "splashscreen.h"
 #include "prefsmanager.h"
 #include "perftimer.h"
 
@@ -106,17 +107,21 @@ int main(int argc, char *argv[])
 #endif
 
     // splash screen ------
-    QPixmap pixmap(":/graphics/SplashScreen2025.png");
+    // QPixmap pixmap(":/graphics/SplashScreen2025.png");
 
-    //  draw the version number into the splashscreen pixmap
-    QPainter painter( &pixmap );
-    painter.setFont( QFont("Arial") );
-    painter.drawText( QPoint(225, 140), QString("V") + VERSIONSTRING );
+    // //  draw the version number into the splashscreen pixmap
+    // QPainter painter( &pixmap );
+    // painter.setFont( QFont("Arial") );
+    // painter.drawText( QPoint(225, 140), QString("V") + VERSIONSTRING );
 
-    t.elapsed(__LINE__);
+    // t.elapsed(__LINE__);
 
-    QSplashScreen splash(pixmap);
-    splash.show();
+    // QSplashScreen splash(pixmap);
+    // splash.show();
+
+    // Create and show splash screen
+    SplashScreen* splash = new SplashScreen();
+    splash->show();
 
     // Force the splash screen to be shown immediately
     a.processEvents();
@@ -135,16 +140,19 @@ int main(int argc, char *argv[])
         qInstallMessageHandler(MainWindow::customMessageOutputQt); // custom message handler for debugging inside QtCreator
     }
 
-   a.processEvents();
+    a.processEvents();
 
     t.elapsed(__LINE__);
 
-    MainWindow w(&splash, darkmode);  // setMessage() will be called several times in here while loading...
-   a.processEvents();  // force events to be processed, before closing the window
+    // MainWindow w(&splash, darkmode);  // setMessage() will be called several times in here while loading...
+    MainWindow w(splash, darkmode);  // setMessage() will be called several times in here while loading...
+    a.processEvents();  // force events to be processed, before closing the window
 
     t.elapsed(__LINE__);
 
-    splash.finish(&w); // tell splash screen to go away when window is up
+    // splash.finish(&w); // tell splash screen to go away when window is up
+    splash->deleteLater();
+
 
     // put window back where it was last time (modulo the screen size, which
     //   is automatically taken care of.
