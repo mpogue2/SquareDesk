@@ -3787,7 +3787,7 @@ void MainWindow::on_pushButtonSDUnlock_clicked()
     editSequenceInProgress = true;
     refreshSDframes();  // clear the * editing indicator
 
-    analogClock->setSDEditMode(true);
+    // analogClock->setSDEditMode(true);
 }
 
 void MainWindow::SDExitEditMode() {
