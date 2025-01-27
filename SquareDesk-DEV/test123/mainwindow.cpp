@@ -5971,6 +5971,10 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     PerfTimer t("loadMP3File", __LINE__);
 
+    // override songType, and just look at the path now
+    QStringList pathParts = MP3FileName.split("/");
+    songType = pathParts[pathParts.size()-2]; // second-to-last path part is the assumed type
+
     setCurrentSongMetadata(songType); // set current* based on the type extracted from the pathname, for later use all over the place
 
     //currentSongTypeName = songType;     // save it for session coloring on the analog clock later...
@@ -6005,6 +6009,16 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     QString resolvedFilePath = fi.symLinkTarget(); // path with the symbolic links followed/removed
     if (resolvedFilePath != "") {
         MP3FileName = resolvedFilePath;
+    }
+
+    QFileInfo f(MP3FileName);
+    if (!f.exists()) {
+        // sometimes an old playlist will point at items that do not exist anymore
+        QMessageBox msgBox;
+        msgBox.setText(QString("ERROR: Can't find:\n") + MP3FileName);
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.exec();
+        return;
     }
 
     t.elapsed(__LINE__);
@@ -6553,7 +6567,10 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
     findFilesRecursively(rootDir1, pathStack, "", ui, &soundFXfilenames, &soundFXname);  // appends to the pathstack
 
     // APPLE MUSIC ------------
-    getAppleMusicPlaylists(); // and add them to the pathStack, with newType == "AppleMusic$$$AMtitle", fullPath = path to MP3 file on disk
+    getAppleMusicPlaylists(); // and add them to the pathStack, with newType == "AppleMusicPlaylistName$!$AppleMusicTitle", and fullPath = path to MP3 file on disk
+
+    // LOCAL SQUAREDESK PLAYLISTS -------
+    getLocalPlaylists();  // and add them to the pathStack, with newType == "PlaylistName%!% ", and fullPath = path to MP3 file on disk
 
     updateTreeWidget(); // this will also show the Apple Music playlists, found just now
 }
@@ -6604,7 +6621,7 @@ void MainWindow::updateTreeWidget() {
     // GET LIST OF PLAYLISTS AND POPULATE TREEWIDGET > PLAYLISTS ----------
     QStringList playlists;
 
-    QDirIterator it(musicRootPath, QStringList() << "*.csv", QDir::Files, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
+    QDirIterator it(musicRootPath + "/playlists", QStringList() << "*.csv", QDir::Files, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
 
     while(it.hasNext()) {
         QString thePath = it.next().replace(musicRootPath + "/", "");
@@ -6622,7 +6639,7 @@ void MainWindow::updateTreeWidget() {
 
     playlists.sort(Qt::CaseInsensitive);
 
-//    qDebug() << "playlists:" << playlists;
+    // qDebug() << "playlists:" << playlists;
 
     // top level Playlists item with icon
     QTreeWidgetItem *playlistsItem = new QTreeWidgetItem();
@@ -6676,6 +6693,55 @@ void MainWindow::updateTreeWidget() {
         }
     }
 
+    // TODO: remove all of the local playlist entries from the pathStack
+
+    // and replace them with:
+    // Now, find all of the playlist entries, and stick the songs into the pathStack with Greek Xi
+    // NOTE: BUG HERE where when we save a new playlist, updateTreeWidget gets called, and everything gets stuck into pathstack a second time.
+    foreach (const QString &fileName, playlists) {
+
+        QString fullPathName = musicRootPath + "/playlists/" + fileName + ".csv";
+        QFile file(fullPathName);
+        // qDebug() << "fullPathName:" << fullPathName;
+        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            QTextStream in(&file);
+            QString line;
+
+            // header
+            line = in.readLine();
+            if (line == "relpath,pitch,tempo") {
+                // qDebug() << "GOOD HEADER.";
+            } else {
+                continue; // skip playlists whose format we do not understand
+            }
+
+            int currentLineNumber = 1;
+            while (!in.atEnd()) {
+                line = in.readLine();
+                QStringList SL = parseCSV(line);
+                // relpath,pitch,tempo
+                QString relpath = SL[0];
+                QString fullPath = musicRootPath + relpath;
+                QStringList relPathSplit = relpath.split("/");
+                // int lastIndex = relPathSplit.size() - 1;
+                QString extraZero = (currentLineNumber < 10 ? "0" : "");
+                // relPathSplit[lastIndex] = extraZero + QString::number(currentLineNumber++)  + " - " + relPathSplit[lastIndex];
+                // QString revisedrelpath = relPathSplit.join("/");
+                // QString revisedFullPath = musicRootPath + revisedrelpath;
+                QString pitch = SL[1];
+                QString tempo = SL[2];
+                // e.g. "SquareDeskPlaylistName%!%pitch,tempo,currentPlaylistLineNumber#!#FullPathname"
+                QString pathStackEntry = fileName + "%!%" + pitch + "," + tempo + "," + extraZero + QString::number(currentLineNumber++) + "#!#" + fullPath;
+                // qDebug() << pathStackEntry;
+                pathStack->append(pathStackEntry);
+            }
+
+            file.close();
+        } else {
+            // Handle file opening error
+        }
+
+    }
 
     // --------------------------------------------------------------------
     // GET LIST OF PLAYLISTS AND POPULATE TREEWIDGET > APPLE MUSIC ----------
@@ -7265,12 +7331,20 @@ void MainWindow::darkLoadMusicList()
     darkSongTableFont.setPointSize(20);
     darkSongTableFont.setWeight(QFont::Medium);
 
+    int totalNumberOfSquareDeskSongs = 0;
+    int totalNumberOfAppleSongs = 0;
+
     int i = 0;
     for (const auto &s : justMusic) {
         QStringList sl1 = s.split("#!#");
+
         QString type     = sl1[0];  // the type (of original pathname, before following aliases)
         QString origPath = sl1[1];  // everything else
 
+        QStringList pathParts = origPath.split("/");
+        QString typeFromPath = pathParts[pathParts.size()-2]; // second-to-last path part is the assumed type
+
+        // qDebug() << "origPath: " << origPath;
         // double check that type is non-music type (see Issue #298)
         if (type == "reference" || type == "soundfx" || type == "sd") {
             continue;
@@ -7279,7 +7353,7 @@ void MainWindow::darkLoadMusicList()
         QFileInfo fi(origPath);
 
         if (fi.canonicalPath() == musicRootPath) {
-            type = "";
+            typeFromPath = "";
         }
 
         QString label = "";
@@ -7293,22 +7367,52 @@ void MainWindow::darkLoadMusicList()
         breakFilenameIntoParts(baseName, label, labelnum, labelnum_extra, title, shortTitle);
         labelnum += labelnum_extra;
 
+        QString pitchOverride = "";
+        QString tempoOverride = "";
+
         if (type.contains("$!$")) {
             // This is Apple Music, so we're going to override everything that breakFilenameIntoParts did (or tried to do)
+            // e.g. "ApplePlaylistName$!$lineNumber$!$Short Title from Apple Music#!#FullPathname"
             QStringList sl10 = type.split("$!$");
+            QString ApplePlaylistName = sl10[0];
+            QString AppleLineNumber = sl10[1];
             label = "Apple Music";
-            title = sl10[1];
+            title = sl10[2];
             shortTitle = title;
 
             QString appleSymbol = QChar(0xF8FF);  // use APPLE symbol for Apple Music (sorts at the bottom)
             // QString appleSymbol = QChar(0x039E);  // use GREEK XI for Local Playlists (sorts almost at the bottom, and looks like a playlist!)
-            type = appleSymbol + " " + sl10[0]; // this is tricky.  Leading EN QUAD space to force sort to bottom for "<NBR>Apple Playlsit Name".
+            type = appleSymbol + " " + sl10[0] + " " + AppleLineNumber; // this is tricky.  Leading Apple will force sort to bottom for "<APPLESYMBOL> Apple Playlist Name".
             labelnum = "";
             labelnum_extra = "";
+            totalNumberOfAppleSongs++;
+        } else if (type.contains("%!%")) {
+            // This is a SquareDesk Playlist, so we're going to override everything that breakFilenameIntoParts did (or tried to do)
+            // e.g. "SquareDeskPlaylistName%!%pitch,tempo#!#FullPathname"
+            QStringList sl11 = type.split("%!%");
+            QStringList sl11a = sl11[0].split("/");
+            QString playlistName = sl11[0];
+            QString pitchTempo = sl11[1];
+            QStringList sl12 = pitchTempo.split(",");
+            QString pitchOverride = sl12[0]; // TODO: implement this!
+            QString tempoOverride = sl12[1]; // not "" if there is an override because playlist
+            QString lineNumber = sl12[2];
+            type = sl11a[sl11a.size()-1] + " " + lineNumber;  // take only the last part of the hierarchical playlist name, tack on a line number for sorting
+            // label = "Playlist";
+            // title = lineNumber + " - " + title; // use the default SquareDesk name (from the FullPathname), but prepend the line number and a dash
+            shortTitle = title;
+
+            QString GreekXi = QChar(0x039E);  // use GREEK XI for Local Playlists (sorts almost at the bottom, and looks like a playlist!)
+            type = GreekXi + " " + type; // this is tricky.  Leading GREEK XI will force sort to almost bottom for "<GREEKXI> SquareDesk Playlist Name".
+            // labelnum = "";
+            // labelnum_extra = "";
+        } else {
+            totalNumberOfSquareDeskSongs++; // only count songs, not playlist entries
         }
 
         // User preferences for colors
-        QString cType = type.toLower();  // type for Color purposes
+        // qDebug() << "origPath/typeFromPath:" << typeFromPath << origPath;
+        QString cType = typeFromPath.toLower();  // type for Color purposes
         if (cType.right(1)=="*") {
             cType.chop(1);  // remove the "*" for the purposes of coloring
         }
@@ -7508,7 +7612,10 @@ void MainWindow::darkLoadMusicList()
     ui->darkSongTable->setSortingEnabled(true);
     ui->darkSongTable->show();
 
-    QString msg1 = QString::number(ui->darkSongTable->rowCount()) + QString(" audio files found");
+    // QString msg1 = QString::number(ui->darkSongTable->rowCount()) + QString(" audio files found");
+    QString msg1 = QString("Songs found: %1 SquareDesk + %2 Apple Music")
+            .arg(QString::number(totalNumberOfSquareDeskSongs))
+            .arg(QString::number(totalNumberOfAppleSongs));
     ui->statusBar->showMessage(msg1);
 
     lastSongTableRowSelected = -1;  // don't modify previous one, just set new selected one to color
@@ -11051,10 +11158,13 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
                 ui->darkSongTable->setFocus();
             } else if (maybeParentsItem->text(0) == "Apple Music") {
                 QString AppleMusicSearch(thisItem->text(0));
-                ui->darkSearch->setText(AppleMusicSearch + ":"); // set search field to narrow darkSongTable to an Apple Music playlist
+                QString appleSymbol = QChar(0xF8FF);  // use APPLE symbol for Apple Music (sorts at the bottom)
+                ui->darkSearch->setText(appleSymbol + " " + AppleMusicSearch + ":"); // set search field to narrow darkSongTable to an Apple Music playlist
                 ui->darkSongTable->setFocus();
             } else {
-                ui->darkSearch->setText(""); // clear the search, if a Local Playlist is clicked on (TODO: FOR NOW)
+                QString LocalPlaylistSearch(thisItem->text(0));
+                QString GreekXi = QChar(0x039E);  // use GREEK XI for Local Playlists (sorts almost at the bottom, and looks like a playlist!)
+                ui->darkSearch->setText(GreekXi + " " + LocalPlaylistSearch + ":"); // narrow to just one playlist
                 ui->treeWidget->setFocus();  // focus remains in the TreeWidget so arrows work (FIX: DOES NOT WORK)
             }
         }
@@ -11553,6 +11663,17 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
                       }
                       );
 
+    if (ui->action0paletteSlots->isChecked()) {
+        twMenu->actions()[0]->setEnabled(false);
+        twMenu->actions()[1]->setEnabled(false);
+        twMenu->actions()[2]->setEnabled(false);
+    } else if (ui->action1paletteSlots->isChecked()) {
+        twMenu->actions()[1]->setEnabled(false);
+        twMenu->actions()[2]->setEnabled(false);
+    } else if (ui->action2paletteSlots->isChecked()) {
+        twMenu->actions()[2]->setEnabled(false);
+    }
+
     twMenu->popup(QCursor::pos());
     twMenu->exec();
 
@@ -11686,22 +11807,43 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
         }
     }
 
+    if (ui->action0paletteSlots->isChecked()) {
+        menu.actions()[0]->setEnabled(false);
+        menu.actions()[1]->setEnabled(false);
+        menu.actions()[2]->setEnabled(false);
+    } else if (ui->action1paletteSlots->isChecked()) {
+        menu.actions()[1]->setEnabled(false);
+        menu.actions()[2]->setEnabled(false);
+    } else if (ui->action2paletteSlots->isChecked()) {
+        menu.actions()[2]->setEnabled(false);
+    }
+
 #if defined(Q_OS_MAC)
     if (rowCount == 1) {
-        // REVEAL STUFF ==============
-        // can only reveal a single file or cuesheet in Finder
-        menu.addSeparator();
-        menu.addAction( "Reveal Audio File in Finder",       this, SLOT (darkRevealInFinder()) );
-        menu.addAction( "Reveal Current Cuesheet in Finder", this, SLOT (darkRevealAttachedLyricsFileInFinder()) );
-
-        // SECTIONS STUFF ============
-        // just do ONE
         QString pathToMP3 = ui->darkSongTable->item(selectedRows[0],kPathCol)->data(Qt::UserRole).toString();
-        menu.addSeparator();
-        menu.addAction("Calculate Section Info for this song...",
-                       this, [this, pathToMP3]{ EstimateSectionsForThisSong(pathToMP3); });
-        menu.addAction("Remove Section info for this song....",
-                       this, [this, pathToMP3]{ RemoveSectionsForThisSong(pathToMP3);   });
+
+        QFileInfo f(pathToMP3);
+
+        if (f.exists()) {
+            // REVEAL STUFF ==============
+            // can only reveal a single file or cuesheet in Finder
+            menu.addSeparator();
+            menu.addAction( "Reveal Audio File in Finder",       this, SLOT (darkRevealInFinder()) );
+            menu.addAction( "Reveal Current Cuesheet in Finder", this, SLOT (darkRevealAttachedLyricsFileInFinder()) );
+
+            // SECTIONS STUFF ============
+            // just do ONE
+            menu.addSeparator();
+            menu.addAction("Calculate Section Info for this song...",
+                           this, [this, pathToMP3]{ EstimateSectionsForThisSong(pathToMP3); });
+            menu.addAction("Remove Section info for this song....",
+                           this, [this, pathToMP3]{ RemoveSectionsForThisSong(pathToMP3);   });
+        } else {
+            // REVEAL STUFF for a file that doesn't exist ==============
+            // can only reveal a single file or cuesheet in Finder
+            menu.addSeparator();
+            menu.addAction( "Reveal Enclosing Folder in Finder",       this, SLOT (darkRevealInFinder()) );
+        }
     } else {
         // MORE THAN ONE
         // REVEAL (can't do) =========
@@ -12014,9 +12156,25 @@ void MainWindow::darkRevealInFinder()
 {
     int row = darkSelectedSongRow();
     if (row >= 0) {
-            // exactly 1 row was selected (good)
-            QString pathToMP3 = ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
-            showInFinderOrExplorer(pathToMP3);
+
+        // exactly 1 row was selected (good)
+        QString pathToMP3 = ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+
+        QStringList pathPieces = pathToMP3.split("/");
+        QString pathToOpen;
+        bool fiExists;
+        do {
+            pathToOpen = pathPieces.join("/");
+            QFile f(pathToOpen);
+            QFileInfo fi(f);
+            fiExists = fi.exists();
+            pathPieces.removeLast();
+            // qDebug() << "CHECKING: " << fiExists << pathToOpen;
+        } while (!fiExists);
+
+        // qDebug() << "FILE OR FOLDER TO OPEN TO FIX THIS PROBLEM: " << pathToOpen;
+
+        showInFinderOrExplorer(pathToOpen);
     }
     else {
             // more than 1 row or no rows at all selected (BAD)
@@ -12191,3 +12349,63 @@ void MainWindow::setCurrentSongMetadata(QString type) {
 
     // qDebug() << "setCurrentSongMetadata(): " << currentSongTypeName  << currentSongCategoryName << currentSongIsPatter << currentSongIsSinger << currentSongIsVocal << currentSongIsExtra << currentSongIsUndefined;
 }
+
+void MainWindow::on_action0paletteSlots_triggered()
+{
+    ui->action0paletteSlots->setChecked(true);
+    ui->action1paletteSlots->setChecked(false);
+    ui->action2paletteSlots->setChecked(false);
+    ui->action3paletteSlots->setChecked(false);
+    ui->playlist1Label->setVisible(false);
+    ui->playlist1Table->setVisible(false);
+    ui->playlist2Label->setVisible(false);
+    ui->playlist2Table->setVisible(false);
+    ui->playlist3Label->setVisible(false);
+    ui->playlist3Table->setVisible(false);
+}
+
+
+void MainWindow::on_action1paletteSlots_triggered()
+{
+    ui->action0paletteSlots->setChecked(false);
+    ui->action1paletteSlots->setChecked(true);
+    ui->action2paletteSlots->setChecked(false);
+    ui->action3paletteSlots->setChecked(false);
+    ui->playlist1Label->setVisible(true);
+    ui->playlist1Table->setVisible(true);
+    ui->playlist2Label->setVisible(false);
+    ui->playlist2Table->setVisible(false);
+    ui->playlist3Label->setVisible(false);
+    ui->playlist3Table->setVisible(false);
+}
+
+
+void MainWindow::on_action2paletteSlots_triggered()
+{
+    ui->action0paletteSlots->setChecked(false);
+    ui->action1paletteSlots->setChecked(false);
+    ui->action2paletteSlots->setChecked(true);
+    ui->action3paletteSlots->setChecked(false);
+    ui->playlist1Label->setVisible(true);
+    ui->playlist1Table->setVisible(true);
+    ui->playlist2Label->setVisible(true);
+    ui->playlist2Table->setVisible(true);
+    ui->playlist3Label->setVisible(false);
+    ui->playlist3Table->setVisible(false);
+}
+
+
+void MainWindow::on_action3paletteSlots_triggered()
+{
+    ui->action0paletteSlots->setChecked(false);
+    ui->action1paletteSlots->setChecked(false);
+    ui->action2paletteSlots->setChecked(false);
+    ui->action3paletteSlots->setChecked(true);
+    ui->playlist1Label->setVisible(true);
+    ui->playlist1Table->setVisible(true);
+    ui->playlist2Label->setVisible(true);
+    ui->playlist2Table->setVisible(true);
+    ui->playlist3Label->setVisible(true);
+    ui->playlist3Table->setVisible(true);
+}
+

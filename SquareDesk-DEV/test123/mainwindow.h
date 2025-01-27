@@ -820,6 +820,14 @@ private slots:
 
     void on_actionUpdate_ID3_Tags_triggered();
 
+    void on_action0paletteSlots_triggered();
+
+    void on_action1paletteSlots_triggered();
+
+    void on_action2paletteSlots_triggered();
+
+    void on_action3paletteSlots_triggered();
+
 public:
 
     // BULK operations -----
@@ -1082,6 +1090,9 @@ private:
 
     // APPLE MUSIC PLAYLISTS ---------
     void getAppleMusicPlaylists(); // get only the user-defined playlists
+
+    // LOCAL PLAYLISTS ---------
+    void getLocalPlaylists();
 
     QList<QStringList> allAppleMusicPlaylists; // 3 cols: playlistName, title, pathname
     QStringList allAppleMusicPlaylistNames;

@@ -2937,13 +2937,18 @@ void MainWindow::getAppleMusicPlaylists() {
             currentItemNumber = 1;
         }
 
-        QString shortTitle = QString::number(currentItemNumber++) + " - "  + sl[1];
+        QString shortTitle = sl[1];
         QString pathName = sl[2];
         allAppleMusicPlaylistNames.append(playlistName);
 
         // append an entry to the pathStack for Apple Music playlist items, that looks like
-        //   "Christmas$!$Use This Title#!#/Users/mpogue/foo/bar/baz/07 - Use This Title.mp3"
+        //   "Christmas$!$currentItemNumber$!$Use This Title#!#/Users/mpogue/foo/bar/baz/Use This Title.mp3"
         QString AppleMusicPathStackEntry(playlistName); // type == AppleMusicPlaylistName, e.g. "Christmas"
+        AppleMusicPathStackEntry += "$!$";
+        if (currentItemNumber < 10) {
+            AppleMusicPathStackEntry += "0"; // all numbers are 2-digit
+        }
+        AppleMusicPathStackEntry += QString::number(currentItemNumber++);
         AppleMusicPathStackEntry += "$!$";
         AppleMusicPathStackEntry += shortTitle; // title to use for the title column
         AppleMusicPathStackEntry += "#!#";
@@ -2961,4 +2966,8 @@ void MainWindow::getAppleMusicPlaylists() {
     // qDebug() << "allAppleMusicPlaylists" << allAppleMusicPlaylists;
 
     p.waitForFinished();
+}
+
+void MainWindow::getLocalPlaylists() {
+    // qDebug() << "getLocalPlaylists ==================";
 }

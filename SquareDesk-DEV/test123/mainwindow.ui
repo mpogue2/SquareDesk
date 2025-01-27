@@ -198,7 +198,7 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>0:12</string>
+                    <string>0:00</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
@@ -233,7 +233,7 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>3:27</string>
+                    <string>0:00</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
@@ -4677,6 +4677,15 @@
      <addaction name="actionLight"/>
      <addaction name="actionDark"/>
     </widget>
+    <widget class="QMenu" name="menupalette_slots">
+     <property name="title">
+      <string>Palette slots</string>
+     </property>
+     <addaction name="action0paletteSlots"/>
+     <addaction name="action1paletteSlots"/>
+     <addaction name="action2paletteSlots"/>
+     <addaction name="action3paletteSlots"/>
+    </widget>
     <addaction name="actionCompact"/>
     <addaction name="separator"/>
     <addaction name="menuZoom"/>
@@ -4691,6 +4700,8 @@
     <addaction name="actionSwitch_to_Light_Mode"/>
     <addaction name="separator"/>
     <addaction name="menuTheme"/>
+    <addaction name="separator"/>
+    <addaction name="menupalette_slots"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -6257,6 +6268,41 @@
    </property>
    <property name="text">
     <string>Dark</string>
+   </property>
+  </action>
+  <action name="action0paletteSlots">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+  </action>
+  <action name="action1paletteSlots">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>1</string>
+   </property>
+  </action>
+  <action name="action2paletteSlots">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>2</string>
+   </property>
+  </action>
+  <action name="action3paletteSlots">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>3</string>
    </property>
   </action>
  </widget>
