@@ -2777,7 +2777,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     // THEME STUFF -------------
     t.elapsed(__LINE__);
 
-    analogClockStateChanged("UNINITIALIZED");
+    // analogClockStateChanged("UNINITIALIZED");
 
     // initial stylesheet loaded here -----------
     t.elapsed(__LINE__);
@@ -6096,7 +6096,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->darkSegmentButton->setHidden(true);
 
 #ifdef DEBUG_LIGHT_MODE
-    analogClockStateChanged("UNINITIALIZED");
+    // analogClockStateChanged("UNINITIALIZED");
 #endif
     // allow ID3 only on MP3 files right now!
     ui->actionUpdate_ID3_Tags->setEnabled(MP3FileName.endsWith(".mp3", Qt::CaseInsensitive));
