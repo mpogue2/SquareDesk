@@ -3964,15 +3964,15 @@ void MainWindow::on_darkVolumeSlider_valueChanged(int value)
 // ----------------------------------------------------------------------
 void MainWindow::on_actionMute_triggered()
 {
-    // if (ui->volumeSlider->value() != 0) {
-    //     previousVolume = ui->volumeSlider->value();
-    //     ui->volumeSlider->setValue(0);
-    //     ui->actionMute->setText("Un&mute");
-    // }
-    // else {
-    //     ui->volumeSlider->setValue(previousVolume);
-    //     ui->actionMute->setText("&Mute");
-    // }
+    if (ui->darkVolumeSlider->value() != 0) {
+        previousVolume = ui->darkVolumeSlider->value();
+        ui->darkVolumeSlider->setValue(0);
+        ui->actionMute->setText("Un&mute");
+    }
+    else {
+        ui->darkVolumeSlider->setValue(previousVolume);
+        ui->actionMute->setText("&Mute");
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -3983,7 +3983,8 @@ void MainWindow::on_darkTempoSlider_valueChanged(int value)
         double desiredBPM = static_cast<double>(value);            // desired BPM
         int newBASStempo = static_cast<int>(round(100.0*desiredBPM/baseBPM));
         cBass->SetTempo(newBASStempo);
-        ui->darkTempoLabel->setText(QString::number(value) + " BPM (" + QString::number(newBASStempo) + "%)");
+        // ui->darkTempoLabel->setText(QString::number(value) + " BPM (" + QString::number(newBASStempo) + "%)");
+        ui->darkTempoLabel->setText(QString::number(value));
     }
     else {
         double basePercent = 100.0;                      // original detected percent
@@ -5613,14 +5614,14 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 
 void MainWindow::actionTempoPlus()
 {
-    // ui->tempoSlider->setValue(ui->tempoSlider->value() + 1);
-    // on_tempoSlider_valueChanged(ui->tempoSlider->value());
+    ui->darkTempoSlider->setValue(ui->darkTempoSlider->value() + 1);
+    on_darkTempoSlider_valueChanged(ui->darkTempoSlider->value());
 }
 
 void MainWindow::actionTempoMinus()
 {
-    // ui->tempoSlider->setValue(ui->tempoSlider->value() - 1);
-    // on_tempoSlider_valueChanged(ui->tempoSlider->value());
+    ui->darkTempoSlider->setValue(ui->darkTempoSlider->value() - 1);
+    on_darkTempoSlider_valueChanged(ui->darkTempoSlider->value());
 }
 
 void MainWindow::actionFadeOutAndPause()
@@ -5972,14 +5973,14 @@ bool MainWindow::handleKeypress(int key, QString text)
 // ------------------------------------------------------------------------
 void MainWindow::on_actionSpeed_Up_triggered()
 {
-    // ui->tempoSlider->setValue(ui->tempoSlider->value() + 1);
-    // on_tempoSlider_valueChanged(ui->tempoSlider->value());
+    ui->darkTempoSlider->setValue(ui->darkTempoSlider->value() + 1);
+    on_darkTempoSlider_valueChanged(ui->darkTempoSlider->value());
 }
 
 void MainWindow::on_actionSlow_Down_triggered()
 {
-    // ui->tempoSlider->setValue(ui->tempoSlider->value() - 1);
-    // on_tempoSlider_valueChanged(ui->tempoSlider->value());
+    ui->darkTempoSlider->setValue(ui->darkTempoSlider->value() - 1);
+    on_darkTempoSlider_valueChanged(ui->darkTempoSlider->value());
 }
 
 // ------------------------------------------------------------------------
@@ -6002,12 +6003,12 @@ void MainWindow::on_actionSkip_Backward_triggered()
 // ------------------------------------------------------------------------
 void MainWindow::on_actionVolume_Up_triggered()
 {
-    // ui->volumeSlider->setValue(ui->volumeSlider->value() + 5);
+    ui->darkVolumeSlider->setValue(ui->darkVolumeSlider->value() + 5);
 }
 
 void MainWindow::on_actionVolume_Down_triggered()
 {
-    // ui->volumeSlider->setValue(ui->volumeSlider->value() - 5);
+    ui->darkVolumeSlider->setValue(ui->darkVolumeSlider->value() - 5);
 }
 
 // ------------------------------------------------------------------------
@@ -8060,12 +8061,12 @@ void MainWindow::on_actionClear_Search_triggered()
 
 void MainWindow::on_actionPitch_Up_triggered()
 {
-    // ui->pitchSlider->setValue(ui->pitchSlider->value() + 1);
+    ui->darkPitchSlider->setValue(ui->darkPitchSlider->value() + 1);
 }
 
 void MainWindow::on_actionPitch_Down_triggered()
 {
-    // ui->pitchSlider->setValue(ui->pitchSlider->value() - 1);
+    ui->darkPitchSlider->setValue(ui->darkPitchSlider->value() - 1);
 }
 
 void MainWindow::on_actionAutostart_playback_triggered()
