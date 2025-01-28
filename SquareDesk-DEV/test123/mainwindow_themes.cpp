@@ -107,7 +107,7 @@ void MainWindow::themeTriggered(QAction * action) {
     extrasColorString = prefsManager.GetextrasColorString();
 
     if (!doNotCallDarkLoadMusicList) {    // I hate this.
-        darkLoadMusicList();
+        darkLoadMusicList(nullptr); // refresh whatever is there
         reloadPaletteSlots();
     }
 

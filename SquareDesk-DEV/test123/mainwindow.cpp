@@ -695,6 +695,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
+    pathStackCuesheets = new QList<QString>();
+    pathStackPlaylists = new QList<QString>();
+    pathStackApplePlaylists = new QList<QString>();
 
     musicRootPath = prefsManager.GetmusicPath();      // defaults to ~/squareDeskMusic at very first startup
 
@@ -847,12 +850,17 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     findMusic(musicRootPath, true);  // get the filenames from the user's directories
 
+    QString msg1 = QString("Songs found: %1")
+            .arg(QString::number(pathStack->size()));
+    ui->statusBar->showMessage(msg1);
+
     splash->setProgress(25, "Loading and sorting the song table...");
 
     t.elapsed(__LINE__);
 
     ui->actionViewTags->setChecked(prefsManager.GetshowSongTags()); // tags setting must persist
 
+    currentlyShowingPathStack = pathStack;  // the very first time, we need to work with the pathStack (songs)
     on_actionViewTags_toggled(prefsManager.GetshowSongTags()); // NOTE: Calls darkLoadMusicList() to load songs
 
     // connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
@@ -2760,7 +2768,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     // initial stylesheet loaded here -----------
     t.elapsed(__LINE__);
-    QString modeString = (darkmode ? "Setting up Dark theme..." : "Setting up Light Theme...");
+    QString modeString = QString("Setting up %1 Theme...").arg(themePreference);
     splash->setProgress(65, modeString); // Setting up {Light, Dark} theme...
 
     themesFileModified(); // load the Themes.qss file for the first time
@@ -2902,7 +2910,7 @@ void MainWindow::newFromTemplate() {
         QFile::copy(fromFilename, toFilename);
 
         // is it in the pathstack?
-        QListIterator<QString> iter(*pathStack);
+        QListIterator<QString> iter(*pathStackCuesheets); // search thru known cuesheets
         bool foundInPathStack = false;
         while (iter.hasNext()) {
             QString s = iter.next();
@@ -2917,7 +2925,7 @@ void MainWindow::newFromTemplate() {
 
         }
 
-        // if not already in there, stick it into the pathstack, so it will be found at loadCuesheets time
+        // if not already in there, stick it into the pathstackCuesheets, so it will be found at loadCuesheets time
         if (!foundInPathStack)
         {
             // qDebug() << "NOT FOUND. So, adding it to the pathStack: " << toFilename;
@@ -2925,7 +2933,7 @@ void MainWindow::newFromTemplate() {
             QStringList section = fi.path().split("/");
             QString type = section[section.length()-1];  // must be the last item in the path
             // qDebug() << "    Adding " + type + "#!#" + filename + " to pathStack";
-            pathStack->append(type + "#!#" + filename);
+            pathStackCuesheets->append(type + "#!#" + filename);
         }
 
         // and reload the cuesheets, to pick up the new one from the updated pathStack
@@ -3042,7 +3050,7 @@ void MainWindow::musicRootModified(QString s)
         findMusic(musicRootPath, true);  // get the filenames from the user's directories
         // loadMusicList(); // and filter them into the songTable
         // if (darkmode) {
-        darkLoadMusicList(); // also filter them into the darkSongTable
+        darkLoadMusicList(nullptr); // also filter them into the darkSongTable
         darkFilterMusic();   // and redo the filtering (NOTE: might still scroll the darkSongTable)
         // ui->darkSongTable->horizontalHeader()->setSortIndicator(sortSection, sortOrder);
     }
@@ -3607,6 +3615,15 @@ MainWindow::~MainWindow()
 
     if (pathStack) {
         delete pathStack;
+    }
+    if (pathStackCuesheets) {
+        delete pathStackCuesheets;
+    }
+    if (pathStackPlaylists) {
+        delete pathStackPlaylists;
+    }
+    if (pathStackApplePlaylists) {
+        delete pathStackApplePlaylists;
     }
 
     delete darkStopIcon;
@@ -6515,7 +6532,8 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
 
 
 // this function stores the absolute paths of each file in a QVector
-void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffix, Ui::MainWindow *ui, QMap<int, QString> *soundFXarray, QMap<int, QString> *soundFXname)
+// finds music and cuesheets, but NOT Local playlists or Apple playlists
+void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QList<QString> *pathStackCuesheets, QString suffix, Ui::MainWindow *ui, QMap<int, QString> *soundFXarray, QMap<int, QString> *soundFXname)
 {
     QDirIterator it(rootDir, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     while(it.hasNext()) {
@@ -6542,9 +6560,13 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
 
             // add to the pathStack iff it's not a sound FX .mp3 file (those are internal) AND iff it's not sd, choreography, or reference
             if (newType != "sd" && newType != "choreography" && newType != "reference") {
-               // qDebug() << "FFR: " << fi.path() << resolvedFilePath << type << newType;
+                // qDebug() << "FFR: " << fi.path() << resolvedFilePath << type << newType;
                 // qDebug() << "FFR adding:" << newType + "#!#" + resolvedFilePath;
-                pathStack->append(newType + "#!#" + resolvedFilePath);
+                if (newType == "lyrics") {
+                    pathStackCuesheets->append(newType + "#!#" + resolvedFilePath);
+                } else {
+                    pathStack->append(newType + "#!#" + resolvedFilePath);
+                }
             }
         } else {
             if (suffix != "*") {
@@ -6658,13 +6680,17 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
     }
     t.elapsed(__LINE__);
 
-    // always gets rid of the old pathstack...
+    // always gets rid of the old pathstack and pathStackCuesheets
     if (pathStack) {
         delete pathStack;
     }
+    if (pathStackCuesheets) {
+        delete pathStackCuesheets;
+    }
 
-    // make a new one
+    // make new ones
     pathStack = new QList<QString>();
+    pathStackCuesheets = new QList<QString>();
 
     // looks for files in the mainRootDir --------
     QDir rootDir1(mainRootDir);
@@ -6686,17 +6712,17 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
 
     t.elapsed(__LINE__);
 
-    findFilesRecursively(rootDir1, pathStack, "", ui, &soundFXfilenames, &soundFXname);  // appends to the pathstack
+    findFilesRecursively(rootDir1, pathStack, pathStackCuesheets, "", ui, &soundFXfilenames, &soundFXname);  // appends to the pathstack
 
     t.elapsed(__LINE__);
 
     // APPLE MUSIC ------------
-    getAppleMusicPlaylists(); // and add them to the pathStack, with newType == "AppleMusicPlaylistName$!$AppleMusicTitle", and fullPath = path to MP3 file on disk
+    getAppleMusicPlaylists(); // and add them to the pathStackPlaylists, with newType == "AppleMusicPlaylistName$!$AppleMusicTitle", and fullPath = path to MP3 file on disk
 
     t.elapsed(__LINE__);
 
     // LOCAL SQUAREDESK PLAYLISTS -------
-    getLocalPlaylists();  // and add them to the pathStack, with newType == "PlaylistName%!% ", and fullPath = path to MP3 file on disk
+    getLocalPlaylists();  // and add them to the pathStackPlaylists, with newType == "PlaylistName%!% ", and fullPath = path to MP3 file on disk
 
     t.elapsed(__LINE__);
 
@@ -6708,7 +6734,7 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
 void MainWindow::updateTreeWidget() {
 
     // GET LIST OF TYPES AND POPULATE TREEWIDGET > TRACKS -------------
-    QListIterator<QString> iter(*pathStack);
+    QListIterator<QString> iter(*pathStack); // Tracks = search thru music (MP3, M4A) files
 
     QStringList types;
 
@@ -6748,7 +6774,7 @@ void MainWindow::updateTreeWidget() {
     tracksItem->setExpanded(true);
 
     // --------------------------------------------------------------------
-    // GET LIST OF PLAYLISTS AND POPULATE TREEWIDGET > PLAYLISTS ----------
+    // GET LIST OF LOCAL PLAYLISTS AND POPULATE TREEWIDGET > PLAYLISTS ----------
     QStringList playlists;
 
     QDirIterator it(musicRootPath + "/playlists", QStringList() << "*.csv", QDir::Files, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
@@ -6863,7 +6889,7 @@ void MainWindow::updateTreeWidget() {
                 // e.g. "SquareDeskPlaylistName%!%pitch,tempo,currentPlaylistLineNumber#!#FullPathname"
                 QString pathStackEntry = fileName + "%!%" + pitch + "," + tempo + "," + extraZero + QString::number(currentLineNumber++) + "#!#" + fullPath;
                 // qDebug() << pathStackEntry;
-                pathStack->append(pathStackEntry);
+                pathStackPlaylists->append(pathStackEntry);
             }
 
             file.close();
@@ -7402,8 +7428,18 @@ void MainWindow::loadMusicList()
 }
 
 // --------------------------------------------------------------------------------
-void MainWindow::darkLoadMusicList()
+// filter from a pathStack into the darkSongTable, BUT
+//   nullptr: just refresh what's there (currentlyShowingPathStack)
+//   pathStack, pathStackPlaylists: use one of these
+//
+// Note: if aPathStack == currentShowingPathStack, then don't do anything
+void MainWindow::darkLoadMusicList(QList<QString> *aPathStack)
 {
+
+    if ((currentlyShowingPathStack != nullptr) && (aPathStack == currentlyShowingPathStack)) {
+        return; // just return, because it's already up to date
+    }
+
     // qDebug() << "***** darkLoadMusicList()";
     PerfTimer t("darkLoadMusicList", __LINE__);
     t.start(__LINE__);
@@ -7442,7 +7478,11 @@ void MainWindow::darkLoadMusicList()
     ui->darkSongTable->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
     ui->darkSongTable->horizontalHeader()->setVisible(true);
 
-    QListIterator<QString> iter(*pathStack);
+    if (aPathStack == nullptr) {
+        aPathStack = currentlyShowingPathStack; // just refresh the one that's already there (forced reload to pick up changes)
+    }
+
+    QListIterator<QString> iter(*aPathStack); // filter the one we were given (pathStack, pathStackPlaylists, pathStackApplePlaylists), OR refresh the last one
 
     QColor textCol = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
     bool show_all_ages = ui->actionShow_All_Ages->isChecked();
@@ -7450,7 +7490,7 @@ void MainWindow::darkLoadMusicList()
     // iterate over every item in the pathStack, and stick songs into the songTable
     //   with their SQLITE DB info populated later (when songs are visible)
     static QRegularExpression musicRegex(".*\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption); // match with music extensions
-    QStringList justMusic = pathStack->filter(musicRegex); // only 18ms
+    QStringList justMusic = aPathStack->filter(musicRegex); // only 18ms, load songs only here
     t.elapsed(__LINE__);
 
     ui->darkSongTable->setRowCount(justMusic.length()); // make all the rows at once for speed
@@ -7761,10 +7801,10 @@ void MainWindow::darkLoadMusicList()
     //         .arg(QString::number(totalNumberOfSquareDeskSongs))
     //         .arg(QString::number(totalNumberOfAppleSongs))
     //         .arg(pathStack->size());
-    QString msg1 = QString("Songs found: %1 SquareDesk + %2 Apple Music")
-            .arg(QString::number(totalNumberOfSquareDeskSongs))
-            .arg(QString::number(totalNumberOfAppleSongs));
-    ui->statusBar->showMessage(msg1);
+    // QString msg1 = QString("Songs found: %1 SquareDesk + %2 Apple Music")
+    //         .arg(QString::number(totalNumberOfSquareDeskSongs))
+    //         .arg(QString::number(totalNumberOfAppleSongs));
+    // ui->statusBar->showMessage(msg1);
 
     lastSongTableRowSelected = -1;  // don't modify previous one, just set new selected one to color
     on_darkSongTable_itemSelectionChanged();  // to re-highlight the selection, if music was reloaded while an item was selected
@@ -7801,6 +7841,8 @@ void MainWindow::darkLoadMusicList()
     }
 
     t.stop();
+
+    currentlyShowingPathStack = aPathStack; // we're showing either the one we were given (pathStack, pathStackPlaylists), or we just refreshed the currently showing one
 }
 
 
@@ -7848,7 +7890,7 @@ static void addToProgramsAndWriteTextFile(QStringList &programs, QDir outputDir,
 void MainWindow::loadDanceProgramList(QString lastDanceProgram)
 {
     ui->comboBoxCallListProgram->clear();
-    QListIterator<QString> iter(*pathStack);
+    QListIterator<QString> iter(*pathStack); // I guess Reference items are in the pathStack too
     QStringList programs;
 
     // FIX: This should be changed to look only in <rootDir>/reference, rather than looking
@@ -8042,8 +8084,8 @@ void MainWindow::on_actionImport_triggered()
     RecursionGuard keypress_guard(trapKeypresses);
     if (dialogCode == QDialog::Accepted)
     {
-        importDialog->importSongs(songSettings, pathStack);
-        darkLoadMusicList();
+        importDialog->importSongs(songSettings, pathStack); // insert into pathStack for SONGS
+        darkLoadMusicList(pathStack);
     }
     delete importDialog;
     importDialog = nullptr;
@@ -8152,7 +8194,7 @@ void MainWindow::on_actionExport_triggered()
                 outputFields[5] = ExportDataVolume;
                 outputFields[6] = ExportDataCuesheetPath;
 
-                exportSongList(stream, songSettings, pathStack,
+                exportSongList(stream, songSettings, pathStack,  // export list of SONGS only
                                outputFieldCount, outputFields,
                                separator,
                                true, false);
@@ -8377,7 +8419,7 @@ void MainWindow::on_actionPreferences_triggered()
         if (prefDialog->songTableReloadNeeded) {
 //            qDebug() << "LOAD MUSIC LIST TRIGGERED FROM PREFERENCES TRIGGERED";
 
-            darkLoadMusicList();
+            darkLoadMusicList(nullptr); // just refresh whatever is there
             reloadPaletteSlots();
         }
 
@@ -9668,7 +9710,7 @@ void MainWindow::on_actionStartup_Wizard_triggered()
         findMusic(musicRootPath, true);  // get the filenames from the user's directories
         filterMusic(); // and filter them into the songTable
 //        qDebug() << "LOAD MUSIC LIST FROM STARTUP WIZARD TRIGGERED";
-        darkLoadMusicList();
+        darkLoadMusicList(nullptr); // just refresh whatever is showing
 
         // install soundFX if not already present
         maybeInstallSoundFX();
@@ -10117,7 +10159,7 @@ void MainWindow::on_actionViewTags_toggled(bool checked)
 
     if (!doNotCallDarkLoadMusicList) { // I hate this, but I can't change the signature of actionViewTags or ThemeToggled, or they won't match
         refreshAllPlaylists(); // tags changed, so update the playlist views based on ui->actionViewTags->isChecked()
-        darkLoadMusicList();
+        darkLoadMusicList(nullptr); // just refresh whatever is showing
     }
 
     // if (darkmode) {
@@ -10412,7 +10454,7 @@ QList<QString> MainWindow::getListOfMusicFiles()
 {
     QList<QString> list;
 
-    QListIterator<QString> iter(*pathStack);
+    QListIterator<QString> iter(*pathStack); // iterate over list of SONGS
     while (iter.hasNext()) {
         QString s = iter.next();
         QStringList sl1 = s.split("#!#");
@@ -11287,33 +11329,48 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
         if (thisItem != nullptr) {
             QString theText = thisItem->text(0);
             if (theText == "Tracks") {
+                darkLoadMusicList(pathStack);  // show MUSIC
                 ui->darkSearch->setText(""); // clear the search to show all Local Tracks
                 return;
             } else if (theText == "Apple Music") {
+                darkLoadMusicList(pathStackApplePlaylists);  // show PLAYLISTS
                 ui->darkSearch->setText(":Apple Music:"); // clear the search to show just Apple Music playlist items
+                return;
+            } else if (theText == "Playlists") {
+                darkLoadMusicList(pathStackPlaylists);  // show PLAYLISTS
+                ui->darkSearch->setText(""); // clear the search to show just Apple Music playlist items
                 return;
             }
         }
 
+        // clicked on some item (not a top level category) -------
         if (maybeParentsItem == nullptr) {
 //            qDebug() << "PARENT ITEM:" << thisItem->text(0);
             ui->darkSearch->setText(""); // clear the search to show all Tracks
+            darkLoadMusicList(pathStack);  // show MUSIC TRACKS
         } else {
 //            qDebug() << "CHILD ITEM:" << thisItem->text(0);
             // for sure maybeParentsItem != nullptr
             if (maybeParentsItem->text(0) == "Tracks") {
+                darkLoadMusicList(pathStack);  // show TRACKS
                 ui->darkSearch->setText(thisItem->text(0) + "::"); // just show tracks with the selected item as Type
                 ui->darkSongTable->setFocus();
+                return;
             } else if (maybeParentsItem->text(0) == "Apple Music") {
                 QString AppleMusicSearch(thisItem->text(0));
                 QString appleSymbol = QChar(0xF8FF);  // use APPLE symbol for Apple Music (sorts at the bottom)
+                darkLoadMusicList(pathStackApplePlaylists);  // show PLAYLISTS
                 ui->darkSearch->setText(appleSymbol + " " + AppleMusicSearch + ":"); // set search field to narrow darkSongTable to an Apple Music playlist
                 ui->darkSongTable->setFocus();
+                return;
             } else {
                 QString LocalPlaylistSearch(thisItem->text(0));
                 QString GreekXi = QChar(0x039E);  // use GREEK XI for Local Playlists (sorts almost at the bottom, and looks like a playlist!)
+                darkLoadMusicList(pathStackPlaylists);  // show PLAYLISTS
                 ui->darkSearch->setText(GreekXi + " " + LocalPlaylistSearch + ":"); // narrow to just one playlist
-                ui->treeWidget->setFocus();  // focus remains in the TreeWidget so arrows work (FIX: DOES NOT WORK)
+                // ui->treeWidget->setFocus();  // focus remains in the TreeWidget so arrows work (FIX: DOES NOT WORK)
+                ui->darkSongTable->setFocus();
+                return;
             }
         }
     } else {

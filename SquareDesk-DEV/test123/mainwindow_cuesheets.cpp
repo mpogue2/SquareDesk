@@ -348,7 +348,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
     patterTemplateCuesheets.clear();
     lyricsTemplateCuesheets.clear();
 
-    QListIterator<QString> iter(*pathStack);
+    QListIterator<QString> iter(*pathStackCuesheets); // search through Lyrics/Cuesheets
     while (iter.hasNext()) {
 
         QString s = iter.next();

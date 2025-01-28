@@ -2954,7 +2954,7 @@ void MainWindow::getAppleMusicPlaylists() {
         AppleMusicPathStackEntry += "#!#";
         AppleMusicPathStackEntry += pathName; // full path to audio file
         // qDebug() << "Appending: " << AppleMusicPathStackEntry;
-        pathStack->append(AppleMusicPathStackEntry);
+        pathStackApplePlaylists->append(AppleMusicPathStackEntry);
 
         allAppleMusicPlaylists.append(sl); // FIX: is this still needed?
     }

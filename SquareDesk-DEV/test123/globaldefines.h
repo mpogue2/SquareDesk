@@ -40,4 +40,8 @@ private: \
 // User must delete the old one, if they don't want to see it.
 #define SD_VERSION "39.71"
 
+// for debugging
+
+#define DDD(x) qDebug() << #x << ":" << x;
+
 #endif // GLOBALDEFINES_H

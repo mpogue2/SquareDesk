@@ -562,13 +562,13 @@ void MainWindow::writeCuesheet(QString filename)
         QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
         cursor.movePosition(QTextCursor::Start);  // move cursor to the start of the file after a save
 
-        if (!isFileInPathStack(pathStack, filename))
+        if (!isFileInPathStack(pathStackCuesheets, filename))
         {
             QFileInfo fi(filename);
             QStringList section = fi.path().split("/");
             QString type = section[section.length()-1];  // must be the last item in the path
-//            qDebug() << "writeCuesheet() adding " + type + "#!#" + filename + " to pathStack";
-            pathStack->append(type + "#!#" + filename);
+//            qDebug() << "writeCuesheet() adding " + type + "#!#" + filename + " to pathStackCuesheets";
+            pathStackCuesheets->append(type + "#!#" + filename);
         }
     }
 #else

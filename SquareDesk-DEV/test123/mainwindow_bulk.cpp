@@ -366,7 +366,7 @@ void MainWindow::on_darkSegmentButton_clicked()
 
     int numMP3files = 0;
 
-    QListIterator<QString> iter(*pathStack);
+    QListIterator<QString> iter(*pathStack); // search through songs
     while (iter.hasNext()) {
 
         QString s = iter.next();
@@ -430,7 +430,7 @@ void MainWindow::on_actionEstimate_for_all_songs_triggered()
 
     int numMP3files = 0;
 
-    QListIterator<QString> iter(*pathStack);
+    QListIterator<QString> iter(*pathStack); // search thru songs
     while (iter.hasNext()) {
 
         QString s = iter.next();

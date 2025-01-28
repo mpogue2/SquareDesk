@@ -1044,12 +1044,12 @@ private:
 
     bool cuesheetIsUnlockedForEditing;
 
-    void findMusic(QString mainRootDir, bool refreshDatabase);    // get the filenames into pathStack
+    void findMusic(QString mainRootDir, bool refreshDatabase);    // get the filenames into pathStack, pathStackCuesheets
     void updateTreeWidget();
     void filterMusic();  // filter them into the songTable
     void loadMusicList();  // filter them into the songTable
     void darkFilterMusic();  // filter them into the songTable
-    void darkLoadMusicList();  // filter them into the darkSongTable
+    void darkLoadMusicList(QList<QString> *aPathStack);  // filter one of the pathstacks into the darkSongTable
     QString FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags, QString titleColor = "");
 
     void changeTagOnCurrentSongSelection(QString tag, bool add);
@@ -1109,7 +1109,12 @@ private:
 
     QString txtToHTMLlyrics(QString text, QString filePathname);
 
-    QList<QString> *pathStack;
+    QList<QString> *pathStack; // for local songs
+    QList<QString> *pathStackCuesheets; // for lyrics/cuesheets only
+    QList<QString> *pathStackPlaylists; // for LOCAL playlist songs only
+    QList<QString> *pathStackApplePlaylists; // for APPLE MUSIC playlist songs only
+
+    QList<QString> *currentlyShowingPathStack = pathStack;
 
     // Experimental Timer stuff ----------
 //    QTimer *timerCountUp;
