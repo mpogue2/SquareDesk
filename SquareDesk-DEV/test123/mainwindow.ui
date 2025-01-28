@@ -4427,8 +4427,8 @@
     <addaction name="actionPlay"/>
     <addaction name="actionStop"/>
     <addaction name="separator"/>
-    <addaction name="actionSkip_Ahead_15_sec"/>
-    <addaction name="actionSkip_Back_15_sec"/>
+    <addaction name="actionSkip_Forward"/>
+    <addaction name="actionSkip_Backward"/>
     <addaction name="separator"/>
     <addaction name="actionVolume_Up"/>
     <addaction name="actionVolume_Down"/>
@@ -4756,23 +4756,23 @@
     <string>Ctrl+.</string>
    </property>
   </action>
-  <action name="actionSkip_Ahead_15_sec">
+  <action name="actionSkip_Forward">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Skip Ahead 15 sec</string>
+    <string>Skip Ahead 10 sec</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+Right</string>
    </property>
   </action>
-  <action name="actionSkip_Back_15_sec">
+  <action name="actionSkip_Backward">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Skip Back 15 sec</string>
+    <string>Skip Back 10 sec</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+Left</string>
@@ -5190,14 +5190,6 @@
    </property>
    <property name="text">
     <string>Sunday</string>
-   </property>
-  </action>
-  <action name="actionCompact">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Compact</string>
    </property>
   </action>
   <action name="actionNormal">

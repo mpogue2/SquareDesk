@@ -399,8 +399,8 @@ private slots:
 
     void on_actionSpeed_Up_triggered();
     void on_actionSlow_Down_triggered();
-    void on_actionSkip_Ahead_15_sec_triggered();
-    void on_actionSkip_Back_15_sec_triggered();
+    void on_actionSkip_Forward_triggered();
+    void on_actionSkip_Backward_triggered();
     void on_actionVolume_Up_triggered();
     void on_actionVolume_Down_triggered();
     void on_actionPlay_triggered();
