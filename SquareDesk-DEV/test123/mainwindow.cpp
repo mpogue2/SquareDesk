@@ -366,7 +366,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     PerfTimer t("MainWindow::MainWindow", __LINE__);
     t.start(__LINE__);
 
-    splash->setProgress(0, "Initializing UI components...");
+    splash->setProgress(0, "Finding all your songs and lyrics...");
 
     doNotCallDarkLoadMusicList = false;
 
@@ -846,13 +846,14 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     // t.elapsed(__LINE__);
 
     findMusic(musicRootPath, true);  // get the filenames from the user's directories
-    splash->setProgress(20, "Loading song table...");
+
+    splash->setProgress(25, "Loading and sorting the song table...");
 
     t.elapsed(__LINE__);
 
     ui->actionViewTags->setChecked(prefsManager.GetshowSongTags()); // tags setting must persist
 
-    on_actionViewTags_toggled(prefsManager.GetshowSongTags()); // Calls darkLoadMusicList
+    on_actionViewTags_toggled(prefsManager.GetshowSongTags()); // NOTE: Calls darkLoadMusicList() to load songs
 
     // connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
     //         this, &MainWindow::columnHeaderResized);
@@ -1273,7 +1274,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
         populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
         t.elapsed(__LINE__);
 
-        splash->setProgress(40, "Setting up Ages/Recent...");
+        // splash->setProgress(25, "Looking up when songs were last played...");
         reloadSongAges(ui->actionShow_All_Ages->isChecked());
 
         t.elapsed(__LINE__);
@@ -1980,7 +1981,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    splash->setProgress(60, "Resizing columns...");
+    splash->setProgress(45, "Adjusting the column layout...");
 
     ui->darkSongTable->resizeColumnToContents(kNumberCol);  // and force resizing of column widths to match songs
     ui->darkSongTable->resizeColumnToContents(kTypeCol);
@@ -2759,7 +2760,8 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     // initial stylesheet loaded here -----------
     t.elapsed(__LINE__);
-    splash->setProgress(80, "Setting up theme...");
+    QString modeString = (darkmode ? "Setting up Dark theme..." : "Setting up Light Theme...");
+    splash->setProgress(65, modeString); // Setting up {Light, Dark} theme...
 
     themesFileModified(); // load the Themes.qss file for the first time
 

@@ -120,7 +120,8 @@ int main(int argc, char *argv[])
     // splash.show();
 
     // Create and show splash screen
-    SplashScreen* splash = new SplashScreen();
+    QString vers = QString("V") + VERSIONSTRING;
+    SplashScreen* splash = new SplashScreen(vers); // pick up the version number from mainwindow.h
     splash->show();
 
     // Force the splash screen to be shown immediately

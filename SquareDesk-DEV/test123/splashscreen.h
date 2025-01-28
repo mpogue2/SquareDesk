@@ -1,3 +1,4 @@
+// SplashScreen.h
 #ifndef SPLASHSCREEN_H
 #define SPLASHSCREEN_H
 
@@ -11,7 +12,7 @@
 class SplashScreen : public QWidget {
     Q_OBJECT
 public:
-    explicit SplashScreen(QWidget *parent = nullptr);
+    explicit SplashScreen(const QString& version = "v1.0.0", QWidget *parent = nullptr);
 
 public slots:
     void setProgress(int value, const QString& message);
@@ -19,6 +20,8 @@ public slots:
 private:
     QProgressBar* progressBar;
     QLabel* statusLabel;
+    QLabel* versionLabel;
+    QLabel* imageLabel;
 };
 
 #endif // SPLASHSCREEN_H
