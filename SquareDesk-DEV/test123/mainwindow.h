@@ -1049,7 +1049,7 @@ private:
     void filterMusic();  // filter them into the songTable
     void loadMusicList();  // filter them into the songTable
     void darkFilterMusic();  // filter them into the songTable
-    void darkLoadMusicList(QList<QString> *aPathStack);  // filter one of the pathstacks into the darkSongTable
+    void darkLoadMusicList(QList<QString> *aPathStack, bool reloadPaletteSlots = false);  // filter one of the pathstacks into the darkSongTable
     QString FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags, QString titleColor = "");
 
     void changeTagOnCurrentSongSelection(QString tag, bool add);
