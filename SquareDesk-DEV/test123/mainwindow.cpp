@@ -7119,7 +7119,8 @@ void MainWindow::darkFilterMusic()
     t.start(__LINE__);
 
     //    static QRegularExpression rx("(\\ |\\,|\\.|\\:|\\t\\')"); //RegEx for ' ' or ',' or '.' or ':' or '\t', includes ' to handle the "it's" case.
-    static QRegularExpression rx("(\\ |\\,|\\.|\\:|\\t)"); //RegEx for ' ' or ',' or '.' or ':' or '\t', does NOT include ' now
+    // static QRegularExpression rx("(\\ |\\,|\\.|\\:|\\t)"); //RegEx for ' ' or ',' or '.' or ':' or '\t', does NOT include ' now
+    static QRegularExpression rx("(\\ |\\,|\\:|\\t)"); //RegEx for ' ' or ',' or '.' or ':' or '\t', does NOT include ' or . now
 
     QStringList label = labelSearch.split(rx);
     QStringList type  = typeSearch.split(rx);
