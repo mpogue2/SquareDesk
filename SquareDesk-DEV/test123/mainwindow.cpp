@@ -2960,27 +2960,45 @@ void MainWindow::newFromTemplate() {
 // ----------------------------------------------------------------------
 // load up the palette slots from what was in those slots before...
 void MainWindow::reloadPaletteSlots() {
-    // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
-    QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
-    // qDebug() << "MainWindow constructor, load playlist and palette slot 0: " << loadThisPlaylist;
+    // // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
+    // QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
+    // // qDebug() << "MainWindow constructor, load playlist and palette slot 0: " << loadThisPlaylist;
 
-    if (loadThisPlaylist != "") {
-        if (loadThisPlaylist.startsWith("tracks/")) {
+    // if (loadThisPlaylist != "") {
+    //     if (loadThisPlaylist.startsWith("tracks/")) {
+    //         // it's a TRACK FILTER
+    //         QString fullPlaylistPath = musicRootPath + "/" + loadThisPlaylist + ".csv";
+    //         fullPlaylistPath.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
+    //         int songCount;
+    //         loadPlaylistFromFileToPaletteSlot(fullPlaylistPath, 0, songCount);
+    //     } else {
+    //         // it's a PLAYLIST
+    //         QString fullPlaylistPath = musicRootPath + "/";
+    //         if (!loadThisPlaylist.startsWith("playlists/")) {
+    //             // probably older version of SquareDesk, which doesn't prepend "playlists/"
+    //             fullPlaylistPath += "playlists/";
+    //         }
+    //         fullPlaylistPath += loadThisPlaylist + ".csv";
+    //         finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 0
+    //         // this also auto-upgrades the prefsManager.GetlastPlaylistLoaded to prepend "playlists/", which then works the next time the app is started, too.
+    //     }
+    // }
+
+    // Load up first slot -----
+    QString loadThisPlaylist1 = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
+
+    if (loadThisPlaylist1 != "") {
+        if (loadThisPlaylist1.startsWith("tracks/")) {
             // it's a TRACK FILTER
-            QString fullPlaylistPath = musicRootPath + "/" + loadThisPlaylist + ".csv";
-            fullPlaylistPath.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
+            QString fullPlaylistPath1 = musicRootPath + "/" + loadThisPlaylist1 + ".csv";
+            fullPlaylistPath1.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
             int songCount;
-            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath, 0, songCount);
+            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath1, 0, songCount);
         } else {
             // it's a PLAYLIST
-            QString fullPlaylistPath = musicRootPath + "/";
-            if (!loadThisPlaylist.startsWith("playlists/")) {
-                // probably older version of SquareDesk, which doesn't prepend "playlists/"
-                fullPlaylistPath += "playlists/";
-            }
-            fullPlaylistPath += loadThisPlaylist + ".csv";
-            finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 0
-            // this also auto-upgrades the prefsManager.GetlastPlaylistLoaded to prepend "playlists/", which then works the next time the app is started, too.
+            QString fullPlaylistPath1 = musicRootPath + "/" + loadThisPlaylist1 + ".csv";
+            int songCount;
+            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath1, 0, songCount); // load it!
         }
     }
 
