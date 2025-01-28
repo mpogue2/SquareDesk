@@ -575,8 +575,8 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     keybindingActionToMenuAction[keyActionName_StopSong] = ui->actionStop;
  //   keybindingActionToMenuAction[keyActionName_RestartSong] = ;
-    keybindingActionToMenuAction[keyActionName_Forward15Seconds] = ui->actionSkip_Ahead_15_sec;
-    keybindingActionToMenuAction[keyActionName_Backward15Seconds] = ui->actionSkip_Back_15_sec;
+    keybindingActionToMenuAction[keyActionName_Forward15Seconds] = ui->actionSkip_Forward;
+    keybindingActionToMenuAction[keyActionName_Backward15Seconds] = ui->actionSkip_Backward;
     keybindingActionToMenuAction[keyActionName_VolumePlus] = ui->actionVolume_Up;
     keybindingActionToMenuAction[keyActionName_VolumeMinus] = ui->actionVolume_Down;
     keybindingActionToMenuAction[keyActionName_TempoPlus] = ui->actionSpeed_Up;
@@ -5952,7 +5952,7 @@ void MainWindow::on_actionSlow_Down_triggered()
 }
 
 // ------------------------------------------------------------------------
-void MainWindow::on_actionSkip_Ahead_15_sec_triggered()
+void MainWindow::on_actionSkip_Forward_triggered()
 {
     cBass->StreamGetPosition();  // update the position
     // set the position to one second before the end, so that RIGHT ARROW works as expected
@@ -5960,11 +5960,12 @@ void MainWindow::on_actionSkip_Ahead_15_sec_triggered()
     Info_Seekbar(true);
 }
 
-void MainWindow::on_actionSkip_Back_15_sec_triggered()
+void MainWindow::on_actionSkip_Backward_triggered()
 {
     Info_Seekbar(true);
     cBass->StreamGetPosition();  // update the position
     cBass->StreamSetPosition(static_cast<int>(fmax(cBass->Current_Position - 10.0, 0.0)));
+    Info_Seekbar(true);
 }
 
 // ------------------------------------------------------------------------
@@ -6211,8 +6212,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->darkStopButton->setEnabled(true);
     ui->actionPlay->setEnabled(true);
     ui->actionStop->setEnabled(true);
-    ui->actionSkip_Ahead_15_sec->setEnabled(true);
-    ui->actionSkip_Back_15_sec->setEnabled(true);
+    ui->actionSkip_Forward->setEnabled(true);
+    ui->actionSkip_Backward->setEnabled(true);
 
     // ui->seekBar->setEnabled(true);
     ui->seekBarCuesheet->setEnabled(true);
