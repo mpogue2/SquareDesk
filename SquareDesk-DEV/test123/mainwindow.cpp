@@ -698,6 +698,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     pathStackCuesheets = new QList<QString>();
     pathStackPlaylists = new QList<QString>();
     pathStackApplePlaylists = new QList<QString>();
+    currentlyShowingPathStack = nullptr; // nothing is showing yet
 
     musicRootPath = prefsManager.GetmusicPath();      // defaults to ~/squareDeskMusic at very first startup
 

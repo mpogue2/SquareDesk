@@ -1113,7 +1113,7 @@ private:
     QList<QString> *pathStackPlaylists; // for LOCAL playlist songs only
     QList<QString> *pathStackApplePlaylists; // for APPLE MUSIC playlist songs only
 
-    QList<QString> *currentlyShowingPathStack = pathStack;
+    QList<QString> *currentlyShowingPathStack;
 
     // Experimental Timer stuff ----------
 //    QTimer *timerCountUp;
