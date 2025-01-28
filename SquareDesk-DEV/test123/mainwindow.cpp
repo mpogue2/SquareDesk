@@ -7470,8 +7470,8 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, bool reloadPalett
     darkSongTableFont.setPointSize(20);
     darkSongTableFont.setWeight(QFont::Medium);
 
-    int totalNumberOfSquareDeskSongs = 0;
-    int totalNumberOfAppleSongs = 0;
+    // int totalNumberOfSquareDeskSongs = 0;
+    // int totalNumberOfAppleSongs = 0;
 
     int i = 0;
     for (const auto &s : justMusic) {
@@ -7524,7 +7524,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, bool reloadPalett
             type = appleSymbol + " " + sl10[0] + " " + AppleLineNumber; // this is tricky.  Leading Apple will force sort to bottom for "<APPLESYMBOL> Apple Playlist Name".
             labelnum = "";
             labelnum_extra = "";
-            totalNumberOfAppleSongs++;
+            // totalNumberOfAppleSongs++;
         } else if (type.contains("%!%")) {
             // This is a SquareDesk Playlist, so we're going to override everything that breakFilenameIntoParts did (or tried to do)
             // e.g. "SquareDeskPlaylistName%!%pitch,tempo#!#FullPathname"
@@ -7546,7 +7546,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, bool reloadPalett
             // labelnum = "";
             // labelnum_extra = "";
         } else {
-            totalNumberOfSquareDeskSongs++; // only count songs, not playlist entries
+            // totalNumberOfSquareDeskSongs++; // only count songs, not playlist entries
         }
 
         // User preferences for colors
