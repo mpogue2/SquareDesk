@@ -152,6 +152,8 @@ CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastflashcalluserdirectory, "");
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(flashcalltiming, "10");
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(default_flashcards_file, "");
 
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(numpaletteslots, "3");
+
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(snap, "measure"); // three values: disabled, beat, measure
 
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showSongTags, true);

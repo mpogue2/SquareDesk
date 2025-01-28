@@ -1375,6 +1375,18 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
+    // remember what we had set last time the app ran -----
+    QString numPaletteSlots = prefsManager.Getnumpaletteslots();
+    if (numPaletteSlots == "0") {
+        on_action0paletteSlots_triggered();
+    } else if (numPaletteSlots == "1") {
+        on_action1paletteSlots_triggered();
+    } else if (numPaletteSlots == "2") {
+        on_action2paletteSlots_triggered();
+    } else {
+        on_action3paletteSlots_triggered();
+    }
+
     QString flashCallTimingSecs = prefsManager.Getflashcalltiming();
     if (flashCallTimingSecs == "5") {
         ui->action5_seconds->setChecked(true);
@@ -12538,6 +12550,7 @@ void MainWindow::on_action0paletteSlots_triggered()
     ui->playlist2Table->setVisible(false);
     ui->playlist3Label->setVisible(false);
     ui->playlist3Table->setVisible(false);
+    prefsManager.Setnumpaletteslots("0");
 }
 
 
@@ -12553,6 +12566,7 @@ void MainWindow::on_action1paletteSlots_triggered()
     ui->playlist2Table->setVisible(false);
     ui->playlist3Label->setVisible(false);
     ui->playlist3Table->setVisible(false);
+    prefsManager.Setnumpaletteslots("1");
 }
 
 
@@ -12568,6 +12582,7 @@ void MainWindow::on_action2paletteSlots_triggered()
     ui->playlist2Table->setVisible(true);
     ui->playlist3Label->setVisible(false);
     ui->playlist3Table->setVisible(false);
+    prefsManager.Setnumpaletteslots("2");
 }
 
 
@@ -12583,5 +12598,5 @@ void MainWindow::on_action3paletteSlots_triggered()
     ui->playlist2Table->setVisible(true);
     ui->playlist3Label->setVisible(true);
     ui->playlist3Table->setVisible(true);
+    prefsManager.Setnumpaletteslots("3");
 }
-
