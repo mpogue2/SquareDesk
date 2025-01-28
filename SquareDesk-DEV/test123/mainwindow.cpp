@@ -3529,39 +3529,6 @@ void MainWindow::on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/)
     on_comboBoxCuesheetSelector_currentIndexChanged(ui->comboBoxCuesheetSelector->currentIndex() + 100); // indicate that we do NOT want to check for being edited
 }
 
-void MainWindow::on_actionCompact_triggered(bool checked)
-{
-    Q_UNUSED(checked)
-    // bool visible = !checked;
-    // setCueSheetAdditionalControlsVisible(visible);
-    // ui->actionCompact->setChecked(!visible);
-
-    // for (int col = 0; col < ui->gridLayout_2->columnCount(); ++col)
-    // {
-    //     for (int row = 2; row < ui->gridLayout_2->rowCount(); ++row)
-    //     {
-    //         QLayoutItem *layout_item = ui->gridLayout_2->itemAtPosition(row,col);
-    //         if (layout_item)
-    //         {
-    //             QWidget *widget = layout_item->widget();
-    //             if (widget)
-    //             {
-    //                 if (visible)
-    //                 {
-    //                     widget->show();
-    //                 }
-    //                 else
-    //                 {
-    //                     widget->hide();
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-
-    return;
-}
-
 void MainWindow::on_actionShow_All_Ages_triggered(bool checked)
 {
     reloadSongAges(checked);

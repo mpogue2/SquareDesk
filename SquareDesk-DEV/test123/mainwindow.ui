@@ -4686,8 +4686,6 @@
      <addaction name="action2paletteSlots"/>
      <addaction name="action3paletteSlots"/>
     </widget>
-    <addaction name="actionCompact"/>
-    <addaction name="separator"/>
     <addaction name="menuZoom"/>
     <addaction name="separator"/>
     <addaction name="menuColumns"/>
