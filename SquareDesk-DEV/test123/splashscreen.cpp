@@ -55,7 +55,14 @@ SplashScreen::SplashScreen(const QString& version, QWidget *parent) : QWidget(pa
 
     // Add status text
     statusLabel = new QLabel("", this);
-    statusLabel->setAlignment(Qt::AlignCenter);
+    statusLabel->setAlignment(Qt::AlignCenter); // #05B8CC
+    statusLabel->setStyleSheet(
+        "QLabel {"
+        "    color: #00AB57;"
+        "    font-size: 15px;"
+        "    font-weight: bold;"
+        "}"
+        );
     mainLayout->addWidget(statusLabel);
 
     // Create and setup progress bar
@@ -69,7 +76,7 @@ SplashScreen::SplashScreen(const QString& version, QWidget *parent) : QWidget(pa
         "   text-align: center;"
         "}"
         "QProgressBar::chunk {"
-        "   background-color: #05B8CC;"
+        "   background-color: #00AB57;"
         "   width: 20px;"
         "}"
         );
