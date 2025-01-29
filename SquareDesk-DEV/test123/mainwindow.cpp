@@ -2488,7 +2488,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 #endif
 
     // SEARCH BOX:
-    ui->darkSearch->setToolTip("Search\nFilter songs by specifying Type:Label:Title.\n\nExamples:\nfoo = any song where title contains 'foo'\nsing::bar = singing calls where title contains 'bar'\np:riv = patter from Riverboat\netc.");
+    ui->darkSearch->setToolTip("Search\nFilter songs by specifying Type:Label:Title.\n\nExamples:\nlove = any song where type or label or title contains 'love'\nsing::heart = singing calls where title contains 'heart'\np:riv = patter from Riverboat\netc.");
 
     // TITLE:
     // QLabel { color : #C2AC9E; }
