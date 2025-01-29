@@ -3909,6 +3909,9 @@ void MainWindow::on_darkPitchSlider_valueChanged(int value)
     if (ui->darkPitchSlider->value() != value) {
         ui->darkPitchSlider->setValue(value);
     }
+
+    QString msg1 = QString("Tempo:") + ui->darkTempoLabel->text() + ", Pitch:" + ui->darkPitchLabel->text();
+    ui->statusBar->showMessage(msg1);
 }
 
 // ----------------------------------------------------------------------
@@ -4096,6 +4099,8 @@ void MainWindow::on_darkTempoSlider_valueChanged(int value)
         }
     }
 
+    QString msg1 = QString("Tempo:") + ui->darkTempoLabel->text() + ", Pitch:" + ui->darkPitchLabel->text();
+    ui->statusBar->showMessage(msg1);
 }
 
 // // ----------------------------------------------------------------------
