@@ -661,13 +661,13 @@ void MainWindow::on_actionSave_Playlist_triggered()  // NOTE: this is really mis
 
 void MainWindow::on_actionNext_Playlist_Item_triggered()
 {
-    qDebug() << "on_actionNext_Playlist_Item_triggered";
+    // qDebug() << "on_actionNext_Playlist_Item_triggered";
 
     on_darkStopButton_clicked(); // stop current playback
     saveCurrentSongSettings();
     // sourceForLoadedSong points at the table where we loaded the song from
 
-    if (sourceForLoadedSong == nullptr) {
+    if (sourceForLoadedSong == nullptr || sourceForLoadedSong == ui->darkSongTable) {
         return;
     }
 
@@ -682,8 +682,6 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
     } // else more than 1 row or no rows, just return -1
 
     // row now contains the currently-playing item, and that row is selected
-
-    sourceForLoadedSong->clearSelection(); // unselect current row!
 
     // now find the NEXT VISIBLE ROW after that one
     int maxRow = sourceForLoadedSong->rowCount() - 1;
@@ -703,14 +701,15 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
         row = lastVisibleRow;
     }
 
-    if (row < 0) {
-      // more than 1 row or no rows at all selected (BAD)
-      return;
-    }
-    sourceForLoadedSong->selectRow(row); // select NEXT row!
+    // if (row < 0) {
+    //   // more than 1 row or no rows at all selected (BAD)
+    //   return;
+    // }
 
     if (sourceForLoadedSong == ui->darkSongTable) {
-        on_darkSongTable_itemDoubleClicked(sourceForLoadedSong->item(row,1)); // as if we double clicked the next line
+        // This does not work right now, because selection doesn't move
+        // maybe because the darkSongTable is sorted?
+        // on_darkSongTable_itemDoubleClicked(sourceForLoadedSong->item(row,1)); // as if we double clicked the next line
     } else {
         // it was a palette slot
         if (sourceForLoadedSong == ui->playlist1Table) {
@@ -729,6 +728,8 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
         on_darkPlayButton_clicked();
     }
 
+    sourceForLoadedSong->clearSelection(); // unselect current row!
+    sourceForLoadedSong->selectRow(row); // select that NEXT row!
 
     // // This code is similar to the row double clicked code...
     // on_stopButton_clicked();  // if we're going to the next file in the playlist, stop current playback
