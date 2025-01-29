@@ -3084,6 +3084,11 @@ void MainWindow::musicRootModified(QString s)
         darkLoadMusicList(nullptr); // also filter them into the darkSongTable
         darkFilterMusic();   // and redo the filtering (NOTE: might still scroll the darkSongTable)
         // ui->darkSongTable->horizontalHeader()->setSortIndicator(sortSection, sortOrder);
+
+        // update the status message ------
+        QString msg1 = QString("Songs found: %1")
+                .arg(QString::number(pathStack->size()));
+        ui->statusBar->showMessage(msg1);
     }
     filewatcherShouldIgnoreOneFileSave = false;
 }
@@ -6680,17 +6685,9 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
     }
     t.elapsed(__LINE__);
 
-    // always gets rid of the old pathstack and pathStackCuesheets
-    if (pathStack) {
-        delete pathStack;
-    }
-    if (pathStackCuesheets) {
-        delete pathStackCuesheets;
-    }
-
-    // make new ones
-    pathStack = new QList<QString>();
-    pathStackCuesheets = new QList<QString>();
+    // // always gets rid of the old pathstack and pathStackCuesheets
+    pathStack->clear();
+    pathStackCuesheets->clear();
 
     // looks for files in the mainRootDir --------
     QDir rootDir1(mainRootDir);
@@ -6722,10 +6719,11 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
     t.elapsed(__LINE__);
 
     // LOCAL SQUAREDESK PLAYLISTS -------
-    getLocalPlaylists();  // and add them to the pathStackPlaylists, with newType == "PlaylistName%!% ", and fullPath = path to MP3 file on disk
+    // getLocalPlaylists();  // and add them to the pathStackPlaylists, with newType == "PlaylistName%!% ", and fullPath = path to MP3 file on disk
+    // t.elapsed(__LINE__);
 
-    t.elapsed(__LINE__);
-
+    // updateTreeWidget will reload the local Playlists, just clear it out first
+    pathStackPlaylists->clear();
     updateTreeWidget(); // this will also show the Apple Music playlists, found just now
     t.elapsed(__LINE__);
     t.stop();
@@ -7436,6 +7434,55 @@ void MainWindow::loadMusicList()
 // Note: if aPathStack == currentShowingPathStack, then don't do anything
 void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, bool reloadPaletteSlots)
 {
+    // if (aPathStack != nullptr) {
+    //     int size0 = aPathStack->size();
+    //     qDebug() << "aPathStack.size" << size0;
+    //     if (size0 > 0) {
+    //             // qDebug() << "aPathStack[0]" << pathStack[0];
+    //     }
+    // } else {
+    //     qDebug() << "aPathStack == nullptr";
+    // }
+
+    // if (currentlyShowingPathStack != nullptr) {
+    //     int sizeA = currentlyShowingPathStack->size();
+    //     qDebug() << "currentlyShowingPathStack.size" << sizeA;
+    //     if (sizeA > 0) {
+    //             // qDebug() << "pathStack[0]" << pathStack[0];
+    //     }
+    // } else {
+    //     qDebug() << "currentlyShowingPathStack == nullptr";
+    // }
+
+    // if (pathStack != nullptr) {
+    //     int size1 = pathStack->size();
+    //     qDebug() << "pathStack.size" << size1;
+    //     if (size1 > 0) {
+    //             // qDebug() << "pathStack[0]" << pathStack[0];
+    //     }
+    // } else {
+    //     qDebug() << "pathStack == nullptr";
+    // }
+
+    // if (pathStackPlaylists != nullptr) {
+    //     int size2 = pathStackPlaylists->size();
+    //     qDebug() << "pathStackPlaylists.size" << size2;
+    //     if (size2 > 0) {
+    //             // qDebug() << "pathStackPlaylists[0]" << pathStackPlaylists[0];
+    //     }
+    // } else {
+    //     qDebug() << "pathStackPlaylists == nullptr";
+    // }
+
+    // if (pathStackApplePlaylists != nullptr) {
+    //     int size3 = pathStackApplePlaylists->size();
+    //     qDebug() << "pathStackApplePlaylists.size" << size3;
+    //     if (size3 > 0) {
+    //             // qDebug() << "pathStackApplePlaylists[0]" << pathStackApplePlaylists[0];
+    //     }
+    // } else {
+    //     qDebug() << "pathStackApplePlaylists == nullptr";
+    // }
 
     if ((currentlyShowingPathStack != nullptr) && (aPathStack == currentlyShowingPathStack)) {
         return; // just return, because it's already up to date
@@ -7845,7 +7892,9 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, bool reloadPalett
 
     t.stop();
 
-    currentlyShowingPathStack = aPathStack; // we're showing either the one we were given (pathStack, pathStackPlaylists), or we just refreshed the currently showing one
+    if (aPathStack != nullptr) {
+        currentlyShowingPathStack = aPathStack; // we're showing either the one we were given (pathStack, pathStackPlaylists), or we just refreshed the currently showing one
+    }
 }
 
 

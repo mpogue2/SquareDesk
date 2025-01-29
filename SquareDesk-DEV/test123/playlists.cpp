@@ -2888,6 +2888,8 @@ void MainWindow::refreshAllPlaylists() {
 void MainWindow::getAppleMusicPlaylists() {
     // qDebug() << "getAppleMusicPlaylists ==================";
 
+    pathStackApplePlaylists->clear(); // start from nothing
+
     QFile applescriptfile(":/applescript/getAppleMusicPlaylists.txt");
 
     if (!applescriptfile.open(QIODevice::ReadOnly | QIODevice::Text)) {
