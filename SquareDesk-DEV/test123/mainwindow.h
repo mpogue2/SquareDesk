@@ -832,6 +832,8 @@ private slots:
 
     void on_action3paletteSlots_triggered();
 
+    void on_actionMove_on_to_Next_Song_triggered();
+
 public:
 
     // BULK operations -----

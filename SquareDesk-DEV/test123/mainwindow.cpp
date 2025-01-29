@@ -4888,7 +4888,7 @@ void MainWindow::on_darkSeekBar_valueChanged(int value)
 // ----------------------------------------------------------------------
 void MainWindow::on_actionLoop_triggered()
 {
-    // on_loopButton_toggled(ui->actionLoop->isChecked());
+    on_loopButton_toggled(ui->actionLoop->isChecked());
 }
 
 // ----------------------------------------------------------------------
@@ -12669,3 +12669,9 @@ void MainWindow::on_action3paletteSlots_triggered()
     ui->playlist3Table->setVisible(true);
     prefsManager.Setnumpaletteslots("3");
 }
+
+void MainWindow::on_actionMove_on_to_Next_Song_triggered()
+{
+    on_actionNext_Playlist_Item_triggered();
+}
+

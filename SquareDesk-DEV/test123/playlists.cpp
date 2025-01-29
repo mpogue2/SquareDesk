@@ -661,6 +661,75 @@ void MainWindow::on_actionSave_Playlist_triggered()  // NOTE: this is really mis
 
 void MainWindow::on_actionNext_Playlist_Item_triggered()
 {
+    qDebug() << "on_actionNext_Playlist_Item_triggered";
+
+    on_darkStopButton_clicked(); // stop current playback
+    saveCurrentSongSettings();
+    // sourceForLoadedSong points at the table where we loaded the song from
+
+    if (sourceForLoadedSong == nullptr) {
+        return;
+    }
+
+    QItemSelectionModel *selectionModel = sourceForLoadedSong->selectionModel();
+    QModelIndexList selected = selectionModel->selectedRows();
+    int row = -1;
+
+    if (selected.count() == 1) {
+        // exactly 1 row was selected (good)
+        QModelIndex index = selected.at(0);
+        row = index.row();
+    } // else more than 1 row or no rows, just return -1
+
+    // row now contains the currently-playing item, and that row is selected
+
+    sourceForLoadedSong->clearSelection(); // unselect current row!
+
+    // now find the NEXT VISIBLE ROW after that one
+    int maxRow = sourceForLoadedSong->rowCount() - 1;
+
+    // which is the next VISIBLE row?
+    int lastVisibleRow = row;
+    row = (maxRow < row+1 ? maxRow : row+1); // bump up by 1
+    while (sourceForLoadedSong->isRowHidden(row) && row < maxRow) {
+        // keep bumping, until the next VISIBLE row is found, or we're at the END
+        row = (maxRow < row+1 ? maxRow : row+1); // bump up by 1
+    }
+    if (sourceForLoadedSong->isRowHidden(row)) {
+        // if we try to go past the end of the VISIBLE rows, stick at the last visible row (which
+        //   was the last one we were on.  Well, that's not always true, but this is a quick and dirty
+        //   solution.  If I go to a row, select it, and then filter all rows out, and hit one of the >>| buttons,
+        //   hilarity will ensue.
+        row = lastVisibleRow;
+    }
+
+    if (row < 0) {
+      // more than 1 row or no rows at all selected (BAD)
+      return;
+    }
+    sourceForLoadedSong->selectRow(row); // select NEXT row!
+
+    if (sourceForLoadedSong == ui->darkSongTable) {
+        on_darkSongTable_itemDoubleClicked(sourceForLoadedSong->item(row,1)); // as if we double clicked the next line
+    } else {
+        // it was a palette slot
+        if (sourceForLoadedSong == ui->playlist1Table) {
+            on_playlist1Table_itemDoubleClicked(sourceForLoadedSong->item(row,1));
+        } else if (sourceForLoadedSong == ui->playlist2Table) {
+            on_playlist2Table_itemDoubleClicked(sourceForLoadedSong->item(row,1));
+        } else if (sourceForLoadedSong == ui->playlist3Table) {
+            on_playlist3Table_itemDoubleClicked(sourceForLoadedSong->item(row,1));
+        } else {
+            qDebug() << "ERROR 177";
+        }
+    }
+
+    // start playback automatically, if Autostart is enabled
+    if (ui->actionAutostart_playback->isChecked()) {
+        on_darkPlayButton_clicked();
+    }
+
+
     // // This code is similar to the row double clicked code...
     // on_stopButton_clicked();  // if we're going to the next file in the playlist, stop current playback
     // saveCurrentSongSettings();

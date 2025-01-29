@@ -4457,6 +4457,8 @@
     <addaction name="menuSound_FX"/>
     <addaction name="separator"/>
     <addaction name="actionClear_Search"/>
+    <addaction name="separator"/>
+    <addaction name="actionMove_on_to_Next_Song"/>
    </widget>
    <widget class="QMenu" name="menuPlaylist">
     <property name="title">
@@ -6293,6 +6295,14 @@
    </property>
    <property name="text">
     <string>3</string>
+   </property>
+  </action>
+  <action name="actionMove_on_to_Next_Song">
+   <property name="text">
+    <string>Move on to Next Song</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K</string>
    </property>
   </action>
  </widget>
