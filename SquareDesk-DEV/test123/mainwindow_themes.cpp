@@ -106,8 +106,10 @@ void MainWindow::themeTriggered(QAction * action) {
     calledColorString = prefsManager.GetcalledColorString();
     extrasColorString = prefsManager.GetextrasColorString();
 
-    darkLoadMusicList();
-    reloadPaletteSlots();
+    if (!doNotCallDarkLoadMusicList) {    // I hate this.
+        darkLoadMusicList(nullptr, currentTypeFilter, true, true); // refresh whatever is there
+        reloadPaletteSlots();
+    }
 
     QApplication::restoreOverrideCursor(); // back to normal cursor...
 }

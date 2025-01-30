@@ -16,5 +16,6 @@
         <file>graphics/icons8-warning-48.png</file>
         <file>graphics/SplashScreen2025.png</file>
         <file>applescript/getAppleMusicPlaylists.txt</file>
+        <file>graphics/SplashScreen2025b.png</file>
     </qresource>
 </RCC>

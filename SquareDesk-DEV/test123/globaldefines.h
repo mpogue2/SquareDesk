@@ -1,10 +1,6 @@
 #ifndef GLOBALDEFINES_H
 #define GLOBALDEFINES_H
 
-// define this if you want the DarkMode tab, and all the new stuff that goes with it
-#define DARKMODE
-#define DARKMUSICTABNAME "Music"
-
 // from: https://raymii.org/s/blog/Qt_Property_Macro_Q_PROPERTY_with_95_percent_less_code.html
 /* Macro to define Q_PROPERTY backed by a regular value
  * QP_V = Q_Property, value (not reference) */
@@ -38,5 +34,14 @@ private: \
 #define JUCE_PLUGINHOST_AU 1
 #define JUCE_MAC 1
 #endif
+
+// this needs to match the version of the sd_doc.pdf that is in the Resources folder
+// This will be copied to the user's Reference folder, if "196.SD_<SD_VERSION>.pdf" does not exist.
+// User must delete the old one, if they don't want to see it.
+#define SD_VERSION "39.71"
+
+// for debugging
+
+#define DDD(x) qDebug() << #x << ":" << x;
 
 #endif // GLOBALDEFINES_H

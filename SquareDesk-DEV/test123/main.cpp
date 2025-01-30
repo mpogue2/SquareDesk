@@ -30,7 +30,9 @@
 
 #include <QApplication>
 #include <QSplashScreen>
+#include "splashscreen.h"
 #include "prefsmanager.h"
+#include "perftimer.h"
 
 //#include "startupwizard.h"
 //#include <execinfo.h>  // for debugging using backtrace()
@@ -38,6 +40,9 @@
 // ==============================================================================================================
 int main(int argc, char *argv[])
 {
+    PerfTimer t("main", __LINE__);
+    t.start(__LINE__);
+
 // From: https://stackoverflow.com/questions/4954140/how-to-redirect-qdebug-qwarning-qcritical-etc-output
 //    QCoreApplication::addLibraryPath(".");  // for windows
 
@@ -46,12 +51,16 @@ int main(int argc, char *argv[])
     juce::ScopedJuceInitialiser_GUI init; // needed to prevent memory leak reporting
 #endif
 
+    t.elapsed(__LINE__);
+
     QApplication a(argc, argv);
     a.setApplicationName("SquareDesk");
     a.setOrganizationName("Zenstar Software");
     a.setOrganizationDomain("zenstarstudio.com");
 
     PreferencesManager prefsManager;
+
+    t.elapsed(__LINE__);
 
 //    prefsManager.SetdarkMode(false);
 
@@ -61,6 +70,9 @@ int main(int argc, char *argv[])
     darkmode = true;  // override the Light Mode preference for Dark GUI, go with the new one
     QString resourcesPath = qApp->applicationDirPath() + "/../Resources";
     QDir::addSearchPath("themes", resourcesPath); // url(images:foo.png) will look in Resources dir for foo.png
+
+    t.elapsed(__LINE__);
+
 #else
     if (darkmode) {
         // DARK MODE ======================================
@@ -95,15 +107,27 @@ int main(int argc, char *argv[])
 #endif
 
     // splash screen ------
-    QPixmap pixmap(":/graphics/SplashScreen2025.png");
+    // QPixmap pixmap(":/graphics/SplashScreen2025.png");
 
-    //  draw the version number into the splashscreen pixmap
-    QPainter painter( &pixmap );
-    painter.setFont( QFont("Arial") );
-    painter.drawText( QPoint(225, 140), QString("V") + VERSIONSTRING );
+    // //  draw the version number into the splashscreen pixmap
+    // QPainter painter( &pixmap );
+    // painter.setFont( QFont("Arial") );
+    // painter.drawText( QPoint(225, 140), QString("V") + VERSIONSTRING );
 
-    QSplashScreen splash(pixmap);
-    splash.show();
+    // t.elapsed(__LINE__);
+
+    // QSplashScreen splash(pixmap);
+    // splash.show();
+
+    // Create and show splash screen
+    QString vers = QString("V") + VERSIONSTRING;
+    SplashScreen* splash = new SplashScreen(vers); // pick up the version number from mainwindow.h
+    splash->show();
+
+    // Force the splash screen to be shown immediately
+    a.processEvents();
+
+    t.elapsed(__LINE__);
 
     // If running from QtCreator, use normal debugging -------------
     QByteArray envVar = qgetenv("QTDIR");       //  check if the app is ran in Qt Creator
@@ -117,12 +141,19 @@ int main(int argc, char *argv[])
         qInstallMessageHandler(MainWindow::customMessageOutputQt); // custom message handler for debugging inside QtCreator
     }
 
-//    a.processEvents();
+    a.processEvents();
 
-    MainWindow w(&splash, darkmode);  // setMessage() will be called several times in here while loading...
-//    a.processEvents();  // force events to be processed, before closing the window
+    t.elapsed(__LINE__);
 
-    splash.finish(&w); // tell splash screen to go away when window is up
+    // MainWindow w(&splash, darkmode);  // setMessage() will be called several times in here while loading...
+    MainWindow w(splash, darkmode);  // setMessage() will be called several times in here while loading...
+    a.processEvents();  // force events to be processed, before closing the window
+
+    t.elapsed(__LINE__);
+
+    // splash.finish(&w); // tell splash screen to go away when window is up
+    splash->deleteLater();
+
 
     // put window back where it was last time (modulo the screen size, which
     //   is automatically taken care of.
@@ -131,6 +162,8 @@ int main(int argc, char *argv[])
     w.restoreState(settings.value("windowState").toByteArray());
 
     w.show();
+
+    t.elapsed(__LINE__);
 
     w.setVisible(false);  // This works around a bug (not sure when introduced) whereby the first selection
     w.setVisible(true);   //   of an item in a context menu does NOT call the lambda, UNLESS the app is started, then the app focus
@@ -142,12 +175,15 @@ int main(int argc, char *argv[])
                           //   e.g. in /test123 .  This made it very hard to track down!
                           //  Not showing the splash screen also fixes the problem, but I wanted to keep that, so this seems like a
                           //   simple workaround.  I have no idea why this works, but it seems to solve the problem 100% of the time.
+                          //  This bug still exists as of 2025.01.27, on Qt v6.8.1 .
 
     // http://stackoverflow.com/questions/6516299/qt-c-icons-not-showing-up-when-program-is-run-under-windows-o-s
     QString sDir = QCoreApplication::applicationDirPath();
     a.addLibraryPath(sDir + "/plugins");
 
     a.installEventFilter(new GlobalEventFilter(w.ui));
+
+    t.elapsed(__LINE__);
 
     Q_INIT_RESOURCE(startupwizard); // resources for the startup wizard
 
@@ -164,6 +200,8 @@ int main(int argc, char *argv[])
 //    }
 //    free(strs);
 //    // DEBUG ========================================================
+
+    t.elapsed(__LINE__);
 
     int ret = a.exec();
     if (ret == RESTART_SQUAREDESK)

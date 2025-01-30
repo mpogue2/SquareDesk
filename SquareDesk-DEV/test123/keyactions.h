@@ -41,10 +41,10 @@
  *  
  */
 
-KEYACTION(StopSong, "Stop Song", mw->on_stopButton_clicked() )
-KEYACTION(RestartSong, "Restart Song", mw->on_stopButton_clicked(); mw->on_playButton_clicked();mw->on_warningLabel_clicked() )
-KEYACTION(Forward15Seconds, "Forward 15 Seconds", mw->on_actionSkip_Ahead_15_sec_triggered())
-KEYACTION(Backward15Seconds, "Backward 15 Seconds", mw->on_actionSkip_Back_15_sec_triggered())
+KEYACTION(StopSong, "Stop Song", mw->on_darkStopButton_clicked() )
+KEYACTION(RestartSong, "Restart Song", mw->on_darkStopButton_clicked(); mw->on_darkPlayButton_clicked(); mw->on_darkWarningLabel_clicked() )
+KEYACTION(Forward15Seconds, "Skip Forward 10 Seconds", mw->on_actionSkip_Forward_triggered())
+KEYACTION(Backward15Seconds, "Skip Backward 10 Seconds", mw->on_actionSkip_Backward_triggered())
 KEYACTION(VolumeMinus, "Volume -", mw->on_actionVolume_Down_triggered())
 KEYACTION(VolumePlus, "Volume +", mw->on_actionVolume_Up_triggered())
 KEYACTION(TempoPlus, "Tempo +", mw->actionTempoPlus())
@@ -62,8 +62,8 @@ KEYACTION(EndLoop,   "End Loop",   mw->on_darkEndLoopButton_clicked())
 
 KEYACTION(TestLoop, "Test Loop", mw->on_actionTest_Loop_triggered())
 KEYACTION(NextTab, "Toggle Music/Cuesheet Tab ", mw->actionNextTab())
-KEYACTION(PlaySong, "Play/Pause Song", mw->on_playButton_clicked())
-KEYACTION(SwitchToMusicTab, "Switch to Music Tab", mw->on_playButton_clicked())
+KEYACTION(PlaySong, "Play/Pause Song", mw->on_darkPlayButton_clicked())
+KEYACTION(SwitchToMusicTab, "Switch to Music Tab", mw->actionSwitchToTab("Music"))
 KEYACTION(SwitchToTimersTab, "Switch to Timers Tab", mw->actionSwitchToTab("Timers"))
 KEYACTION(SwitchToLyricsTab, "Switch to Cuesheet Tab", mw->actionSwitchToTab("Cuesheet"))
 KEYACTION(SwitchToSDTab, "Switch to SD Tab", mw->actionSwitchToTab("SD"))

@@ -77,6 +77,8 @@ public:
     void setOutro(double frac);
     double getIntro();
     double getOutro();
+    double getIntroFrac();
+    double getOutroFrac();
 
     void setValue(int value);
     void setFloatValue(float f);

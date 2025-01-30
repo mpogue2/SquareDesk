@@ -104,6 +104,7 @@ SOURCES += main.cpp\
     soundtouch/source/SoundTouch/cpu_detect_x86.cpp \
     soundtouch/source/SoundTouch/mmx_optimized.cpp \
     soundtouch/source/SoundTouch/sse_optimized.cpp \
+    splashscreen.cpp \
     svgClock.cpp \
     svgDial.cpp \
     svgSlider.cpp \
@@ -183,6 +184,7 @@ HEADERS  += mainwindow.h \
     soundtouch/source/SoundTouch/RateTransposer.h \
     soundtouch/source/SoundTouch/TDStretch.h \
     soundtouch/source/SoundTouch/cpu_detect.h \
+    splashscreen.h \
     svgClock.h \
     svgDial.h \
     svgSlider.h \
