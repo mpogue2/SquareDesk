@@ -117,7 +117,7 @@ SplashScreen::SplashScreen(const QString& version, QWidget *parent) : QWidget(pa
         pixmap = QPixmap(400, 200);
         pixmap.fill(Qt::blue);
     }
-    qDebug() << "Pixmap size:" << pixmap.size();
+    // qDebug() << "Pixmap size:" << pixmap.size();
 
     // Set the window size to match the image
     setFixedSize(pixmap.size() + QSize(0,30));
@@ -188,7 +188,7 @@ SplashScreen::SplashScreen(const QString& version, QWidget *parent) : QWidget(pa
     QScreen* screen = QGuiApplication::primaryScreen();
     move(screen->geometry().center() - frameGeometry().center());
 
-    qDebug() << "Window size:" << size();
+    // qDebug() << "Window size:" << size();
 }
 
 void SplashScreen::setProgress(int value, const QString& message) {
