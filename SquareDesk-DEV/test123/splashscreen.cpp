@@ -226,7 +226,7 @@ SplashScreen::SplashScreen(const QString& version, QWidget *parent) : QWidget(pa
     QScreen* screen = QGuiApplication::primaryScreen();
     move(screen->geometry().center() - frameGeometry().center());
 
-    qDebug() << "Window size:" << size();
+    // qDebug() << "Window size:" << size();
 }
 
 void SplashScreen::setProgress(int value, const QString& message) {
