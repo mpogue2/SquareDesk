@@ -1840,6 +1840,9 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
             case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; prefsManager.SetlastPlaylistLoaded3("tracks/" + relativePath); break;
         }
 
+        theTableWidget->hide();
+        theTableWidget->setSortingEnabled(false);
+
         theTableWidget->setRowCount(0); // delete all the rows in the slot
 
         // The only way to get here is to RIGHT-CLICK on a Tracks/filterName in the TreeWidget.
@@ -1927,6 +1930,9 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
         theTableWidget->resizeColumnToContents(0);
 //        theTableWidget->resizeColumnToContents(2);
 //        theTableWidget->resizeColumnToContents(3);
+
+        theTableWidget->setSortingEnabled(true);
+        theTableWidget->show();
 
         // redo the label, but with an indicator that these are Tracks, not a Playlist
         QString playlistShortName = relativePath;
