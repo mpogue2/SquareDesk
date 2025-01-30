@@ -2029,7 +2029,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist1Table->resizeColumnToContents(0); // number
     ui->playlist1Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
     ui->playlist1Table->setColumnWidth(2,20); // pitch
-    ui->playlist1Table->setColumnWidth(3,40); // tempo
+    ui->playlist1Table->setColumnWidth(3,45); // tempo
     ui->playlist1Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
     ui->playlist1Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter);
     ui->playlist1Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter);
@@ -2169,7 +2169,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist2Table->resizeColumnToContents(0); // number
     ui->playlist2Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
     ui->playlist2Table->setColumnWidth(2,20); // pitch
-    ui->playlist2Table->setColumnWidth(3,40); // tempo
+    ui->playlist2Table->setColumnWidth(3,45); // tempo
     ui->playlist2Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
     ui->playlist2Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter );
     ui->playlist2Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter );
@@ -2307,7 +2307,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist3Table->resizeColumnToContents(0); // number
     ui->playlist3Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
     ui->playlist3Table->setColumnWidth(2,20); // pitch
-    ui->playlist3Table->setColumnWidth(3,40); // tempo
+    ui->playlist3Table->setColumnWidth(3,45); // tempo
     ui->playlist3Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
     ui->playlist3Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter );
     ui->playlist3Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter );
