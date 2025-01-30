@@ -859,6 +859,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
+    doNotCallDarkLoadMusicList = false;
     ui->actionViewTags->setChecked(prefsManager.GetshowSongTags()); // tags setting must persist
 
     currentlyShowingPathStack = pathStack;  // the very first time, we need to work with the pathStack (songs)
@@ -1811,7 +1812,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     // if (darkmode) {
     if (ui->darkSongTable->rowCount() >= 1) {
-        ui->darkSongTable->selectRow(0); // select row 1 after initial load of the songTable (if there are rows)
+        // ui->darkSongTable->selectRow(0); // select row 1 after initial load of the songTable (if there are rows)
         ui->darkSearch->setFocus();
     }
     // } else {
@@ -2441,7 +2442,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 //    ui->treeWidget->itemAt(100,10)->setSelected(true);
 
     QList<QTreeWidgetItem *> trackItem = ui->treeWidget->findItems("Tracks", Qt::MatchExactly);
-    trackItem[0]->setSelected(true);
+    doNotCallDarkLoadMusicList = true;
+    trackItem[0]->setSelected(true); // entire Tracks was already loaded by actionTags
+    doNotCallDarkLoadMusicList = false;
 
     // enable context menus for TreeWidget
     ui->treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -2841,7 +2844,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     //   timer to start too early, or it won't affect the focus.
     //
     // startup the file watcher, AND make sure that focus has gone to the Title search field
-    QTimer::singleShot(2000, [this]{
+    QTimer::singleShot(10, [this]{
 //            qDebug("Starting up FileWatcher now (intentionally delayed from app startup, to avoid Box.net locks retriggering loadMusicList)");
             QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
             // if (darkmode) {
@@ -2860,6 +2863,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
             abbrevsWatcher.addPath(musicRootPath + "/sd/abbrevs.txt");
             QObject::connect(&abbrevsWatcher, SIGNAL(fileChanged(QString)), this, SLOT(readAbbreviations()));
 
+            ui->darkSongTable->selectRow(0);
             ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
         });
 
@@ -5774,7 +5778,7 @@ bool MainWindow::handleKeypress(int key, QString text)
             // on_clearSearchButton_clicked(); // clears search fields, selects first visible item in songTable
             ui->darkSearch->setText("");
             ui->darkSearch->setFocus();  // When Clear Search is clicked (or ESC ESC), set focus to the darkSearch field, so that UP/DOWN works
-            filterMusic();               // highlights first visible row (if there are any rows)
+            darkFilterMusic();               // highlights first visible row (if there are any rows)
 
             if (
                 // ui->labelSearch->text() != "" ||
@@ -7182,10 +7186,10 @@ void MainWindow::darkFilterMusic()
 
     t.elapsed(__LINE__);
 
-    // qDebug() << "firstVisibleRow: " << firstVisibleRow;
+    // qDebug() << "darkFilterMusic::firstVisibleRow: " << firstVisibleRow;
 
     if (rowsVisible > 0) {
-        // qDebug() << "good select row!";
+        // qDebug() << "good select row!" << firstVisibleRow;
         ui->darkSongTable->selectRow(firstVisibleRow);
     }
     ui->darkSearch->setFocus();  // restore focus after selectRow
@@ -7843,14 +7847,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
     t.elapsed(__LINE__);
 
-    // performance -----
-    // these must be in "backwards" order to get the right order, which
-    //   is that Type is primary, Title is secondary, Label is tertiary
-    ui->darkSongTable->sortItems(kLabelCol);  // sort last by label/label #
-    ui->darkSongTable->sortItems(kTitleCol);  // sort second by title in alphabetical order
-    ui->darkSongTable->sortItems(kTypeCol);   // sort first by type (singing vs patter)
-
-//    darkFilterMusic();
+    // darkFilterMusic(); // I don't think this is needed here.
 
     ui->darkSongTable->resizeColumnToContents(kNumberCol);  // and force resizing of column widths to match songs
     ui->darkSongTable->resizeColumnToContents(kTypeCol);
@@ -7860,6 +7857,19 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
     ui->darkSongTable->blockSignals(false);  // unblock signals
     ui->darkSongTable->setSortingEnabled(true);
+
+    // performance -----
+    // these must be in "backwards" order to get the right order, which
+    //   is that Type is primary, Title is secondary, Label is tertiary
+    // qDebug() << "darkLoadMusicList::sortItems";
+    ui->darkSongTable->sortItems(kLabelCol);  // sort last by label/label #
+    ui->darkSongTable->sortItems(kTitleCol);  // sort second by title in alphabetical order
+    ui->darkSongTable->sortItems(kTypeCol);   // sort first by type (singing vs patter)
+    // qDebug() << "darkLoadMusicList::DONE with sortItems";
+
+    ui->darkSongTable->selectRow(0); // DEBUG
+    ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
+
     ui->darkSongTable->show();
 
     // // PERFORMANCE TESTING --------
@@ -7894,7 +7904,8 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
     ui->darkSongTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
     bool searchHasFocus = ui->darkSearch->hasFocus();
     bool darkSongTableHasFocus = ui->darkSongTable->hasFocus();
-    ui->darkSongTable->selectRow(0);
+    // qDebug() << "yeah, I don't want to go to row 0 here";
+    // ui->darkSongTable->selectRow(0);
     if (searchHasFocus) {
         ui->darkSearch->setFocus();
     } else if (darkSongTableHasFocus) {
@@ -9794,7 +9805,7 @@ void MainWindow::on_actionStartup_Wizard_triggered()
         
         // used to store the file paths
         findMusic(musicRootPath, true);  // get the filenames from the user's directories
-        filterMusic(); // and filter them into the songTable
+        darkFilterMusic(); // and filter them into the songTable
 //        qDebug() << "LOAD MUSIC LIST FROM STARTUP WIZARD TRIGGERED";
         darkLoadMusicList(nullptr, "Tracks", true, true); // just refresh whatever is showing
 
@@ -11414,18 +11425,18 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
 
         if (thisItem != nullptr) {
             QString theText = thisItem->text(0);
-            if (theText == "Tracks") {
-                darkLoadMusicList(pathStack, "Tracks", true, false);  // show MUSIC
+            if (!doNotCallDarkLoadMusicList) {
                 ui->darkSearch->setText(""); // clear the search to show all Local Tracks
-                return;
-            } else if (theText == "Apple Music") {
-                darkLoadMusicList(pathStackApplePlaylists, "Apple Music", true, false);  // show PLAYLISTS
-                ui->darkSearch->setText(""); // clear the search to show just Apple Music playlist items
-                return;
-            } else if (theText == "Playlists") {
-                darkLoadMusicList(pathStackPlaylists, "Playlists", true, false);  // show PLAYLISTS
-                ui->darkSearch->setText(""); // clear the search to show just Apple Music playlist items
-                return;
+                if (theText == "Tracks") {
+                    darkLoadMusicList(pathStack, "Tracks", true, false);  // show MUSIC
+                    return;
+                } else if (theText == "Apple Music") {
+                    darkLoadMusicList(pathStackApplePlaylists, "Apple Music", true, false);  // show PLAYLISTS
+                    return;
+                } else if (theText == "Playlists") {
+                    darkLoadMusicList(pathStackPlaylists, "Playlists", true, false);  // show PLAYLISTS
+                    return;
+                }
             }
         }
 
@@ -11450,16 +11461,20 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
         if (maybeParentsItem == nullptr) {
 //            qDebug() << "PARENT ITEM:" << thisItem->text(0);
             ui->darkSearch->setText(""); // clear the search to show all Tracks
-            darkLoadMusicList(pathStack, "Tracks", true, false);  // show MUSIC TRACKS
+            if (!doNotCallDarkLoadMusicList) {
+                darkLoadMusicList(pathStack, "Tracks", true, false);  // show MUSIC TRACKS
+            }
         } else {
             ui->darkSearch->setText(""); // clear the search to show all Tracks
-            if (treePath.startsWith("Tracks")) {
-                darkLoadMusicList(pathStack, shortTreePath, true, false);  // show MUSIC TRACKS
-            } else if (treePath.startsWith("Playlists")) {
-                darkLoadMusicList(pathStackPlaylists, shortTreePath, true, false);  // show MUSIC TRACKS
-            } else if (treePath.startsWith("Apple Music")) {
-                darkLoadMusicList(pathStackApplePlaylists, shortTreePath, true, false);  // show MUSIC TRACKS
-            } else {
+            if (!doNotCallDarkLoadMusicList) {
+                if (treePath.startsWith("Tracks")) {
+                    darkLoadMusicList(pathStack, shortTreePath, true, false);  // show MUSIC TRACKS
+                } else if (treePath.startsWith("Playlists")) {
+                    darkLoadMusicList(pathStackPlaylists, shortTreePath, true, false);  // show MUSIC TRACKS
+                } else if (treePath.startsWith("Apple Music")) {
+                    darkLoadMusicList(pathStackApplePlaylists, shortTreePath, true, false);  // show MUSIC TRACKS
+                } else {
+                }
             }
 // //            qDebug() << "CHILD ITEM:" << thisItem->text(0);
 //             // for sure maybeParentsItem != nullptr
