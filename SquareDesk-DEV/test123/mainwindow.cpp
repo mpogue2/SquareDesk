@@ -9261,6 +9261,10 @@ void MainWindow::saveCurrentSongSettings()
         }
         setting.setSongLength(static_cast<double>(ui->seekBarCuesheet->maximum()));
 
+        // qDebug() << "saveCurrentSongSettings:" << ui->darkTrebleKnob->value() << KnobToSlider(ui->darkTrebleKnob->value());
+        // qDebug() << "saveCurrentSongSettings:" << ui->darkMidKnob->value() << KnobToSlider(ui->darkMidKnob->value());
+        // qDebug() << "saveCurrentSongSettings:" << ui->darkBassKnob->value() << KnobToSlider(ui->darkBassKnob->value());
+
         setting.setTreble(   KnobToSlider(ui->darkTrebleKnob->value()) );
         setting.setBass(     KnobToSlider(ui->darkBassKnob->value())   );
         setting.setMidrange( KnobToSlider(ui->darkMidKnob->value())    );
@@ -9385,7 +9389,11 @@ void MainWindow::loadSettingsForSong(QString songTitle)
                 }
             }
         }
-        // qDebug() << "loadSettingsForSong:" << settings.getTreble() << settings.getBass() << settings.getMidrange();
+        // qDebug() << "***** loadSettingsForSong:" << currentMP3filename;
+        // qDebug() << "loadSettingsForSong:" << settings.isSetTreble() << settings.getTreble();
+        // qDebug() << "loadSettingsForSong:" << settings.isSetMidrange() << settings.getMidrange();
+        // qDebug() << "loadSettingsForSong:" << settings.isSetBass() << settings.getBass();
+
         if (settings.isSetTreble())
         {
             ui->darkTrebleKnob->setValue( SliderToKnob(settings.getTreble()) );
@@ -9437,9 +9445,9 @@ void MainWindow::loadSettingsForSong(QString songTitle)
     }
     else
     {
-        ui->darkTrebleKnob->setValue(0);
-        ui->darkBassKnob->setValue(0);
-        ui->darkMidKnob->setValue(0);
+        ui->darkTrebleKnob->setValue(SliderToKnob(0)); // song not seen before, so T/M/B = (0 Slider, 50 Knob) = 0dB
+        ui->darkBassKnob->setValue(SliderToKnob(0));
+        ui->darkMidKnob->setValue(SliderToKnob(0));
         // ui->mixSlider->setValue(0);
     }
 }
