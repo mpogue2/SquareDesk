@@ -421,6 +421,11 @@ QHeaderView::section[theme="Dark"] {
     height: 18px;
 }
 
+QHeaderView::section[theme="Light"] {
+    font: bold 12px;
+    height: 18px;
+}
+
 /* TABLES and LISTS ==================== */
 QTreeWidget#treeWidget[theme="Dark"],
 #playlist1Table[theme="Dark"],

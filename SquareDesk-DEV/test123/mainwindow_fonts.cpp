@@ -403,6 +403,7 @@ void MainWindow::adjustFontSizes()
 
     // ui->songTable->horizontalHeader()->setFont(currentFont);
     // ui->songTable->horizontalHeader()->setFixedHeight(searchBoxHeight); // protected against index == -1
+
     ui->darkSongTable->horizontalHeader()->setFont(currentFont);
     ui->darkSongTable->horizontalHeader()->setFixedHeight(searchBoxHeight); // protected against index == -1
 
