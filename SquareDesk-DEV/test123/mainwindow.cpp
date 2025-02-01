@@ -7685,7 +7685,8 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         else if (songTypeNamesForCalled.contains(cType)) {
             textCol = QColor(calledColorString);
         } else {
-            textCol = QColor(QColor("#A0A0A0"));  // if not a recognized type, color it white-ish
+            // textCol = QColor(QColor("#A0A0A0"));  // if not a recognized type, color it white-ish
+            textCol = QColor(extrasColorString);  // if not a recognized type, color it the xtras color (so user can control it)
         }
 
         QBrush textBrush(textCol); // make a brush for most of the widgets

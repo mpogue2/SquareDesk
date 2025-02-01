@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>844</width>
-    <height>561</height>
+    <height>584</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -456,7 +456,7 @@
            <property name="text">
             <string>We figure out the &quot;type&quot; of music (e.g. patter vs singing call) by looking at the name of the subdirectory of the Music Directory that the song is in. For example, if you put Patter songs into two subdirectories, specify the names of both here, separated by semicolons. Upper and lower case letters can be used interchangeably (&quot;Patter&quot; and &quot;patter&quot; are the same).
 
-Click on a color square to change the color associated with that Music Type.  Set the color to #FFFFFF to reset to the original default color.</string>
+Click on a color square to change the color associated with that Music Type.  Set the color to #FFFFFF to reset to the original default color. Unrecognized types will use the Extras color.</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
