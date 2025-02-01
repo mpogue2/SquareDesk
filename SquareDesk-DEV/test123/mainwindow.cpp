@@ -464,7 +464,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     // NEW INIT ORDER *******
     t.elapsed(__LINE__);
-//    setFontSizes();
+    // setFontSizes();
 
     t.elapsed(__LINE__);
     usePersistentFontSize(); // sets the font of the songTable, which is used by adjustFontSizes to scale other font sizes
@@ -973,7 +973,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     // ui->currentLocLabel3->setText("");
 
     // ui->songLengthLabel->setText("");
+    ui->currentLocLabel3->setText("");
     ui->timeSlash->setVisible(false);
+    ui->songLengthLabel2->setText("");
     // ui->songLengthLabel2->setText("");
 
     inPreferencesDialog = false;
