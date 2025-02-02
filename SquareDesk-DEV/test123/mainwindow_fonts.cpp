@@ -188,9 +188,9 @@ void MainWindow::adjustFontSizes()
     double tempoFactor = 0.9;
 
     int searchBoxesHeight[8] = {20, 21, 22, 24,  26, 28, 30, 32};
-    double scaleWidth1 = 7.75;
-    double scaleWidth2 = 3.25;
-    double scaleWidth3 = 8.5;
+    // double scaleWidth1 = 7.75;
+    // double scaleWidth2 = 3.25;
+    // double scaleWidth3 = 8.5;
 
     // lyrics buttons
     unsigned int TitleButtonWidth[8] = {55,60,65,70, 80,90,95,105};
@@ -204,10 +204,10 @@ void MainWindow::adjustFontSizes()
 
     int nowPlayingSize[8] = {22,27,31,35, 39,43,47,51};  // basically 27/13 * pointSize
 
-    double nowPlayingHeightFactor = 1.5;
+    // double nowPlayingHeightFactor = 1.5;
 
-    double buttonSizeH = 1.875;
-    double buttonSizeV = 1.125;
+    // double buttonSizeH = 1.875;
+    // double buttonSizeV = 1.125;
 #elif defined(Q_OS_WIN32)
     double extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
 
@@ -337,7 +337,7 @@ void MainWindow::adjustFontSizes()
     // ui->currentVolumeLabel->setFont(currentFont);
     // ui->currentMixLabel->setFont(currentFont);
 
-    int newCurrentWidth = static_cast<int>(scaleWidth1 * currentFontPointSize);
+    // int newCurrentWidth = static_cast<int>(scaleWidth1 * currentFontPointSize);
     // ui->currentTempoLabel->setFixedWidth(newCurrentWidth);
     // ui->currentPitchLabel->setFixedWidth(newCurrentWidth);
     // ui->currentVolumeLabel->setFixedWidth(newCurrentWidth);
