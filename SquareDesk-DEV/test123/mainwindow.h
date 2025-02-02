@@ -316,7 +316,7 @@ public:
 public slots:
 
 #ifdef DEBUG_LIGHT_MODE
-    void analogClockStateChanged(QString newStateName);
+    void svgClockStateChanged(QString newStateName);
 #endif
     void changeApplicationState(Qt::ApplicationState state);
 
@@ -1166,7 +1166,7 @@ private:
 
     LevelMeter *vuMeter;
 
-    AnalogClock *analogClock;
+    // AnalogClock *analogClock;
 
     QString patterColorString, singingColorString, calledColorString, extrasColorString;  // current values
 

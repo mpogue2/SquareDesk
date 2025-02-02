@@ -41,7 +41,9 @@ private: \
 #define SD_VERSION "39.71"
 
 // for debugging
+#define DDD(x) qDebug() << __func__ << "line" << __LINE__ << "::" << #x << " = " << x;
 
-#define DDD(x) qDebug() << #x << ":" << x;
+// to debug the svgClock, define this
+// #define DEBUGCLOCK
 
 #endif // GLOBALDEFINES_H

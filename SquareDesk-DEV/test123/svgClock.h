@@ -40,6 +40,7 @@
 #include <QPoint>
 #include <QTimer>
 
+#include "clickablelabel.h"
 #include "typetracker.h"
 #include "svgDial.h"  // for QGraphicsArcItem
 
@@ -48,6 +49,11 @@
 // ---------
 #define SHOWSECONDHAND
 //#define SMOOTHROTATION
+
+#define TIMERNOTEXPIRED     (0x00)
+#define LONGTIPTIMEREXPIRED (0x01)
+#define BREAKTIMEREXPIRED   (0x02)
+#define THIRTYSECWARNING    (0x04)
 
 // -----------------------------------
 class svgClock : public QLabel
@@ -79,11 +85,43 @@ public:
 
 //    int currentSongType; // TEST: setType()
 
+    // TIMER LABEL HANDLING -------------
+    bool tipLengthAlarm;
+    bool breakLengthAlarm;
+
+    bool tipLengthTimerEnabled;  // TODO: rename to patterLengthTimerEnabled
+    bool tipLength30secEnabled;  // TODO: rename
+    int tipLengthAlarmMinutes;   // TODO: rename to patterLengthAlarmMinutes
+    bool breakLengthTimerEnabled;
+    int breakLengthAlarmMinutes;
+
+    unsigned int currentTimerState;  // contains bits for the LONG TIP timer and the BREAK TIMER
+
+    QString singingCallSection;
+
+    bool editModeSD;
+    clickableLabel *timerLabelDark;
+    clickableLabel *timerLabelCuesheet;
+    QLabel *timerLabelSD; // intentionally not clickable
+
+    void setTimerLabel(clickableLabel *theLabelCuesheet, QLabel *theLabelSD, clickableLabel *theLabelDark);
+    void setSDEditMode(bool e);
+    void setSingingCallSection(QString s);
+    void handleTimerLabels(); // do whatever is needed (called by updateClock())
+
+    TypeTracker typeTracker;
+    void resetPatter(void);
+    void goToState(QString newStateName);
+    // ------------------------------------
+
 public slots:
     void customMenuRequested(QPoint pos);
 
 private slots:
     void clearClockColoring();
+
+signals:
+    void newState(QString stateName); // INBREAK, INSINGER, etc.
 
 private:
     QString currentThemeString;
@@ -115,7 +153,6 @@ private:
     QTimer secondTimer;
 
     double lengthOfHourHand, lengthOfMinuteHand, lengthOfSecondHand, lengthOfShortSecondHand;
-
 };
 
 #endif // SVGCLOCK_H

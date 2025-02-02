@@ -3788,6 +3788,7 @@ void MainWindow::on_pushButtonSDUnlock_clicked()
     refreshSDframes();  // clear the * editing indicator
 
     // analogClock->setSDEditMode(true);
+    ui->theSVGClock->setSDEditMode(true);
 }
 
 void MainWindow::SDExitEditMode() {
@@ -3831,6 +3832,7 @@ void MainWindow::SDExitEditMode() {
     refreshSDframes();  // clear the * editing indicator
 
     // analogClock->setSDEditMode(false);
+    ui->theSVGClock->setSDEditMode(false);
 }
 
 void MainWindow::SDSetCurrentSeqs(int i) {

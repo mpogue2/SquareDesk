@@ -40,14 +40,13 @@ void MainWindow::setProp(QWidget *theWidget, const char *thePropertyName, QStrin
     theWidget->style()->polish(theWidget);
 }
 
-void MainWindow::analogClockStateChanged(QString newStateName) {
+void MainWindow::svgClockStateChanged(QString newStateName) {
     if (newStateName != currentAnalogClockState) {
         currentAnalogClockState = newStateName;
-        // qDebug() << "analogClockStateChanged to something new:" << newStateName;
+        // qDebug() << "*** svgClockStateChanged to something new:" << newStateName;
         setProp(ui->darkWarningLabel,     "state", newStateName);
         setProp(ui->warningLabelCuesheet, "state", newStateName);
         setProp(ui->warningLabelSD, "state", newStateName);
-        // don't bother to set the old light mode warningLabel
     }
 }
 

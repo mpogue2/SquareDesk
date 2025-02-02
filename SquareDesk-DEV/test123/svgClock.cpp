@@ -31,13 +31,21 @@
 #include "svgClock.h"
 #include "math.h"
 
-//#define DEBUGCLOCK
+// *** NOTE: To debug the svgClock, set DEBUGCLOCK in globaldefines.h
 
 // -------------------------------------
 // from: https://stackoverflow.com/questions/7537632/custom-look-svg-gui-widgets-in-qt-very-bad-performance
 svgClock::svgClock(QWidget *parent) :
     QLabel(parent)
 {
+    // TIMER LABEL HANDLING ---------------
+    timerLabelCuesheet = nullptr;
+    timerLabelSD = nullptr;
+    timerLabelDark = nullptr;
+    currentTimerState = TIMERNOTEXPIRED;
+    singingCallSection = "";
+    // ------------------------------------
+
     sethourHandColor(QColor("#000"));
     setminuteHandColor(QColor("#000"));
     setsecondHandColor(QColor("#000"));
@@ -48,19 +56,10 @@ svgClock::svgClock(QWidget *parent) :
     view.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
 
     QFont  clockFont("Arial", 16);
-#ifdef DEBUG_LIGHT_MODE
     QBrush numberBrush(numberColor());
-#else
-    QBrush numberBrush(QColor("#a0a0a0"));
-#endif
 
     QFont  digitalTimeFont("Arial", 24);
-//    QBrush digitalTimeBrush(QColor("#7070d0"));
-#ifdef DEBUG_LIGHT_MODE
     QBrush digitalTimeBrush(digitalTimeColor());
-#else
-    QBrush digitalTimeBrush(QColor("#7070B0"));
-#endif
 
 //    QRect extent = this->geometry();
     double clockSize = 170;
@@ -379,6 +378,8 @@ void svgClock::updateClock() {
         }
     }
 
+    // TIMER LABEL HANDLING -----------
+    handleTimerLabels();
 }
 
 svgClock::~svgClock()
@@ -417,8 +418,8 @@ void svgClock::setSegment(unsigned int hour, unsigned int minute, unsigned int s
     // TODO: use the timeSegmentList instead of the typeInMinute[] and lastHourSet[] to do Clock Coloring
 
     Q_UNUSED(second)
-//    typeTracker.addSecond(type);  // NOTE: THIS clock doesn't need to call typeTracker here, because analogClock does it
-    //    typeTracker.printState("AnalogClock::setSegment():");
+    typeTracker.addSecond(type);  // NOTE: THIS clock needs to call typeTracker here, because analogClock no longer does it
+    // typeTracker.printState("svgClock::setSegment():"); // DEBUG
 }
 
 void svgClock::setColorForType(int type, QColor theColor) {
@@ -471,4 +472,269 @@ void svgClock::finishInit() {
         tick[i]->setPen(tickPen); // set the colors as per QSS
     }
 
+}
+
+// TIMER LABEL HANDLING ---------------------------
+void svgClock::handleTimerLabels() {
+    // qDebug() << "***** handleTimerLabels *****";
+
+    // Check for LONG PATTER ALARM
+    int patterLengthSecs = typeTracker.currentPatterLength();
+    unsigned int secs = patterLengthSecs;
+    unsigned int mm = (unsigned int)(secs/60);
+    unsigned int ss = secs - 60*mm;
+
+// BREAK timer is a count-down timer to 00:00 (end of break)
+//   but it keeps on counting
+
+// DEBUG: change to 1 seconds per minute of patter, just for debugging
+//#define DEBUGCLOCK
+#ifdef DEBUGCLOCK
+#define SECSPERMIN  1
+#else
+#define SECSPERMIN  60
+#endif
+
+    int breakLengthSecs = typeTracker.currentBreakLength();
+    int b_secs = breakLengthAlarmMinutes*SECSPERMIN - breakLengthSecs;  // seconds to go in the break; to debug, change 60 to 5
+    int b_mm = abs(b_secs/SECSPERMIN);
+    int b_ss = abs(b_secs) - SECSPERMIN*abs(b_mm);  // always positive
+
+    //    qDebug() << "BREAK PIECES: " << breakLengthSecs << b_secs << b_mm << b_ss;
+
+    // To debug, change 60 to 5
+    int maxPatterLength = tipLengthAlarmMinutes * SECSPERMIN;  // the user's preference for MAX PATTER LENGTH (converted to seconds)
+    int maxBreakLength = breakLengthAlarmMinutes * SECSPERMIN;  // the user's preference for MAX BREAK LENGTH (converted to seconds)
+
+    // DDD(maxPatterLength)
+    // DDD(maxBreakLength)
+
+    currentTimerState = TIMERNOTEXPIRED;  // clear clear
+    if (timerLabelSD != nullptr && timerLabelCuesheet != nullptr && timerLabelDark != nullptr) {
+        if (patterLengthSecs == -1 || !tipLengthTimerEnabled) {
+            // if not patter, or the patter timer is disabled
+            if (breakLengthSecs == -1 || !breakLengthTimerEnabled) {
+                // AND if also it's not break or the break timer is disabled
+                //timerLabel->setVisible(false);  // make the timerLabel disappear
+                // it's either a singing call, or we're stopped.  Leave it VISIBLE.
+
+                // setTimerLabelColor("red");  // set all 3 labels to red, only if they are not already red (to save CPU cycles)
+
+                goToState("IN_SINGER");
+
+                if (singingCallSection != "") {
+                    timerLabelSD->setVisible(!editModeSD);  // make the timerLabelSD appear if we're NOT in editing mode
+                    timerLabelSD->setText(singingCallSection);
+
+                    timerLabelCuesheet->setVisible(true);  // make the timerLabelCuesheet appear
+                    timerLabelCuesheet->setText(singingCallSection);
+
+                    timerLabelDark->setVisible(true);  // make the timerLabelDark appear
+                    timerLabelDark->setText(singingCallSection);
+                    update(); // FIX: IS THIS NEEDED?
+                } else {
+                    timerLabelCuesheet->setText("");
+                    timerLabelSD->setText("");
+                    timerLabelDark->setText("");
+
+                    // if (timerLabelCuesheet->text() != "") {
+                    //     timerLabelCuesheet->setText("");
+                    //     timerLabelDark->setText("");
+                    // }
+                    // if (timerLabelSD->text() != "") {
+                    //     timerLabelSD->setText("");
+                    // }
+                }
+            } else if (breakLengthSecs < maxBreakLength && typeTracker.timeSegmentList.length()>=2 && typeTracker.timeSegmentList.at(0).type == NONE) {
+                // it is for sure a BREAK, the break timer is enabled, and it's under the break time limit,
+                //   and we played something before the break, and we're currently in state NONE (NOTE: can't use patter or singing calls or extras as break music)
+                // qDebug() << "for sure a BREAK";
+                timerLabelDark->setVisible(true);
+                timerLabelDark->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
+
+                timerLabelSD->setVisible(!editModeSD); // make it visible if we are NOT in edit mode
+                timerLabelSD->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
+
+                timerLabelCuesheet->setVisible(true);
+                timerLabelCuesheet->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
+
+                // if (darkmode) {
+                //     setTimerLabelColor("#8080FF");
+                // } else {
+                //     setTimerLabelColor("blue");
+                // }
+
+                goToState("IN_BREAK");
+
+                currentTimerState &= ~LONGTIPTIMEREXPIRED;  // clear
+                currentTimerState &= ~BREAKTIMEREXPIRED;  // clear
+            } else if (typeTracker.timeSegmentList.length()>=2 && typeTracker.timeSegmentList.at(0).type == NONE) {
+                // the break has expired.  We played something before the break, and we're currently in NONE state.
+                //                qDebug() << "expired BREAK";
+                // timerLabel->setVisible(true);
+                timerLabelCuesheet->setVisible(true);
+                timerLabelDark->setVisible(true);
+                timerLabelSD->setVisible(!editModeSD); // make it visible if SD is NOT in edit mode
+
+                // setTimerLabelColor("red"); // turns red when break is over
+#ifdef DEBUG_LIGHT_MODE
+                goToState("BREAK_OVER");
+#endif \
+    // alternate the time (negative now), and "END BREAK"
+                if (b_ss % 2 == 0) {
+                    // timerLabel->setText("End BRK");
+                    timerLabelDark->setText("End BRK");
+                    timerLabelSD->setText("End BRK");
+                    timerLabelCuesheet->setText("End BRK");
+                } else {
+                    QString newtext = QString("-") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0'));
+                    timerLabelDark->setText(newtext);
+                    timerLabelSD->setText(newtext);
+                    timerLabelCuesheet->setText(newtext);
+                }
+                currentTimerState &= ~LONGTIPTIMEREXPIRED;  // clear
+                currentTimerState |= BREAKTIMEREXPIRED;  // set
+                // TODO: optionally play a sound, or start the next song
+            } else {
+                // either we have 1 state known (e.g. NONE for 3600 secs), OR
+                //   we are not in None state right now, and we know what we're doing (e.g. playing Extras or Singers as break music)
+                //                qDebug() << "none state";
+                timerLabelCuesheet->setText("");
+                timerLabelDark->setText("");
+                timerLabelSD->setText("");
+            }
+        } else if (patterLengthSecs < maxPatterLength) {
+            //            qDebug() << "patter under the time limit";
+            // UNDER THE TIME LIMIT
+            // timerLabel->setVisible(true);
+            // timerLabel->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+
+            QString newtext = QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0'));
+
+            timerLabelDark->setVisible(true);
+            timerLabelDark->setText(newtext);
+
+            timerLabelSD->setVisible(!editModeSD); // make visible if SD is NOT in edit mode
+            timerLabelSD->setText(newtext);
+
+            timerLabelCuesheet->setVisible(true);
+            timerLabelCuesheet->setText(newtext);
+
+            // if (darkmode) {
+            //     setTimerLabelColor("#D0D0D0");
+            // } else {
+            //     setTimerLabelColor("black");
+            // }
+
+            goToState("IN_PATTER");
+
+            currentTimerState &= ~LONGTIPTIMEREXPIRED;  // clear
+            currentTimerState &= ~BREAKTIMEREXPIRED;    // clear
+
+#ifdef DEBUGCLOCK
+            qDebug() << "30 sec warning: " << patterLengthSecs << maxPatterLength-30;
+#endif
+            if (patterLengthSecs > maxPatterLength-30) {
+                currentTimerState |= THIRTYSECWARNING;  // set
+            }
+
+        } else if (patterLengthSecs < maxPatterLength + 15) {  // it will be red for 15 seconds, before also starting to flash "LONG TIP"
+            // qDebug() << "patter OVER the time limit";
+            // OVER THE TIME LIMIT, so make the time-in-patter RED.
+            // DDD(patterLengthSecs)
+            // DDD(maxPatterLength+15)
+            QString newtext = QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0'));
+
+            timerLabelDark->setVisible(true);
+            timerLabelDark->setText(newtext);
+
+            timerLabelSD->setVisible(!editModeSD); // make it visible if SD is NOT in edit mode
+            timerLabelSD->setText(newtext);
+
+            timerLabelCuesheet->setVisible(true);
+            timerLabelCuesheet->setText(newtext);
+
+            goToState("PATTER_OVER");
+
+            currentTimerState |= LONGTIPTIMEREXPIRED;  // set
+            currentTimerState &= ~BREAKTIMEREXPIRED;    // clear
+            // TODO: play a sound, if enabled
+        } else {
+            // DDD(patterLengthSecs)
+            // DDD(maxPatterLength+15)
+            // qDebug() << "patter REALLY over the time limit";
+            // REALLY OVER THE TIME LIMIT!!  So, flash "LONG TIP" alternately with the time-in-patter.
+
+            timerLabelCuesheet->setVisible(true);
+            timerLabelDark->setVisible(true);
+            timerLabelSD->setVisible(!editModeSD); // make visible if SD is NOT in edit mode
+
+            goToState("LONG_PATTER");
+
+            if (ss % 2 == 0) {
+                timerLabelDark->setText("LONG");
+                timerLabelSD->setText("LONG");
+                timerLabelCuesheet->setText("LONG");
+            } else {
+                QString newtext = QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0'));
+                timerLabelDark->setText(newtext);
+                timerLabelSD->setText(newtext);
+                timerLabelCuesheet->setText(newtext);
+            }
+            // TODO: play a more serious sound, if enabled
+            currentTimerState |= LONGTIPTIMEREXPIRED;  // set
+            currentTimerState &= ~BREAKTIMEREXPIRED;    // clear
+        }
+    }
+
+    update();  // for future reference, only call update() when absolutely needed.  Most widgets will call update() automatically when
+    //   something changes on them.
+}
+
+// --------------------------------------------------------------------------
+// svgClock wants the 3 or 4 important labels to change color ---------------
+// newStateName: { IN_BREAK, BREAK_OVER, IN_SINGER, IN_PATTER, PATTER_OVER, LONG_PATTER }
+void svgClock::goToState(QString newStateName) {
+#ifdef DEBUGCLOCK
+        qDebug() << "svgClock::goToState" << newStateName;
+#endif
+    emit newState(newStateName);
+}
+
+// -------------------------------------------------------------------------
+void svgClock::setSDEditMode(bool e) {
+    editModeSD = e; // tell the analog clock whether we're in SD edit or playback mode
+}
+
+// -------------------------------------------------------------------------
+void svgClock::setTimerLabel(clickableLabel *theCuesheetLabel, QLabel *theSDLabel, clickableLabel *theDarkWarningLabel)
+{
+    // qDebug() << "svgClock::setTimerLabel";
+    timerLabelSD = theSDLabel;
+    timerLabelSD->setText("STL");
+    timerLabelSD->setVisible(true);
+
+    timerLabelCuesheet = theCuesheetLabel;
+    timerLabelCuesheet->setText("STL");
+    timerLabelCuesheet->setVisible(true);
+
+    timerLabelDark = theDarkWarningLabel;
+        timerLabelDark->setText("STL");
+        timerLabelCuesheet->setVisible(true);
+}
+
+// -------------------------------------------------------------------------
+void svgClock::resetPatter(void)
+{
+    timerLabelSD->setText("00:00");
+    timerLabelCuesheet->setText("00:00");
+    timerLabelDark->setText("00:00");
+
+    typeTracker.addStop();
+}
+
+// -------------------------------------------------------------------------
+void svgClock::setSingingCallSection(QString s)
+{
+    singingCallSection = s;
 }

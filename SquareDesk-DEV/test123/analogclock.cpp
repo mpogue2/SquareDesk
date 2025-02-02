@@ -91,6 +91,8 @@ void AnalogClock::setTimerLabelColor(QString col1) {
 
 void AnalogClock::redrawTimerExpired()
 {
+    return;
+
 //    qDebug() << "redrawTimerExpired";
 //    if (timerLabel != NULL) {
 //        if (time.second() % 2 == 0) {

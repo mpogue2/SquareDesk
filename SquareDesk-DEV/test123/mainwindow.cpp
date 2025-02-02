@@ -690,6 +690,10 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 //     analogClock->setVisible(true);
 //     ui->gridLayout_2->setAlignment(analogClock, Qt::AlignHCenter);  // center the clock horizontally
 
+
+    connect(ui->theSVGClock, SIGNAL(newState(QString)), this, SLOT(svgClockStateChanged(QString)));
+
+
     ui->textBrowserCueSheet->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->textBrowserCueSheet, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customLyricsMenuRequested(QPoint)));
 
@@ -820,6 +824,10 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     // analogClock->tipLengthTimerEnabled = tipLengthTimerEnabled;      // tell the clock whether the patter alarm is enabled
     // analogClock->tipLength30secEnabled = tipLength30secEnabled;      // tell the clock whether the patter 30 sec warning is enabled
     // analogClock->breakLengthTimerEnabled = breakLengthTimerEnabled;  // tell the clock whether the break alarm is enabled
+
+    ui->theSVGClock->tipLengthTimerEnabled = tipLengthTimerEnabled;      // tell the clock whether the patter alarm is enabled
+    ui->theSVGClock->tipLength30secEnabled = tipLength30secEnabled;      // tell the clock whether the patter 30 sec warning is enabled
+    ui->theSVGClock->breakLengthTimerEnabled = breakLengthTimerEnabled;  // tell the clock whether the break alarm is enabled
 
     // ----------------------------------------------
     songFilenameFormat = static_cast<SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
@@ -1012,6 +1020,16 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     //     ui->titleSearch->setFocus();  // this should be the intial focus
     // }
 
+    tipLengthTimerEnabled = prefsManager.GettipLengthTimerEnabled();  // save new settings in MainWindow, too
+    tipLength30secEnabled = prefsManager.GettipLength30secEnabled();
+    tipLengthTimerLength = prefsManager.GettipLengthTimerLength();
+    tipLengthAlarmAction = prefsManager.GettipLengthAlarmAction();
+
+    breakLengthTimerEnabled = prefsManager.GetbreakLengthTimerEnabled();
+    breakLengthTimerLength = prefsManager.GetbreakLengthTimerLength();
+    breakLengthAlarmAction = prefsManager.GetbreakLengthAlarmAction();
+
+
 // #ifdef DEBUGCLOCK
 //     analogClock->tipLengthAlarmMinutes = 10;  // FIX FIX FIX
 //     analogClock->breakLengthAlarmMinutes = 10;
@@ -1019,13 +1037,36 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 //     analogClock->tipLengthAlarmMinutes = tipLengthTimerLength;
 //     analogClock->breakLengthAlarmMinutes = breakLengthTimerLength;
 
+// #ifdef DEBUGCLOCK
+//     ui->theSVGClock->tipLengthAlarmMinutes = 10;  // FIX FIX FIX
+//     ui->theSVGClock->breakLengthAlarmMinutes = 10;
+// #endif
+//     ui->theSVGClock->tipLengthAlarmMinutes = tipLengthTimerLength;
+//     ui->theSVGClock->breakLengthAlarmMinutes = breakLengthTimerLength;
+
+    ui->theSVGClock->tipLengthTimerEnabled = tipLengthTimerEnabled;
+    ui->theSVGClock->tipLength30secEnabled = tipLength30secEnabled;
+#ifdef DEBUGCLOCK
+    ui->theSVGClock->tipLengthAlarmMinutes = 10; // FIX FIX FIX
+#else
+    ui->theSVGClock->tipLengthAlarmMinutes = tipLengthTimerLength;
+#endif
+    ui->theSVGClock->tipLengthAlarm = tipLengthAlarmAction;
+
+    ui->theSVGClock->breakLengthTimerEnabled = breakLengthTimerEnabled;
+#ifdef DEBUGCLOCK
+    ui->theSVGClock->breakLengthAlarmMinutes = 10; // FIX FIX FIX
+#else
+    ui->theSVGClock->breakLengthAlarmMinutes = breakLengthTimerLength;
+#endif
+
     // ui->warningLabel->setText("");
     ui->warningLabelCuesheet->setText("");
     ui->warningLabelSD->setText("");
 
-    ui->darkWarningLabel->setStyleSheet("QLabel { color : red; }");
-    ui->warningLabelCuesheet->setStyleSheet("QLabel { color : red; }");
-    ui->warningLabelSD->setStyleSheet("QLabel { color : red; }");
+    // ui->darkWarningLabel->setStyleSheet("QLabel { color : red; }");
+    // ui->warningLabelCuesheet->setStyleSheet("QLabel { color : red; }");
+    // ui->warningLabelSD->setStyleSheet("QLabel { color : red; }");
 
     ui->darkWarningLabel->setText("");
 #ifndef DEBUG_LIGHT_MODE
@@ -1061,6 +1102,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     t.elapsed(__LINE__);
 //    analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet);  // tell the clock which label to use for the patter timer
     // analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet, ui->warningLabelSD, ui->darkWarningLabel, darkmode);  // tell the clock which labels to use for the main patter timer, and what mode we are in
+    ui->theSVGClock->setTimerLabel(ui->warningLabelCuesheet, ui->warningLabelSD, ui->darkWarningLabel);  // tell the clock which labels to use for the main patter timer
 
     t.elapsed(__LINE__);
 
@@ -2782,7 +2824,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     // THEME STUFF -------------
     t.elapsed(__LINE__);
 
-    // analogClockStateChanged("UNINITIALIZED");
+    svgClockStateChanged("UNINITIALIZED");
 
     // initial stylesheet loaded here -----------
     t.elapsed(__LINE__);
@@ -4267,14 +4309,16 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         // if (cBass->currentStreamState() == BASS_ACTIVE_PLAYING && (currentSongIsSinger || currentSongIsVocal)) {
         if (currentSongIsSinger || currentSongIsVocal) {
             // if singing call OR called, then tell the clock to show the section type
-            ui->darkWarningLabel->setText(sectionName[section]);
-            ui->warningLabelCuesheet->setText(sectionName[section]);
-            ui->warningLabelSD->setText(sectionName[section]);
+            // ui->darkWarningLabel->setText(sectionName[section]);
+            // ui->warningLabelCuesheet->setText(sectionName[section]);
+            // ui->warningLabelSD->setText(sectionName[section]);
+            ui->theSVGClock->setSingingCallSection(sectionName[section]);
         } else {
             // else tell the clock that there isn't a section type
-            ui->darkWarningLabel->setText("");
-            ui->warningLabelCuesheet->setText("");
-            ui->warningLabelSD->setText("");
+            // ui->darkWarningLabel->setText("");
+            // ui->warningLabelCuesheet->setText("");
+            // ui->warningLabelSD->setText("");
+            ui->theSVGClock->setSingingCallSection("");
         }
 
        // qDebug() << "currentPos:" << currentPos_i << ", fileLen: " << fileLen_i
@@ -4286,7 +4330,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
        //          << "sectionName[section]: " << sectionName[section];
 
     } else {
-        ui->darkWarningLabel->setText(""); // not a singing call
+        // ui->darkWarningLabel->setText(""); // not a singing call
+        ui->theSVGClock->setSingingCallSection("");
     }
 
     // FLASHCALLS ------------------------------------------------------
@@ -4955,7 +5000,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
             theType = NONE;
         }
 
-        // analogClock->breakLengthAlarm = false;  // if playing, then we can't be in break
+        ui->theSVGClock->breakLengthAlarm = false;  // if playing, then we can't be in break
 //    } else if (cBass->Stream_State == BASS_ACTIVE_PAUSED) {
     } else if (Stream_State == BASS_ACTIVE_PAUSED || Stream_State == BASS_ACTIVE_STOPPED) {  // TODO: Check to make sure it doesn't mess up X86.
         // if we paused due to FADE, for example...
@@ -4991,7 +5036,11 @@ void MainWindow::on_UIUpdateTimerTick(void)
 
 #else
 //    analogClock->setSegment(0, time.minute(), time.second(), theType);  // DEBUG DEBUG DEBUG
-    analogClock->setSegment(static_cast<unsigned int>(time.minute()),
+    // analogClock->setSegment(static_cast<unsigned int>(time.minute()),
+    //                         static_cast<unsigned int>(time.second()),
+    //                         0,
+    //                         static_cast<unsigned int>(theType));  // always called once per second
+    ui->theSVGClock->setSegment(static_cast<unsigned int>(time.minute()),
                             static_cast<unsigned int>(time.second()),
                             0,
                             static_cast<unsigned int>(theType));  // always called once per second
@@ -4999,7 +5048,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
 
     // ------------------------
     // Sounds associated with Tip and Break Timers (one-shots)
-    // newTimerState = analogClock->currentTimerState;
+    newTimerState = ui->theSVGClock->currentTimerState;
 
     if ((newTimerState & THIRTYSECWARNING)&&!(oldTimerState & THIRTYSECWARNING)) {
         // one-shot transition to 30 second warning
@@ -6113,7 +6162,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->darkSegmentButton->setHidden(true);
 
 #ifdef DEBUG_LIGHT_MODE
-    // analogClockStateChanged("UNINITIALIZED");
+    svgClockStateChanged("UNINITIALIZED");
 #endif
     // allow ID3 only on MP3 files right now!
     ui->actionUpdate_ID3_Tags->setEnabled(MP3FileName.endsWith(".mp3", Qt::CaseInsensitive));
@@ -8473,26 +8522,30 @@ void MainWindow::on_actionPreferences_triggered()
         tipLength30secEnabled = prefsManager.GettipLength30secEnabled();
         tipLengthTimerLength = prefsManager.GettipLengthTimerLength();
         tipLengthAlarmAction = prefsManager.GettipLengthAlarmAction();
-//        qDebug() << "Saving tipLengthAlarmAction:" << tipLengthAlarmAction;
 
         breakLengthTimerEnabled = prefsManager.GetbreakLengthTimerEnabled();
         breakLengthTimerLength = prefsManager.GetbreakLengthTimerLength();
         breakLengthAlarmAction = prefsManager.GetbreakLengthAlarmAction();
-//        qDebug() << "Saving breakLengthAlarmAction:" << breakLengthAlarmAction;
 
         // and tell the clock, too.
         // analogClock->tipLengthTimerEnabled = tipLengthTimerEnabled;
         // analogClock->tipLength30secEnabled = tipLength30secEnabled;
         // analogClock->tipLengthAlarmMinutes = tipLengthTimerLength;
-
         // analogClock->breakLengthTimerEnabled = breakLengthTimerEnabled;
         // analogClock->breakLengthAlarmMinutes = breakLengthTimerLength;
+
+        ui->theSVGClock->tipLengthTimerEnabled = tipLengthTimerEnabled;
+        ui->theSVGClock->tipLength30secEnabled = tipLength30secEnabled;
+        ui->theSVGClock->tipLengthAlarmMinutes = tipLengthTimerLength;
+        ui->theSVGClock->tipLengthAlarm = tipLengthAlarmAction;
+
+        ui->theSVGClock->breakLengthTimerEnabled = breakLengthTimerEnabled;
+        ui->theSVGClock->breakLengthAlarmMinutes = breakLengthTimerLength;
 
         // ----------------------------------------------------------------
         // Save the new value for experimentalClockColoringEnabled --------
         clockColoringHidden = !prefsManager.GetexperimentalClockColoringEnabled();
         // analogClock->setHidden(clockColoringHidden);
-
         ui->theSVGClock->setHidden(clockColoringHidden);
 
         SetAnimationSpeed(static_cast<AnimationSpeed>(prefsManager.GetAnimationSpeed()));
@@ -9503,6 +9556,7 @@ void MainWindow::on_darkWarningLabel_clicked() {
     // this one is clickable, too!
     // on_warningLabel_clicked();
     // remember to implement this, used to be analogClock->clearPatter()
+    ui->theSVGClock->resetPatter();
 }
 
 void MainWindow::on_tabWidget_currentChanged(int index)
@@ -11075,6 +11129,7 @@ void MainWindow::handleDurationBPM() {
             ui->darkTestLoopButton->setHidden(false);
         }
         // analogClock->setSingingCallSection("");
+        ui->theSVGClock->setSingingCallSection("");
     } else {
         // Either it's a SINGER, VOCAL (also a type of SINGER), or XTRA
         on_loopButton_toggled(false); // default is to loop, if type is patter
