@@ -859,11 +859,11 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    doNotCallDarkLoadMusicList = false;
-    ui->actionViewTags->setChecked(prefsManager.GetshowSongTags()); // tags setting must persist
+    doNotCallDarkLoadMusicList = false; // We want it to load the darkSongTable
 
-    currentlyShowingPathStack = pathStack;  // the very first time, we need to work with the pathStack (songs)
-    on_actionViewTags_toggled(prefsManager.GetshowSongTags()); // NOTE: Calls darkLoadMusicList() to load songs
+    currentlyShowingPathStack = pathStack;  // IMPORTANT: the very first time, we must work with the pathStack (Tracks)
+    ui->actionViewTags->setChecked(prefsManager.GetshowSongTags()); // this can invoke darkLoadMusicList, so currentlyShowingPathStack must be set to pathStack by here
+    on_actionViewTags_toggled(prefsManager.GetshowSongTags()); // NOTE: Calls darkLoadMusicList() to load songs, but it will be shortcutted, because it was (probably) already called above
 
     // connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
     //         this, &MainWindow::columnHeaderResized);
