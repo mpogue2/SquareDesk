@@ -3054,8 +3054,11 @@ void MainWindow::getAppleMusicPlaylists() {
         //   "Christmas$!$currentItemNumber$!$Use This Title#!#/Users/mpogue/foo/bar/baz/Use This Title.mp3"
         QString AppleMusicPathStackEntry(playlistName); // type == AppleMusicPlaylistName, e.g. "Christmas"
         AppleMusicPathStackEntry += "$!$";
+        if (currentItemNumber >= 100) {
+            AppleMusicPathStackEntry += "!"; // 3-digit numbers look like "foo !100" (Yes, this is a kludge for now)
+        }
         if (currentItemNumber < 10) {
-            AppleMusicPathStackEntry += "0"; // all numbers are 2-digit
+            AppleMusicPathStackEntry += "0"; // numbers < 100 look like 2 digit with leading zero, "foo 03"
         }
         AppleMusicPathStackEntry += QString::number(currentItemNumber++);
         AppleMusicPathStackEntry += "$!$";

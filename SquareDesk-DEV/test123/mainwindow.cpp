@@ -12209,7 +12209,7 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
     Q_UNUSED(pos)
     QStringList currentTags;
 
-    qDebug() << "***** on_darkSongTable_customContextMenuRequested";
+    // qDebug() << "***** on_darkSongTable_customContextMenuRequested";
 
     // ------------------------------------------------------------------------------------
     // we already know that we have at LEAST one row selected (because it's a context menu)
