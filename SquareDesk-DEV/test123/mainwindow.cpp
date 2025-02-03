@@ -6968,7 +6968,7 @@ void MainWindow::updateTreeWidget() {
     // top level Apple Music item with icon
     QTreeWidgetItem *appleMusicItem = new QTreeWidgetItem();
     appleMusicItem->setText(0, "Apple Music");
-    appleMusicItem->setIcon(0, QIcon(":/graphics/icons8-menu-64.png"));
+    appleMusicItem->setIcon(0, QIcon(":/graphics/icons8-apple-48.png"));
 
     foreach (const QString &playlistName, allAppleMusicPlaylistNames) {
                 // qDebug() << "playlistName: " << playlistName;
@@ -11497,7 +11497,7 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
                     darkLoadMusicList(pathStack, "Tracks", true, false);  // show MUSIC
                     return;
                 } else if (theText == "Apple Music") {
-                    darkLoadMusicList(pathStackApplePlaylists, "Apple Music", true, false);  // show PLAYLISTS
+                    darkLoadMusicList(pathStackApplePlaylists, "Apple Music", true, false);  // show APPLE MUSIC playlists
                     return;
                 } else if (theText == "Playlists") {
                     darkLoadMusicList(pathStackPlaylists, "Playlists", true, false);  // show PLAYLISTS
@@ -11769,7 +11769,10 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
                       }
                       );
 
-    if (relPathInSlot[whichSlot] != "" && !relPathInSlot[whichSlot].startsWith("/tracks/")) {
+    if (relPathInSlot[whichSlot] != "" &&
+            !relPathInSlot[whichSlot].startsWith("/tracks/") &&
+            !relPathInSlot[whichSlot].startsWith("/Apple Music/")
+            ) {
         // context menu only available if something is actually in this slot
 
         // PLAYLIST IS IN SLOT ---------
@@ -11851,10 +11854,11 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
 
 
     } else {
-        // NOTHING OR TRACKS FILTER IS IN SLOT ---------
+        // NOTHING OR TRACKS FILTER OR APPLE MUSIC IS IN SLOT ---------
 
-        if (!relPathInSlot[whichSlot].startsWith("/tracks/")) {
-            // it's an Untitled playlist ---------
+        // if (!relPathInSlot[whichSlot].startsWith("/tracks/")) {
+        if (relPathInSlot[whichSlot] == "") {
+            // it's an UNTITLED PLAYLIST ---------
             int playlistRowCount = theTableWidget->rowCount();
 
             if (playlistRowCount > 0 ) {
@@ -11876,6 +11880,52 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
                                   }
                                   );
             }
+        } else if (relPathInSlot[whichSlot].startsWith("/Apple Music/")) {
+            // IT'S AN APPLE MUSIC FILTER
+            int playlistRowCount = theTableWidget->rowCount();
+
+            // NOT NEEDED: just multiple select the Apple Music songs, and drag to an Untitled Playlist, then Right-click Save As...
+            // if (playlistRowCount > 0 ) {
+            //     plMenu->addAction(QString("Save Apple Music List As SquareDesk Playlist..."),
+            //                       [whichSlot, this]() {
+            //                           Q_UNUSED(this)
+            //                           qDebug() << "TBD: SAVE APPLE MUSIC AS SQUAREDESK PLAYLIST..." << whichSlot;
+            //                           // saveSlotAsPlaylist(whichSlot);
+            //                       }
+            //                       );
+            // }
+            // plMenu->addSeparator();
+
+            if (playlistRowCount > 0 ) {
+                plMenu->addAction(QString("Update Apple Music List from Apple Music"),
+                                  [whichSlot, this]() {
+                                      Q_UNUSED(this)
+                                      // qDebug() << "Update Apple Music List from Apple Music" << whichSlot;
+                                      getAppleMusicPlaylists(); // update from Apple Music
+                                      // saveSlotAsPlaylist(whichSlot);
+                                      // now filter into the table
+                                      int songCount;
+                                      loadPlaylistFromFileToPaletteSlot(relPathInSlot[whichSlot], whichSlot, songCount);
+                                  }
+                                  );
+            }
+            plMenu->addSeparator();
+
+            plMenu->addAction(QString("Remove from Palette"),
+                              [this, whichSlot]() {
+                                  saveSlotNow(whichSlot);  // save contents of that slot, if it was modified
+                                  clearSlot(whichSlot);    // then clear out the slot, mark not modified, and no relPathInSlot
+
+                                  // and do NOT reload this slot when app starts
+                                  switch (whichSlot) {
+                                      case 0: prefsManager.SetlastPlaylistLoaded(""); break;
+                                      case 1: prefsManager.SetlastPlaylistLoaded2(""); break;
+                                      case 2: prefsManager.SetlastPlaylistLoaded3(""); break;
+                                      default: break;
+                                  }
+                              }
+                              );
+
         } else {
             // it's a TRACK filter ------------
             plMenu->addSeparator();
@@ -12093,6 +12143,7 @@ void MainWindow::clearSlot(int slotNumber) {
     theLabel->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist"); // clear out the label
     slotModified[slotNumber] = false;  // not modified now
     relPathInSlot[slotNumber] = "";    // nobody home now
+    // qDebug() << "clearSlot" << slotNumber;
 }
 
 void MainWindow::on_treeWidget_itemDoubleClicked(QTreeWidgetItem *treeItem, int column)
@@ -12158,6 +12209,8 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
     Q_UNUSED(pos)
     QStringList currentTags;
 
+    qDebug() << "***** on_darkSongTable_customContextMenuRequested";
+
     // ------------------------------------------------------------------------------------
     // we already know that we have at LEAST one row selected (because it's a context menu)
     //  let's find the row numbers
@@ -12182,39 +12235,103 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
 
     menu.setProperty("theme", currentThemeString);
 
+    // DDD(relPathInSlot[0])
+    // DDD(relPathInSlot[1])
+    // DDD(relPathInSlot[2])
+
+    // examples of relPathInSlot:
+    // Local Playlist in a slot :: relPathInSlot[0]  =  "CPSD/2024/CPSD_2024.07.11"
+    // Track Filter in a slot :: relPathInSlot[1]  =  "/tracks/patter"
+    // Untitled Playlist (e.g. Apple Music just loaded into a slot, or nothing in a slot) :: relPathInSlot[2]  =  ""
+
     // ADD TO BOTTOM OF SLOT {1,2,3} = allows multiple selections
-    if (!relPathInSlot[0].contains("/tracks/")) {
-        if (relPathInSlot[0] == "") {
-            menu.addAction ( "Add " + plural + " to BOTTOM of Untitled playlist in slot #1" , this , [this]{ darkAddPlaylistItemsToBottom(0); } );
+    QString actionString;
+
+    if (!ui->action0paletteSlots->isChecked()) {
+        QString rp0 = relPathInSlot[0];
+        if (rp0 == "") {
+            // "Untitled playlist" (also could have been just imported from Apple Music)
+            actionString = "Add " + plural + " to BOTTOM of 'Untitled playlist' in slot #1";
+            menu.addAction(actionString, this, [this] { darkAddPlaylistItemsToBottom(0); });
+        } else if (rp0.startsWith("/tracks/")) {
+            // Track filter, e.g. "/tracks/patter"
+            actionString = "Track filter '" + rp0.replace("/tracks/", "") + "' in slot #1 is not editable"; // DO NOT MODIFY relPathInSlot[] with replace!
+            menu.addAction(actionString, this, [this] { darkAddPlaylistItemsToBottom(0); })->setEnabled(false);  // it's there, but grey it out
+        } else if (rp0.startsWith("/Apple Music/")) {
+            // Track filter, e.g. "/Apple Music/Second Playlist"
+            actionString = "Apple Playlist '" + rp0.replace("/Apple Music/", "") + "' in slot #1 is not editable"; // DO NOT MODIFY relPathInSlot[] with replace!
+            menu.addAction(actionString, this, [this] { darkAddPlaylistItemsToBottom(0); })->setEnabled(false);  // it's there, but grey it out
         } else {
-            menu.addAction ( QString("Add " + plural + " to BOTTOM of playlist '") + relPathInSlot[0] + "'" , this , [this]{ darkAddPlaylistItemsToBottom(0); } );
-        }
-    }
-    if (!relPathInSlot[1].contains("/tracks/")) {
-        if (relPathInSlot[1] == "") {
-            menu.addAction ( "Add " + plural + " to BOTTOM of Untitled playlist in slot #2" , this , [this]{ darkAddPlaylistItemsToBottom(1); } );
-        } else {
-            menu.addAction ( QString("Add " + plural + " to BOTTOM of playlist '") + relPathInSlot[1] + "'" , this , [this]{ darkAddPlaylistItemsToBottom(1); } );
-        }
-    }
-    if (!relPathInSlot[2].contains("/tracks/")) {
-        if (relPathInSlot[2] == "") {
-            menu.addAction ( "Add " + plural + " to BOTTOM of Untitled playlist in slot #3" , this , [this]{ darkAddPlaylistItemsToBottom(2); } );
-        } else {
-            menu.addAction ( QString("Add " + plural + " to BOTTOM of playlist '") + relPathInSlot[2] + "'" , this , [this]{ darkAddPlaylistItemsToBottom(2); } );
+            // Local playlist, e.g. "CPSD/2025/CPSD_2024.12.23"
+            actionString = "Add " + plural + " to BOTTOM of playlist '" + rp0 + "'";
+            menu.addAction(actionString, this, [this] { darkAddPlaylistItemsToBottom(0); });
         }
     }
 
-    if (ui->action0paletteSlots->isChecked()) {
-        menu.actions()[0]->setEnabled(false);
-        menu.actions()[1]->setEnabled(false);
-        menu.actions()[2]->setEnabled(false);
-    } else if (ui->action1paletteSlots->isChecked()) {
-        menu.actions()[1]->setEnabled(false);
-        menu.actions()[2]->setEnabled(false);
-    } else if (ui->action2paletteSlots->isChecked()) {
-        menu.actions()[2]->setEnabled(false);
+    if (!ui->action0paletteSlots->isChecked() && !ui->action1paletteSlots->isChecked()) {
+        QString rp1 = relPathInSlot[1];
+        if (rp1 == "") {
+            // "Untitled playlist" (also could have been just imported from Apple Music)
+            actionString = "Add " + plural + " to BOTTOM of 'Untitled playlist' in slot #2";
+            menu.addAction(actionString, this, [this] { darkAddPlaylistItemsToBottom(1); });
+        } else if (rp1.startsWith("/tracks/")) {
+            // Track filter, e.g. "/tracks/patter"
+            actionString = "Track filter '" + rp1.replace("/tracks/", "") + "' in slot #2 is not editable"; // DO NOT MODIFY relPathInSlot[] with replace!
+            menu.addAction(actionString, this, [this] { darkAddPlaylistItemsToBottom(1); })->setEnabled(false);  // it's there, but grey it out
+        } else if (rp1.startsWith("/Apple Music/")) {
+            // Apple Music filter, e.g. "/Apple Music/Second Playlist"
+            actionString = "Apple Playlist '" + rp1.replace("/Apple Music/", "") + "' in slot #2 is not editable"; // DO NOT MODIFY relPathInSlot[] with replace!
+            menu.addAction(actionString, this, [this] { darkAddPlaylistItemsToBottom(0); })->setEnabled(false);  // it's there, but grey it out
+        } else {
+            // Local playlist, e.g. "CPSD/2025/CPSD_2024.12.23"
+            actionString = "Add " + plural + " to BOTTOM of playlist '" + rp1 + "'";
+            menu.addAction(actionString, this, [this] { darkAddPlaylistItemsToBottom(1); });
+        }
     }
+
+    if (!ui->action0paletteSlots->isChecked() && !ui->action1paletteSlots->isChecked() && !ui->action2paletteSlots->isChecked()) {
+        QString rp2 = relPathInSlot[2];
+        if (rp2 == "") {
+            // "Untitled playlist" (also could have been just imported from Apple Music)
+            actionString = "Add " + plural + " to BOTTOM of 'Untitled playlist' in slot #3";
+            menu.addAction(actionString, this, [this] { darkAddPlaylistItemsToBottom(2); });
+        } else if (rp2.startsWith("/tracks/")) {
+            // Track filter, e.g. "/tracks/patter"
+            actionString = "Track filter '" + rp2.replace("/tracks/", "") + "' in slot #3 is not editable"; // DO NOT MODIFY relPathInSlot[] with replace!
+            menu.addAction(actionString, this, [this] { darkAddPlaylistItemsToBottom(2); })->setEnabled(false);  // it's there, but grey it out
+        } else if (rp2.startsWith("/Apple Music/")) {
+            // Apple Music filter, e.g. "/Apple Music/Second Playlist"
+            actionString = "Apple Playlist '" + rp2.replace("/Apple Music/", "") + "' in slot #3 is not editable"; // DO NOT MODIFY relPathInSlot[] with replace!
+            menu.addAction(actionString, this, [this] { darkAddPlaylistItemsToBottom(0); })->setEnabled(false);  // it's there, but grey it out
+        } else {
+            // Local playlist, e.g. "CPSD/2025/CPSD_2024.12.23"
+            actionString = "Add " + plural + " to BOTTOM of playlist '" + rp2 + "'";
+            menu.addAction(actionString, this, [this] { darkAddPlaylistItemsToBottom(2); });
+        }
+    }
+
+    // if (relPathInSlot[1] == "") {
+    //     menu.addAction ( "Add " + plural + " to BOTTOM of Untitled playlist in slot #2" , this , [this]{ darkAddPlaylistItemsToBottom(1); } );
+    // } else {
+    //     menu.addAction ( QString("Add " + plural + " to BOTTOM of playlist '") + relPathInSlot[1] + "'" , this , [this]{ darkAddPlaylistItemsToBottom(1); } );
+    // }
+
+    // if (relPathInSlot[2] == "") {
+    //     menu.addAction ( "Add " + plural + " to BOTTOM of Untitled playlist in slot #3" , this , [this]{ darkAddPlaylistItemsToBottom(2); } );
+    // } else {
+    //     menu.addAction ( QString("Add " + plural + " to BOTTOM of playlist '") + relPathInSlot[2] + "'" , this , [this]{ darkAddPlaylistItemsToBottom(2); } );
+    // }
+
+    // if (ui->action0paletteSlots->isChecked()) {
+    //     menu.actions()[0]->setEnabled(false);
+    //     menu.actions()[1]->setEnabled(false);
+    //     menu.actions()[2]->setEnabled(false);
+    // } else if (ui->action1paletteSlots->isChecked()) {
+    //     menu.actions()[1]->setEnabled(false);
+    //     menu.actions()[2]->setEnabled(false);
+    // } else if (ui->action2paletteSlots->isChecked()) {
+    //     menu.actions()[2]->setEnabled(false);
+    // }
 
 #if defined(Q_OS_MAC)
     if (rowCount == 1) {
@@ -12319,13 +12436,21 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
     menu.popup(QCursor::pos());
     menu.exec();
 
+    // DDD(relPathInSlot[0])
+    // DDD(relPathInSlot[1])
+    // DDD(relPathInSlot[2])
+
     return;
 }
 
 // -----------------------------------------------
 void MainWindow::darkAddPlaylistItemsToBottom(int whichSlot) { // slot is 0 - 2
 
-    // qDebug() << "darkPlaylistItemToBottom:" << whichSlot;
+    qDebug() << "darkPlaylistItemToBottom:" << whichSlot;
+
+    // DDD(relPathInSlot[0])
+    // DDD(relPathInSlot[1])
+    // DDD(relPathInSlot[2])
 
     MyTableWidget *theTableWidget;
     QString PlaylistFileName = "foobar";
@@ -12401,6 +12526,10 @@ void MainWindow::darkAddPlaylistItemsToBottom(int whichSlot) { // slot is 0 - 2
 
     slotModified[whichSlot] = true;
     playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+
+    // DDD(relPathInSlot[0])
+    // DDD(relPathInSlot[1])
+    // DDD(relPathInSlot[2])
 }
 
 // -----------------------------------------------
