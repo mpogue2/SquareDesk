@@ -643,8 +643,8 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
             }
 
         } // else (sequence could not be found)
-    } else {
-        // ----- SINGING CALL -----
+    } else /* if (currentSongIsSinger || currentSongIsVocal) */ {
+        // ----- SINGING CALL OR RATHER "NOT PATTER" -----
 //        ui->menuLyrics->setTitle("Cuesheet");
         ui->actionAuto_scroll_during_playback->setText("Auto-scroll Cuesheet");
 
@@ -654,7 +654,7 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
             // get pre-made lyrics.template.html file, if it exists
             QString lyricsTemplate = getResourceFile("lyrics.template.html");
 //            qDebug() << "lyricsTemplate: " << lyricsTemplate;
-            if (lyricsTemplate.isEmpty()) {
+            if (true || lyricsTemplate.isEmpty()) {
                 ui->textBrowserCueSheet->setHtml("No cuesheet found for this song.");
                 loadedCuesheetNameWithPath = "";
             } else {
@@ -663,7 +663,10 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
                 loadCuesheet(loadedCuesheetNameWithPath);
             }
         } // else (lyrics could not be found)
-    } // isPatter
+    } /*else {
+        ui->textBrowserCueSheet->setHtml("No cuesheet found for this song.");
+        loadedCuesheetNameWithPath = "";
+    }*/
 
     return true;  // ALL IS WELL
 }

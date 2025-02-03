@@ -164,6 +164,20 @@ void MainWindow::lockForEditing() {
 void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
 {
 //    qDebug() << "on_pushButtonEditLyrics_toggled" << checkState;
+    QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(ui->comboBoxCuesheetSelector->currentIndex()).toString();
+    bool haveCuesheet = !cuesheetFilename.isEmpty();
+
+    if (!haveCuesheet) {
+        QMessageBox msgBox;
+        msgBox.setText("No cuesheets exist for this song.");
+        msgBox.setInformativeText("Try clicking on the NEW button, and then choose a template.  Save it with "
+                                  "a pathname that matches this song's filename (which is the default), and you'll be able to "
+                                  "click the 'Unlock for Editing' button to edit.");
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.exec();
+        return;
+    }
+
     bool checked = (checkState != Qt::Unchecked);
 
     ui->pushButtonCueSheetEditTitle->setEnabled(checked);
@@ -188,8 +202,6 @@ void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
 
         // unlocked now, so must set up button state, too
 //        qDebug() << "setting up button state using lastKnownTextCharFormat...";
-        QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(ui->comboBoxCuesheetSelector->currentIndex()).toString();
-        bool haveCuesheet = !cuesheetFilename.isEmpty();
         on_textBrowserCueSheet_currentCharFormatChanged(lastKnownTextCharFormat);
         ui->textBrowserCueSheet->setFocusPolicy(Qt::ClickFocus);  // now it can get focus
         if (haveCuesheet) {

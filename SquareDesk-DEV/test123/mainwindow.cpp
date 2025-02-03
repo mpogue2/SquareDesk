@@ -2964,7 +2964,7 @@ void MainWindow::newFromTemplate() {
 
         // filewatcherShouldIgnoreOneFileSave = true;  // set flag so that Filewatcher is NOT triggered (one time)
         QString fromFilename = musicRootPath + "/lyrics/templates" + "/" + templateName + ".html";
-        QString toFilename   = maybeFilename;
+        QString toFilename   = filename;
 
         // qDebug() << "newFromTemplate from/to = " << fromFilename << toFilename;
 
