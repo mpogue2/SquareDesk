@@ -1939,7 +1939,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    connect(ui->darkVolumeSlider, &svgDial::valueChanged, this,
+    connect(ui->darkVolumeSlider, &svgSlider::valueChanged, this,
             [this](int i) {
 //                qDebug() << "darkVolumeSlider valueChanged: " << i;
                 QString s = QString::number(i);
