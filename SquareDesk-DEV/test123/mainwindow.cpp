@@ -1420,18 +1420,6 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    // remember what we had set last time the app ran -----
-    QString numPaletteSlots = prefsManager.Getnumpaletteslots();
-    if (numPaletteSlots == "0") {
-        on_action0paletteSlots_triggered();
-    } else if (numPaletteSlots == "1") {
-        on_action1paletteSlots_triggered();
-    } else if (numPaletteSlots == "2") {
-        on_action2paletteSlots_triggered();
-    } else {
-        on_action3paletteSlots_triggered();
-    }
-
     QString flashCallTimingSecs = prefsManager.Getflashcalltiming();
     if (flashCallTimingSecs == "5") {
         ui->action5_seconds->setChecked(true);
@@ -2882,6 +2870,18 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     // SEARCH -----------
     typeSearch = labelSearch = titleSearch = ""; // no filters at startup
     searchAllFields = true; // search is OR, not AND
+
+    // remember what we had set last time the app ran -----
+    QString numPaletteSlots = prefsManager.Getnumpaletteslots();
+    if (numPaletteSlots == "0") {
+        on_action0paletteSlots_triggered();
+    } else if (numPaletteSlots == "1") {
+        on_action1paletteSlots_triggered();
+    } else if (numPaletteSlots == "2") {
+        on_action2paletteSlots_triggered();
+    } else {
+        on_action3paletteSlots_triggered();
+    }
 
     // NOTE: This MUST be down here at the end of the constructor now.
     //   The startup sequence takes longer now, and we don't want the
