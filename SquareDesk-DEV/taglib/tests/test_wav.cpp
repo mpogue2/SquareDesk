@@ -24,16 +24,17 @@
  ***************************************************************************/
 
 #include <string>
-#include <stdio.h>
-#include <id3v2tag.h>
-#include <infotag.h>
-#include <tbytevectorlist.h>
-#include <tbytevectorstream.h>
-#include <tfilestream.h>
-#include <tpropertymap.h>
-#include <wavfile.h>
-#include <cppunit/extensions/HelperMacros.h>
+#include <cstdio>
+
+#include "id3v2tag.h"
+#include "infotag.h"
+#include "tbytevectorlist.h"
+#include "tbytevectorstream.h"
+#include "tfilestream.h"
+#include "tpropertymap.h"
+#include "wavfile.h"
 #include "plainfile.h"
+#include <cppunit/extensions/HelperMacros.h>
 #include "utils.h"
 
 using namespace std;
@@ -58,6 +59,8 @@ class TestWAV : public CppUnit::TestFixture
   CPPUNIT_TEST(testStripAndProperties);
   CPPUNIT_TEST(testPCMWithFactChunk);
   CPPUNIT_TEST(testWaveFormatExtensible);
+  CPPUNIT_TEST(testInvalidChunk);
+  CPPUNIT_TEST(testRIFFInfoProperties);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -182,7 +185,7 @@ public:
     }
     {
       RIFF::WAV::File f2(newname.c_str());
-      CPPUNIT_ASSERT_EQUAL((unsigned int)3, f2.ID3v2Tag()->header()->majorVersion());
+      CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(3), f2.ID3v2Tag()->header()->majorVersion());
       CPPUNIT_ASSERT_EQUAL(String("Artist A"), f2.tag()->artist());
       CPPUNIT_ASSERT_EQUAL(xxx, f2.tag()->title());
     }
@@ -268,7 +271,7 @@ public:
     ScopedFileCopy copy("duplicate_tags", ".wav");
 
     RIFF::WAV::File f(copy.fileName().c_str());
-    CPPUNIT_ASSERT_EQUAL(17052L, f.length());
+    CPPUNIT_ASSERT_EQUAL(static_cast<offset_t>(17052), f.length());
 
     // duplicate_tags.wav has duplicate ID3v2/INFO tags.
     // title() returns "Title2" if can't skip the second tag.
@@ -280,8 +283,8 @@ public:
     CPPUNIT_ASSERT_EQUAL(String("Title1"), f.InfoTag()->title());
 
     f.save();
-    CPPUNIT_ASSERT_EQUAL(15898L, f.length());
-    CPPUNIT_ASSERT_EQUAL(-1L, f.find("Title2"));
+    CPPUNIT_ASSERT_EQUAL(static_cast<offset_t>(15898), f.length());
+    CPPUNIT_ASSERT_EQUAL(static_cast<offset_t>(-1), f.find("Title2"));
   }
 
   void testFuzzedFile1()
@@ -313,7 +316,7 @@ public:
     {
       FileStream stream(copy.fileName().c_str());
       stream.seek(0, IOStream::End);
-      const char garbage[] = "12345678";
+      constexpr char garbage[] = "12345678";
       stream.writeBlock(ByteVector(garbage, sizeof(garbage) - 1));
       stream.seek(0);
       contentsBeforeModification = stream.readBlock(stream.length());
@@ -382,6 +385,101 @@ public:
     CPPUNIT_ASSERT_EQUAL(8, f.audioProperties()->bitsPerSample());
     CPPUNIT_ASSERT_EQUAL(23493U, f.audioProperties()->sampleFrames());
     CPPUNIT_ASSERT_EQUAL(1, f.audioProperties()->format());
+  }
+
+  void testInvalidChunk()
+  {
+    ScopedFileCopy copy("invalid-chunk", ".wav");
+
+    {
+      RIFF::WAV::File f(copy.fileName().c_str());
+      CPPUNIT_ASSERT_EQUAL(0, f.audioProperties()->lengthInSeconds());
+      CPPUNIT_ASSERT(f.hasID3v2Tag());
+      f.ID3v2Tag()->setTitle("Title");
+      f.save();
+    }
+    {
+      RIFF::WAV::File f(copy.fileName().c_str());
+      CPPUNIT_ASSERT(!f.hasID3v2Tag());
+    }
+  }
+
+  void testRIFFInfoProperties()
+  {
+    PropertyMap tags;
+    tags["ALBUM"] = StringList("Album");
+    tags["ARRANGER"] = StringList("Arranger");
+    tags["ARTIST"] = StringList("Artist");
+    tags["ARTISTWEBPAGE"] = StringList("Artist Webpage");
+    tags["BPM"] = StringList("123");
+    tags["COMMENT"] = StringList("Comment");
+    tags["COMPOSER"] = StringList("Composer");
+    tags["COPYRIGHT"] = StringList("2023 Copyright");
+    tags["DATE"] = StringList("2023");
+    tags["DISCSUBTITLE"] = StringList("Disc Subtitle");
+    tags["ENCODEDBY"] = StringList("Encoded by");
+    tags["ENCODING"] = StringList("Encoding");
+    tags["ENCODINGTIME"] = StringList("2023-11-25 15:42:39");
+    tags["GENRE"] = StringList("Genre");
+    tags["ISRC"] = StringList("UKAAA0500001");
+    tags["LABEL"] = StringList("Label");
+    tags["LANGUAGE"] = StringList("eng");
+    tags["LYRICIST"] = StringList("Lyricist");
+    tags["MEDIA"] = StringList("Media");
+    tags["PERFORMER"] = StringList("Performer");
+    tags["RELEASECOUNTRY"] = StringList("Release Country");
+    tags["REMIXER"] = StringList("Remixer");
+    tags["TITLE"] = StringList("Title");
+    tags["TRACKNUMBER"] = StringList("2/4");
+
+    ScopedFileCopy copy("empty", ".wav");
+    {
+      RIFF::WAV::File f(copy.fileName().c_str());
+      RIFF::Info::Tag *infoTag = f.InfoTag();
+      CPPUNIT_ASSERT(infoTag->isEmpty());
+      PropertyMap properties = infoTag->properties();
+      CPPUNIT_ASSERT(properties.isEmpty());
+      infoTag->setProperties(tags);
+      f.save();
+    }
+    {
+      const RIFF::WAV::File f(copy.fileName().c_str());
+      RIFF::Info::Tag *infoTag = f.InfoTag();
+      CPPUNIT_ASSERT(!infoTag->isEmpty());
+      PropertyMap properties = infoTag->properties();
+      if (tags != properties) {
+        CPPUNIT_ASSERT_EQUAL(tags.toString(), properties.toString());
+      }
+      CPPUNIT_ASSERT(tags == properties);
+
+      const RIFF::Info::FieldListMap expectedFields = {
+        {"IPRD", "Album"},
+        {"IENG", "Arranger"},
+        {"IART", "Artist"},
+        {"IBSU", "Artist Webpage"},
+        {"IBPM", "123"},
+        {"ICMT", "Comment"},
+        {"IMUS", "Composer"},
+        {"ICOP", "2023 Copyright"},
+        {"ICRD", "2023"},
+        {"PRT1", "Disc Subtitle"},
+        {"ITCH", "Encoded by"},
+        {"ISFT", "Encoding"},
+        {"IDIT", "2023-11-25 15:42:39"},
+        {"IGNR", "Genre"},
+        {"ISRC", "UKAAA0500001"},
+        {"IPUB", "Label"},
+        {"ILNG", "eng"},
+        {"IWRI", "Lyricist"},
+        {"IMED", "Media"},
+        {"ISTR", "Performer"},
+        {"ICNT", "Release Country"},
+        {"IEDT", "Remixer"},
+        {"INAM", "Title"},
+        {"IPRT", "2/4"}
+      };
+      CPPUNIT_ASSERT(expectedFields == infoTag->fieldListMap());
+    }
   }
 
 };

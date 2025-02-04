@@ -24,8 +24,9 @@
  ***************************************************************************/
 
 #include <string>
-#include <stdio.h>
-#include <infotag.h>
+#include <cstdio>
+
+#include "infotag.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "utils.h"
 
@@ -59,17 +60,16 @@ public:
   {
     RIFF::Info::Tag tag;
 
-    CPPUNIT_ASSERT_EQUAL((unsigned int)0, tag.track());
+    CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(0), tag.track());
     tag.setTrack(1234);
-    CPPUNIT_ASSERT_EQUAL((unsigned int)1234, tag.track());
+    CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(1234), tag.track());
     CPPUNIT_ASSERT_EQUAL(String("1234"), tag.fieldText("IPRT"));
 
-    CPPUNIT_ASSERT_EQUAL((unsigned int)0, tag.year());
+    CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(0), tag.year());
     tag.setYear(1234);
-    CPPUNIT_ASSERT_EQUAL((unsigned int)1234, tag.year());
+    CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(1234), tag.year());
     CPPUNIT_ASSERT_EQUAL(String("1234"), tag.fieldText("ICRD"));
   }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestInfoTag);
-

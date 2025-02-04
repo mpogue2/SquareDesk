@@ -27,20 +27,13 @@
 
 using namespace TagLib;
 
-class ByteVectorListPrivate
+class ByteVectorList::ByteVectorListPrivate
 {
-
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 // static members
 ////////////////////////////////////////////////////////////////////////////////
-
-ByteVectorList ByteVectorList::split(const ByteVector &v, const ByteVector &pattern,
-                                     int byteAlign)
-{
-  return split(v, pattern, byteAlign, 0);
-}
 
 ByteVectorList ByteVectorList::split(const ByteVector &v, const ByteVector &pattern,
                                      int byteAlign, int max)
@@ -49,7 +42,7 @@ ByteVectorList ByteVectorList::split(const ByteVector &v, const ByteVector &patt
 
   unsigned int previousOffset = 0;
   for(int offset = v.find(pattern, 0, byteAlign);
-      offset != -1 && (max == 0 || max > int(l.size()) + 1);
+      offset != -1 && (max == 0 || max > static_cast<int>(l.size()) + 1);
       offset = v.find(pattern, offset + pattern.size(), byteAlign))
   {
     if(offset - previousOffset >= 1)
@@ -70,33 +63,63 @@ ByteVectorList ByteVectorList::split(const ByteVector &v, const ByteVector &patt
 // public members
 ////////////////////////////////////////////////////////////////////////////////
 
-ByteVectorList::ByteVectorList() : List<ByteVector>()
-{
+ByteVectorList::ByteVectorList() = default;
 
+ByteVectorList::~ByteVectorList() = default;
+
+ByteVectorList::ByteVectorList(const ByteVectorList &l) :
+  List<ByteVector>(l)
+{
+  // Uncomment if d is used, d.get() is nullptr and *d behavior undefined
+  // *d = *l.d;
 }
 
-ByteVectorList::ByteVectorList(const ByteVectorList &l) : List<ByteVector>(l)
+ByteVectorList::ByteVectorList(std::initializer_list<ByteVector> init) :
+  List<ByteVector>(init)
 {
-
 }
 
-ByteVectorList::~ByteVectorList()
+ByteVectorList &ByteVectorList::operator=(const ByteVectorList &l)
 {
+  if(this == &l)
+    return *this;
 
+  List<ByteVector>::operator=(l);
+  // Uncomment if d is used, d.get() is nullptr and *d behavior undefined
+  // *d = *l.d;
+  return *this;
+}
+
+ByteVectorList &ByteVectorList::operator=(std::initializer_list<ByteVector> init)
+{
+  List<ByteVector>::operator=(init);
+  return *this;
 }
 
 ByteVector ByteVectorList::toByteVector(const ByteVector &separator) const
 {
   ByteVector v;
 
-  ConstIterator it = begin();
-
-  while(it != end()) {
+  for(auto it = begin(); it != end(); ++it) {
     v.append(*it);
-    it++;
-    if(it != end())
+    if(std::next(it) != end())
       v.append(separator);
   }
 
   return v;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// related functions
+////////////////////////////////////////////////////////////////////////////////
+
+std::ostream &operator<<(std::ostream &s, const ByteVectorList &l)
+{
+  for(auto it = l.begin(); it != l.end(); ++it) {
+    if(it != l.begin()) {
+      s << ' ';
+    }
+    s << *it;
+  }
+  return s;
 }

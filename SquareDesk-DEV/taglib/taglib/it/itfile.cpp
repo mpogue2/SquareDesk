@@ -23,12 +23,11 @@
  *   http://www.mozilla.org/MPL/                                           *
  ***************************************************************************/
 
+#include "itfile.h"
 
 #include "tstringlist.h"
-#include "itfile.h"
 #include "tdebug.h"
 #include "modfileprivate.h"
-#include "tpropertymap.h"
 
 using namespace TagLib;
 using namespace IT;
@@ -37,7 +36,7 @@ class IT::File::FilePrivate
 {
 public:
   FilePrivate(AudioProperties::ReadStyle propertiesStyle)
-    : tag(), properties(propertiesStyle)
+    :  properties(propertiesStyle)
   {
   }
 
@@ -48,7 +47,7 @@ public:
 IT::File::File(FileName file, bool readProperties,
                AudioProperties::ReadStyle propertiesStyle) :
   Mod::FileBase(file),
-  d(new FilePrivate(propertiesStyle))
+  d(std::make_unique<FilePrivate>(propertiesStyle))
 {
   if(isOpen())
     read(readProperties);
@@ -57,30 +56,17 @@ IT::File::File(FileName file, bool readProperties,
 IT::File::File(IOStream *stream, bool readProperties,
                AudioProperties::ReadStyle propertiesStyle) :
   Mod::FileBase(stream),
-  d(new FilePrivate(propertiesStyle))
+  d(std::make_unique<FilePrivate>(propertiesStyle))
 {
   if(isOpen())
     read(readProperties);
 }
 
-IT::File::~File()
-{
-  delete d;
-}
+IT::File::~File() = default;
 
 Mod::Tag *IT::File::tag() const
 {
   return &d->tag;
-}
-
-PropertyMap IT::File::properties() const
-{
-  return d->tag.properties();
-}
-
-PropertyMap IT::File::setProperties(const PropertyMap &properties)
-{
-  return d->tag.setProperties(properties);
 }
 
 IT::Properties *IT::File::audioProperties() const
@@ -113,7 +99,7 @@ bool IT::File::save()
   // write comment as instrument and sample names:
   StringList lines = d->tag.comment().split("\n");
   for(unsigned short i = 0; i < instrumentCount; ++ i) {
-    seek(192L + length + ((long)i << 2));
+    seek(192L + length + (static_cast<long>(i) << 2));
     unsigned long instrumentOffset = 0;
     if(!readU32L(instrumentOffset))
       return false;
@@ -128,14 +114,14 @@ bool IT::File::save()
   }
 
   for(unsigned short i = 0; i < sampleCount; ++ i) {
-    seek(192L + length + ((long)instrumentCount << 2) + ((long)i << 2));
+    seek(192L + length + (static_cast<long>(instrumentCount) << 2) + (static_cast<long>(i) << 2));
     unsigned long sampleOffset = 0;
     if(!readU32L(sampleOffset))
       return false;
 
     seek(sampleOffset + 20);
 
-    if((unsigned int)(i + instrumentCount) < lines.size())
+    if(static_cast<unsigned int>(i + instrumentCount) < lines.size())
       writeString(lines[i + instrumentCount], 25);
     else
       writeString(String(), 25);
@@ -152,7 +138,7 @@ bool IT::File::save()
   // terminating NUL but it does not hurt to add one:
   if(message.size() > 7999)
     message.resize(7999);
-  message.append((char)0);
+  message.append(static_cast<char>(0));
 
   unsigned short special = 0;
   unsigned short messageLength = 0;
@@ -162,7 +148,7 @@ bool IT::File::save()
   if(!readU16L(special))
     return false;
 
-  unsigned long fileSize = File::length();
+  auto fileSize = static_cast<unsigned long>(File::length());
   if(special & Properties::MessageAttached) {
     seek(54);
     if(!readU16L(messageLength) || !readU32L(messageOffset))
@@ -239,7 +225,7 @@ void IT::File::read(bool)
     seek(messageOffset);
     ByteVector messageBytes = readBlock(messageLength);
     READ_ASSERT(messageBytes.size() == messageLength);
-    int index = messageBytes.find((char) 0);
+    int index = messageBytes.find(static_cast<char>(0));
     if(index > -1)
       messageBytes.resize(index, 0);
     messageBytes.replace('\r', '\n');
@@ -257,8 +243,8 @@ void IT::File::read(bool)
     // I don't count disabled and muted channels.
     // But this always gives 64 channels for all my files anyway.
     // Strangely VLC does report other values. I wonder how VLC
-    // gets it's values.
-    if((unsigned char) pannings[i] < 128 && volumes[i] > 0)
+    // gets its values.
+    if(static_cast<unsigned char>(pannings[i]) < 128 && volumes[i] > 0)
         ++channels;
   }
   d->properties.setChannels(channels);
@@ -280,7 +266,7 @@ void IT::File::read(bool)
   //       e.g. VLC seems to interpret a nil as a space. I
   //       don't know what is the proper behaviour.
   for(unsigned short i = 0; i < instrumentCount; ++ i) {
-    seek(192L + length + ((long)i << 2));
+    seek(192L + length + (static_cast<long>(i) << 2));
     READ_U32L_AS(instrumentOffset);
     seek(instrumentOffset);
 
@@ -296,7 +282,7 @@ void IT::File::read(bool)
   }
 
   for(unsigned short i = 0; i < sampleCount; ++ i) {
-    seek(192L + length + ((long)instrumentCount << 2) + ((long)i << 2));
+    seek(192L + length + (static_cast<long>(instrumentCount) << 2) + (static_cast<long>(i) << 2));
     READ_U32L_AS(sampleOffset);
 
     seek(sampleOffset);
@@ -328,7 +314,7 @@ void IT::File::read(bool)
     comment.append(sampleName);
   }
 
-  if(message.size() > 0)
+  if(!message.isEmpty())
     comment.append(message);
   d->tag.setComment(comment.toString("\n"));
   d->tag.setTrackerName("Impulse Tracker");

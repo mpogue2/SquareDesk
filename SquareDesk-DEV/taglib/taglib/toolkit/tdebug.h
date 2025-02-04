@@ -26,6 +26,10 @@
 #ifndef TAGLIB_DEBUG_H
 #define TAGLIB_DEBUG_H
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 namespace TagLib {
 
   class String;
@@ -64,7 +68,7 @@ namespace TagLib {
   #define debugData(x)  ((void)0)
 
 #endif
-}
+}  // namespace TagLib
 
 #endif
 #endif

@@ -24,11 +24,11 @@
  ***************************************************************************/
 
 #include <string>
-#include <stdio.h>
-#include <tag.h>
-#include <tstringlist.h>
-#include <tbytevectorlist.h>
-#include <flacunknownmetadatablock.h>
+#include <cstdio>
+
+#include "tstringlist.h"
+#include "tag.h"
+#include "flacunknownmetadatablock.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "utils.h"
 

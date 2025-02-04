@@ -24,20 +24,20 @@
 
 #include <iostream>
 #include <iomanip>
-#include <string.h>
-
-#include <stdio.h>
+#include <fstream>
+#include <sstream>
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <stdlib.h>
 
-#include <tlist.h>
-#include <fileref.h>
-#include <tfile.h>
-#include <tag.h>
-#include <tpropertymap.h>
-
-using namespace std;
+#include "tlist.h"
+#include "tfile.h"
+#include "tpropertymap.h"
+#include "tvariant.h"
+#include "fileref.h"
+#include "tag.h"
 
 bool isArgument(const char *s)
 {
@@ -46,31 +46,33 @@ bool isArgument(const char *s)
 
 bool isFile(const char *s)
 {
-  struct stat st;
 #ifdef _WIN32
-  return ::stat(s, &st) == 0 && (st.st_mode & (S_IFREG));
+  struct _stat64 st;
+  return ::_stat64(s, &st) == 0 && (st.st_mode & S_IFREG);
 #else
+  struct stat st;
   return ::stat(s, &st) == 0 && (st.st_mode & (S_IFREG | S_IFLNK));
 #endif
 }
 
 void usage()
 {
-  cout << endl;
-  cout << "Usage: tagwriter <fields> <files>" << endl;
-  cout << endl;
-  cout << "Where the valid fields are:" << endl;
-  cout << "  -t <title>"   << endl;
-  cout << "  -a <artist>"  << endl;
-  cout << "  -A <album>"   << endl;
-  cout << "  -c <comment>" << endl;
-  cout << "  -g <genre>"   << endl;
-  cout << "  -y <year>"    << endl;
-  cout << "  -T <track>"   << endl;
-  cout << "  -R <tagname> <tagvalue>"   << endl;
-  cout << "  -I <tagname> <tagvalue>"   << endl;
-  cout << "  -D <tagname>"   << endl;
-  cout << endl;
+  std::cout << std::endl;
+  std::cout << "Usage: tagwriter <fields> <files>" << std::endl;
+  std::cout << std::endl;
+  std::cout << "Where the valid fields are:" << std::endl;
+  std::cout << "  -t <title>"   << std::endl;
+  std::cout << "  -a <artist>"  << std::endl;
+  std::cout << "  -A <album>"   << std::endl;
+  std::cout << "  -c <comment>" << std::endl;
+  std::cout << "  -g <genre>"   << std::endl;
+  std::cout << "  -y <year>"    << std::endl;
+  std::cout << "  -T <track>"   << std::endl;
+  std::cout << "  -R <tagname> <tagvalue>"   << std::endl;
+  std::cout << "  -I <tagname> <tagvalue>"   << std::endl;
+  std::cout << "  -D <tagname>"   << std::endl;
+  std::cout << "  -p <picturefile> <description> (\"\" \"\" to remove)" << std::endl;
+  std::cout << std::endl;
 
   exit(1);
 }
@@ -79,15 +81,15 @@ void checkForRejectedProperties(const TagLib::PropertyMap &tags)
 { // stolen from tagreader.cpp
   if(tags.size() > 0) {
     unsigned int longest = 0;
-    for(TagLib::PropertyMap::ConstIterator i = tags.begin(); i != tags.end(); ++i) {
+    for(auto i = tags.begin(); i != tags.end(); ++i) {
       if(i->first.size() > longest) {
         longest = i->first.size();
       }
     }
-    cout << "-- rejected TAGs (properties) --" << endl;
-    for(TagLib::PropertyMap::ConstIterator i = tags.begin(); i != tags.end(); ++i) {
-      for(TagLib::StringList::ConstIterator j = i->second.begin(); j != i->second.end(); ++j) {
-        cout << left << std::setw(longest) << i->first << " - " << '"' << *j << '"' << endl;
+    std::cout << "-- rejected TAGs (properties) --" << std::endl;
+    for(auto i = tags.begin(); i != tags.end(); ++i) {
+      for(auto j = i->second.begin(); j != i->second.end(); ++j) {
+        std::cout << std::left << std::setw(longest) << i->first << " - " << '"' << *j << '"' << std::endl;
       }
     }
   }
@@ -110,17 +112,18 @@ int main(int argc, char *argv[])
   if(fileList.isEmpty())
     usage();
 
-  for(int i = 1; i < argc - 1; i += 2) {
+  int i = 1;
+  while(i < argc - 1) {
 
     if(isArgument(argv[i]) && i + 1 < argc && !isArgument(argv[i + 1])) {
 
       char field = argv[i][1];
       TagLib::String value = argv[i + 1];
+      int numArgsConsumed = 2;
 
-      TagLib::List<TagLib::FileRef>::ConstIterator it;
-      for(it = fileList.begin(); it != fileList.end(); ++it) {
+      for(auto &f : fileList) {
 
-        TagLib::Tag *t = (*it).tag();
+        TagLib::Tag *t = f.tag();
 
         switch (field) {
         case 't':
@@ -147,24 +150,61 @@ int main(int argc, char *argv[])
         case 'R':
         case 'I':
           if(i + 2 < argc) {
-            TagLib::PropertyMap map = (*it).file()->properties ();
+            TagLib::PropertyMap map = f.properties();
             if(field == 'R') {
               map.replace(value, TagLib::String(argv[i + 2]));
             }
             else {
               map.insert(value, TagLib::String(argv[i + 2]));
             }
-            ++i;
-            checkForRejectedProperties((*it).file()->setProperties(map));
+            numArgsConsumed = 3;
+            checkForRejectedProperties(f.setProperties(map));
           }
           else {
             usage();
           }
           break;
         case 'D': {
-          TagLib::PropertyMap map = (*it).file()->properties();
+          TagLib::PropertyMap map = f.properties();
           map.erase(value);
-          checkForRejectedProperties((*it).file()->setProperties(map));
+          checkForRejectedProperties(f.setProperties(map));
+          break;
+        }
+        case 'p': {
+          if(i + 2 < argc) {
+            numArgsConsumed = 3;
+            if(!value.isEmpty()) {
+              if(!isFile(value.toCString())) {
+                std::cout << value.toCString() << " not found." << std::endl;
+                return 1;
+              }
+              std::ifstream picture;
+              picture.open(value.toCString(), std::ios::in | std::ios::binary);
+              std::stringstream buffer;
+              buffer << picture.rdbuf();
+              picture.close();
+              TagLib::String buf(buffer.str());
+              TagLib::ByteVector data(buf.data(TagLib::String::Latin1));
+              TagLib::String mimeType = data.startsWith("\x89PNG\x0d\x0a\x1a\x0a")
+                ? "image/png" : "image/jpeg";
+              TagLib::String description(argv[i + 2]);
+              f.setComplexProperties("PICTURE", {
+                {
+                  {"data", data},
+                  {"pictureType", "Front Cover"},
+                  {"mimeType", mimeType},
+                  {"description", description}
+                }
+              });
+            }
+            else {
+              // empty value, remove pictures
+              f.setComplexProperties("PICTURE", {});
+            }
+          }
+          else {
+            usage();
+          }
           break;
         }
         default:
@@ -172,14 +212,14 @@ int main(int argc, char *argv[])
           break;
         }
       }
+      i += numArgsConsumed;
     }
     else
       usage();
   }
 
-  TagLib::List<TagLib::FileRef>::ConstIterator it;
-  for(it = fileList.begin(); it != fileList.end(); ++it)
-    (*it).file()->save();
+  for(auto &f : fileList)
+    f.save();
 
   return 0;
 }

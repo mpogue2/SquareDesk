@@ -26,7 +26,7 @@
 #ifndef TAGLIB_PLAINFILE_H
 #define TAGLIB_PLAINFILE_H
 
-#include <tfile.h>
+#include "tfile.h"
 
 using namespace TagLib;
 
@@ -34,14 +34,14 @@ using namespace TagLib;
 class PlainFile : public File {
 public:
   explicit PlainFile(FileName name) : File(name) { }
-  Tag *tag() const { return NULL; }
-  AudioProperties *audioProperties() const { return NULL; }
-  bool save() { return false; }
+  Tag *tag() const override { return nullptr; }
+  AudioProperties *audioProperties() const override { return nullptr; }
+  bool save() override { return false; }
   void truncate(long length) { File::truncate(length); }
 
   ByteVector readAll() {
     seek(0, End);
-    long end = tell();
+    offset_t end = tell();
     seek(0);
     return readBlock(end);
   }

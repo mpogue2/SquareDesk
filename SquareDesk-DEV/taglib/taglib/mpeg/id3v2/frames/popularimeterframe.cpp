@@ -23,9 +23,8 @@
  *   http://www.mozilla.org/MPL/                                           *
  ***************************************************************************/
 
-#include <tdebug.h>
-
 #include "popularimeterframe.h"
+#include "tstringlist.h"
 
 using namespace TagLib;
 using namespace ID3v2;
@@ -33,10 +32,9 @@ using namespace ID3v2;
 class PopularimeterFrame::PopularimeterFramePrivate
 {
 public:
-  PopularimeterFramePrivate() : rating(0), counter(0) {}
   String email;
-  int rating;
-  unsigned int counter;
+  int rating { 0 };
+  unsigned int counter { 0 };
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -45,25 +43,27 @@ public:
 
 PopularimeterFrame::PopularimeterFrame() :
   Frame("POPM"),
-  d(new PopularimeterFramePrivate())
+  d(std::make_unique<PopularimeterFramePrivate>())
 {
 }
 
 PopularimeterFrame::PopularimeterFrame(const ByteVector &data) :
   Frame(data),
-  d(new PopularimeterFramePrivate())
+  d(std::make_unique<PopularimeterFramePrivate>())
 {
   setData(data);
 }
 
-PopularimeterFrame::~PopularimeterFrame()
-{
-  delete d;
-}
+PopularimeterFrame::~PopularimeterFrame() = default;
 
 String PopularimeterFrame::toString() const
 {
   return d->email + " rating=" + String::number(d->rating) + " counter=" + String::number(d->counter);
+}
+
+StringList PopularimeterFrame::toStringList() const
+{
+  return {d->email, String::number(d->rating), String::number(d->counter)};
 }
 
 String PopularimeterFrame::email() const
@@ -102,14 +102,14 @@ void PopularimeterFrame::setCounter(unsigned int s)
 
 void PopularimeterFrame::parseFields(const ByteVector &data)
 {
-  int pos = 0, size = int(data.size());
+  int pos = 0, size = static_cast<int>(data.size());
 
   d->email = readStringField(data, String::Latin1, &pos);
 
   d->rating = 0;
   d->counter = 0;
   if(pos < size) {
-    d->rating = (unsigned char)(data[pos++]);
+    d->rating = static_cast<unsigned char>(data[pos++]);
     if(pos < size) {
       d->counter = data.toUInt(static_cast<unsigned int>(pos));
     }
@@ -122,7 +122,7 @@ ByteVector PopularimeterFrame::renderFields() const
 
   data.append(d->email.data(String::Latin1));
   data.append(textDelimiter(String::Latin1));
-  data.append(char(d->rating));
+  data.append(static_cast<char>(d->rating));
   data.append(ByteVector::fromUInt(d->counter));
 
   return data;
@@ -134,7 +134,7 @@ ByteVector PopularimeterFrame::renderFields() const
 
 PopularimeterFrame::PopularimeterFrame(const ByteVector &data, Header *h) :
   Frame(h),
-  d(new PopularimeterFramePrivate())
+  d(std::make_unique<PopularimeterFramePrivate>())
 {
   parseFields(fieldData(data));
 }

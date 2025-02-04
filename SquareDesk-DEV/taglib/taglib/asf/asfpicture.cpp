@@ -23,18 +23,14 @@
  *   http://www.mozilla.org/MPL/                                           *
  ***************************************************************************/
 
-#include <taglib.h>
-#include <tdebug.h>
-#include <trefcounter.h>
-
-#include "asfattribute.h"
-#include "asffile.h"
 #include "asfpicture.h"
+
+#include "asffile.h"
 #include "asfutils.h"
 
 using namespace TagLib;
 
-class ASF::Picture::PicturePrivate : public RefCounter
+class ASF::Picture::PicturePrivate
 {
 public:
   bool valid;
@@ -49,22 +45,13 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 
 ASF::Picture::Picture() :
-  d(new PicturePrivate())
+  d(std::make_shared<PicturePrivate>())
 {
   d->valid = true;
 }
 
-ASF::Picture::Picture(const Picture& other) :
-  d(other.d)
-{
-  d->ref();
-}
-
-ASF::Picture::~Picture()
-{
-  if(d->deref())
-    delete d;
-}
+ASF::Picture::Picture(const Picture &) = default;
+ASF::Picture::~Picture() = default;
 
 bool ASF::Picture::isValid() const
 {
@@ -118,13 +105,9 @@ int ASF::Picture::dataSize() const
     d->picture.size();
 }
 
-ASF::Picture& ASF::Picture::operator=(const ASF::Picture& other)
-{
-  Picture(other).swap(*this);
-  return *this;
-}
+ASF::Picture &ASF::Picture::operator=(const ASF::Picture &) = default;
 
-void ASF::Picture::swap(Picture &other)
+void ASF::Picture::swap(Picture &other) noexcept
 {
   using std::swap;
 
@@ -137,7 +120,7 @@ ByteVector ASF::Picture::render() const
     return ByteVector();
 
   return
-    ByteVector((char)d->type) +
+    ByteVector(static_cast<char>(d->type)) +
     ByteVector::fromUInt(d->picture.size(), false) +
     renderString(d->mimeType) +
     renderString(d->description) +
@@ -150,7 +133,7 @@ void ASF::Picture::parse(const ByteVector& bytes)
   if(bytes.size() < 9)
     return;
   int pos = 0;
-  d->type = (Type)bytes[0]; ++pos;
+  d->type = static_cast<Type>(bytes[0]); ++pos;
   const unsigned int dataLen = bytes.toUInt(pos, false); pos+=4;
 
   const ByteVector nullStringTerminator(2, 0);
@@ -172,7 +155,6 @@ void ASF::Picture::parse(const ByteVector& bytes)
 
   d->picture = bytes.mid(pos, dataLen);
   d->valid = true;
-  return;
 }
 
 ASF::Picture ASF::Picture::fromInvalid()

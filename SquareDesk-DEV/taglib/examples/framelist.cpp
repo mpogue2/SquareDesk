@@ -23,22 +23,17 @@
  */
 
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 
-#include <tbytevector.h>
+#include "tbytevector.h"
+#include "mpegfile.h"
+#include "id3v2tag.h"
+#include "id3v2frame.h"
+#include "id3v2header.h"
+#include "commentsframe.h"
+#include "id3v1tag.h"
+#include "apetag.h"
 
-#include <mpegfile.h>
-
-#include <id3v2tag.h>
-#include <id3v2frame.h>
-#include <id3v2header.h>
-#include <commentsframe.h>
-
-#include <id3v1tag.h>
-
-#include <apetag.h>
-
-using namespace std;
 using namespace TagLib;
 
 int main(int argc, char *argv[])
@@ -48,7 +43,7 @@ int main(int argc, char *argv[])
 
   for(int i = 1; i < argc; i++) {
 
-    cout << "******************** \"" << argv[i] << "\"********************" << endl;
+    std::cout << "******************** \"" << argv[i] << "\"********************" << std::endl;
 
     MPEG::File f(argv[i]);
 
@@ -56,62 +51,62 @@ int main(int argc, char *argv[])
 
     if(id3v2tag) {
 
-      cout << "ID3v2."
+      std::cout << "ID3v2."
            << id3v2tag->header()->majorVersion()
            << "."
            << id3v2tag->header()->revisionNumber()
            << ", "
            << id3v2tag->header()->tagSize()
            << " bytes in tag"
-           << endl;
+           << std::endl;
 
-      ID3v2::FrameList::ConstIterator it = id3v2tag->frameList().begin();
-      for(; it != id3v2tag->frameList().end(); it++) {
-        cout << (*it)->frameID();
+      const auto &frames = id3v2tag->frameList();
+      for(auto it = frames.begin(); it != frames.end(); it++) {
+        std::cout << (*it)->frameID();
 
-        if(ID3v2::CommentsFrame *comment = dynamic_cast<ID3v2::CommentsFrame *>(*it))
+        if(auto comment = dynamic_cast<ID3v2::CommentsFrame *>(*it))
           if(!comment->description().isEmpty())
-            cout << " [" << comment->description() << "]";
+            std::cout << " [" << comment->description() << "]";
 
-        cout << " - \"" << (*it)->toString() << "\"" << endl;
+        std::cout << " - \"" << (*it)->toString() << "\"" << std::endl;
       }
     }
     else
-      cout << "file does not have a valid id3v2 tag" << endl;
+      std::cout << "file does not have a valid id3v2 tag" << std::endl;
 
-    cout << endl << "ID3v1" << endl;
+    std::cout << std::endl << "ID3v1" << std::endl;
 
     ID3v1::Tag *id3v1tag = f.ID3v1Tag();
 
     if(id3v1tag) {
-      cout << "title   - \"" << id3v1tag->title()   << "\"" << endl;
-      cout << "artist  - \"" << id3v1tag->artist()  << "\"" << endl;
-      cout << "album   - \"" << id3v1tag->album()   << "\"" << endl;
-      cout << "year    - \"" << id3v1tag->year()    << "\"" << endl;
-      cout << "comment - \"" << id3v1tag->comment() << "\"" << endl;
-      cout << "track   - \"" << id3v1tag->track()   << "\"" << endl;
-      cout << "genre   - \"" << id3v1tag->genre()   << "\"" << endl;
+      std::cout << "title   - \"" << id3v1tag->title()   << "\"" << std::endl;
+      std::cout << "artist  - \"" << id3v1tag->artist()  << "\"" << std::endl;
+      std::cout << "album   - \"" << id3v1tag->album()   << "\"" << std::endl;
+      std::cout << "year    - \"" << id3v1tag->year()    << "\"" << std::endl;
+      std::cout << "comment - \"" << id3v1tag->comment() << "\"" << std::endl;
+      std::cout << "track   - \"" << id3v1tag->track()   << "\"" << std::endl;
+      std::cout << "genre   - \"" << id3v1tag->genre()   << "\"" << std::endl;
     }
     else
-      cout << "file does not have a valid id3v1 tag" << endl;
+      std::cout << "file does not have a valid id3v1 tag" << std::endl;
 
     APE::Tag *ape = f.APETag();
 
-    cout << endl << "APE" << endl;
+    std::cout << std::endl << "APE" << std::endl;
 
     if(ape) {
-      for(APE::ItemListMap::ConstIterator it = ape->itemListMap().begin();
-          it != ape->itemListMap().end(); ++it)
+      const auto &items = ape->itemListMap();
+      for(auto it = items.begin(); it != items.end(); ++it)
       {
         if((*it).second.type() != APE::Item::Binary)
-          cout << (*it).first << " - \"" << (*it).second.toString() << "\"" << endl;
+          std::cout << (*it).first << " - \"" << (*it).second.toString() << "\"" << std::endl;
         else
-          cout << (*it).first << " - Binary data (" << (*it).second.binaryData().size() << " bytes)" << endl;
+          std::cout << (*it).first << " - Binary data (" << (*it).second.binaryData().size() << " bytes)" << std::endl;
       }
     }
     else
-      cout << "file does not have a valid APE tag" << endl;
+      std::cout << "file does not have a valid APE tag" << std::endl;
 
-    cout << endl;
+    std::cout << std::endl;
   }
 }

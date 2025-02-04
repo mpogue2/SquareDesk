@@ -23,29 +23,26 @@
  *   http://www.mozilla.org/MPL/                                           *
  ***************************************************************************/
 
+#include "tstring.h"
+
 #include <cerrno>
 #include <climits>
+#include <iostream>
+#include <utf8.h>
 
-#include <utf8-cpp/checked.h>
-
-#include <tdebug.h>
-#include <tstringlist.h>
-#include <trefcounter.h>
-#include <tutils.h>
-
-#include "tstring.h"
+#include "tdebug.h"
+#include "tstringlist.h"
+#include "tutils.h"
 
 namespace
 {
   using namespace TagLib;
 
   // Returns the native format of std::wstring.
-  String::Type wcharByteOrder()
+  constexpr String::Type wcharByteOrder()
   {
-    if(Utils::systemByteOrder() == Utils::LittleEndian)
-      return String::UTF16LE;
-    else
-      return String::UTF16BE;
+    return Utils::systemByteOrder() == Utils::LittleEndian ? String::UTF16LE
+                                                           : String::UTF16BE;
   }
 
   // Converts a Latin-1 string into UTF-16(without BOM/CPU byte order)
@@ -109,8 +106,7 @@ namespace
         return;
       }
 
-      const unsigned short bom = nextUTF16(&s);
-      if(bom == 0xfeff)
+      if(const unsigned short bom = nextUTF16(&s); bom == 0xfeff)
         swap = false; // Same as CPU endian. No need to swap bytes.
       else if(bom == 0xfffe)
         swap = true;  // Not same as CPU endian. Need to swap bytes.
@@ -122,7 +118,7 @@ namespace
       length--;
     }
     else {
-      swap = (t != wcharByteOrder());
+      swap = t != wcharByteOrder();
     }
 
     data.resize(length);
@@ -134,46 +130,37 @@ namespace
         data[i] = c;
     }
   }
-}
+}  // namespace
 
 namespace TagLib {
 
-class String::StringPrivate : public RefCounter
-{
-public:
-  StringPrivate() :
-    RefCounter() {}
+  class String::StringPrivate
+  {
+  public:
+    /*!
+     * Stores string in UTF-16. The byte order depends on the CPU endian.
+     */
+    std::wstring data;
 
-  /*!
-   * Stores string in UTF-16. The byte order depends on the CPU endian.
-   */
-  TagLib::wstring data;
-
-  /*!
-   * This is only used to hold the the most recent value of toCString().
-   */
-  std::string cstring;
+    /*!
+     * This is only used to hold the most recent value of toCString().
+     */
+    std::string cstring;
 };
-
-String String::null;
 
 ////////////////////////////////////////////////////////////////////////////////
 // public members
 ////////////////////////////////////////////////////////////////////////////////
 
 String::String() :
-  d(new StringPrivate())
+  d(std::make_shared<StringPrivate>())
 {
 }
 
-String::String(const String &s) :
-  d(s.d)
-{
-  d->ref();
-}
+String::String(const String &) = default;
 
 String::String(const std::string &s, Type t) :
-  d(new StringPrivate())
+  d(std::make_shared<StringPrivate>())
 {
   if(t == Latin1)
     copyFromLatin1(d->data, s.c_str(), s.length());
@@ -184,35 +171,31 @@ String::String(const std::string &s, Type t) :
   }
 }
 
-String::String(const wstring &s, Type t) :
-  d(new StringPrivate())
+String::String(const std::wstring &s) :
+ String(s, wcharByteOrder())
+{
+}
+
+String::String(const std::wstring &s, Type t) :
+  d(std::make_shared<StringPrivate>())
 {
   if(t == UTF16 || t == UTF16BE || t == UTF16LE) {
-    // This looks ugly but needed for the compatibility with TagLib1.8.
-    // Should be removed in TabLib2.0.
-    if (t == UTF16BE)
-      t = wcharByteOrder();
-    else if (t == UTF16LE)
-      t = (wcharByteOrder() == UTF16LE ? UTF16BE : UTF16LE);
-
     copyFromUTF16(d->data, s.c_str(), s.length(), t);
   }
   else {
-    debug("String::String() -- TagLib::wstring should not contain Latin1 or UTF-8.");
+    debug("String::String() -- std::wstring should not contain Latin1 or UTF-8.");
   }
 }
 
+String::String(const wchar_t *s) :
+  String(s, wcharByteOrder())
+{
+}
+
 String::String(const wchar_t *s, Type t) :
-  d(new StringPrivate())
+  d(std::make_shared<StringPrivate>())
 {
   if(t == UTF16 || t == UTF16BE || t == UTF16LE) {
-    // This looks ugly but needed for the compatibility with TagLib1.8.
-    // Should be removed in TabLib2.0.
-    if (t == UTF16BE)
-      t = wcharByteOrder();
-    else if (t == UTF16LE)
-      t = (wcharByteOrder() == UTF16LE ? UTF16BE : UTF16LE);
-
     copyFromUTF16(d->data, s, ::wcslen(s), t);
   }
   else {
@@ -221,7 +204,7 @@ String::String(const wchar_t *s, Type t) :
 }
 
 String::String(const char *s, Type t) :
-  d(new StringPrivate())
+  d(std::make_shared<StringPrivate>())
 {
   if(t == Latin1)
     copyFromLatin1(d->data, s, ::strlen(s));
@@ -233,7 +216,7 @@ String::String(const char *s, Type t) :
 }
 
 String::String(wchar_t c, Type t) :
-  d(new StringPrivate())
+  d(std::make_shared<StringPrivate>())
 {
   if(t == UTF16 || t == UTF16BE || t == UTF16LE)
     copyFromUTF16(d->data, &c, 1, t);
@@ -243,7 +226,7 @@ String::String(wchar_t c, Type t) :
 }
 
 String::String(char c, Type t) :
-  d(new StringPrivate())
+  d(std::make_shared<StringPrivate>())
 {
   if(t == Latin1)
     copyFromLatin1(d->data, &c, 1);
@@ -255,7 +238,7 @@ String::String(char c, Type t) :
 }
 
 String::String(const ByteVector &v, Type t) :
-  d(new StringPrivate())
+  d(std::make_shared<StringPrivate>())
 {
   if(v.isEmpty())
     return;
@@ -273,11 +256,7 @@ String::String(const ByteVector &v, Type t) :
 
 ////////////////////////////////////////////////////////////////////////////////
 
-String::~String()
-{
-  if(d->deref())
-    delete d;
-}
+String::~String() = default;
 
 std::string String::to8Bit(bool unicode) const
 {
@@ -285,7 +264,7 @@ std::string String::to8Bit(bool unicode) const
   return std::string(v.data(), v.size());
 }
 
-TagLib::wstring String::toWString() const
+std::wstring String::toWString() const
 {
   return d->data;
 }
@@ -312,6 +291,11 @@ String::ConstIterator String::begin() const
   return d->data.begin();
 }
 
+String::ConstIterator String::cbegin() const
+{
+  return d->data.cbegin();
+}
+
 String::Iterator String::end()
 {
   detach();
@@ -321,6 +305,11 @@ String::Iterator String::end()
 String::ConstIterator String::end() const
 {
   return d->data.end();
+}
+
+String::ConstIterator String::cend() const
+{
+  return d->data.cend();
 }
 
 int String::find(const String &s, int offset) const
@@ -342,10 +331,8 @@ StringList String::split(const String &separator) const
       list.append(substr(index, size() - index));
       break;
     }
-    else {
-      list.append(substr(index, sep - index));
-      index = sep + separator.size();
-    }
+    list.append(substr(index, sep - index));
+    index = sep + separator.size();
   }
   return list;
 }
@@ -362,8 +349,7 @@ String String::substr(unsigned int position, unsigned int n) const
 {
   if(position == 0 && n >= size())
     return *this;
-  else
-    return String(d->data.substr(position, n));
+  return String(d->data.substr(position, n));
 }
 
 String &String::append(const String &s)
@@ -384,11 +370,11 @@ String String::upper() const
   String s;
   s.d->data.reserve(size());
 
-  for(ConstIterator it = begin(); it != end(); ++it) {
-    if(*it >= 'a' && *it <= 'z')
-      s.d->data.push_back(*it + 'A' - 'a');
+  for(wchar_t c : *this) {
+    if(c >= 'a' && c <= 'z')
+      s.d->data.push_back(c + 'A' - 'a');
     else
-      s.d->data.push_back(*it);
+      s.d->data.push_back(c);
   }
 
   return s;
@@ -409,11 +395,6 @@ bool String::isEmpty() const
   return d->data.empty();
 }
 
-bool String::isNull() const
-{
-  return d == null.d;
-}
-
 ByteVector String::data(Type t) const
 {
   switch(t)
@@ -423,8 +404,9 @@ ByteVector String::data(Type t) const
       ByteVector v(size(), 0);
       char *p = v.data();
 
-      for(ConstIterator it = begin(); it != end(); ++it)
-        *p++ = static_cast<char>(*it);
+      for(wchar_t c : *this) {
+        *p++ = static_cast<char>(c);
+      }
 
       return v;
     }
@@ -433,7 +415,7 @@ ByteVector String::data(Type t) const
       ByteVector v(size() * 4, 0);
 
       try {
-        const ByteVector::Iterator dstEnd = utf8::utf16to8(begin(), end(), v.begin());
+        const auto dstEnd = utf8::utf16to8(begin(), end(), v.begin());
         v.resize(static_cast<unsigned int>(dstEnd - v.begin()));
       }
       catch(const utf8::exception &e) {
@@ -454,9 +436,9 @@ ByteVector String::data(Type t) const
       *p++ = '\xff';
       *p++ = '\xfe';
 
-      for(ConstIterator it = begin(); it != end(); ++it) {
-        *p++ = static_cast<char>(*it & 0xff);
-        *p++ = static_cast<char>(*it >> 8);
+      for(wchar_t c : *this) {
+        *p++ = static_cast<char>(c & 0xff);
+        *p++ = static_cast<char>(c >> 8);
       }
 
       return v;
@@ -466,9 +448,9 @@ ByteVector String::data(Type t) const
       ByteVector v(size() * 2, 0);
       char *p = v.data();
 
-      for(ConstIterator it = begin(); it != end(); ++it) {
-        *p++ = static_cast<char>(*it >> 8);
-        *p++ = static_cast<char>(*it & 0xff);
+      for(wchar_t c : *this) {
+        *p++ = static_cast<char>(c >> 8);
+        *p++ = static_cast<char>(c & 0xff);
       }
 
       return v;
@@ -478,9 +460,9 @@ ByteVector String::data(Type t) const
       ByteVector v(size() * 2, 0);
       char *p = v.data();
 
-      for(ConstIterator it = begin(); it != end(); ++it) {
-        *p++ = static_cast<char>(*it & 0xff);
-        *p++ = static_cast<char>(*it >> 8);
+      for(wchar_t c : *this) {
+        *p++ = static_cast<char>(c & 0xff);
+        *p++ = static_cast<char>(c >> 8);
       }
 
       return v;
@@ -493,22 +475,17 @@ ByteVector String::data(Type t) const
   }
 }
 
-int String::toInt() const
-{
-  return toInt(0);
-}
-
 int String::toInt(bool *ok) const
 {
-  const wchar_t *begin = d->data.c_str();
-  wchar_t *end;
+  const wchar_t *beginPtr = d->data.c_str();
+  wchar_t *endPtr;
   errno = 0;
-  const long value = ::wcstol(begin, &end, 10);
+  const long value = ::wcstol(beginPtr, &endPtr, 10);
 
   // Has wcstol() consumed the entire string and not overflowed?
   if(ok) {
-    *ok = (errno == 0 && end > begin && *end == L'\0');
-    *ok = (*ok && value > INT_MIN && value < INT_MAX);
+    *ok = errno == 0 && endPtr > beginPtr && *endPtr == L'\0';
+    *ok = *ok && value > INT_MIN && value < INT_MAX;
   }
 
   return static_cast<int>(value);
@@ -528,25 +505,22 @@ String String::stripWhiteSpace() const
 
 bool String::isLatin1() const
 {
-  for(ConstIterator it = begin(); it != end(); ++it) {
-    if(*it >= 256)
-      return false;
-  }
-  return true;
+  return std::none_of(this->begin(), this->end(), [](auto c) { return c >= 256; });
 }
 
 bool String::isAscii() const
 {
-  for(ConstIterator it = begin(); it != end(); ++it) {
-    if(*it >= 128)
-      return false;
-  }
-  return true;
+  return std::none_of(this->begin(), this->end(), [](auto c) { return c >= 128; });
 }
 
 String String::number(int n) // static
 {
-  return Utils::formatString("%d", n);
+  return std::to_string(n);
+}
+
+String String::fromLongLong(long long n) // static
+{
+  return std::to_string(n);
 }
 
 wchar_t &String::operator[](int i)
@@ -562,7 +536,7 @@ const wchar_t &String::operator[](int i) const
 
 bool String::operator==(const String &s) const
 {
-  return (d == s.d || d->data == s.d->data);
+  return d == s.d || d->data == s.d->data;
 }
 
 bool String::operator!=(const String &s) const
@@ -588,7 +562,7 @@ bool String::operator!=(const char *s) const
 
 bool String::operator==(const wchar_t *s) const
 {
-  return (d->data == s);
+  return d->data == s;
 }
 
 bool String::operator!=(const wchar_t *s) const
@@ -637,11 +611,7 @@ String &String::operator+=(char c)
   return *this;
 }
 
-String &String::operator=(const String &s)
-{
-  String(s).swap(*this);
-  return *this;
-}
+String &String::operator=(const String &) = default;
 
 String &String::operator=(const std::string &s)
 {
@@ -649,7 +619,7 @@ String &String::operator=(const std::string &s)
   return *this;
 }
 
-String &String::operator=(const wstring &s)
+String &String::operator=(const std::wstring &s)
 {
   String(s).swap(*this);
   return *this;
@@ -685,7 +655,7 @@ String &String::operator=(const ByteVector &v)
   return *this;
 }
 
-void String::swap(String &s)
+void String::swap(String &s) noexcept
 {
   using std::swap;
 
@@ -694,7 +664,7 @@ void String::swap(String &s)
 
 bool String::operator<(const String &s) const
 {
-  return (d->data < s.d->data);
+  return d->data < s.d->data;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -703,36 +673,31 @@ bool String::operator<(const String &s) const
 
 void String::detach()
 {
-  if(d->count() > 1)
+  if(d.use_count() > 1)
     String(d->data.c_str()).swap(*this);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// private members
-////////////////////////////////////////////////////////////////////////////////
-
-const String::Type String::WCharByteOrder = wcharByteOrder();
-}
+}  // namespace TagLib
 
 ////////////////////////////////////////////////////////////////////////////////
 // related non-member functions
 ////////////////////////////////////////////////////////////////////////////////
 
-const TagLib::String operator+(const TagLib::String &s1, const TagLib::String &s2)
+TagLib::String operator+(const TagLib::String &s1, const TagLib::String &s2)
 {
   TagLib::String s(s1);
   s.append(s2);
   return s;
 }
 
-const TagLib::String operator+(const char *s1, const TagLib::String &s2)
+TagLib::String operator+(const char *s1, const TagLib::String &s2)
 {
   TagLib::String s(s1);
   s.append(s2);
   return s;
 }
 
-const TagLib::String operator+(const TagLib::String &s1, const char *s2)
+TagLib::String operator+(const TagLib::String &s1, const char *s2)
 {
   TagLib::String s(s1);
   s.append(s2);
@@ -741,7 +706,6 @@ const TagLib::String operator+(const TagLib::String &s1, const char *s2)
 
 std::ostream &operator<<(std::ostream &s, const TagLib::String &str)
 {
-  s << str.to8Bit();
+  s << str.to8Bit(true);
   return s;
 }
-

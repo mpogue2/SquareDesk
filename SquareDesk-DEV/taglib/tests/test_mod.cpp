@@ -23,8 +23,9 @@
  *   http://www.mozilla.org/MPL/                                           *
  ***************************************************************************/
 
-#include <modfile.h>
-#include <tpropertymap.h>
+#include <cassert>
+#include "tpropertymap.h"
+#include "modfile.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "utils.h"
 
@@ -70,7 +71,7 @@ public:
     ScopedFileCopy copy("test", ".mod");
     {
       Mod::File file(copy.fileName().c_str());
-      CPPUNIT_ASSERT(file.tag() != 0);
+      CPPUNIT_ASSERT(file.tag() != nullptr);
       file.tag()->setTitle(titleAfter);
       file.tag()->setComment(newComment);
       CPPUNIT_ASSERT(file.save());
@@ -78,7 +79,7 @@ public:
     testRead(copy.fileName().c_str(), titleAfter, commentAfter);
     CPPUNIT_ASSERT(fileEqual(
       copy.fileName(),
-      TEST_FILE_PATH_C("changed.mod")));
+      testFilePath("changed.mod")));
   }
 
   void testPropertyInterface()
@@ -110,15 +111,16 @@ private:
     Mod::Properties *p = file.audioProperties();
     Mod::Tag *t = file.tag();
 
-    CPPUNIT_ASSERT(0 != p);
-    CPPUNIT_ASSERT(0 != t);
+    CPPUNIT_ASSERT(nullptr != p);
+    CPPUNIT_ASSERT(nullptr != t);
+    assert(p != nullptr); // to silence the clang analyzer
 
-    CPPUNIT_ASSERT_EQUAL(0, p->length());
+    CPPUNIT_ASSERT_EQUAL(0, p->lengthInSeconds());
     CPPUNIT_ASSERT_EQUAL(0, p->bitrate());
     CPPUNIT_ASSERT_EQUAL(0, p->sampleRate());
     CPPUNIT_ASSERT_EQUAL(8, p->channels());
     CPPUNIT_ASSERT_EQUAL(31U, p->instrumentCount());
-    CPPUNIT_ASSERT_EQUAL((unsigned char)1, p->lengthInPatterns());
+    CPPUNIT_ASSERT_EQUAL(static_cast<unsigned char>(1), p->lengthInPatterns());
     CPPUNIT_ASSERT_EQUAL(title, t->title());
     CPPUNIT_ASSERT_EQUAL(String(), t->artist());
     CPPUNIT_ASSERT_EQUAL(String(), t->album());

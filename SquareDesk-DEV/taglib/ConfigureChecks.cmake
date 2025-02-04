@@ -20,7 +20,7 @@ if(NOT ${SIZEOF_LONGLONG} EQUAL 8)
 endif()
 
 check_type_size("wchar_t" SIZEOF_WCHAR_T)
-if(${SIZEOF_WCHAR_T} LESS 2)
+if(NOT ${SIZEOF_WCHAR_T} GREATER 1)
   message(FATAL_ERROR "TagLib requires that wchar_t is sufficient to store a UTF-16 char.")
 endif()
 
@@ -32,53 +32,6 @@ endif()
 check_type_size("double" SIZEOF_DOUBLE)
 if(NOT ${SIZEOF_DOUBLE} EQUAL 8)
   message(FATAL_ERROR "TagLib requires that double is 64-bit wide.")
-endif()
-
-# Determine which kind of atomic operations your compiler supports.
-
-check_cxx_source_compiles("
-    int main() {
-      volatile int x;
-      __sync_add_and_fetch(&x, 1);
-      int y = __sync_sub_and_fetch(&x, 1);
-      return 0;
-    }
-  " HAVE_GCC_ATOMIC)
-
-if(NOT HAVE_GCC_ATOMIC)
-  check_cxx_source_compiles("
-      #include <libkern/OSAtomic.h>
-      int main() {
-        volatile int32_t x;
-        OSAtomicIncrement32Barrier(&x);
-        int32_t y = OSAtomicDecrement32Barrier(&x);
-        return 0;
-      }
-    " HAVE_MAC_ATOMIC)
-
-  if(NOT HAVE_MAC_ATOMIC)
-    check_cxx_source_compiles("
-        #include <windows.h>
-        int main() {
-          volatile LONG x;
-          InterlockedIncrement(&x);
-          LONG y = InterlockedDecrement(&x);
-          return 0;
-        }
-      " HAVE_WIN_ATOMIC)
-
-    if(NOT HAVE_WIN_ATOMIC)
-      check_cxx_source_compiles("
-          #include <ia64intrin.h>
-          int main() {
-            volatile int x;
-            __sync_add_and_fetch(&x, 1);
-            int y = __sync_sub_and_fetch(&x, 1);
-            return 0;
-          }
-        " HAVE_IA64_ATOMIC)
-    endif()
-  endif()
 endif()
 
 # Determine which kind of byte swap functions your compiler supports.
@@ -105,7 +58,7 @@ if(NOT HAVE_GCC_BYTESWAP)
 
   if(NOT HAVE_GLIBC_BYTESWAP)
     check_cxx_source_compiles("
-      #include <stdlib.h>
+      #include <cstdlib>
       int main() {
         _byteswap_ushort(0);
         _byteswap_ulong(0);
@@ -140,32 +93,6 @@ if(NOT HAVE_GCC_BYTESWAP)
   endif()
 endif()
 
-# Determine whether your compiler supports some safer version of vsprintf.
-
-check_cxx_source_compiles("
-  #include <cstdio>
-  #include <cstdarg>
-  int main() {
-    char buf[20];
-    va_list args;
-    vsnprintf(buf, 20, \"%d\", args);
-    return 0;
-  }
-" HAVE_VSNPRINTF)
-
-if(NOT HAVE_VSNPRINTF)
-  check_cxx_source_compiles("
-    #include <cstdio>
-    #include <cstdarg>
-    int main() {
-      char buf[20];
-      va_list args;
-      vsprintf_s(buf, \"%d\", args);
-      return 0;
-    }
-  " HAVE_VSPRINTF_S)
-endif()
-
 # Determine whether your compiler supports ISO _strdup.
 
 check_cxx_source_compiles("
@@ -176,28 +103,7 @@ check_cxx_source_compiles("
   }
 " HAVE_ISO_STRDUP)
 
-# Determine whether zlib is installed.
-
-if(NOT ZLIB_SOURCE)
-  find_package(ZLIB)
-  if(ZLIB_FOUND)
-    set(HAVE_ZLIB 1)
-  else()
-    set(HAVE_ZLIB 0)
-  endif()
-endif()
-
-# Determine whether CppUnit is installed.
-
-if(BUILD_TESTS AND NOT BUILD_SHARED_LIBS)
-  find_package(CppUnit)
-  if(NOT CppUnit_FOUND)
-    message(STATUS "CppUnit not found, disabling tests.")
-    set(BUILD_TESTS OFF)
-  endif()
-endif()
-
 # Detect WinRT mode
 if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
-	set(PLATFORM WINRT 1)
+  set(PLATFORM_WINRT 1)
 endif()

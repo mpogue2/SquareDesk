@@ -24,16 +24,19 @@
  ***************************************************************************/
 
 #include <string>
-#include <stdio.h>
-#include <tstring.h>
-#include <tpropertymap.h>
-#include <mpegfile.h>
-#include <id3v2tag.h>
-#include <id3v1tag.h>
-#include <apetag.h>
-#include <mpegproperties.h>
-#include <xingheader.h>
-#include <mpegheader.h>
+#include <cstdio>
+#include <array>
+
+#include "tstring.h"
+#include "tpropertymap.h"
+#include "mpegfile.h"
+#include "id3v2tag.h"
+#include "id3v1tag.h"
+#include "apetag.h"
+#include "mpegproperties.h"
+#include "xingheader.h"
+#include "mpegheader.h"
+#include "id3v2extendedheader.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "utils.h"
 
@@ -47,12 +50,12 @@ class TestMPEG : public CppUnit::TestFixture
   CPPUNIT_TEST(testAudioPropertiesXingHeaderVBR);
   CPPUNIT_TEST(testAudioPropertiesVBRIHeader);
   CPPUNIT_TEST(testAudioPropertiesNoVBRHeaders);
+  CPPUNIT_TEST(testAudioPropertiesADTS);
   CPPUNIT_TEST(testSkipInvalidFrames1);
   CPPUNIT_TEST(testSkipInvalidFrames2);
   CPPUNIT_TEST(testSkipInvalidFrames3);
   CPPUNIT_TEST(testVersion2DurationWithXingHeader);
   CPPUNIT_TEST(testSaveID3v24);
-  CPPUNIT_TEST(testSaveID3v24WrongParam);
   CPPUNIT_TEST(testSaveID3v23);
   CPPUNIT_TEST(testDuplicateID3v2);
   CPPUNIT_TEST(testFuzzedFile);
@@ -66,6 +69,9 @@ class TestMPEG : public CppUnit::TestFixture
   CPPUNIT_TEST(testEmptyID3v1);
   CPPUNIT_TEST(testEmptyAPE);
   CPPUNIT_TEST(testIgnoreGarbage);
+  CPPUNIT_TEST(testExtendedHeader);
+  CPPUNIT_TEST(testReadStyleFast);
+  CPPUNIT_TEST(testID3v22Properties);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -80,6 +86,7 @@ public:
     CPPUNIT_ASSERT_EQUAL(1, f.audioProperties()->channels());
     CPPUNIT_ASSERT_EQUAL(44100, f.audioProperties()->sampleRate());
     CPPUNIT_ASSERT_EQUAL(MPEG::XingHeader::Xing, f.audioProperties()->xingHeader()->type());
+    CPPUNIT_ASSERT(!f.audioProperties()->isADTS());
   }
 
   void testAudioPropertiesXingHeaderVBR()
@@ -92,6 +99,7 @@ public:
     CPPUNIT_ASSERT_EQUAL(1, f.audioProperties()->channels());
     CPPUNIT_ASSERT_EQUAL(44100, f.audioProperties()->sampleRate());
     CPPUNIT_ASSERT_EQUAL(MPEG::XingHeader::Xing, f.audioProperties()->xingHeader()->type());
+    CPPUNIT_ASSERT(!f.audioProperties()->isADTS());
   }
 
   void testAudioPropertiesVBRIHeader()
@@ -104,6 +112,7 @@ public:
     CPPUNIT_ASSERT_EQUAL(2, f.audioProperties()->channels());
     CPPUNIT_ASSERT_EQUAL(44100, f.audioProperties()->sampleRate());
     CPPUNIT_ASSERT_EQUAL(MPEG::XingHeader::VBRI, f.audioProperties()->xingHeader()->type());
+    CPPUNIT_ASSERT(!f.audioProperties()->isADTS());
   }
 
   void testAudioPropertiesNoVBRHeaders()
@@ -116,12 +125,44 @@ public:
     CPPUNIT_ASSERT_EQUAL(1, f.audioProperties()->channels());
     CPPUNIT_ASSERT_EQUAL(44100, f.audioProperties()->sampleRate());
     CPPUNIT_ASSERT(!f.audioProperties()->xingHeader());
+    CPPUNIT_ASSERT(!f.audioProperties()->isADTS());
 
-    const long last = f.lastFrameOffset();
+    const offset_t last = f.lastFrameOffset();
     const MPEG::Header lastHeader(&f, last, false);
 
-    CPPUNIT_ASSERT_EQUAL(28213L, last);
+    CPPUNIT_ASSERT_EQUAL(static_cast<offset_t>(28213), last);
     CPPUNIT_ASSERT_EQUAL(209, lastHeader.frameLength());
+  }
+
+  void testAudioPropertiesADTS()
+  {
+    constexpr std::array readStyles = {
+      MPEG::Properties::Fast,
+      MPEG::Properties::Average,
+      MPEG::Properties::Accurate
+    };
+    for(auto readStyle : readStyles) {
+      MPEG::File f(TEST_FILE_PATH_C("empty1s.aac"), true, readStyle);
+      CPPUNIT_ASSERT(f.audioProperties());
+      CPPUNIT_ASSERT_EQUAL(readStyle == MPEG::Properties::Fast ? 0 : 1,
+        f.audioProperties()->lengthInSeconds());
+      CPPUNIT_ASSERT_EQUAL(readStyle == MPEG::Properties::Fast ? 0 : 1176,
+        f.audioProperties()->lengthInMilliseconds());
+      CPPUNIT_ASSERT_EQUAL(readStyle == MPEG::Properties::Fast ? 0 : 1,
+        f.audioProperties()->bitrate());
+      CPPUNIT_ASSERT_EQUAL(1, f.audioProperties()->channels());
+      CPPUNIT_ASSERT_EQUAL(MPEG::Header::FrontCenter,
+        f.audioProperties()->channelConfiguration());
+      CPPUNIT_ASSERT_EQUAL(11025, f.audioProperties()->sampleRate());
+      CPPUNIT_ASSERT(!f.audioProperties()->xingHeader());
+      CPPUNIT_ASSERT(f.audioProperties()->isADTS());
+
+      const offset_t last = f.lastFrameOffset();
+      const MPEG::Header lastHeader(&f, last, false);
+
+      CPPUNIT_ASSERT_EQUAL(static_cast<offset_t>(136), last);
+      CPPUNIT_ASSERT_EQUAL(11, lastHeader.frameLength());
+    }
   }
 
   void testSkipInvalidFrames1()
@@ -134,6 +175,7 @@ public:
     CPPUNIT_ASSERT_EQUAL(2, f.audioProperties()->channels());
     CPPUNIT_ASSERT_EQUAL(44100, f.audioProperties()->sampleRate());
     CPPUNIT_ASSERT(!f.audioProperties()->xingHeader());
+    CPPUNIT_ASSERT(!f.audioProperties()->isADTS());
   }
 
   void testSkipInvalidFrames2()
@@ -146,6 +188,7 @@ public:
     CPPUNIT_ASSERT_EQUAL(2, f.audioProperties()->channels());
     CPPUNIT_ASSERT_EQUAL(44100, f.audioProperties()->sampleRate());
     CPPUNIT_ASSERT(!f.audioProperties()->xingHeader());
+    CPPUNIT_ASSERT(!f.audioProperties()->isADTS());
   }
 
   void testSkipInvalidFrames3()
@@ -158,6 +201,7 @@ public:
     CPPUNIT_ASSERT_EQUAL(2, f.audioProperties()->channels());
     CPPUNIT_ASSERT_EQUAL(44100, f.audioProperties()->sampleRate());
     CPPUNIT_ASSERT(!f.audioProperties()->xingHeader());
+    CPPUNIT_ASSERT(!f.audioProperties()->isADTS());
   }
 
   void testVersion2DurationWithXingHeader()
@@ -185,27 +229,7 @@ public:
     }
     {
       MPEG::File f2(newname.c_str());
-      CPPUNIT_ASSERT_EQUAL((unsigned int)4, f2.ID3v2Tag()->header()->majorVersion());
-      CPPUNIT_ASSERT_EQUAL(String("Artist A"), f2.tag()->artist());
-      CPPUNIT_ASSERT_EQUAL(xxx, f2.tag()->title());
-    }
-  }
-
-  void testSaveID3v24WrongParam()
-  {
-    ScopedFileCopy copy("xing", ".mp3");
-    string newname = copy.fileName();
-
-    String xxx = ByteVector(254, 'X');
-    {
-      MPEG::File f(newname.c_str());
-      f.tag()->setTitle(xxx);
-      f.tag()->setArtist("Artist A");
-      f.save(MPEG::File::AllTags, true, 8);
-    }
-    {
-      MPEG::File f2(newname.c_str());
-      CPPUNIT_ASSERT_EQUAL((unsigned int)4, f2.ID3v2Tag()->header()->majorVersion());
+      CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(4), f2.ID3v2Tag()->header()->majorVersion());
       CPPUNIT_ASSERT_EQUAL(String("Artist A"), f2.tag()->artist());
       CPPUNIT_ASSERT_EQUAL(xxx, f2.tag()->title());
     }
@@ -228,7 +252,7 @@ public:
     }
     {
       MPEG::File f2(newname.c_str());
-      CPPUNIT_ASSERT_EQUAL((unsigned int)3, f2.ID3v2Tag()->header()->majorVersion());
+      CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(3), f2.ID3v2Tag()->header()->majorVersion());
       CPPUNIT_ASSERT_EQUAL(String("Artist A"), f2.tag()->artist());
       CPPUNIT_ASSERT_EQUAL(xxx, f2.tag()->title());
     }
@@ -256,20 +280,20 @@ public:
     {
       MPEG::File f(TEST_FILE_PATH_C("ape.mp3"));
       CPPUNIT_ASSERT(f.isValid());
-      CPPUNIT_ASSERT_EQUAL((long)0x0000, f.firstFrameOffset());
-      CPPUNIT_ASSERT_EQUAL((long)0x1FD6, f.lastFrameOffset());
+      CPPUNIT_ASSERT_EQUAL(static_cast<offset_t>(0x0000), f.firstFrameOffset());
+      CPPUNIT_ASSERT_EQUAL(static_cast<offset_t>(0x1FD6), f.lastFrameOffset());
     }
     {
       MPEG::File f(TEST_FILE_PATH_C("ape-id3v1.mp3"));
       CPPUNIT_ASSERT(f.isValid());
-      CPPUNIT_ASSERT_EQUAL((long)0x0000, f.firstFrameOffset());
-      CPPUNIT_ASSERT_EQUAL((long)0x1FD6, f.lastFrameOffset());
+      CPPUNIT_ASSERT_EQUAL(static_cast<offset_t>(0x0000), f.firstFrameOffset());
+      CPPUNIT_ASSERT_EQUAL(static_cast<offset_t>(0x1FD6), f.lastFrameOffset());
     }
     {
       MPEG::File f(TEST_FILE_PATH_C("ape-id3v2.mp3"));
       CPPUNIT_ASSERT(f.isValid());
-      CPPUNIT_ASSERT_EQUAL((long)0x041A, f.firstFrameOffset());
-      CPPUNIT_ASSERT_EQUAL((long)0x23F0, f.lastFrameOffset());
+      CPPUNIT_ASSERT_EQUAL(static_cast<offset_t>(0x041A), f.firstFrameOffset());
+      CPPUNIT_ASSERT_EQUAL(static_cast<offset_t>(0x23F0), f.lastFrameOffset());
     }
   }
 
@@ -314,14 +338,16 @@ public:
     tags["CATALOGNUMBER"] = StringList("Catalog Number");
     tags["COMMENT"] = StringList("Comment");
     tags["COMMENT:CDESC"] = StringList("Comment with Description");
+    tags["COMPILATION"] = StringList("1");
     tags["COMPOSER"] = StringList("Composer");
     tags["COMPOSERSORT"] = StringList("Composer Sort");
     tags["CONDUCTOR"] = StringList("Conductor");
-    tags["CONTENTGROUP"] = StringList("Content Group");
+    tags["WORK"] = StringList("Content Group");
     tags["COPYRIGHT"] = StringList("2021 Copyright");
     tags["COPYRIGHTURL"] = StringList("Copyright URL");
     tags["DATE"] = StringList("2021-01-03 12:29:23");
     tags["DISCNUMBER"] = StringList("3/5");
+    tags["DISCSUBTITLE"] = StringList("Disc Subtitle");
     tags["DJMIXER"] = StringList("DJ Mixer");
     tags["ENCODEDBY"] = StringList("Encoded by");
     tags["ENCODING"] = StringList("Encoding");
@@ -414,7 +440,7 @@ public:
       f.save();
       f.ID3v2Tag(true)->setTitle(std::string(4096, 'X').c_str());
       f.save();
-      CPPUNIT_ASSERT_EQUAL(5141L, f.firstFrameOffset());
+      CPPUNIT_ASSERT_EQUAL(static_cast<offset_t>(5141), f.firstFrameOffset());
     }
   }
 
@@ -426,7 +452,7 @@ public:
     f.ID3v2Tag(true)->setTitle("0123456789");
     f.save();
     f.save();
-    CPPUNIT_ASSERT_EQUAL(-1L, f.find("ID3", 3));
+    CPPUNIT_ASSERT_EQUAL(static_cast<offset_t>(-1), f.find("ID3", 3));
   }
 
   void testRepeatedSave3()
@@ -520,8 +546,8 @@ public:
       MPEG::File f(copy.fileName().c_str());
       CPPUNIT_ASSERT(f.isValid());
       CPPUNIT_ASSERT(f.hasID3v2Tag());
-      CPPUNIT_ASSERT_EQUAL(2255L, f.firstFrameOffset());
-      CPPUNIT_ASSERT_EQUAL(6015L, f.lastFrameOffset());
+      CPPUNIT_ASSERT_EQUAL(static_cast<offset_t>(2255), f.firstFrameOffset());
+      CPPUNIT_ASSERT_EQUAL(static_cast<offset_t>(6015), f.lastFrameOffset());
       CPPUNIT_ASSERT_EQUAL(String("Title A"), f.ID3v2Tag()->title());
       f.ID3v2Tag()->setTitle("Title B");
       f.save();
@@ -532,6 +558,115 @@ public:
       CPPUNIT_ASSERT(f.hasID3v2Tag());
       CPPUNIT_ASSERT_EQUAL(String("Title B"), f.ID3v2Tag()->title());
     }
+  }
+
+  void testExtendedHeader()
+  {
+    const ScopedFileCopy copy("extended-header", ".mp3");
+    MPEG::File f(copy.fileName().c_str());
+    CPPUNIT_ASSERT(f.isValid());
+    CPPUNIT_ASSERT(f.hasID3v2Tag());
+    ID3v2::Tag *tag = f.ID3v2Tag();
+    ID3v2::ExtendedHeader *ext = tag->extendedHeader();
+    CPPUNIT_ASSERT(ext);
+    CPPUNIT_ASSERT_EQUAL(12U, ext->size());
+    CPPUNIT_ASSERT_EQUAL(String("Druids"), tag->title());
+    CPPUNIT_ASSERT_EQUAL(String("Excelsis"), tag->artist());
+    CPPUNIT_ASSERT_EQUAL(String("Vo Chrieger U Drache"), tag->album());
+    CPPUNIT_ASSERT_EQUAL(2013U, tag->year());
+    CPPUNIT_ASSERT_EQUAL(String("Folk/Power Metal"), tag->genre());
+    CPPUNIT_ASSERT_EQUAL(3U, tag->track());
+    CPPUNIT_ASSERT_EQUAL(String("2013"),
+                         f.properties().value("ORIGINALDATE").front());
+  }
+
+  void testReadStyleFast()
+  {
+    const ScopedFileCopy copy("lame_cbr", ".mp3");
+    {
+      MPEG::File f(copy.fileName().c_str(), true, MPEG::Properties::Fast);
+      CPPUNIT_ASSERT(f.audioProperties());
+      CPPUNIT_ASSERT_EQUAL(1887, f.audioProperties()->lengthInSeconds());
+      CPPUNIT_ASSERT_EQUAL(1887164, f.audioProperties()->lengthInMilliseconds());
+      CPPUNIT_ASSERT_EQUAL(64, f.audioProperties()->bitrate());
+      CPPUNIT_ASSERT_EQUAL(1, f.audioProperties()->channels());
+      CPPUNIT_ASSERT_EQUAL(44100, f.audioProperties()->sampleRate());
+      CPPUNIT_ASSERT(f.isValid());
+      CPPUNIT_ASSERT(f.hasID3v2Tag());
+      CPPUNIT_ASSERT_EQUAL(String(""), f.ID3v2Tag()->title());
+      PropertyMap properties = f.properties();
+      CPPUNIT_ASSERT_EQUAL(String("-1.020000 dB"), properties.value("REPLAYGAIN_TRACK_GAIN").front());
+      CPPUNIT_ASSERT_EQUAL(String("0.920032"), properties.value("REPLAYGAIN_TRACK_PEAK").front());
+      properties["TITLE"] = String("A Title");
+      properties["Artist"] = String("An Artist");
+      f.setProperties(properties);
+      f.save();
+    }
+    {
+      MPEG::File f(copy.fileName().c_str(), true, MPEG::Properties::Fast);
+      CPPUNIT_ASSERT(f.isValid());
+      CPPUNIT_ASSERT(f.hasID3v2Tag());
+      CPPUNIT_ASSERT_EQUAL(String("A Title"), f.ID3v2Tag()->title());
+      CPPUNIT_ASSERT_EQUAL(String("An Artist"), f.ID3v2Tag()->artist());
+    }
+    {
+      MPEG::File f(TEST_FILE_PATH_C("garbage.mp3"), true, MPEG::Properties::Fast);
+      CPPUNIT_ASSERT(f.isValid());
+      // Garbage prevents detection of ID3v2 with fast read style
+      CPPUNIT_ASSERT(!f.hasID3v2Tag());
+      CPPUNIT_ASSERT_EQUAL(static_cast<offset_t>(2255), f.firstFrameOffset());
+      CPPUNIT_ASSERT_EQUAL(static_cast<offset_t>(6015), f.lastFrameOffset());
+    }
+  }
+
+  void testID3v22Properties()
+  {
+    ScopedFileCopy copy("itunes10", ".mp3");
+
+    MPEG::File f(copy.fileName().c_str());
+    PropertyMap expectedProperties(SimplePropertyMap{
+      {"ALBUM", {"Album"}},
+      {"ALBUMARTIST", {"Album Artist"}},
+      {"ALBUMARTISTSORT", {"Sort Album Artist"}},
+      {"ALBUMSORT", {"Sort Album"}},
+      {"ARTIST", {"Artist"}},
+      {"ARTISTSORT", {"Sort Artist"}},
+      {"BPM", {"180"}},
+      {"COMMENT", {"Comments"}},
+      {"COMMENT:ITUNPGAP", {"1"}},
+      {"COMPILATION", {"1"}},
+      {"COMPOSER", {"Composer"}},
+      {"COMPOSERSORT", {"Sort Composer"}},
+      {"DATE", {"2011"}},
+      {"DISCNUMBER", {"1/2"}},
+      {"GENRE", {"Heavy Metal"}},
+      {"LYRICS", {"Lyrics"}},
+      {"SUBTITLE", {"Description"}},
+      {"TITLE", {"iTunes10MP3"}},
+      {"TITLESORT", {"Sort Name"}},
+      {"TRACKNUMBER", {"1/10"}},
+      {"WORK", {"Grouping"}}
+    });
+    expectedProperties.addUnsupportedData("APIC");
+    expectedProperties.addUnsupportedData("UNKNOWN/RVA");
+
+    PropertyMap properties = f.properties();
+    if (expectedProperties != properties) {
+      CPPUNIT_ASSERT_EQUAL(expectedProperties.toString(), properties.toString());
+    }
+    CPPUNIT_ASSERT(expectedProperties == properties);
+
+    const String PICTURE_KEY("PICTURE");
+    CPPUNIT_ASSERT_EQUAL(StringList(PICTURE_KEY), f.complexPropertyKeys());
+    auto pictures = f.complexProperties(PICTURE_KEY);
+    CPPUNIT_ASSERT_EQUAL(1U, pictures.size());
+    auto picture = pictures.front();
+    CPPUNIT_ASSERT_EQUAL(String("image/png"), picture.value("mimeType").toString());
+    CPPUNIT_ASSERT(picture.value("description").toString().isEmpty());
+    CPPUNIT_ASSERT_EQUAL(String("Other"), picture.value("pictureType").toString());
+    auto data = picture.value("data").toByteVector();
+    CPPUNIT_ASSERT(data.startsWith("\x89PNG\x0d\x0a\x1a\x0a"));
+    CPPUNIT_ASSERT_EQUAL(2315U, data.size());
   }
 
 };
