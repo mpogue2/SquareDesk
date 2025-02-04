@@ -1939,17 +1939,17 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    connect(ui->darkVolumeSlider, &svgSlider::valueChanged, this,
-            [this](int i) {
-//                qDebug() << "darkVolumeSlider valueChanged: " << i;
-                QString s = QString::number(i);
-                if (i == 100) {
-                    s = "MAX";
-                } else if (i == 0) {
-                    s = "MIN";
-                }
-                this->ui->darkVolumeLabel->setText(s);
-            });
+    // connect(ui->darkVolumeSlider, &svgSlider::valueChanged, this,
+    //         [this](int i) {
+    //             qDebug() << "\n*** darkVolumeSlider valueChanged: " << i << ui->darkVolumeSlider->minimum() << ui->darkVolumeSlider->maximum();
+    //             QString s = QString::number(i);
+    //             if (i == 100) {
+    //                 s = "MAX";
+    //             } else if (i == 0) {
+    //                 s = "MIN";
+    //             }
+    //             this->ui->darkVolumeLabel->setText(s);
+    //         });
 
     // TEMPO:
     ui->darkTempoSlider->setBgFile("sliders/slider_pitch_deck2.svg");
@@ -3995,10 +3995,12 @@ void MainWindow::Info_Volume(void)
 void MainWindow::on_darkVolumeSlider_valueChanged(int value)
 {
     Q_UNUSED(value)
-    if (value < minimumVolume) {
-//        qDebug() << "volume too low, setting volume to:" << minimumVolume;
-        ui->darkVolumeSlider->setValue(minimumVolume); // this will NOT recurse more than once
-    }
+
+    // CODE SMELL TEST --------------
+//     if (value < minimumVolume) {
+// //        qDebug() << "volume too low, setting volume to:" << minimumVolume;
+//         ui->darkVolumeSlider->setValue(minimumVolume); // this will NOT recurse more than once
+//     }
 
     int voltageLevelToSet = static_cast<int>(100.0*pow(10.0,(((value*0.8)+20)/2.0 - 50)/20.0));
     if (value == 0) {
@@ -4007,8 +4009,18 @@ void MainWindow::on_darkVolumeSlider_valueChanged(int value)
     cBass->SetVolume(voltageLevelToSet);     // now logarithmic, 0 --> 0.01, 50 --> 0.1, 100 --> 1.0 (values * 100 for libbass)
     currentVolume = static_cast<unsigned short>(value);    // this will be saved with the song (0-100)
 
-    Info_Volume();  // update the slider text
+//    Info_Volume();  // update the slider text
 
+    // and update the darkVolumeLabel (NOT via connect and lambda)
+    QString s = QString::number(value);
+    if (value == 100) {
+        s = "MAX";
+    } else if (value == 0) {
+        s = "MIN";
+    }
+    this->ui->darkVolumeLabel->setText(s);
+
+    // -------------------------------
     if (value == 0) {
         ui->actionMute->setText("Un&mute");
     }
