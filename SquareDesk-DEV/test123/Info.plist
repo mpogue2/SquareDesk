@@ -19,9 +19,9 @@
 	<key>CFBundleExecutable</key>
 	<string>SquareDesk</string>
 	<key>CFBundleShortVersionString</key>
-        <string>1.0.22</string>
+        <string>1.0.23</string>
 	<key>CFBundleVersion</key>
-        <string>1.0.22.1</string>
+        <string>1.0.23.1</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>LSApplicationCategoryType</key>
