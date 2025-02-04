@@ -87,7 +87,7 @@
 #include "updateid3tagsdialog.h"
 
 #include "levelmeter.h"
-#include "analogclock.h"
+// #include "analogclock.h"
 #include "console.h"
 //#include "renderarea.h"
 #include "songsettings.h"

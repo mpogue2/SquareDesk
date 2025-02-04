@@ -113,7 +113,6 @@ SOURCES += main.cpp\
     tablenumberitem.cpp \
     myslider.cpp \
     levelmeter.cpp \
-    analogclock.cpp \
     prefsmanager.cpp \
     clickablelabel.cpp \
     songsettings.cpp \
@@ -196,7 +195,6 @@ HEADERS  += mainwindow.h \
     mytablewidget.h \
     tablenumberitem.h \
     levelmeter.h \
-    analogclock.h \
     common_enums.h \
     prefs_options.h \
     prefsmanager.h \
