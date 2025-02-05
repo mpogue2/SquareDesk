@@ -9117,10 +9117,63 @@ void MainWindow::darkChangeTagOnCurrentSongSelection(QString tag, bool add)
         }
         settings.setTags(tags.join(" "));
         songSettings.saveSettings(pathToMP3, settings);
+
+        // extract the text color of the title
+        QString title1 = getTitleColText(ui->darkSongTable, row); // e.g. "<span style=\"color: #7963ff;\">'Cuda NEW</span>"
+        static QRegularExpression re("^<span style=[\"]color: (.*?);");
+        QRegularExpressionMatch match = re.match(title1);
+
+        QString theOriginalColor = "";
+        if (match.hasMatch()) {
+            theOriginalColor = match.captured(1);
+        }
+
         QString title = getTitleColTitle(ui->darkSongTable, row);
         // we know for sure that this item is selected (because that's how we got here), so let's highlight text color accordingly
-        QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), "white"));
+        QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), theOriginalColor));
 
+        dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(row,kTitleCol))->setText(titlePlusTags);
+    }
+}
+
+void MainWindow::removeAllTagsFromSong()
+{
+    int row = darkSelectedSongRow();
+    if (row >= 0) {
+        // exactly 1 row was selected (good)
+        QString pathToMP3 = ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+        SongSetting settings;
+        songSettings.loadSettings(pathToMP3, settings);
+        // QStringList tags;
+        QString oldTags;
+        if (settings.isSetTags())
+        {
+            oldTags = settings.getTags();
+            // tags = oldTags.split(" ");
+            songSettings.removeTags(oldTags);
+        }
+
+        QString newtags = "";
+        songSettings.removeTags(oldTags);
+        settings.setTags(newtags);
+        songSettings.saveSettings(pathToMP3, settings);
+        songSettings.addTags(newtags);
+
+        // we know for sure that this item is selected (because that's how we got here), so let's highlight text color accordingly
+
+        // extract the text color of the title
+        QString title1 = getTitleColText(ui->darkSongTable, row); // e.g. "<span style=\"color: #7963ff;\">'Cuda NEW</span>"
+        static QRegularExpression re("^<span style=[\"]color: (.*?);");
+        QRegularExpressionMatch match = re.match(title1);
+
+        QString theOriginalColor = "";
+        if (match.hasMatch()) {
+            theOriginalColor = match.captured(1);
+        }
+
+        // then, put the title back, with the original color, but without the tags
+        QString title = getTitleColTitle(ui->darkSongTable, row);
+        QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), theOriginalColor));
         dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(row,kTitleCol))->setText(titlePlusTags);
     }
 }
@@ -9161,8 +9214,18 @@ void MainWindow::darkEditTags()
             songSettings.saveSettings(pathToMP3, settings);
             songSettings.addTags(newtags);
 
+            // extract the text color of the title
+            QString title1 = getTitleColText(ui->darkSongTable, row); // e.g. "<span style=\"color: #7963ff;\">'Cuda NEW</span>"
+            static QRegularExpression re("^<span style=[\"]color: (.*?);");
+            QRegularExpressionMatch match = re.match(title1);
+
+            QString theOriginalColor = "";
+            if (match.hasMatch()) {
+                theOriginalColor = match.captured(1);
+            }
+
             // we know for sure that this item is selected (because that's how we got here), so let's highlight text color accordingly
-            QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), "white"));
+            QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), theOriginalColor));
             dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(row,kTitleCol))->setText(titlePlusTags);
         }
     }
@@ -12403,11 +12466,25 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
         menu.addSeparator();
         menu.addAction( "Edit Tags...", this, SLOT (darkEditTags()) ); // text editor for tags
 
+
         SongSetting settings;
         songSettings.loadSettings(pathToMP3, settings);
         if (settings.isSetTags())
         {
-            currentTags = settings.getTags().split(" ");
+            QString curTagString = settings.getTags();
+            // currentTags = settings.getTags().split(" ");
+            currentTags = curTagString.split(" ");
+
+            // if the song has some tags, offer to Remove them
+            if (currentTags.count() > 1 || currentTags[0] != "") {
+                // for some reason, count == 1 is one tag that is an empty string, means there are zero tags
+                // but sometimes, like when we manually do Edit Tags, there's no empty string.
+                // thus the need for that counterintuitive if clause above.
+                menu.addAction( "Remove all Tags from this song", this, [this] {
+                    this->removeAllTagsFromSong();
+                });
+            }
+
         }
 
         // and the PULLDOWN MENU WITH CHECKBOXES for editing tags
