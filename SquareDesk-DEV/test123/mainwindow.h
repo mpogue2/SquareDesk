@@ -969,7 +969,7 @@ private:
     QString targetNumber;  // from songTable, this tells us if current song is on a playlist
     bool switchToLyricsOnPlay;
 
-    int minimumVolume; // volume slider is not allowed to go lower than this
+    // int minimumVolume; // volume slider is not allowed to go lower than this
 
     void Info_Volume(void);
     void Info_Seekbar(bool forceSlider);

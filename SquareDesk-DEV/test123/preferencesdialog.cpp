@@ -125,6 +125,10 @@ PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *p
 
     ui->currentThemeLabel->setText("[Theme: " + mw->currentThemeString + "]");
 
+    // minVolume feature is now deprecated. This will be removed in the near future.
+    ui->minVolumeLabel->setVisible(false);
+    ui->limitVolumespinBox->setVisible(false);
+
     {
         ui->tableWidgetSessionsList->setColumnHidden(kSessionsColID, true);
         QHeaderView *headerView = ui->tableWidgetSessionsList->horizontalHeader();

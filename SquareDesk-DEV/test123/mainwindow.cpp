@@ -1853,7 +1853,8 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     //     }
     // }
 
-    minimumVolume = prefsManager.GetlimitVolume(); // initialize the limiting of the volume control
+    // minVolume feature now deprecated!
+    // minimumVolume = prefsManager.GetlimitVolume(); // initialize the limiting of the volume control
 
 // DARKMODE INIT ===============
 
