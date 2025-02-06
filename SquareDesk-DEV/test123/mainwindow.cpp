@@ -1969,18 +1969,18 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkTempoLabel->setStyleSheet("color: " + darkTextColor);
 #endif
 
-    connect(ui->darkTempoSlider, &svgDial::valueChanged, this,
-            [this](int i) {
-//                qDebug() << "darkTempoSlider valueChanged: " << i;
-//                int baseTempo = 125;
-//                QString s = QString::number(baseTempo + (i - 50)/10); // tempo slider is 0 - 100 step 10, with 50 == center
-//                QString s = QString::number(baseTempo + i); // tempo slider is -15 to +15 with center 0
-                QString s = QString::number(i); // tempo slider is BPM-15 to BPM+15 with center BPM, OR from 80% to 120% with center 100%
-                if (!this->tempoIsBPM) {
-                    s += "%";
-                }
-                this->ui->darkTempoLabel->setText(s);
-            });
+//     connect(ui->darkTempoSlider, &svgDial::valueChanged, this,
+//             [this](int i) {
+// //                qDebug() << "darkTempoSlider valueChanged: " << i;
+// //                int baseTempo = 125;
+// //                QString s = QString::number(baseTempo + (i - 50)/10); // tempo slider is 0 - 100 step 10, with 50 == center
+// //                QString s = QString::number(baseTempo + i); // tempo slider is -15 to +15 with center 0
+//                 QString s = QString::number(i); // tempo slider is BPM-15 to BPM+15 with center BPM, OR from 80% to 120% with center 100%
+//                 if (!this->tempoIsBPM) {
+//                     s += "%";
+//                 }
+//                 this->ui->darkTempoLabel->setText(s);
+//             });
 
     // PITCH:
     ui->darkPitchSlider->setBgFile("sliders/slider_pitch_deck2.svg");
@@ -1999,19 +1999,19 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkPitchLabel->setStyleSheet("color: " + darkTextColor);
 #endif
 
-    connect(ui->darkPitchSlider, &svgDial::valueChanged, this,
-            [this](int i) {
-//                qDebug() << "darkPitchSlider valueChanged: " << i;
-//                QString s = QString::number((i - 50)/10); // pitch slider is 0 - 100 step 10, with 50 == center
-//                if (i > 50) {  // 50 is the slider midpoint
-//                    s = "+" + s; // leading plus sign (minus sign already taken care of)
-//                }
-                QString s = QString::number(i);
-                if (i > 0) {
-                    s = "+" + s;
-                }
-                this->ui->darkPitchLabel->setText(s);
-            });
+//     connect(ui->darkPitchSlider, &svgDial::valueChanged, this,
+//             [this](int i) {
+// //                qDebug() << "darkPitchSlider valueChanged: " << i;
+// //                QString s = QString::number((i - 50)/10); // pitch slider is 0 - 100 step 10, with 50 == center
+// //                if (i > 50) {  // 50 is the slider midpoint
+// //                    s = "+" + s; // leading plus sign (minus sign already taken care of)
+// //                }
+//                 QString s = QString::number(i);
+//                 if (i > 0) {
+//                     s = "+" + s;
+//                 }
+//                 this->ui->darkPitchLabel->setText(s);
+//             });
 
     t.elapsed(__LINE__);
 
@@ -3857,6 +3857,8 @@ int MainWindow::darkGetSelectionRowForFilename(const QString &filePath)
 // ----------------------------------------------------------------------
 void MainWindow::on_darkPitchSlider_valueChanged(int value)
 {
+    // qDebug() << "***** on_darkPitchSlider_valueChanged";
+
     cBass->SetPitch(value);
     currentPitch = value;
     QString plural;
@@ -3954,10 +3956,12 @@ void MainWindow::on_darkPitchSlider_valueChanged(int value)
         markPlaylistModified(true); // turn ON the * in the status bar, because a playlist entry changed its tempo
     }
 
-    // update the darkPitchSlider, if it needs updating
-    if (ui->darkPitchSlider->value() != value) {
-        ui->darkPitchSlider->setValue(value);
+    // update the label, too
+    QString s = QString::number(value);
+    if (value > 0) {
+        s = "+" + s;
     }
+    this->ui->darkPitchLabel->setText(s);
 
     QString msg1 = QString("Tempo:") + ui->darkTempoLabel->text() + ", Pitch:" + ui->darkPitchLabel->text();
     ui->statusBar->showMessage(msg1);
@@ -4159,6 +4163,8 @@ void MainWindow::on_darkTempoSlider_valueChanged(int value)
             }
         }
     }
+
+    ui->darkTempoLabel->setText(tempoText);
 
     QString msg1 = QString("Tempo:") + ui->darkTempoLabel->text() + ", Pitch:" + ui->darkPitchLabel->text();
     ui->statusBar->showMessage(msg1);
