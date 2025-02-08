@@ -175,6 +175,10 @@ CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(SDCallListCopyDeepUndoBuffer, true);
 
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(SDLevel, "Plus"); // SD's input level is persistent
 
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(SDColoringScheme,  "Normal");  // SD's colors are persistent
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(SDNumberingScheme, "Numbers"); // SD's numbers are persistent
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(SDGenderingScheme, "Normal");  // SD's genders are persistent
+
 CONFIG_ATTRIBUTE_INT_NO_PREFS(LastVersionOfKeyMappingDefaultsUsed, 1)
 
 CONFIG_ATTRIBUTE_BOOLEAN(checkBoxInOutEditOnlyWhenLyricsUnlocked, InOutEditingOnlyWhenLyricsUnlocked, false);

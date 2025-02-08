@@ -1174,7 +1174,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     // let's look through the items in the SD menu (this method is less fragile now)
     QStringList ag1;
-    ag1 << "Normal" << "Color only" << "Mental image" << "Sight" << "Random" << "Random Color only"; // OK to have one be prefix of another
+    ag1 << "Normal" << "Color only" << "Mental image" << "Sight" << "Random" << "Tam" << "Random Color only"; // OK to have one be prefix of another
 
     QStringList ag2;
     ag2 << "Sequence Designer" << "Dance Arranger";
@@ -1209,7 +1209,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
         } else {
             if (ag1.contains(action->text()) ) {
                 sdActionGroup1->addAction(action); // ag1 items are all mutually exclusive, and are all at top level
-//                qDebug() << "ag1 item: " << action->text(); // top level item
+                qDebug() << "ag1 item: " << action->text(); // top level item
             } else if (ag2.contains(action->text())) {
                 sdViewActionGroup->addAction(action); // ag2 items are all mutually exclusive, and are all at top level
 //                qDebug() << "ag2 item: " << action->text(); // top level item
@@ -1657,6 +1657,54 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     ui->girl4->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE4COLOR.name() + "; color: #000000;}");
 
     t.elapsed(__LINE__);
+
+    // restore SD's Coloring, Numbering, and Gendering schemes from saved -------
+
+    QString sdColorTheme = prefsManager.GetSDColoringScheme();
+    QString sdNumberTheme = prefsManager.GetSDNumberingScheme();
+    QString sdGenderTheme = prefsManager.GetSDGenderingScheme();
+
+    if (sdColorTheme == "Normal") {
+        ui->actionNormal_2->setChecked(true);
+    } else if (sdColorTheme == "Mental Image") {
+        ui->actionMental_Image->setChecked(true);
+    } else if (sdColorTheme == "Sight") {
+        ui->actionSight_2->setChecked(true);
+    } else if (sdColorTheme == "Randomize") {
+        ui->actionRandomize->setChecked(true);
+    } else if (sdColorTheme == "Tam") {
+        ui->actionTam->setChecked(true);
+    } else {
+        qDebug() << "unknown color theme: " << sdColorTheme;
+    }
+
+    setSDCoupleColoringScheme(sdColorTheme);
+
+    if (sdNumberTheme == "None") {
+        ui->actionInvisible->setChecked(true);
+    } else if (sdNumberTheme == "Numbers") {
+        ui->actionNormal_3->setChecked(true);
+    } else if (sdNumberTheme == "Names") {
+        ui->actionNames->setChecked(true);
+    } else {
+        qDebug() << "unknown numbering theme: " << sdNumberTheme;
+    }
+
+    setSDCoupleNumberingScheme(sdNumberTheme);
+
+    if (sdGenderTheme == "Normal") {
+        ui->actionNormal_4->setChecked(true);
+    } else if (sdGenderTheme == "Arky (reversed)") {
+        ui->actionArky_reversed->setChecked(true);
+    } else if (sdGenderTheme == "Randomize") {
+        ui->actionRandomize_3->setChecked(true);
+    } else if (sdGenderTheme == "None (hex)") {
+        ui->actionNone_hex->setChecked(true);
+    } else {
+        qDebug() << "unknown gendering theme: " << sdGenderTheme;
+    }
+
+    setSDCoupleGenderingScheme(sdGenderTheme);
 
     // restore SD level from saved
     QString sdLevel = prefsManager.GetSDLevel();

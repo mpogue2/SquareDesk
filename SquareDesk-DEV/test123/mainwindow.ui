@@ -4536,6 +4536,7 @@
      <addaction name="actionMental_Image"/>
      <addaction name="actionSight_2"/>
      <addaction name="actionRandomize"/>
+     <addaction name="actionTam"/>
     </widget>
     <widget class="QMenu" name="menuNumbers">
      <property name="title">
@@ -6303,6 +6304,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+K</string>
+   </property>
+  </action>
+  <action name="actionTam">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Tam</string>
    </property>
   </action>
  </widget>

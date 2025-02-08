@@ -202,12 +202,14 @@ private:
     double dest_x;
     double dest_y;
     double dest_direction;
+    QPen pen1;
 //    double destination_divisor;
 public:
     double labelTranslateX;
     double labelTranslateY;
 
     void setColor(const QColor &color);
+    void setColors(const QColor &baseColor, const QColor &outlineColor);
 };
 
 // WHEN WE RELEASE A NEW VERSION:

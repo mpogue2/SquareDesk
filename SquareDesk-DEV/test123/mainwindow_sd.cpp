@@ -460,7 +460,7 @@ static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
                              QGraphicsTextItem *&graphicsTextItemSDTopGroupText)
 {
 #if defined(Q_OS_MAC)
-    dancerLabelFont = QFont("Arial", 8);
+    dancerLabelFont = QFont("Arial", 12);
 #elif defined(Q_OS_WIN)
     dancerLabelFont = QFont("Arial",8);
 #else
@@ -2373,16 +2373,44 @@ void MainWindow::on_actionSD_Output_triggered()
 // ------------------------------
 void SDDancer::setColor(const QColor &color)
 {
+    pen1 = QPen(QColor(0,0,0), 1.5, Qt::SolidLine, Qt::SquareCap, Qt::RoundJoin);
+
     QGraphicsRectItem* rectItem = dynamic_cast<QGraphicsRectItem*>(boyItem);
     rectItem->setBrush(QBrush(color));
+    rectItem->setPen(pen1);
 
     QGraphicsEllipseItem* ellipseItem = dynamic_cast<QGraphicsEllipseItem*>(girlItem);
     ellipseItem->setBrush(QBrush(color));
+    ellipseItem->setPen(pen1);
 
     QGraphicsPolygonItem* polygonItem = dynamic_cast<QGraphicsPolygonItem*>(hexItem);
     polygonItem->setBrush(QBrush(color));
+    polygonItem->setPen(pen1);
 
     directionRectItem->setBrush(QBrush(color));
+    directionRectItem->setPen(pen1);
+}
+
+// ------------------------------
+// Set colors for "Tam-like" dancers
+void SDDancer::setColors(const QColor &baseColor, const QColor &outlineColor)
+{
+    pen1 = QPen(outlineColor, 1.5, Qt::SolidLine, Qt::SquareCap, Qt::RoundJoin);
+
+    QGraphicsRectItem* rectItem = dynamic_cast<QGraphicsRectItem*>(boyItem);
+    rectItem->setBrush(QBrush(baseColor));
+    rectItem->setPen(pen1);
+
+    QGraphicsEllipseItem* ellipseItem = dynamic_cast<QGraphicsEllipseItem*>(girlItem);
+    ellipseItem->setBrush(QBrush(baseColor));
+    ellipseItem->setPen(pen1);
+
+    QGraphicsPolygonItem* polygonItem = dynamic_cast<QGraphicsPolygonItem*>(hexItem);
+    polygonItem->setBrush(QBrush(baseColor));
+    polygonItem->setPen(pen1);
+
+    directionRectItem->setBrush(QBrush(outlineColor)); // note that nose is filled with outline color
+    directionRectItem->setPen(pen1);
 }
 
 static void setPeopleColoringScheme(QList<SDDancer> &sdpeople, const QString &colorScheme)
@@ -2416,6 +2444,16 @@ static void setPeopleColoringScheme(QList<SDDancer> &sdpeople, const QString &co
         sdpeople[COUPLE3 * 2 + 1].setColor(GREYCOUPLECOLOR);
         sdpeople[COUPLE4 * 2 + 0].setColor(COUPLE4COLOR);
         sdpeople[COUPLE4 * 2 + 1].setColor(COUPLE4COLOR);
+    } else if (colorScheme == "Tam") {
+        // Sight
+        sdpeople[COUPLE1 * 2 + 0].setColors(TAM_COUPLE1COLOR, TAM_COUPLE1OUTLINECOLOR);
+        sdpeople[COUPLE1 * 2 + 1].setColors(TAM_COUPLE1COLOR, TAM_COUPLE1OUTLINECOLOR);
+        sdpeople[COUPLE2 * 2 + 0].setColors(TAM_COUPLE2COLOR, TAM_COUPLE2OUTLINECOLOR);
+        sdpeople[COUPLE2 * 2 + 1].setColors(TAM_COUPLE2COLOR, TAM_COUPLE2OUTLINECOLOR);
+        sdpeople[COUPLE3 * 2 + 0].setColors(TAM_COUPLE3COLOR, TAM_COUPLE3OUTLINECOLOR);
+        sdpeople[COUPLE3 * 2 + 1].setColors(TAM_COUPLE3COLOR, TAM_COUPLE3OUTLINECOLOR);
+        sdpeople[COUPLE4 * 2 + 0].setColors(TAM_COUPLE4COLOR, TAM_COUPLE4OUTLINECOLOR);
+        sdpeople[COUPLE4 * 2 + 1].setColors(TAM_COUPLE4COLOR, TAM_COUPLE4OUTLINECOLOR);
     } else {
         // Randomize
         // Random, or Random Color only (every time we get here, we get new colors!
@@ -2508,6 +2546,7 @@ void MainWindow::setSDCoupleColoringScheme(const QString &colorScheme)
 {
     setPeopleColoringScheme(sd_animation_people, colorScheme);
     setPeopleColoringScheme(sd_fixed_people, colorScheme);
+    prefsManager.SetSDColoringScheme(colorScheme);  // remember it
 }
 
 void MainWindow::setSDCoupleNumberingScheme(const QString &numberScheme)
@@ -2515,6 +2554,7 @@ void MainWindow::setSDCoupleNumberingScheme(const QString &numberScheme)
 //    qDebug() << "setSDCoupleNumberingScheme: " << numberScheme;
     setPeopleNumberingScheme(sd_animation_people, numberScheme);
     setPeopleNumberingScheme(sd_fixed_people, numberScheme);
+    prefsManager.SetSDNumberingScheme(numberScheme);  // remember it
 }
 
 void MainWindow::setSDCoupleGenderingScheme(const QString &genderScheme)
@@ -2522,6 +2562,7 @@ void MainWindow::setSDCoupleGenderingScheme(const QString &genderScheme)
 //    qDebug() << "setSDCoupleGenderingScheme: " << genderScheme;
     setPeopleGenderingScheme(sd_animation_people, genderScheme);
     setPeopleGenderingScheme(sd_fixed_people, genderScheme);
+    prefsManager.SetSDGenderingScheme(genderScheme);  // remember it
 }
 
 void MainWindow::select_all_sd_current_sequence()
