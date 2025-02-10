@@ -1209,7 +1209,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
         } else {
             if (ag1.contains(action->text()) ) {
                 sdActionGroup1->addAction(action); // ag1 items are all mutually exclusive, and are all at top level
-                qDebug() << "ag1 item: " << action->text(); // top level item
+                // qDebug() << "ag1 item: " << action->text(); // top level item
             } else if (ag2.contains(action->text())) {
                 sdViewActionGroup->addAction(action); // ag2 items are all mutually exclusive, and are all at top level
 //                qDebug() << "ag2 item: " << action->text(); // top level item
