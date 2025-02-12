@@ -103,9 +103,9 @@ public:
 
         StopVolumeDucking();
 
-#ifdef USE_JUCE
-        fadeIsStop = false; // when true, overrides volume to zero
-#endif
+// #ifdef USE_JUCE
+//         fadeIsStop = false; // when true, overrides volume to zero
+// #endif
         clearLoop();
 
         // EQ settings
@@ -173,10 +173,13 @@ public:
                     const char *p_data = (const char *)(m_data) + (bytesPerFrame * playPosition_frames);  // next samples to play
 
                     // write the smaller of bytesFree and how much we have left in the song
-                    unsigned int bytesNeededToWrite = bytesFree;  // default is to write all we can
-                    if (bytesPerFrame * (totalFramesInSong - playPosition_frames) < bytesFree) {
+                    int bytesNeededToWrite = bytesFree;  // default is to write all we can
+                    // qDebug() << "** bytesPerFrame/totalFramesInSong/playPosition_frames/bytesFree" <<
+                        bytesPerFrame << totalFramesInSong << playPosition_frames << bytesFree << (int)bytesPerFrame * ((int)totalFramesInSong - (int)playPosition_frames);
+                    if ((int)bytesPerFrame * ((int)totalFramesInSong - (int)playPosition_frames) < (int)bytesFree) {
                         // but if the song ends sooner than that, just send the last samples in the song
-                        bytesNeededToWrite = bytesPerFrame * (totalFramesInSong - playPosition_frames);
+                        // qDebug() << "ENDS SOONER:";
+                        bytesNeededToWrite = (int)bytesPerFrame * ((int)totalFramesInSong - (int)playPosition_frames);
                     }
 
                     unsigned int loopStartpoint_frames = 44100 * loopTo_sec;
@@ -186,14 +189,16 @@ public:
                             (playPosition_frames < loopEndpoint_frames) &&
                             (playPosition_frames + framesFree) >= loopEndpoint_frames;
 
-//                    qDebug() << "h: " << straddlingLoopFromPoint << playPosition_frames << loopEndpoint_frames << framesFree;
+                    // qDebug() << "    h: " << loopFrom_sec << loopTo_sec << straddlingLoopFromPoint << playPosition_frames << loopEndpoint_frames << framesFree;
 
                     if (straddlingLoopFromPoint) {
                         // but if the song loops here, just send the frames up to the loop point
+                        // qDebug() << "STRADDLE:";
                         bytesNeededToWrite = bytesPerFrame * (loopEndpoint_frames - playPosition_frames);
                     }
 
                     if (bytesNeededToWrite > 0) {
+                        // qDebug() << "    bytesNeededToWrite:" << bytesNeededToWrite;
                         // if we need bytes, let's go get them.  BUT, if processDSP only gives us less than that, then write just those.
                         numProcessedFrames = 0;
                         sourceFramesConsumed = 0;
@@ -258,7 +263,7 @@ public:
         fadeFactorDecrementPerFrame = 0.0;
 
 #ifdef USE_JUCE
-        fadeIsStop = false;
+        // fadeIsStop = false;
 
         if (pLoudMaxPluginRaw != nullptr) {
             pLoudMaxPluginRaw->prepareToPlay(44100.0, sizeof(processedData)/sizeof(float)); // 8192 is sizeof processedData/R, everything is 44.1K right now
@@ -324,9 +329,9 @@ public:
         // Pause cancels FadeAndPause ------
         currentFadeFactor = 1.0;
         fadeFactorDecrementPerFrame = 0.0;
-#ifdef USE_JUCE
-        fadeIsStop = false;
-#endif
+// #ifdef USE_JUCE
+//         fadeIsStop = false;
+// #endif
     }
 
     // ---------------------
@@ -346,13 +351,13 @@ public:
 
     void fadeComplete() {
         // qDebug() << "fadeComplete()";
-#ifdef USE_JUCE
-        if (fadeIsStop) {
-            // qDebug() << "fadeComplete() now calling Stop()";
-            activelyPlaying = false;
-            Stop();  // let Stop() do the rest of the shutdown
-        }
-#endif
+// #ifdef USE_JUCE
+//         if (fadeIsStop) {
+//             // qDebug() << "fadeComplete() now calling Stop()";
+//             activelyPlaying = false;
+//             Stop();  // let Stop() do the rest of the shutdown
+//         }
+// #endif
         Pause();     // pause (which also explicitly cancels and reinits fadeFactor and decrement)
     }
 
@@ -386,11 +391,11 @@ public:
     }
 
     unsigned char getCurrentState() {
-#ifdef USE_JUCE
-        return(fadeIsStop ? BASS_ACTIVE_STOPPED : currentState); // if we're fading to STOP, pretend we are already stopped, so PLAY works during fade
-#else
+// #ifdef USE_JUCE
+//         return(fadeIsStop ? BASS_ACTIVE_STOPPED : currentState); // if we're fading to STOP, pretend we are already stopped, so PLAY works during fade
+// #else
         return(currentState);  // returns current state as int {0,3}
-#endif
+// #endif
     }
 
     double getPeakLevelL_mono() {
@@ -519,7 +524,10 @@ public:
         //    and the SoundTouch processing (which also has state).
         double inOutRatio = soundTouch.getInputOutputSampleRatio();
         double scaled_inLength_frames = floor(((double)inLength_frames) / inOutRatio);
-//        qDebug() << "inOutRatio:" << inOutRatio;
+        if (scaled_inLength_frames < 1.0) {
+            scaled_inLength_frames = 1.0; // this can happen at the very end of the song, if inOutRatio = say 1.02
+        }
+        // qDebug() << "inOutRatio:" << inOutRatio << "scaled_inLength_frames" << scaled_inLength_frames << "inLength_frames" << inLength_frames;
 
         // PAN/VOLUME/FORCE MONO/EQ --------
         float KL, KR;
@@ -581,9 +589,9 @@ public:
         if (m_mono) {
             // Force Mono is ENABLED
             scaleFactor = currentNormalizeFactor * currentPanEQFactor * currentDuckingFactor * currentFadeFactor * m_volume / (100.0 * 2.0);  // divide by 2, to avoid overflow; fade factor goes from 1.0 -> 0.0
-#ifdef USE_JUCE
-            scaleFactor = (fadeIsStop ? 0.0 : scaleFactor); // force volume to zero, if we are doing a JUCE-style stop
-#endif
+// #ifdef USE_JUCE
+//             scaleFactor = (fadeIsStop ? 0.0 : scaleFactor); // force volume to zero, if we are doing a JUCE-style stop
+// #endif
 //    qDebug() << "scaleFactor: " << scaleFactor;
             for (int i = 0; i < (int)scaled_inLength_frames; i++) {
                 // output data is MONO (de-interleaved)
@@ -625,9 +633,9 @@ public:
         } else {
             // stereo (Force Mono is DISABLED)
             scaleFactor = currentNormalizeFactor * currentPanEQFactor * currentDuckingFactor * currentFadeFactor * m_volume / (100.0);
-#ifdef USE_JUCE
-            scaleFactor = (fadeIsStop ? 0.0 : scaleFactor); // force volume to zero, if we are doing a JUCE-style stop
-#endif
+// #ifdef USE_JUCE
+//             scaleFactor = (fadeIsStop ? 0.0 : scaleFactor); // force volume to zero, if we are doing a JUCE-style stop
+// #endif
             // qDebug() << "scaleFactor:" << scaleFactor;
             for (unsigned int i = 0; i < scaled_inLength_frames; i++) {
                 // output data is de-interleaved into first and second half of outDataFloat buffer
@@ -774,7 +782,7 @@ private:
 #ifdef USE_JUCE
     float * const dataToReferTo[2] = {processedData, processedDataR}; // array of pointers to the float data
     juce::AudioPluginInstance *pLoudMaxPluginRaw;
-    bool fadeIsStop; // true, if we're using FadeToPause to Stop playback
+    // bool fadeIsStop; // true, if we're using FadeToPause to Stop playback
 #endif
 
     unsigned int numProcessedFrames;   // number of frames in the processedData array that are VALID
