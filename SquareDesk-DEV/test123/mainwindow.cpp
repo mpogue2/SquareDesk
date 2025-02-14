@@ -7708,13 +7708,23 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
     int i = 0;
     for (const auto &s : justMusic) {
+        // qDebug() << "s:" << s;
         QStringList sl1 = s.split("#!#");
 
         QString type     = sl1[0];  // the type (of original pathname, before following aliases)
         QString origPath = sl1[1];  // everything else
 
-        QStringList pathParts = origPath.split("/");
-        QString typeFromPath = pathParts[pathParts.size()-2]; // second-to-last path part is the assumed type
+        // NO:
+        // QStringList pathParts = origPath.split("/");
+        // QString typeFromPath = pathParts[pathParts.size()-2]; // second-to-last path part is the assumed type
+
+        // YES:
+        QString typeFromPath = filepath2SongCategoryName(origPath);
+
+        QFileInfo fi(origPath);
+        if (fi.canonicalPath() == musicRootPath) {
+            typeFromPath = "";
+        }
 
         // qDebug() << "origPath: " << origPath;
         // double check that type is non-music type (see Issue #298)
@@ -7722,12 +7732,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
             continue;
         }
 
-        QFileInfo fi(origPath);
-
-        if (fi.canonicalPath() == musicRootPath) {
-            typeFromPath = "";
-        }
-
+        // --------------------------------
         QString label = "";
         QString labelnum = "";
         QString labelnum_extra = "";
@@ -7789,20 +7794,32 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
             cType.chop(1);  // remove the "*" for the purposes of coloring
         }
 
-        if (songTypeNamesForExtras.contains(cType)) {
-            textCol = QColor(extrasColorString);
-        }
-        else if (songTypeNamesForPatter.contains(cType)) {
+        // if (songTypeNamesForExtras.contains(cType)) {
+        //     textCol = QColor(extrasColorString);
+        // }
+        // else if (songTypeNamesForPatter.contains(cType)) {
+        //     textCol = QColor(patterColorString);
+        // }
+        // else if (songTypeNamesForSinging.contains(cType)) {
+        //     textCol = QColor(singingColorString);
+        // }
+        // else if (songTypeNamesForCalled.contains(cType)) {
+        //     textCol = QColor(calledColorString);
+        // } else {
+        //     // textCol = QColor(QColor("#A0A0A0"));  // if not a recognized type, color it white-ish
+        //     textCol = QColor(extrasColorString);  // if not a recognized type, color it the xtras color (so user can control it)
+        // }
+
+        if (cType == "patter") {
             textCol = QColor(patterColorString);
-        }
-        else if (songTypeNamesForSinging.contains(cType)) {
+        } else if (cType == "singing") {
             textCol = QColor(singingColorString);
-        }
-        else if (songTypeNamesForCalled.contains(cType)) {
+        } else if (cType == "called") {
             textCol = QColor(calledColorString);
+        } else if (cType == "extras") {
+            textCol = QColor(extrasColorString);
         } else {
-            // textCol = QColor(QColor("#A0A0A0"));  // if not a recognized type, color it white-ish
-            textCol = QColor(extrasColorString);  // if not a recognized type, color it the xtras color (so user can control it)
+            textCol = QColor(extrasColorString); // if not a recognized type, color it the xtras color (so user can control it)
         }
 
         QBrush textBrush(textCol); // make a brush for most of the widgets
