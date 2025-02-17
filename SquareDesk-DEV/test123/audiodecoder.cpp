@@ -175,7 +175,7 @@ public:
                     // write the smaller of bytesFree and how much we have left in the song
                     int bytesNeededToWrite = bytesFree;  // default is to write all we can
                     // qDebug() << "** bytesPerFrame/totalFramesInSong/playPosition_frames/bytesFree" <<
-                        bytesPerFrame << totalFramesInSong << playPosition_frames << bytesFree << (int)bytesPerFrame * ((int)totalFramesInSong - (int)playPosition_frames);
+                        // bytesPerFrame << totalFramesInSong << playPosition_frames << bytesFree << (int)bytesPerFrame * ((int)totalFramesInSong - (int)playPosition_frames);
                     if ((int)bytesPerFrame * ((int)totalFramesInSong - (int)playPosition_frames) < (int)bytesFree) {
                         // but if the song ends sooner than that, just send the last samples in the song
                         // qDebug() << "ENDS SOONER:";
