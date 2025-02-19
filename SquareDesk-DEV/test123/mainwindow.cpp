@@ -6236,9 +6236,10 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     PerfTimer t("loadMP3File", __LINE__);
 
-    // override songType, and just look at the path now
-    QStringList pathParts = MP3FileName.split("/");
-    songType = pathParts[pathParts.size()-2]; // second-to-last path part is the assumed type
+    // ***** NO. We decided that the first part after the musicRootPath is the type, and that's the songType passed in to us in loadMP3File.
+    // // override songType, and just look at the path now
+    // QStringList pathParts = MP3FileName.split("/");
+    // songType = pathParts[pathParts.size()-2]; // second-to-last path part is the assumed type
 
     setCurrentSongMetadata(songType); // set current* based on the type extracted from the pathname, for later use all over the place
 
