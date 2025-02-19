@@ -6694,7 +6694,7 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QList<QString
             if (newType != "sd" && newType != "choreography" && newType != "reference") {
                 // qDebug() << "FFR: " << fi.path() << resolvedFilePath << type << newType;
                 // qDebug() << "FFR adding:" << newType + "#!#" + resolvedFilePath;
-                if (newType == "lyrics") {
+                if (newType == "lyrics" || resolvedFilePath.endsWith(".html") || resolvedFilePath.endsWith(".htm")) {
                     pathStackCuesheets->append(newType + "#!#" + resolvedFilePath);
                 } else {
                     pathStack->append(newType + "#!#" + resolvedFilePath);
@@ -6854,6 +6854,19 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
     updateTreeWidget(); // this will also show the Apple Music playlists, found just now
     t.elapsed(__LINE__);
     t.stop();
+
+    // // DEBUG DEBUG DEBUG =========
+    // for (const auto &a : *pathStack) {
+    //     if (a.contains("Baker")) {
+    //         qDebug() << "pathStack:" << a;
+    //     }
+    // }
+    // for (const auto &a : *pathStackCuesheets) {
+    //     if (a.contains("Baker")) {
+    //         qDebug() << "pathStackCuesheets:" << a;
+    //     }
+    // }
+    // // ===========================
 }
 
 void MainWindow::updateTreeWidget() {
