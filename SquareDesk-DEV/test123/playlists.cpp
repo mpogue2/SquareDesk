@@ -67,7 +67,7 @@ QStringList MainWindow::parseCSV(const QString &string)
         if (state == Normal)
         {
             // Comma
-            if (current == ',')
+            if (current == ',' || current == ';') // semicolon may be used in non-en_us locales
             {
                 // Save field
                 fields.append(value);
@@ -2158,9 +2158,13 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                     // ignore, it's a blank line
                 }
                 else {
-                    songCount++;  // it's a real song path
-
                     QStringList list1 = parseCSV(line);  // This is more robust than split(). Handles commas inside double quotes, double double quotes, etc.
+
+                    if (list1.length() != 3) {
+                        continue;  // skip lines that don't have exactly 3 fields
+                    }
+
+                    songCount++;  // it's a real song path
 
 //                    EXAMPLE PLAYLIST CSV FILE:
 //                    relpath,pitch,tempo
