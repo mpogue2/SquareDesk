@@ -6241,6 +6241,26 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     // QStringList pathParts = MP3FileName.split("/");
     // songType = pathParts[pathParts.size()-2]; // second-to-last path part is the assumed type
 
+    // ***** ***** OK, itemDoubleClicked is passing in the wrong type, so we're going to override
+    //  that here.  The songType passed in HERE is the songType in the songTable, but there's one use case
+    //  where that string is NOT the actual song type, and that's when the songTable is showing a playlist.
+    //  In that case, it will start with a greek letter, in which case we KNOW it's from a playlist.
+    //  Also, if it starts with an APPLE, then we know it's from Apple Music.  The Apple Music ones are
+    //  already overridden as type = "EXTRAS", and colored red by default.
+
+    // qDebug() << "loadMP3File::songType: " << songType << songType[0];
+
+    if (songType[0] == QChar(0x039E) || songType[0] == QChar(0x03BE)) {
+        // we're loading a file from the songTable that came from a playlist.
+        // ignore the songType and replace it with the real songType.
+        // NOTE: Maybe we should just ALWAYS override the songType and use the type extracted from the path here?
+
+        QString thePath = MP3FileName;
+        thePath.replace(musicRootPath + "/", "");
+        songType = thePath.split("/")[0];
+        // qDebug() << "loadMP3File: " << thePath << "new songType" << songType;
+    }
+
     setCurrentSongMetadata(songType); // set current* based on the type extracted from the pathname, for later use all over the place
 
     //currentSongTypeName = songType;     // save it for session coloring on the analog clock later...
@@ -13027,6 +13047,7 @@ void MainWindow::maybeInstallTemplates() {
 
 // sets the current* from the pathname
 void MainWindow::setCurrentSongMetadata(QString type) {
+    // qDebug() << "setCurrentSongMetadata: " << type;
     currentSongTypeName = type;  // e.g "hoedown"
 
     currentSongIsPatter = songTypeNamesForPatter.contains(currentSongTypeName);
