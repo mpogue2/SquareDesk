@@ -484,7 +484,7 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
     QColor colors[4] = { QColor("#8868A1BB"), QColor("#88bf312c"), QColor("#8824a494"), QColor("#885368c9")}; // singing call colors
     int colorMap[] = {1,2,3,1,2,3,1};
 
-    float h;
+    // float h;
 
     // center line always drawn
     paint->setPen(colors[0]);
@@ -666,7 +666,16 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
 
                 float currentRatio = (float)WAVEFORMSAMPLES/(float)width();
                 for (int i = 0; i < width(); i++) {
-                    h = normalizationScaleFactor * fullScaleInPixels * f[(int)(i * currentRatio)];  // truncates downward
+
+                    // OLD:
+                    // h = normalizationScaleFactor * fullScaleInPixels * f[(int)(i * currentRatio)];  // truncates downward
+
+                    // NEW (smoothed):
+                    // let's do some smoothing instead...much less sparkly when resizing!
+                    int baseI = (int)(i*currentRatio); // truncates downward
+                    int baseIminus1 = (baseI >= 1 ? baseI - 1 : baseI);
+                    int baseIplus1  = (baseI <= WAVEFORMSAMPLES - 2 ? baseI + 1 : baseI);
+                    float h = normalizationScaleFactor * fullScaleInPixels * (0.25 * f[baseIminus1] + 0.5 * f[baseI] + 0.25 * f[baseIplus1]); // simple 3-point gaussian
 
                     if (firstLineInSection) {
                         paint->setPen(segmentColors[0]); // first line in a segment is always gray
@@ -688,7 +697,17 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
                 paint->setPen(segmentColors[0]); // all the lines are gray for this song
                 float currentRatio = (float)WAVEFORMSAMPLES/(float)width();
                 for (int i = 0; i < width(); i++) {
-                    h = normalizationScaleFactor * fullScaleInPixels * f[(int)(i * currentRatio)];  // truncates downward
+
+                    // OLD:
+                    // h = normalizationScaleFactor * fullScaleInPixels * f[(int)(i * currentRatio)];  // truncates downward
+
+                    // NEW (smoothed):
+                    // let's do some smoothing instead...much less sparkly when resizing!
+                    int baseI = (int)(i*currentRatio); // truncates downward
+                    int baseIminus1 = (baseI >= 1 ? baseI - 1 : baseI);
+                    int baseIplus1  = (baseI <= WAVEFORMSAMPLES - 2 ? baseI + 1 : baseI);
+                    float h = normalizationScaleFactor * fullScaleInPixels * (0.25 * f[baseIminus1] + 0.5 * f[baseI] + 0.25 * f[baseIplus1]); // simple 3-point gaussian
+
                     paint->drawLine(i,30.0 + h,i,30.0 - h);
                 }
             }
