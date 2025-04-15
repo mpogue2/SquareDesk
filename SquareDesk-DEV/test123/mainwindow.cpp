@@ -7709,10 +7709,31 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
     // static QRegularExpression typeFilterRegex(startsWithTypeFilter);
     // QStringList justMyType = aPathStack->filter(typeFilterRegex);
 
-    bool takeAll = (typeFilter == "Tracks") || (typeFilter == "Playlists") || (typeFilter == "Apple Music"); // NOTE: lack of final slash, means this is top level request
+    bool takeAll = (typeFilter == "") || (typeFilter == "Tracks") || (typeFilter == "Playlists") || (typeFilter == "Apple Music"); // NOTE: lack of final slash, means this is top level request
+    // qDebug() << "darkLoadMusicList filtering:" << typeFilter << takeAll;
+
+    // NOTE: Items can look like:
+    // "patter#!#/Users/mpogue/Library/Mobile Documents/com~apple~CloudDocs/SquareDance/squareDanceMusic_iCloud/patter/RIV 842 - Bluegrass Swing.mp3"
+    // "singing#!#/Users/mpogue/Library/Mobile Documents/com~apple~CloudDocs/SquareDance/squareDanceMusic_iCloud/singing/HH 5363 -  I Just Called To Say I Love You.mp3"
+    // "StarEights/StarEights_2024.07.21%!%0,126,03#!#/Users/mpogue/Library/Mobile Documents/com~apple~CloudDocs/SquareDance/squareDanceMusic_iCloud/patter/TBT 918 - Bad Guy.mp3"
+    // "Second Playlist$!$04$!$Butterfly (Instrumental)#!#/Users/mpogue/Music/iTunes/iTunes Media/Music/Swingrowers/Butterfly - Single/02 Butterfly (Instrumental).m4a"
+
     QStringList justMyType;
+    QString typeFilterNarrow  = typeFilter + "#!#"; // type must exactly equal, not just a prefix of
+    QString typeFilterNarrow2 = typeFilter + "%!%"; // special delimiter for SquareDesk playlists
+    QString typeFilterNarrow2b = typeFilter;        // special case for non-leaf nodes of SquareDesk playlists
+    QString typeFilterNarrow3 = typeFilter + "$!$"; // special delimiter for Apple playlists
+    QRegularExpression reTypeFilterNarrow2(typeFilterNarrow2);
+
     for (auto const &item : *aPathStack) {
-        if (takeAll || item.startsWith(typeFilter)) {
+        // qDebug() << "ITEM:" << item;
+        if (takeAll
+                || item.startsWith(typeFilterNarrow) // Tracks
+                || item.startsWith(typeFilterNarrow2) // SquareDesk playlists (e.g. "Jokers/2024/Jokers_2024.01.23")
+                || item.startsWith(typeFilterNarrow3) // Apple playlists
+                || (typeFilter.endsWith("/") && item.startsWith(typeFilterNarrow2b))  // SquareDesk non-leaf playlists (e.g. "Jokers/2024")
+            ) {
+            // qDebug() << "TAKEN:" << item;
             justMyType.append(item);
         }
     }
@@ -11695,6 +11716,12 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
         while (parent != nullptr) {
             treePath = parent->text(0) + "/" + treePath;
             parent = parent->parent();
+        }
+
+        // qDebug() << "childCount: " << thisItem->childCount();
+
+        if (thisItem->childCount() > 0) {
+            treePath += "/"; // SLASH AT THE END MEANS THIS IS NOT A LEAF, SO USE treePath/* to search
         }
 
         // qDebug() << "FINAL TREEPATH:" << treePath;
