@@ -53,6 +53,8 @@ struct FilenameMatchers {
 struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingType songFilenameFormat)
 {
     static struct FilenameMatchers best_guess_matches[] = {
+        { QRegularExpression("^(.*) - ([A-Za-z]{1,9})[\\- ]?([0-9]{1,5}[A-Za-z]{0,3})$"), 1, 2, 3, -1, -1}, // e.g. "Play It Cool - BS 2534a.mp3"
+                                                                                                            // e.g. "Strings Galore - Chaparral 117b.mp3"
         { QRegularExpression("^([Oo][Gg][Rr][Mm][Pp]3\\s*\\d{1,5})\\s*-\\s*(.*)$"), 2, 1, -1, -1, -1 },    // e.g. "OGRMP3 04 - Addam's Family.mp3"
         { QRegularExpression("^(4-[Bb][Aa][Rr]-[Bb]\\s*\\d{1,5})\\s*-\\s*(.*)$"), 2, 1, -1, -1, -1 },    // e.g. "4-bar-b 123 - Chicken Plucker"
         { QRegularExpression("^(.*) - ([A-Za-z]+[\\- ]\\d+)( *-?[VMA-C]|\\-\\d+)?$"), 1, 2, -1, 3, -1 },
@@ -74,8 +76,6 @@ struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingTyp
         { QRegularExpression("^(.*?)\\s*\\-\\s*([A-Za-z]{1,5})(\\d{1,5})\\s*(\\(.*\\))?$"), 1, 2, 3, -1, 4 },    // e.g. "A Summer Song - CHIC3002 (female vocals)
         { QRegularExpression("^(.*?)\\s*\\-\\s*([A-Za-z]{1,7}|4-[Bb][Aa][Rr]-[Bb])-(\\d{1,5})(\\-?([ABab]))?$"), 1, 2, 3, 5, -1 },    // e.g. "Paper Doll - Windsor-4936B"
         { QRegularExpression("^(.*?)\\s*\\-\\s*([A-Za-z]{1,7}|4-[Bb][Aa][Rr]-[Bb]) (\\d{1,5})(\\-?([ABab]))?$"), 1, 2, 3, 5, -1 },    // e.g. "Paper Doll - Windsor 4936B"
-        { QRegularExpression("^(.*) - ([A-Za-z]{1,9})[\\- ]?([0-9]{1,5}[A-Za-z]{1,3})$"), 1, 2, 3, -1, -1}, // e.g. "Play It Cool - BS 2534a.mp3"
-                                                                                                            // e.g. "Strings Galore - Chaparral 117b.mp3"
         { QRegularExpression("^(.*)\\s*\\-\\s*([A-Za-z ]+)\\s*([0-9]{1,5}[A-Za-z]{0,3})$"), 1, 2, 3, -1, -1}, // e.g. "Streets of London - New Beat 203a.mp3"
 
         { QRegularExpression(), -1, -1, -1, -1, -1 }
