@@ -4923,7 +4923,7 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
         ui->seekBarCuesheet->SetOutro(frac);  // after the events are done, do this.
 
         // if (darkmode) {
-        qDebug() << "pushButtonSetIntro:" << frac;
+        // qDebug() << "pushButtonSetIntro:" << frac;
         ui->darkSeekBar->setOutro(frac);
         ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case it was a singing call
         // } else {
@@ -4971,7 +4971,7 @@ void MainWindow::on_pushButtonSetOutroTime_clicked()
     ui->seekBarCuesheet->SetOutro(frac);  // after the events are done, do this.
 
     // if (darkmode) {
-    qDebug() << "pushButtonSetOutro:" << frac;
+    // qDebug() << "pushButtonSetOutro:" << frac;
     ui->darkSeekBar->setOutro(frac);
     ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case it was a singing call
     // } else {
