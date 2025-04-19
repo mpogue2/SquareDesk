@@ -661,7 +661,7 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
 //        ui->actionFilePrint->setText("Print Patter...");
 //        ui->actionSave_Lyrics->setText("Save Patter");
 //        ui->actionSave_Lyrics_As->setText("Save Patter As...");
-        ui->actionAuto_scroll_during_playback->setText("Auto-scroll Patter");
+        ui->actionAuto_scroll_during_playback->setText("Auto-scroll Cuesheet");
 
         if (!hasLyrics || lyricsTabNumber == -1) {
 
@@ -672,7 +672,7 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
                 QString patterTemplate = getResourceFile("patter.template.html");
 //              qDebug() << "patterTemplate: " << patterTemplate;
                 if (patterTemplate.isEmpty()) {
-                    ui->textBrowserCueSheet->setHtml("No patter found for this song.");
+                    ui->textBrowserCueSheet->setHtml("No cuesheet found for this song.");
                     loadedCuesheetNameWithPath = "";
                 } else {
                     // ui->textBrowserCueSheet->setHtml(patterTemplate);
