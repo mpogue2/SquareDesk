@@ -1,4 +1,4 @@
-/** @addtogroup cometa
+/** @addtogroup memory
  *  @{
  */
 #pragma once
@@ -17,10 +17,10 @@ namespace details
 
 struct memory_statistics
 {
-    std::atomic_uintptr_t allocation_count   = ATOMIC_VAR_INIT(0);
-    std::atomic_uintptr_t allocation_size    = ATOMIC_VAR_INIT(0);
-    std::atomic_uintptr_t deallocation_count = ATOMIC_VAR_INIT(0);
-    std::atomic_uintptr_t deallocation_size  = ATOMIC_VAR_INIT(0);
+    std::atomic_uintptr_t allocation_count{ 0 };
+    std::atomic_uintptr_t allocation_size{ 0 };
+    std::atomic_uintptr_t deallocation_count{ 0 };
+    std::atomic_uintptr_t deallocation_size{ 0 };
 };
 
 inline memory_statistics& get_memory_statistics()
@@ -124,8 +124,10 @@ inline void* aligned_reallocate(void* ptr, size_t new_size, size_t alignment)
 }
 } // namespace details
 
+constexpr inline size_t default_memory_alignment = 64;
+
 /// @brief Allocates aligned memory
-template <typename T = void, size_t alignment = 64>
+template <typename T = void, size_t alignment = default_memory_alignment>
 CMT_INTRINSIC T* aligned_allocate(size_t size = 1)
 {
     T* ptr = static_cast<T*>(CMT_ASSUME_ALIGNED(
@@ -159,42 +161,55 @@ struct aligned_deleter
 };
 } // namespace details
 
+/// @brief Smart pointer for aligned memory with automatic deallocation.
 template <typename T>
 struct autofree
 {
+    /// @brief Default constructor.
     CMT_MEM_INTRINSIC autofree() {}
+
+    /// @brief Allocates aligned memory for given size.
     explicit CMT_MEM_INTRINSIC autofree(size_t size) : ptr(aligned_allocate<T>(size)) {}
-    autofree(const autofree&) = delete;
-    autofree& operator=(const autofree&) = delete;
-    autofree(autofree&&) CMT_NOEXCEPT    = default;
+
+    autofree(const autofree&)                    = delete;
+    autofree& operator=(const autofree&)         = delete;
+    autofree(autofree&&) CMT_NOEXCEPT            = default;
     autofree& operator=(autofree&&) CMT_NOEXCEPT = default;
+
+    /// @brief Access element at index.
     CMT_MEM_INTRINSIC T& operator[](size_t index) CMT_NOEXCEPT { return ptr[index]; }
+
+    /// @brief Const access to element at index.
     CMT_MEM_INTRINSIC const T& operator[](size_t index) const CMT_NOEXCEPT { return ptr[index]; }
 
+    /// @brief Returns pointer to underlying data.
     template <typename U = T>
     CMT_MEM_INTRINSIC U* data() CMT_NOEXCEPT
     {
         return ptr_cast<U>(ptr.get());
     }
+
+    /// @brief Returns const pointer to underlying data.
     template <typename U = T>
     CMT_MEM_INTRINSIC const U* data() const CMT_NOEXCEPT
     {
         return ptr_cast<U>(ptr.get());
     }
 
+    /// @brief Unique pointer with custom deleter for aligned memory.
     std::unique_ptr<T[], details::aligned_deleter<T>> ptr;
 };
 
 #ifdef KFR_USE_STD_ALLOCATION
 
 template <typename T>
-using allocator = std::allocator<T>;
+using data_allocator = std::allocator<T>;
 
 #else
 
 /// @brief Aligned allocator
 template <typename T>
-struct allocator
+struct data_allocator
 {
     using value_type      = T;
     using pointer         = T*;
@@ -207,12 +222,12 @@ struct allocator
     template <typename U>
     struct rebind
     {
-        using other = allocator<U>;
+        using other = data_allocator<U>;
     };
-    constexpr allocator() CMT_NOEXCEPT                 = default;
-    constexpr allocator(const allocator&) CMT_NOEXCEPT = default;
+    constexpr data_allocator() CMT_NOEXCEPT                      = default;
+    constexpr data_allocator(const data_allocator&) CMT_NOEXCEPT = default;
     template <typename U>
-    constexpr allocator(const allocator<U>&) CMT_NOEXCEPT
+    constexpr data_allocator(const data_allocator<U>&) CMT_NOEXCEPT
     {
     }
     pointer allocate(size_type n) const
@@ -226,12 +241,12 @@ struct allocator
 };
 
 template <typename T1, typename T2>
-constexpr inline bool operator==(const allocator<T1>&, const allocator<T2>&) CMT_NOEXCEPT
+constexpr inline bool operator==(const data_allocator<T1>&, const data_allocator<T2>&) CMT_NOEXCEPT
 {
     return true;
 }
 template <typename T1, typename T2>
-constexpr inline bool operator!=(const allocator<T1>&, const allocator<T2>&) CMT_NOEXCEPT
+constexpr inline bool operator!=(const data_allocator<T1>&, const data_allocator<T2>&) CMT_NOEXCEPT
 {
     return false;
 }
@@ -246,11 +261,11 @@ struct aligned_new
 #ifdef __cpp_aligned_new
     inline static void* operator new(size_t size, std::align_val_t al) noexcept
     {
-        return details::aligned_malloc(size, std::max(size_t(64), static_cast<size_t>(al)));
+        return details::aligned_malloc(size,
+                                       std::max(size_t(default_memory_alignment), static_cast<size_t>(al)));
     }
     inline static void operator delete(void* ptr, std::align_val_t al) noexcept
     {
-        (void)al;  // suppress warning
         return details::aligned_free(ptr);
     }
 #endif
@@ -270,4 +285,40 @@ public:                                                                         
                                                                                                              \
 private:                                                                                                     \
     mutable std::atomic_uintptr_t m_refcount = ATOMIC_VAR_INIT(0);
+
+namespace details
+{
+
+template <typename T, typename Fn>
+CMT_ALWAYS_INLINE static void call_with_temp_heap(size_t temp_size, Fn&& fn)
+{
+    autofree<T> temp(temp_size);
+    fn(temp.data());
+}
+
+template <size_t stack_size, typename T, typename Fn>
+CMT_NOINLINE static void call_with_temp_stack(size_t temp_size, Fn&& fn)
+{
+    alignas(default_memory_alignment) T temp[stack_size];
+    fn(&temp[0]);
+}
+
+} // namespace details
+
+/**
+ * @brief Calls a function with a temporary buffer, allocated on the stack if small enough, otherwise on the
+ * heap.
+ * @tparam stack_size Maximum size to use stack allocation (in elements).
+ * @tparam T Type of temporary buffer elements (default: u8).
+ * @tparam Fn Callable type.
+ * @param temp_size Number of elements requested.
+ * @param fn Function to call with a pointer to the buffer.
+ */
+template <size_t stack_size = 4096, typename T = u8, typename Fn>
+CMT_ALWAYS_INLINE static void call_with_temp(size_t temp_size, Fn&& fn)
+{
+    if (temp_size <= stack_size)
+        return details::call_with_temp_stack<stack_size, T>(temp_size, std::forward<Fn>(fn));
+    return details::call_with_temp_heap<T>(temp_size, std::forward<Fn>(fn));
+}
 } // namespace cometa

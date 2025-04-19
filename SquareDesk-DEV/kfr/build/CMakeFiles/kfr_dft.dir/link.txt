@@ -1,2 +1,0 @@
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc libkfr_dft.a CMakeFiles/kfr_dft.dir/include/kfr/dft/impl/convolution-impl.cpp.o CMakeFiles/kfr_dft.dir/include/kfr/dft/impl/dft-impl-f32.cpp.o CMakeFiles/kfr_dft.dir/include/kfr/dft/impl/dft-impl-f64.cpp.o CMakeFiles/kfr_dft.dir/include/kfr/dft/impl/fft-impl-f32.cpp.o CMakeFiles/kfr_dft.dir/include/kfr/dft/impl/fft-impl-f64.cpp.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libkfr_dft.a

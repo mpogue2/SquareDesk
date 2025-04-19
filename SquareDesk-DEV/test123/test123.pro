@@ -381,9 +381,11 @@ LIBS += -framework AudioToolbox
 LIBS += -framework CoreAudioKit
 
 # KFR for filters -----------------------------------
-INCLUDEPATH += $$PWD/../kfr/include
-#LIBS += -L$$PWD/../kfr/build -lkfr_dft -lkfr_io
-LIBS += -L$$PWD/../kfr/lib/$${ARCHDIR} -lkfr_dft -lkfr_io
+# INCLUDEPATH += $$PWD/../kfr/include
+# LIBS += -L$$PWD/../kfr/lib/$${ARCHDIR} -lkfr_dft -lkfr_io
+
+INCLUDEPATH += $$PWD/../kfr/build/include
+LIBS += -L$$PWD/../kfr/build/lib -lkfr_dsp_neon64 -lkfr_io
 
 # MiniBPM for BPM detection -----------------------------------
 INCLUDEPATH += $$PWD/miniBPM

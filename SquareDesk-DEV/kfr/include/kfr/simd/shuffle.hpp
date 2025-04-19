@@ -2,7 +2,7 @@
  *  @{
  */
 /*
-  Copyright (C) 2016 D Levin (https://www.kfrlib.com)
+  Copyright (C) 2016-2023 Dan Cazarin (https://www.kfrlib.com)
   This file is part of KFR
 
   KFR is free software: you can redistribute it and/or modify
@@ -32,6 +32,10 @@
 #include <tuple>
 #include <utility>
 
+CMT_PRAGMA_MSVC(warning(push))
+CMT_PRAGMA_MSVC(warning(disable : 5051))
+CMT_PRAGMA_MSVC(warning(disable : 4244))
+
 namespace kfr
 {
 
@@ -50,6 +54,18 @@ KFR_INTRINSIC vec_shape<T, Nout> low(vec_shape<T, N>)
     return {};
 }
 
+template <typename T, size_t N, size_t Nout = N / 2>
+KFR_INTRINSIC vec<T, Nout> lowhalf(const vec<T, N>& x)
+{
+    return x.shuffle(csizeseq<Nout>);
+}
+
+template <typename T, size_t N, size_t Nout = N / 2>
+KFR_INTRINSIC vec_shape<T, Nout> lowhalf(vec_shape<T, N>)
+{
+    return {};
+}
+
 template <typename T, size_t N, size_t Nout = N - prev_poweroftwo(N - 1)>
 KFR_INTRINSIC vec<T, Nout> high(const vec<T, N>& x)
 {
@@ -58,6 +74,18 @@ KFR_INTRINSIC vec<T, Nout> high(const vec<T, N>& x)
 
 template <typename T, size_t N, size_t Nout = N - prev_poweroftwo(N - 1)>
 KFR_INTRINSIC vec_shape<T, Nout> high(vec_shape<T, N>)
+{
+    return {};
+}
+
+template <typename T, size_t N, size_t Nout = N - N / 2>
+KFR_INTRINSIC vec<T, Nout> highhalf(const vec<T, N>& x)
+{
+    return x.shuffle(csizeseq<Nout, N / 2>);
+}
+
+template <typename T, size_t N, size_t Nout = N - N / 2>
+KFR_INTRINSIC vec_shape<T, Nout> highhalf(vec_shape<T, N>)
 {
     return {};
 }
@@ -89,7 +117,7 @@ KFR_INTRINSIC vec<T, N * 4> concat4(const vec<T, N>& a, const vec<T, N>& b, cons
                                 vec<T, N>::scalar_size()>(c.v, d.v));
 }
 
-template <size_t count, typename T, size_t N, size_t Nout = N* count>
+template <size_t count, typename T, size_t N, size_t Nout = N * count>
 KFR_INTRINSIC vec<T, Nout> repeat(const vec<T, N>& x)
 {
     return x.shuffle(csizeseq<Nout> % csize<N>);
@@ -130,12 +158,28 @@ KFR_INTRINSIC vec<T, N + Ncount> padhigh(const vec<T, N>& x)
 {
     return x.shuffle(csizeseq<N + Ncount>);
 }
+template <size_t Ncount, typename T, size_t N>
+KFR_INTRINSIC vec<T, N + Ncount> padhigh(const vec<T, N>& x, identity<T> newvalue)
+{
+    if constexpr (Ncount == 0)
+        return x;
+    else
+        return concat(x, broadcast<Ncount, T>(newvalue));
+}
 KFR_FN(padhigh)
 
 template <size_t Ncount, typename T, size_t N>
 KFR_INTRINSIC vec<T, N + Ncount> padlow(const vec<T, N>& x)
 {
     return x.shuffle(csizeseq<N + Ncount, 0 - Ncount>);
+}
+template <size_t Ncount, typename T, size_t N>
+KFR_INTRINSIC vec<T, N + Ncount> padlow(const vec<T, N>& x, identity<T> newvalue)
+{
+    if constexpr (Ncount == 0)
+        return x;
+    else
+        return concat(broadcast<Ncount, T>(newvalue), x);
 }
 KFR_FN(padlow)
 
@@ -225,7 +269,7 @@ KFR_INTRINSIC vec<T, count> concat_and_slice(const vec<T, N1>& x, const vec<T, N
 template <size_t start, size_t count, typename T, size_t N1, size_t N2, KFR_ENABLE_IF(N1 < N2)>
 KFR_INTRINSIC vec<T, count> concat_and_slice(const vec<T, N1>& x, const vec<T, N2>& y)
 {
-    return x.shuffle(csizeseq<N2, -(N2 - N1)>)
+    return x.shuffle(csizeseq<N2, N1 - N2>)
         .shuffle(y, csizeseq<N2 * 2>)
         .shuffle(csizeseq<count, N2 - N1 + start>);
 }
@@ -346,12 +390,12 @@ namespace internal
 template <typename T, size_t N>
 KFR_INTRINSIC mask<T, N> evenmask()
 {
-    return broadcast<N>(maskbits<T>(true), maskbits<T>(false));
+    return mask<T, N>(broadcast<N>(maskbits<T>(true), maskbits<T>(false)));
 }
 template <typename T, size_t N>
 KFR_INTRINSIC mask<T, N> oddmask()
 {
-    return broadcast<N>(maskbits<T>(false), maskbits<T>(true));
+    return mask<T, N>(broadcast<N>(maskbits<T>(false), maskbits<T>(true)));
 }
 } // namespace internal
 
@@ -442,7 +486,7 @@ KFR_INTRINSIC vec<T, N> transpose(const vec<T, N>& x)
 template <typename T, size_t N>
 KFR_INTRINSIC vec<vec<T, N>, N> transpose(const vec<vec<T, N>, N>& x)
 {
-    return vec<vec<T, N>, N>::from_flatten(transpose<2>(x.flatten()));
+    return vec<vec<T, N>, N>::from_flatten(transpose<N>(x.flatten()));
 }
 KFR_FN(transpose)
 
@@ -566,6 +610,33 @@ constexpr KFR_INTRINSIC vec<T, N> enumerate(vec_shape<T, N>)
 {
     return generate_vector<T, N, internal::generate_index<start, stride>>();
 }
+template <typename T, size_t N>
+KFR_INTRINSIC vec<T, N> enumerate(vec_shape<T, N> sh, identity<T> step)
+{
+    if constexpr (N == 1)
+    {
+        return czeros;
+    }
+    else if constexpr (!is_poweroftwo(N))
+    {
+        return slice<0, N>(enumerate(vec_shape<T, next_poweroftwo(N)>{}, step));
+    }
+    else
+    {
+        vec<T, N> vv = step;
+        vec<T, N> zz(czeros);
+
+        vec<T, N> acc = blend(zz, vv, csizeseq<N> % csize<2>);
+        cfor(csize<0>, csize<ilog2(N) - 1>,
+             [&](auto idx) CMT_INLINE_LAMBDA
+             {
+                 vv = vv + vv;
+                 acc += blend(zz, vv, csizeseq<N> / (csize<2 << (idx)>) % csize<2>);
+             });
+        return acc;
+    }
+}
+
 KFR_FN(enumerate)
 
 template <typename T, size_t N, size_t start = 0, size_t size = 1, int on = 1, int off = 0>
@@ -584,4 +655,6 @@ KFR_FN(onoff)
 } // namespace CMT_ARCH_NAME
 } // namespace kfr
 #define KFR_SHUFFLE_SPECIALIZATIONS 1
-#include "impl/specializations.i"
+#include "impl/specializations.hpp"
+
+CMT_PRAGMA_MSVC(warning(pop))

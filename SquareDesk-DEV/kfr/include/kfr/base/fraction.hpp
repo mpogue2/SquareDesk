@@ -1,8 +1,8 @@
-/** @addtogroup types
+/** @addtogroup base
  *  @{
  */
 /*
-  Copyright (C) 2016 D Levin (https://www.kfrlib.com)
+  Copyright (C) 2016-2023 Dan Cazarin (https://www.kfrlib.com)
   This file is part of KFR
 
   KFR is free software: you can redistribute it and/or modify
@@ -36,7 +36,7 @@ struct fraction
     fraction(i64 num = 0, i64 den = 1) : numerator(num), denominator(den) { normalize(); }
     void normalize()
     {
-        if (denominator < 0)
+        if (CMT_UNLIKELY(denominator < 0))
         {
             denominator = -denominator;
             numerator   = -numerator;

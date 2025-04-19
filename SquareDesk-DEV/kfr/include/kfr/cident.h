@@ -7,14 +7,14 @@
 extern char* gets(char* __s);
 #endif
 
-#if defined(_M_IX86) || defined(__i386__) || defined(_M_X64) || defined(__x86_64__)
+#if defined(_M_IX86) || defined(__i386__) || defined(_M_X64) || defined(__x86_64__) || defined(__wasm)
 #define CMT_ARCH_X86 1
 #elif defined(__arm__) || defined(__arm64__) || defined(_M_ARM) || defined(__aarch64__)
 #define CMT_ARCH_ARM 1
 #endif
 
 #ifdef CMT_ARCH_X86
-#if defined(_M_X64) || defined(__x86_64__)
+#if defined(_M_X64) || defined(__x86_64__) || defined(__wasm64)
 #define CMT_ARCH_X64 1
 #define CMT_ARCH_BITNESS_NAME "64-bit"
 #else
@@ -306,6 +306,7 @@ extern char* gets(char* __s);
 #define CMT_COMPILER_MSVC 1
 #define CMT_MSVC_ATTRIBUTES 1
 #define CMT_MSC_VER _MSC_VER
+#define CMT_COMPILER_IS_MSVC 1
 #else
 #define CMT_MSC_VER 0
 #endif
@@ -343,31 +344,74 @@ extern char* gets(char* __s);
 #endif
 #endif
 
+#if defined _MSC_VER && !defined(__clang__) && !defined(CMT_FORCE_INLINE_MSVC)
+#define CMT_NO_FORCE_INLINE 1
+#endif
+
+#if defined(CMT_COMPILER_INTEL) || defined(CMT_COMPILER_CLANG)
+#ifdef CMT_COMPILER_IS_MSVC
+#undef CMT_COMPILER_IS_MSVC
+#endif
+#endif
+
 #if defined(CMT_GNU_ATTRIBUTES)
 
 #define CMT_NODEBUG
-// __attribute__((__nodebug__))
 
-// GCC 9 broke attributes on lambdas.
-#if defined(NDEBUG) && (!defined(__GNUC__) || __GNUC__ != 9)
+#ifndef CMT_NO_FORCE_INLINE
 #define CMT_ALWAYS_INLINE __attribute__((__always_inline__))
 #else
 #define CMT_ALWAYS_INLINE
 #endif
-#define CMT_INLINE __inline__ CMT_ALWAYS_INLINE
-#define CMT_INLINE_MEMBER CMT_ALWAYS_INLINE
+
+#ifdef NDEBUG
+#define CMT_INLINE_IN_RELEASE CMT_ALWAYS_INLINE
+#else
+#define CMT_INLINE_IN_RELEASE
+#endif
+
+#define CMT_INLINE __inline__ CMT_INLINE_IN_RELEASE
+#define CMT_INLINE_MEMBER CMT_INLINE_IN_RELEASE
+#if defined(CMT_COMPILER_GCC) &&                                                                             \
+    (CMT_GCC_VERSION >= 900 && CMT_GCC_VERSION < 904 || CMT_GCC_VERSION >= 1000 && CMT_GCC_VERSION < 1002)
+// Workaround for GCC 9/10 bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90333
+#define CMT_INLINE_LAMBDA
+#else
 #define CMT_INLINE_LAMBDA CMT_INLINE_MEMBER
+#endif
 #define CMT_NOINLINE __attribute__((__noinline__))
+#ifndef CMT_NO_FORCE_INLINE
 #define CMT_FLATTEN __attribute__((__flatten__))
+#else
+#define CMT_FLATTEN
+#endif
 #define CMT_RESTRICT __restrict__
+
+#define CMT_LIKELY(...) __builtin_expect(!!(__VA_ARGS__), 1)
+#define CMT_UNLIKELY(...) __builtin_expect(!!(__VA_ARGS__), 0)
 
 #elif defined(CMT_MSVC_ATTRIBUTES)
 
+#ifndef CMT_NO_FORCE_INLINE
+#if _MSC_VER >= 1927 && _MSVC_LANG >= 202002L
+#define CMT_ALWAYS_INLINE [[msvc::forceinline]]
+#else
 #define CMT_ALWAYS_INLINE __forceinline
+#endif
+#else
+#define CMT_ALWAYS_INLINE
+#endif
+
+#ifdef NDEBUG
+#define CMT_INLINE_IN_RELEASE CMT_ALWAYS_INLINE
+#else
+#define CMT_INLINE_IN_RELEASE
+#endif
+
 #define CMT_NODEBUG
-#define CMT_INLINE /*inline*/ __forceinline
-#define CMT_INLINE_MEMBER __forceinline
-#if _MSC_VER >= 1927
+#define CMT_INLINE inline CMT_INLINE_IN_RELEASE
+#define CMT_INLINE_MEMBER CMT_INLINE_IN_RELEASE
+#if _MSC_VER >= 1927 && _MSVC_LANG >= 202002L
 #define CMT_INLINE_LAMBDA [[msvc::forceinline]]
 #else
 #define CMT_INLINE_LAMBDA
@@ -376,11 +420,13 @@ extern char* gets(char* __s);
 #define CMT_FLATTEN
 #define CMT_RESTRICT __restrict
 
+#define CMT_LIKELY(...) (__VA_ARGS__)
+#define CMT_UNLIKELY(...) (__VA_ARGS__)
+
 #endif
 
 #define CMT_INTRINSIC CMT_INLINE CMT_NODEBUG
 #define CMT_MEM_INTRINSIC CMT_INLINE CMT_NODEBUG
-#define CMT_FUNCTION inline
 
 #if defined _MSC_VER && _MSC_VER >= 1900 &&                                                                  \
     (!defined(__clang__) ||                                                                                  \
@@ -427,13 +473,15 @@ extern char* gets(char* __s);
 #define CMT_HAS_BUILTIN(builtin) 0
 #endif
 
-#if CMT_HAS_BUILTIN(CMT_ASSUME)
-#define CMT_ASSUME(x) __builtin_assume(x)
-#else
-#define CMT_ASSUME(x)                                                                                        \
+#define CMT_NOOP                                                                                             \
     do                                                                                                       \
     {                                                                                                        \
     } while (0)
+
+#if CMT_HAS_BUILTIN(CMT_ASSUME)
+#define CMT_ASSUME(x) __builtin_assume(x)
+#else
+#define CMT_ASSUME(x) CMT_NOOP
 #endif
 
 #if CMT_HAS_BUILTIN(CMT_ASSUME)
@@ -553,6 +601,8 @@ extern char* gets(char* __s);
 #endif
 #endif
 
+#define CMT_PRAGMA(...) _Pragma(#__VA_ARGS__)
+
 #if defined(CMT_GNU_ATTRIBUTES)
 #define CMT_FAST_CC __attribute__((fastcall))
 #define CMT_UNUSED __attribute__((unused))
@@ -656,54 +706,6 @@ extern char* gets(char* __s);
 #define CMT_NARGS2(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, ...) _10
 #define CMT_NARGS(...) CMT_NARGS2(__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
 
-#ifdef CMT_MULTI_ENABLED_AVX512
-#define CMT_IF_ENABLED_AVX512(...) __VA_ARGS__
-#else
-#define CMT_IF_ENABLED_AVX512(...)
-#endif
-
-#ifdef CMT_MULTI_ENABLED_AVX2
-#define CMT_IF_ENABLED_AVX2(...) __VA_ARGS__
-#else
-#define CMT_IF_ENABLED_AVX2(...)
-#endif
-
-#ifdef CMT_MULTI_ENABLED_AVX
-#define CMT_IF_ENABLED_AVX(...) __VA_ARGS__
-#else
-#define CMT_IF_ENABLED_AVX(...)
-#endif
-
-#ifdef CMT_MULTI_ENABLED_SSE42
-#define CMT_IF_ENABLED_SSE42(...) __VA_ARGS__
-#else
-#define CMT_IF_ENABLED_SSE42(...)
-#endif
-
-#ifdef CMT_MULTI_ENABLED_SSE41
-#define CMT_IF_ENABLED_SSE41(...) __VA_ARGS__
-#else
-#define CMT_IF_ENABLED_SSE41(...)
-#endif
-
-#ifdef CMT_MULTI_ENABLED_SSSE3
-#define CMT_IF_ENABLED_SSSE3(...) __VA_ARGS__
-#else
-#define CMT_IF_ENABLED_SSSE3(...)
-#endif
-
-#ifdef CMT_MULTI_ENABLED_SSE3
-#define CMT_IF_ENABLED_SSE3(...) __VA_ARGS__
-#else
-#define CMT_IF_ENABLED_SSE3(...)
-#endif
-
-#ifdef CMT_MULTI_ENABLED_SSE2
-#define CMT_IF_ENABLED_SSE2(...) __VA_ARGS__
-#else
-#define CMT_IF_ENABLED_SSE2(...)
-#endif
-
 #define CMT_IF_IS_AVX512(...)
 #define CMT_IF_IS_AVX2(...)
 #define CMT_IF_IS_AVX(...)
@@ -739,46 +741,16 @@ extern char* gets(char* __s);
 #define CMT_IF_IS_SSE2(...) __VA_ARGS__
 #endif
 
-#ifdef CMT_MULTI
-
-#define CMT_MULTI_PROTO_GATE(...)                                                                            \
-    if (cpu == cpu_t::runtime)                                                                               \
-        cpu = get_cpu();                                                                                     \
-    switch (cpu)                                                                                             \
+#ifdef CMT_COMPILER_GNU
+#define CMT_UNREACHABLE                                                                                      \
+    do                                                                                                       \
     {                                                                                                        \
-    case cpu_t::avx512:                                                                                      \
-        CMT_IF_ENABLED_AVX512(return avx512::__VA_ARGS__;)                                                   \
-    case cpu_t::avx2:                                                                                        \
-        CMT_IF_ENABLED_AVX2(return avx2::__VA_ARGS__;)                                                       \
-    case cpu_t::avx:                                                                                         \
-        CMT_IF_ENABLED_AVX(return avx::__VA_ARGS__;)                                                         \
-    case cpu_t::sse41:                                                                                       \
-        CMT_IF_ENABLED_SSE41(return sse41::__VA_ARGS__;)                                                     \
-    case cpu_t::ssse3:                                                                                       \
-        CMT_IF_ENABLED_SSSE3(return ssse3::__VA_ARGS__;)                                                     \
-    case cpu_t::sse3:                                                                                        \
-        CMT_IF_ENABLED_SSE3(return sse3::__VA_ARGS__;)                                                       \
-    case cpu_t::sse2:                                                                                        \
-        CMT_IF_ENABLED_SSE2(return sse2::__VA_ARGS__;)                                                       \
-    default:                                                                                                 \
-        return {};                                                                                           \
-    }
-#define CMT_MULTI_PROTO(...)                                                                                 \
-    inline namespace CMT_ARCH_NAME                                                                           \
+        __builtin_unreachable();                                                                             \
+    } while (0)
+#elif defined(_MSC_VER)
+#define CMT_UNREACHABLE                                                                                      \
+    do                                                                                                       \
     {                                                                                                        \
-    __VA_ARGS__                                                                                              \
-    }                                                                                                        \
-    CMT_IF_ENABLED_SSE2(CMT_IF_IS_SSE2(inline) namespace sse2{ __VA_ARGS__ })                                \
-    CMT_IF_ENABLED_SSE3(CMT_IF_IS_SSE3(inline) namespace sse3{ __VA_ARGS__ })                                \
-    CMT_IF_ENABLED_SSSE3(CMT_IF_IS_SSSE3(inline) namespace ssse3{ __VA_ARGS__ })                             \
-    CMT_IF_ENABLED_SSE41(CMT_IF_IS_SSE41(inline) namespace sse41{ __VA_ARGS__ })                             \
-    CMT_IF_ENABLED_AVX(CMT_IF_IS_AVX(inline) namespace avx{ __VA_ARGS__ })                                   \
-    CMT_IF_ENABLED_AVX2(CMT_IF_IS_AVX2(inline) namespace avx2{ __VA_ARGS__ })                                \
-    CMT_IF_ENABLED_AVX512(CMT_IF_IS_AVX512(inline) namespace avx512{ __VA_ARGS__ })
-#else
-#define CMT_MULTI_PROTO(...)                                                                                 \
-    inline namespace CMT_ARCH_NAME                                                                           \
-    {                                                                                                        \
-    __VA_ARGS__                                                                                              \
-    }
+        __assume(false);                                                                                     \
+    } while (0)
 #endif

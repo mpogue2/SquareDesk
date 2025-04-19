@@ -2,7 +2,7 @@
  *  @{
  */
 /*
-  Copyright (C) 2016 D Levin (https://www.kfrlib.com)
+  Copyright (C) 2016-2023 Dan Cazarin (https://www.kfrlib.com)
   This file is part of KFR
 
   KFR is free software: you can redistribute it and/or modify
@@ -35,14 +35,18 @@ namespace kfr
 inline namespace CMT_ARCH_NAME
 {
 
-namespace internal
-{
-
 template <typename T>
-struct expression_goertzel : output_expression
+struct expression_goertzel : expression_traits_defaults
 {
+    constexpr static size_t dims = 1;
+
+    using value_type = T;
+
+    constexpr static shape<1> get_shape(const expression_goertzel&) { return shape<1>(infinite_size); }
+    constexpr static shape<1> get_shape() { return shape<1>(infinite_size); }
+
     expression_goertzel(complex<T>& result, T omega)
-        : result(result), omega(omega), coeff(2 * cos(omega)), q0(), q1(), q2()
+        : result(result), omega(omega), coeff(2 * cos(omega)), q0(0), q1(0), q2(0)
     {
     }
     ~expression_goertzel()
@@ -50,16 +54,18 @@ struct expression_goertzel : output_expression
         result.real(q1 - q2 * cos(omega));
         result.imag(q2 * sin(omega));
     }
-    template <typename U, size_t N>
-    KFR_MEM_INTRINSIC void operator()(coutput_t, size_t, const vec<U, N>& x)
+
+    template <size_t N, index_t VecAxis>
+    friend KFR_INTRINSIC void set_elements(expression_goertzel& self, shape<1>, axis_params<VecAxis, N>,
+                                           const identity<vec<T, N>>& x)
     {
         vec<T, N> in = x;
         CMT_LOOP_UNROLL
         for (size_t i = 0; i < N; i++)
         {
-            q0 = coeff * q1 - q2 + in[i];
-            q2 = q1;
-            q1 = q0;
+            self.q0 = self.coeff * self.q1 - self.q2 + in[i];
+            self.q2 = self.q1;
+            self.q1 = self.q0;
         }
     }
     complex<T>& result;
@@ -71,10 +77,20 @@ struct expression_goertzel : output_expression
 };
 
 template <typename T, size_t width>
-struct expression_parallel_goertzel : output_expression
+struct expression_parallel_goertzel : expression_traits_defaults
 {
+    constexpr static size_t dims = 1;
+
+    using value_type = T;
+
+    constexpr static shape<1> get_shape(const expression_parallel_goertzel&)
+    {
+        return shape<1>(infinite_size);
+    }
+    constexpr static shape<1> get_shape() { return shape<1>(infinite_size); }
+
     expression_parallel_goertzel(complex<T> result[], vec<T, width> omega)
-        : result(result), omega(omega), coeff(cos(omega)), q0(), q1(), q2()
+        : result(result), omega(omega), coeff(2 * cos(omega)), q0(T(0)), q1(T(0)), q2(T(0))
     {
     }
     ~expression_parallel_goertzel()
@@ -87,16 +103,17 @@ struct expression_parallel_goertzel : output_expression
             result[i].imag(im[i]);
         }
     }
-    template <typename U, size_t N>
-    KFR_MEM_INTRINSIC void operator()(coutput_t, size_t, const vec<U, N>& x)
+    template <size_t N, index_t VecAxis>
+    friend KFR_INTRINSIC void set_elements(expression_parallel_goertzel& self, shape<1>,
+                                           axis_params<VecAxis, N>, const identity<vec<T, N>>& x)
     {
         const vec<T, N> in = x;
         CMT_LOOP_UNROLL
         for (size_t i = 0; i < N; i++)
         {
-            q0 = coeff * q1 - q2 + in[i];
-            q2 = q1;
-            q1 = q0;
+            self.q0 = self.coeff * self.q1 - self.q2 + in[i];
+            self.q2 = self.q1;
+            self.q1 = self.q0;
         }
     }
     complex<T>* result;
@@ -106,19 +123,18 @@ struct expression_parallel_goertzel : output_expression
     vec<T, width> q1;
     vec<T, width> q2;
 };
-} // namespace internal
 
 template <typename T>
-KFR_INTRINSIC internal::expression_goertzel<T> goertzel(complex<T>& result, identity<T> omega)
+KFR_INTRINSIC expression_goertzel<T> goertzel(complex<T>& result, identity<T> omega)
 {
-    return internal::expression_goertzel<T>(result, omega);
+    return expression_goertzel<T>(result, omega);
 }
 
 template <typename T, size_t width>
-KFR_INTRINSIC internal::expression_parallel_goertzel<T, width> goertzel(complex<T> (&result)[width],
-                                                                        const T (&omega)[width])
+KFR_INTRINSIC expression_parallel_goertzel<T, width> goertzel(complex<T> (&result)[width],
+                                                              const T (&omega)[width])
 {
-    return internal::expression_parallel_goertzel<T, width>(result, read<width>(omega));
+    return expression_parallel_goertzel<T, width>(result, read<width>(omega));
 }
 } // namespace CMT_ARCH_NAME
 } // namespace kfr

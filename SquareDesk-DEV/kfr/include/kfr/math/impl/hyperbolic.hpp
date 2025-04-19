@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016 D Levin (https://www.kfrlib.com)
+  Copyright (C) 2016-2023 Dan Cazarin (https://www.kfrlib.com)
   This file is part of KFR
 
   KFR is free software: you can redistribute it and/or modify
@@ -22,13 +22,13 @@
  */
 #pragma once
 
-#include "../../math/abs.hpp"
-#include "../../math/log_exp.hpp"
-#include "../../math/min_max.hpp"
-#include "../../math/select.hpp"
+#include "../../simd/abs.hpp"
 #include "../../simd/constants.hpp"
 #include "../../simd/impl/function.hpp"
+#include "../../simd/min_max.hpp"
 #include "../../simd/operators.hpp"
+#include "../../simd/select.hpp"
+#include "../log_exp.hpp"
 
 namespace kfr
 {

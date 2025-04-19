@@ -2,7 +2,7 @@
  *  @{
  */
 /*
-  Copyright (C) 2016 D Levin (https://www.kfrlib.com)
+  Copyright (C) 2016-2023 Dan Cazarin (https://www.kfrlib.com)
   This file is part of KFR
 
   KFR is free software: you can redistribute it and/or modify
@@ -35,8 +35,7 @@
 
 namespace kfr
 {
-#ifdef CMT_ARCH_X86
-
+#if defined(CMT_ARCH_X86) && !defined(__wasm)
 struct cpu_features
 {
     u32 max;

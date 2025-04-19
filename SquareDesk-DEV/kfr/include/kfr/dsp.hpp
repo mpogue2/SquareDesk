@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016 D Levin (https://www.kfrlib.com)
+  Copyright (C) 2016-2023 Dan Cazarin (https://www.kfrlib.com)
   This file is part of KFR
 
   KFR is free software: you can redistribute it and/or modify
@@ -31,7 +31,6 @@
 #include "dsp/ebu.hpp"
 #include "dsp/fir.hpp"
 #include "dsp/fir_design.hpp"
-#include "dsp/fracdelay.hpp"
 #include "dsp/goertzel.hpp"
 #include "dsp/iir_design.hpp"
 #include "dsp/mixdown.hpp"

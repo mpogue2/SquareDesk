@@ -2,7 +2,7 @@
  *  @{
  */
 /*
-  Copyright (C) 2016 D Levin (https://www.kfrlib.com)
+  Copyright (C) 2016-2023 Dan Cazarin (https://www.kfrlib.com)
   This file is part of KFR
 
   KFR is free software: you can redistribute it and/or modify
@@ -40,12 +40,15 @@ inline namespace CMT_ARCH_NAME
 template <typename T = int>
 auto unitimpulse()
 {
-    return lambda<T>([](cinput_t, size_t index, auto x) {
-        if (index == 0)
-            return onoff(x);
-        else
-            return zerovector(x);
-    });
+    return lambda<T>(
+        [](shape<1> index, auto x)
+        {
+            vec_shape<T, decltype(x)::value> sh{};
+            if (CMT_UNLIKELY(index[0] == 0))
+                return onoff(sh);
+            else
+                return zerovector(sh);
+        });
 }
 
 template <typename T = fbase>

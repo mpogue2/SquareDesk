@@ -2,7 +2,7 @@
  *  @{
  */
 /*
-  Copyright (C) 2016 D Levin (https://www.kfrlib.com)
+  Copyright (C) 2016-2023 Dan Cazarin (https://www.kfrlib.com)
   This file is part of KFR
 
   KFR is free software: you can redistribute it and/or modify
@@ -25,6 +25,7 @@
  */
 #pragma once
 
+#include "../base/expression.hpp"
 #include "../math/sqrt.hpp"
 #include "../simd/operators.hpp"
 
@@ -102,8 +103,8 @@ KFR_INTRINSIC T1 aweighting(const T1& x)
     return intrinsics::aweighting(x);
 }
 
-template <typename E1, KFR_ENABLE_IF(is_input_expression<E1>)>
-KFR_INTRINSIC internal::expression_function<fn::aweighting, E1> aweighting(E1&& x)
+template <typename E1, KFR_ACCEPT_EXPRESSIONS(E1)>
+KFR_INTRINSIC expression_function<fn::aweighting, E1> aweighting(E1&& x)
 {
     return { fn::aweighting(), std::forward<E1>(x) };
 }
@@ -114,8 +115,8 @@ KFR_INTRINSIC T1 bweighting(const T1& x)
     return intrinsics::bweighting(x);
 }
 
-template <typename E1, KFR_ENABLE_IF(is_input_expression<E1>)>
-KFR_INTRINSIC internal::expression_function<fn::bweighting, E1> bweighting(E1&& x)
+template <typename E1, KFR_ACCEPT_EXPRESSIONS(E1)>
+KFR_INTRINSIC expression_function<fn::bweighting, E1> bweighting(E1&& x)
 {
     return { fn::bweighting(), std::forward<E1>(x) };
 }
@@ -126,8 +127,8 @@ KFR_INTRINSIC T1 cweighting(const T1& x)
     return intrinsics::cweighting(x);
 }
 
-template <typename E1, KFR_ENABLE_IF(is_input_expression<E1>)>
-KFR_INTRINSIC internal::expression_function<fn::cweighting, E1> cweighting(E1&& x)
+template <typename E1, KFR_ACCEPT_EXPRESSIONS(E1)>
+KFR_INTRINSIC expression_function<fn::cweighting, E1> cweighting(E1&& x)
 {
     return { fn::cweighting(), std::forward<E1>(x) };
 }

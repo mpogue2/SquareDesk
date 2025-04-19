@@ -16,6 +16,8 @@ CMT_PRAGMA_GNU(GCC diagnostic ignored "-Wexit-time-destructors")
 #endif
 CMT_PRAGMA_GNU(GCC diagnostic ignored "-Wpadded")
 CMT_PRAGMA_GNU(GCC diagnostic ignored "-Wshadow")
+CMT_PRAGMA_MSVC(warning(push))
+CMT_PRAGMA_MSVC(warning(disable : 4018))
 
 namespace testo
 {
@@ -62,23 +64,24 @@ inline T& current_epsilon()
     return value;
 }
 
-template <typename T>
-struct eplison_scope
+template <typename T = void>
+struct epsilon_scope
 {
-    eplison_scope(T scale) { current_epsilon<T>() = std::numeric_limits<T>::epsilon() * scale; }
-    ~eplison_scope() { current_epsilon<T>() = saved; }
+    static_assert(std::is_floating_point_v<T>);
+    epsilon_scope(T scale) { current_epsilon<T>() = std::numeric_limits<T>::epsilon() * scale; }
+    ~epsilon_scope() { current_epsilon<T>() = saved; }
     T saved = current_epsilon<T>();
 };
 
 template <>
-struct eplison_scope<void>
+struct epsilon_scope<void>
 {
-    eplison_scope(float scale) : f(scale), d(static_cast<double>(scale)), ld(static_cast<long double>(scale))
+    epsilon_scope(float scale) : f(scale), d(static_cast<double>(scale)), ld(static_cast<long double>(scale))
     {
     }
-    eplison_scope<float> f;
-    eplison_scope<double> d;
-    eplison_scope<long double> ld;
+    epsilon_scope<float> f;
+    epsilon_scope<double> d;
+    epsilon_scope<long double> ld;
 };
 
 CMT_PRAGMA_GNU(GCC diagnostic pop)
@@ -242,4 +245,5 @@ struct make_comparison
 };
 } // namespace testo
 
+CMT_PRAGMA_MSVC(warning(pop))
 CMT_PRAGMA_GNU(GCC diagnostic pop)

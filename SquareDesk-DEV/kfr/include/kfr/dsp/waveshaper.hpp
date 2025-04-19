@@ -2,7 +2,7 @@
  *  @{
  */
 /*
-  Copyright (C) 2016 D Levin (https://www.kfrlib.com)
+  Copyright (C) 2016-2023 Dan Cazarin (https://www.kfrlib.com)
   This file is part of KFR
 
   KFR is free software: you can redistribute it and/or modify
@@ -25,8 +25,9 @@
  */
 #pragma once
 
-#include "../math/clamp.hpp"
+#include "../base/expression.hpp"
 #include "../math/hyperbolic.hpp"
+#include "../simd/clamp.hpp"
 #include "../simd/operators.hpp"
 
 namespace kfr
@@ -62,14 +63,14 @@ KFR_FUNCTION flt_type<T1> saturate_II(const T1& x)
 }
 KFR_FN(saturate_II)
 
-template <typename E1, KFR_ENABLE_IF(is_input_expression<E1>)>
-KFR_FUNCTION internal::expression_function<fn::saturate_II, E1> saturate_I(E1&& x)
+template <typename E1, KFR_ACCEPT_EXPRESSIONS(E1)>
+KFR_FUNCTION expression_function<fn::saturate_II, E1> saturate_I(E1&& x)
 {
     return { fn::saturate_I(), std::forward<E1>(x) };
 }
 
-template <typename E1, KFR_ENABLE_IF(is_input_expression<E1>)>
-KFR_FUNCTION internal::expression_function<fn::saturate_II, E1> saturate_II(E1&& x)
+template <typename E1, KFR_ACCEPT_EXPRESSIONS(E1)>
+KFR_FUNCTION expression_function<fn::saturate_II, E1> saturate_II(E1&& x)
 {
     return { fn::saturate_II(), std::forward<E1>(x) };
 }

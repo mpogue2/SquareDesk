@@ -47,11 +47,18 @@
 #include <QDir>
 
 // EQ ----------
+// Disable unused parameter warnings (kfr has a lot of them)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+
 #include <kfr/base.hpp>
 #include <kfr/dsp.hpp>
 #include <kfr/io.hpp>
 #include <kfr/math.hpp>
 #include <kfr/dsp/biquad.hpp>
+
+#pragma GCC diagnostic pop
 
 using namespace kfr;
 
@@ -576,11 +583,11 @@ public:
 
             size_t biquadCount = (intelligibilityBoost_enabled ? 4 : 3); // the intelligibility boost must always be the 4th biquad_params
 
-            filter = new biquad_filter<float>(bq, biquadCount);  // (re)initialize the mono/L filter from the latest bq coefficients
+            filter = new iir_filter<float>(iir_params{bq, biquadCount});  // (re)initialize the mono/L filter from the latest bq coefficients
             if (filterR != NULL) {
                 delete filterR;
             }
-            filterR = new biquad_filter<float>(bq, biquadCount);  // (re)initialize the R filter from the latest bq coefficients
+            filterR = new iir_filter<float>(iir_params{bq, biquadCount});  // (re)initialize the R filter from the latest bq coefficients
             newFilterNeeded = false;
         }
 
@@ -751,9 +758,9 @@ public:
     float intelligibilityBoost_dB = 0.0;
     bool  intelligibilityBoost_enabled = false;
 
-    biquad_params<float> bq[4];
-    biquad_filter<float> *filter;   // filter initialization (also holds context between apply calls), for mono and L stereo
-    biquad_filter<float> *filterR;  // filter initialization (also holds context between apply calls), for R stereo only
+    biquad_section<float> bq[4];
+    iir_filter<float> *filter;   // filter initialization (also holds context between apply calls), for mono and L stereo
+    iir_filter<float> *filterR;  // filter initialization (also holds context between apply calls), for R stereo only
 
     // PITCH/TEMPO ============
     SoundTouch soundTouch;  // SoundTouch
@@ -1270,13 +1277,9 @@ QString AudioDecoder::makeExternalAudioFile(QString WAVfilename) {
     t->elapsed(__LINE__); // toMono takes 11ms
 
     // LOW PASS FILTER IT, TO ELIMINATE THE CHUCK of BOOM-CHUCK -------------------------------------
-    biquad_params<float> bq[1];
-    bq[0] = biquad_lowpass(1500.0 / 44100.0, 0.5); // Q = 0.5
-    biquad_filter<float> *filter = new biquad_filter<float>(bq);  // init the filter
-
-    filter->apply(monoBuffer, framesInSong);   // NOTE: applies IN PLACE
-
-    delete filter;
+    biquad_section<float> bq[] = { biquad_lowpass(1500.0 / 44100.0, 0.5) };
+    iir_filter<float> filter(iir_params<float>(bq, 1));
+    filter.apply(monoBuffer, framesInSong);   // NOTE: applies IN PLACE
 
     t->elapsed(__LINE__); // LPF takes 57ms
 

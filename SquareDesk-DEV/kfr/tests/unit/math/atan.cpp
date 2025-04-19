@@ -1,10 +1,10 @@
 /**
- * KFR (http://kfrlib.com)
- * Copyright (C) 2016  D Levin
+ * KFR (https://www.kfrlib.com)
+ * Copyright (C) 2016-2023 Dan Cazarin
  * See LICENSE.txt for details
  */
 
-#include "../../numeric_tests.hpp"
+#include "../numeric_tests.hpp"
 
 #include <kfr/math/atan.hpp>
 

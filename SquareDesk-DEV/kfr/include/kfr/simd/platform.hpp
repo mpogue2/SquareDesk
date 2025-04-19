@@ -2,7 +2,7 @@
  *  @{
  */
 /*
-  Copyright (C) 2016 D Levin (https://www.kfrlib.com)
+  Copyright (C) 2016-2023 Dan Cazarin (https://www.kfrlib.com)
   This file is part of KFR
 
   KFR is free software: you can redistribute it and/or modify
@@ -103,7 +103,7 @@ CMT_UNUSED static const char* cpu_name(cpu_t set)
 #ifdef CMT_ARCH_ARM
     static const char* names[] = { "generic", "neon", "neon64" };
 #endif
-    if (set >= cpu_t::lowest && set <= cpu_t::highest)
+    if (CMT_LIKELY(set >= cpu_t::lowest && set <= cpu_t::highest))
         return names[static_cast<size_t>(set)];
     return "-";
 }
@@ -242,6 +242,7 @@ struct platform<cpu_t::common>
 template <>
 struct platform<cpu_t::neon> : platform<cpu_t::common>
 {
+    constexpr static size_t simd_register_count = 32;
 };
 template <>
 struct platform<cpu_t::neon64> : platform<cpu_t::neon>
@@ -269,9 +270,9 @@ constexpr static size_t minimum_vector_width =
                                                       : platform<>::minimum_int_vector_size / sizeof(T)));
 
 template <typename T>
-constexpr static size_t vector_capacity = platform<>::simd_register_count* vector_width<T>;
+constexpr static size_t vector_capacity = platform<>::simd_register_count * vector_width<T>;
 
-#ifdef CMT_COMPILER_MSVC
+#ifdef CMT_COMPILER_IS_MSVC
 template <typename T>
 constexpr static size_t maximum_vector_size = const_min(static_cast<size_t>(32), vector_width<T> * 2);
 #else

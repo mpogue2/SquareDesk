@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016 D Levin (https://www.kfrlib.com)
+  Copyright (C) 2016-2023 Dan Cazarin (https://www.kfrlib.com)
   This file is part of KFR
 
   KFR is free software: you can redistribute it and/or modify
@@ -74,12 +74,6 @@ struct alignas(force_compiletime_size_t<alignment<T, N>()>) simd_array
 };
 
 template <typename T, size_t N>
-struct alignas(force_compiletime_size_t<alignment<T, N>()>) simd_array<bit<T>, N>
-{
-    bit_value<T> val[next_poweroftwo(N)];
-};
-
-template <typename T, size_t N>
 struct simd_type;
 
 template <typename T>
@@ -118,4 +112,21 @@ struct simd_halves
 
 } // namespace intrinsics
 } // namespace CMT_ARCH_NAME
+
+#define KFR_COMPONENTWISE_RET(code)                                                                          \
+    vec<T, N> result;                                                                                        \
+    for (size_t i = 0; i < N; i++)                                                                           \
+        code;                                                                                                \
+    return result;
+
+#define KFR_COMPONENTWISE_RET_I(Tvec, code)                                                                  \
+    Tvec result;                                                                                             \
+    for (size_t i = 0; i < result.size(); i++)                                                               \
+        code;                                                                                                \
+    return result;
+
+#define KFR_COMPONENTWISE(code)                                                                              \
+    for (size_t i = 0; i < N; i++)                                                                           \
+        code;
+
 } // namespace kfr

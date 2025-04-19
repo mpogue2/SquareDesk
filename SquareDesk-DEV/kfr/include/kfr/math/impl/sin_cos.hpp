@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016 D Levin (https://www.kfrlib.com)
+  Copyright (C) 2016-2023 Dan Cazarin (https://www.kfrlib.com)
   This file is part of KFR
 
   KFR is free software: you can redistribute it and/or modify
@@ -22,13 +22,13 @@
  */
 #pragma once
 
-#include "../../math/abs.hpp"
-#include "../../math/min_max.hpp"
-#include "../../math/round.hpp"
-#include "../../math/select.hpp"
+#include "../../simd/abs.hpp"
 #include "../../simd/constants.hpp"
 #include "../../simd/impl/function.hpp"
+#include "../../simd/min_max.hpp"
 #include "../../simd/operators.hpp"
+#include "../../simd/round.hpp"
+#include "../../simd/select.hpp"
 #include "../../simd/shuffle.hpp"
 
 #if CMT_HAS_WARNING("-Wc99-extensions")
@@ -62,12 +62,11 @@ KFR_INTRINSIC vec<T, N> trig_fold(const vec<T, N>& x, vec<itype<T>, N>& quadrant
     const vec<T, N> xabs = abs(x);
     constexpr T div      = constants<T>::fold_constant_div;
     vec<T, N> y          = floor(xabs / div);
-    quadrant             = innercast<itype<T>>(innercast<int>(y - floor(y * T(1.0 / 16.0)) * T(16.0)));
+    quadrant             = broadcastto<itype<T>>(broadcastto<int>(y - floor(y * T(1.0 / 16.0)) * T(16.0)));
 
-    const mask<T, N> msk = (quadrant & 1) != 0;
-    quadrant             = kfr::select(msk, quadrant + 1, quadrant);
-    y                    = select(msk, y + T(1.0), y);
-    quadrant             = quadrant & 7;
+    const vec<itype<T>, N> odd = (quadrant & 1);
+    quadrant                   = (quadrant + odd) & itype<T>(7);
+    y                          = y + cast<T>(odd);
 
     constexpr T hi   = constants<T>::fold_constant_hi;
     constexpr T rem1 = constants<T>::fold_constant_rem1;

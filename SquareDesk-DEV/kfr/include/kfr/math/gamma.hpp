@@ -2,7 +2,7 @@
  *  @{
  */
 /*
-  Copyright (C) 2016 D Levin (https://www.kfrlib.com)
+  Copyright (C) 2016-2023 Dan Cazarin (https://www.kfrlib.com)
   This file is part of KFR
 
   KFR is free software: you can redistribute it and/or modify
@@ -39,25 +39,11 @@ KFR_FUNCTION flt_type<T1> gamma(const T1& x)
     return intrinsics::gamma(x);
 }
 
-/// @brief Creates expression that returns the approximate gamma function of an argument
-template <typename E1, KFR_ENABLE_IF(is_input_expression<E1>)>
-KFR_FUNCTION internal::expression_function<fn::gamma, E1> gamma(E1&& x)
-{
-    return { fn::gamma(), std::forward<E1>(x) };
-}
-
 /// @brief Returns the approximate factorial of an argument
 template <typename T1, KFR_ENABLE_IF(is_numeric<T1>)>
 KFR_FUNCTION flt_type<T1> factorial_approx(const T1& x)
 {
     return intrinsics::factorial_approx(x);
-}
-
-/// @brief Creates expression that returns the approximate factorial of an argument
-template <typename E1, KFR_ENABLE_IF(is_input_expression<E1>)>
-KFR_FUNCTION internal::expression_function<fn::factorial_approx, E1> factorial_approx(E1&& x)
-{
-    return { fn::factorial_approx(), std::forward<E1>(x) };
 }
 
 constexpr inline uint64_t factorial_table[21] = {
@@ -87,7 +73,7 @@ constexpr inline uint64_t factorial_table[21] = {
 /// @brief Returns the factorial of an argument. Returns max(uint64_t) if does not fit to uint64_t
 constexpr uint64_t factorial(int n)
 {
-    if (n < 0 || n > 20)
+    if (CMT_LIKELY(n < 0 || n > 20))
         return std::numeric_limits<uint64_t>::max();
     return factorial_table[n];
 }

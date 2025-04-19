@@ -2,7 +2,7 @@
  *  @{
  */
 /*
-  Copyright (C) 2016 D Levin (https://www.kfrlib.com)
+  Copyright (C) 2016-2023 Dan Cazarin (https://www.kfrlib.com)
   This file is part of KFR
 
   KFR is free software: you can redistribute it and/or modify
@@ -39,15 +39,6 @@ template <typename T1, KFR_ENABLE_IF(is_numeric<T1>)>
 KFR_INTRINSIC flt_type<T1> sqrt(const T1& x)
 {
     return intrinsics::sqrt(x);
-}
-
-/**
- * @brief Returns template expression that returns the positive square root of the x. \f$\sqrt{x}\f$
- */
-template <typename E1, KFR_ENABLE_IF(is_input_expression<E1>)>
-KFR_INTRINSIC internal::expression_function<fn::sqrt, E1> sqrt(E1&& x)
-{
-    return { fn::sqrt(), std::forward<E1>(x) };
 }
 } // namespace CMT_ARCH_NAME
 } // namespace kfr

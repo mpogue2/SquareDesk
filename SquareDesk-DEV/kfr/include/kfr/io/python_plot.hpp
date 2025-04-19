@@ -2,7 +2,7 @@
  *  @{
  */
 /*
-  Copyright (C) 2016 D Levin (https://www.kfrlib.com)
+  Copyright (C) 2016-2023 Dan Cazarin (https://www.kfrlib.com)
   This file is part of KFR
 
   KFR is free software: you can redistribute it and/or modify
@@ -50,7 +50,7 @@ void python(const std::string& name, const std::string& code)
     std::string filename;
     {
         char curdir[1024];
-        (void)cross_getcwd(curdir, arraysize(curdir));
+        (void)cross_getcwd(curdir, (int)arraysize(curdir));
         filename = curdir;
     }
 #ifdef CMT_OS_WIN
@@ -69,12 +69,12 @@ void python(const std::string& name, const std::string& code)
 }
 CMT_PRAGMA_GNU(GCC diagnostic pop)
 
-template <typename T, KFR_ENABLE_IF(is_floating_point<T>)>
+template <typename T, KFR_ENABLE_IF(std::is_floating_point_v<T>)>
 inline T flush_to_zero(T value)
 {
     return std::isfinite(value) ? value : 0;
 }
-template <typename T, KFR_ENABLE_IF(!is_floating_point<T>)>
+template <typename T, KFR_ENABLE_IF(!std::is_floating_point_v<T>)>
 inline T flush_to_zero(T value)
 {
     return static_cast<double>(value);
