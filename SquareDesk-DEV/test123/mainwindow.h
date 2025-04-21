@@ -836,6 +836,8 @@ private slots:
 
     void on_actionMove_on_to_Next_Song_triggered();
 
+    void on_actionNew_Dance_triggered();
+
 public:
 
     // BULK operations -----

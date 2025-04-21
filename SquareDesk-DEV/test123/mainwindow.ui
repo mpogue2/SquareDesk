@@ -4555,6 +4555,7 @@
      <addaction name="actionRandomize_3"/>
      <addaction name="actionNone_hex"/>
     </widget>
+    <addaction name="actionNew_Dance"/>
     <addaction name="actionDance"/>
     <addaction name="actionSave_Current_Dance_As_HTML"/>
     <addaction name="separator"/>
@@ -6312,6 +6313,11 @@
    </property>
    <property name="text">
     <string>Tam</string>
+   </property>
+  </action>
+  <action name="actionNew_Dance">
+   <property name="text">
+    <string>New Dance...</string>
    </property>
   </action>
  </widget>

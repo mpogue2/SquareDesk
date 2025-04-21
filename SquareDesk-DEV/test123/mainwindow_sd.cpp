@@ -31,6 +31,7 @@
 #include "ui_mainwindow.h"
 #include "utility.h"
 #include "addcommentdialog.h"
+#include "newdancedialog.h"
 #include <QGraphicsItemGroup>
 #include <QGraphicsTextItem>
 #include <QCoreApplication>
@@ -5508,4 +5509,35 @@ void MainWindow::on_actionPrint_Sequence_triggered()
     QString contents(get_current_sd_sequence_as_html(true, true));
     doc.setHtml(contents);
     doc.print(&printer);
+}
+
+// ----------------------------
+void MainWindow::on_actionNew_Dance_triggered()
+{
+    // ASK THE USER FOR THE NEW COMMENT
+    RecursionGuard dialog_guard(inPreferencesDialog);
+    trapKeypresses = false;
+
+    newDanceDialog *dialog = new newDanceDialog();
+    setDynamicPropertyRecursive(dialog, "theme", currentThemeString);
+
+    dialog->populateFields();
+    int dialogCode = dialog->exec();
+    trapKeypresses = true;
+    QString newDanceName;
+    if (dialogCode == QDialog::Accepted)
+    {
+        newDanceName = dialog->getNewDanceName();
+    } else {
+//        qDebug() << "USER CANCELLED.";
+        return; // user clicked CANCEL
+    }
+    delete dialog;
+    dialog = nullptr;
+
+    // qDebug() << "NEW DANCE NAME:" << newDanceName;
+
+    sdLoadDance(newDanceName);
+
+    actionSwitchToTab("SD"); // and now that the Dance exists, switch to the SD tab to view it
 }

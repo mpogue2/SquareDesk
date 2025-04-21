@@ -83,6 +83,7 @@ SOURCES += main.cpp\
     mainwindow_metadata.cpp \
     mainwindow_themes.cpp \
     miniBPM/MiniBpm.cpp \
+    newdancedialog.cpp \
     playlists.cpp \
     preferencesdialog.cpp \
     choreosequencedialog.cpp \
@@ -164,6 +165,7 @@ HEADERS  += mainwindow.h \
     myslider.h \
     importdialog.h \
     exportdialog.h \
+    newdancedialog.h \
     sessioninfo.h \
     songhistoryexportdialog.h \
     preferencesdialog.h \
@@ -246,6 +248,7 @@ FORMS    += mainwindow.ui \
     addcommentdialog.ui \
     importdialog.ui \
     exportdialog.ui \
+    newdancedialog.ui \
     songhistoryexportdialog.ui \
     choreosequencedialog.ui \
     preferencesdialog.ui \
