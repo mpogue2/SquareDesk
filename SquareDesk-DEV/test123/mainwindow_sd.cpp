@@ -1810,13 +1810,37 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
 
     cmd = cmd.toLower();  // JUST THE CALL portion is lower-cased
 
+    if (cmd.startsWith('"') && cmd.endsWith('"')) { // if starts and ends with double quotes, do not do ANY processing, including abbreviations
+        cmd.removeFirst().removeLast(); // remove double quotes
+
+        // NOTE: This code is duplicated down below.  This is up here for easier debugging.  I know it's duplicated code.
+
+        // qDebug() << "SUBMIT SPECIAL: " << cmd;
+        // NO PROCESSING, BUT ALLOW "Undo"
+        if (sdthread->do_user_input(cmd))
+        {
+            int row = ui->tableWidgetCurrentSequence->rowCount() - 1;
+            if (row < 0) row = 0;
+            if (!cmd.compare(str_undo_last_call, Qt::CaseInsensitive))
+            {
+                sdthread->do_user_input("refresh");
+                sd_redo_stack->did_an_undo();
+            }
+            else
+            {
+                sd_redo_stack->add_command(row, cmd);
+            }
+        }
+        return;
+    }
+
     // Protect "X" from abbreviation expansion, just for the "circle by" case
-    cmd = cmd.replace("circle by ", "CBY ").replace("x 1/4", "by 1/4").replace("x 1/2", "by 1/2").replace("x 2/4", "by 2/4").replace("x 3/4", "by 3/4").replace("x [", "by [");
+    cmd = cmd.replace("circle by ", "CBY ").replace("touch by ", "TBY ").replace("x 1/4", "by 1/4").replace("x 1/2", "by 1/2").replace("x 2/4", "by 2/4").replace("x 3/4", "by 3/4").replace("x [", "by [");
 
     // ***** EXPAND ABBREVIATIONS *****
     cmd = expandAbbreviations(cmd); // TODO: maybe not when read from file, but yes when user input?
 
-    cmd = cmd.replace("by 1/4", "x 1/4").replace("by 1/2", "x 1/2").replace("by 2/4", "x 2/4").replace("by 3/4", "x 3/4").replace("by [", "x [").replace("CBY ", "circle by ");
+    cmd = cmd.replace("by 1/4", "x 1/4").replace("by 1/2", "x 1/2").replace("by 2/4", "x 2/4").replace("by 3/4", "x 3/4").replace("by [", "x [").replace("CBY ", "circle by ").replace("TBY ", "touch by ");
 
     // ==========================================================================================
 
@@ -2073,7 +2097,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
             return;
         }
 
-//        qDebug() << "SUBMIT: " << cmd;
+        // qDebug() << "SUBMIT NORMAL: " << cmd;
         if (sdthread->do_user_input(cmd))
         {
             int row = ui->tableWidgetCurrentSequence->rowCount() - 1;
