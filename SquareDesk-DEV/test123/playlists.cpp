@@ -1579,7 +1579,12 @@ void MainWindow::on_actionPrint_Playlist_triggered()
 // load playlist to palette slot
 
 // ============================================================================================================
-void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString relativePath, bool isPlaylist, QString PlaylistFileName) {
+void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString relativePath,
+                               bool isPlaylist, QString PlaylistFileName, QString theRealPath) {
+
+    // relativePath is relative to the MusicRootPath, and it might be fake (because it was reversed, like Foo Bar - RIV123.mp3,
+    //     we reversed it for presentation
+    // theRealPath is the actual relative path, used to determine whether the file exists or not
 
     // qDebug() << isPlaylist << whichRow << relativePath << PlaylistFileName;
     static QRegularExpression dotMusicSuffix("\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption); // match with music extensions
@@ -1645,7 +1650,16 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
         absPath = relativePath; // SPECIAL HANDLING for items that point into the local Apple Music library
     }
 
-    QFileInfo fi(absPath);
+    QString realPath = absPath;  // the usual case
+    if (theRealPath != "") {
+        // real path specified, so use it to point at the real file
+        realPath = musicRootPath + theRealPath;
+    }
+
+    // DDD(theRealPath)
+
+    // QFileInfo fi(absPath);
+    QFileInfo fi(realPath);
     if (isPlaylist && !fi.exists()) {
         QFont f = title->font();
         f.setStrikeOut(true);
@@ -1912,7 +1926,8 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                 QString s12 = QString("/") + p1;
                 QString categoryName = filepath2SongCategoryName(s12);
                 // DDD(categoryName)
-                QString fakePath = "/" + p1;
+                // QString fakePath = "/" + p1;
+                QString fakePath = "/" + label + " - " + shortTitle;
                 if (!songTypeNamesForCalled.contains(categoryName) &&
                     !songTypeNamesForExtras.contains(categoryName) &&
                     !songTypeNamesForPatter.contains(categoryName) &&
@@ -1921,6 +1936,8 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                     fakePath = "/xtras" + fakePath;
                 }
                 // DDD(fakePath)
+                // DDD(label)
+                // DDD(shortTitle)
                 // setTitleField(theTableWidget, songCount-1, "/" + p1, false, PlaylistFileName); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
                 setTitleField(theTableWidget, songCount-1, fakePath, false, PlaylistFileName); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
 
@@ -2184,8 +2201,42 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                     if (list1[0].startsWith("/Users/")) {
                         absPath = list1[0]; // override for absolute pathnames
                     }
+                    // DDD(list1[0])
+
+                    QFileInfo fi(list1[0]);
+                    QString theBaseName = fi.completeBaseName();
+                    QString theSuffix = fi.suffix();
+
+                    QString theLabel, theLabelNum, theLabelNumExtra, theTitle, theShortTitle;
+                    breakFilenameIntoParts(theBaseName, theLabel, theLabelNum, theLabelNumExtra, theTitle, theShortTitle);
+
+                    // DDD(theBaseName)
+                    // DDD(theLabel)
+                    // DDD(theLabelNum)
+                    // DDD(theLabelNumExtra)
+                    // DDD(theTitle)
+                    // DDD(theShortTitle)
+
+                    // // check to see if it needs to be colored like "/xtras"
+                    QString categoryName = filepath2SongCategoryName(fi.absolutePath());
+                    // DDD(categoryName)
+                    if (!songTypeNamesForCalled.contains(categoryName) &&
+                        !songTypeNamesForExtras.contains(categoryName) &&
+                        !songTypeNamesForPatter.contains(categoryName) &&
+                        !songTypeNamesForSinging.contains(categoryName)
+                        ) {
+                        categoryName = "xtras";
+                    }
+                    // DDD(categoryName)
+                    // DDD(fi.absolutePath())
+
+                    QString theFakePath = "/" + categoryName + "/" + theLabel + " " + theLabelNum + " - " + theTitle + "." + theSuffix;
+                    // DDD(theFakePath)
+                    // DDD(PlaylistFileName)
+
                     // qDebug() << "loading playlist:" << list1[0] << PlaylistFileName;
-                    setTitleField(theTableWidget, songCount-1, list1[0], true, PlaylistFileName); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
+                    // setTitleField(theTableWidget, songCount-1, list1[0], true, PlaylistFileName); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
+                    setTitleField(theTableWidget, songCount-1, theFakePath, true, PlaylistFileName, list1[0]); // list1[0] points at the file, theFakePath might have been reversed, e.g. Foo - RIV123.mp3
 
                     // PITCH column
                     QTableWidgetItem *pit = new QTableWidgetItem(list1[1]);

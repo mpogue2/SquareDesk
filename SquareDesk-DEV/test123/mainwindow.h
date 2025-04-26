@@ -1281,7 +1281,8 @@ private:
 public:
 
     void darkPaletteTitleLabelDoubleClicked(QMouseEvent *e);
-    void setTitleField(QTableWidget *whichTable, int whichRow, QString fullPath, bool isPlaylist, QString PlaylistFileName);
+    void setTitleField(QTableWidget *whichTable, int whichRow, QString fullPath,
+                       bool isPlaylist, QString PlaylistFileName, QString theRealPath = "");
 
     // Key actions:
 #define KEYACTION(NAME, STRNAME, ACTION) friend class KeyAction##NAME;

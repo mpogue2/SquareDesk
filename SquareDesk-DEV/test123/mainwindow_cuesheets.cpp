@@ -108,6 +108,7 @@ bool MainWindow::breakFilenameIntoParts(const QString &s,
                                         QString &labelnum_extra,
                                         QString &title, QString &shortTitle )
 {
+    // DDD(s)
     bool foundParts = true;
     int match_num = 0;
     struct FilenameMatchers *matches = getFilenameMatchersForType(songFilenameFormat);
