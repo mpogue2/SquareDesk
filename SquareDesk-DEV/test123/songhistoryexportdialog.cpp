@@ -22,13 +22,14 @@
 ** $SQUAREDESK_END_LICENSE$
 **
 ****************************************************************************/
+#include <QLocale>
 
 #include "songhistoryexportdialog.h"
 #include "ui_songhistoryexportdialog.h"
 #include "QFileDialog"
 #include "songsettings.h"
 #include "sessioninfo.h"
-//#include "utility.h"
+#include "globaldefines.h"
 
 SongHistoryExportDialog::SongHistoryExportDialog(QWidget *parent) :
     QDialog(parent),
@@ -64,11 +65,25 @@ void SongHistoryExportDialog::populateOptions(SongSettings &songSettings)
     QDateTime yesterday = now.addDays(-1);
     
     ui->dateTimeEditEnd->setDateTime(now);
-    ui->dateTimeEditEnd->setDisplayFormat("MM/dd/yyyy HH:mm ap"); // work around bug: changing 25 to 24 results in 1924
+    // ui->dateTimeEditEnd->setDisplayFormat("MM/dd/yyyy HH:mm ap"); // work around bug: changing 25 to 24 results in 1924
 
     ui->dateTimeEditStart->setDateTime(yesterday);
-    ui->dateTimeEditStart->setDisplayFormat("MM/dd/yyyy HH:mm ap"); // work around bug: changing 25 to 24 results in 1924
-    
+    // ui->dateTimeEditStart->setDisplayFormat("MM/dd/yyyy HH:mm ap"); // work around bug: changing 25 to 24 results in 1924
+
+    // -------------------
+    // Get the current system locale
+    QLocale locale = QLocale::system();
+
+    // Set the display format based on the locale's date and time formats
+    QString dateFormat = locale.dateFormat(QLocale::ShortFormat);
+    QString timeFormat = locale.timeFormat(QLocale::ShortFormat);
+    QString dateTimeFormat = dateFormat + " " + timeFormat;
+
+    // Apply the format to the widget
+    ui->dateTimeEditStart->setDisplayFormat(dateTimeFormat);
+    ui->dateTimeEditEnd->setDisplayFormat(dateTimeFormat);
+    // -------------------
+
     QList<SessionInfo> sessions(songSettings.getSessionInfo());
     ui->comboBoxSession->clear();
     ui->comboBoxSession->addItem("<all sessions>", 0);
@@ -116,7 +131,7 @@ public:
 
 QString SongHistoryExportDialog::exportSongPlayData(SongSettings &settings, QString lastSaveDir)
 {
-    QString dateFormat1("yyyy-MM-dd");
+    QString dateFormat1("yyyy.MM.dd");
     QString startDate1 = ui->dateTimeEditStart->dateTime().toString(dateFormat1);
 
     QString saveDir = lastSaveDir;
@@ -142,6 +157,9 @@ QString SongHistoryExportDialog::exportSongPlayData(SongSettings &settings, QStr
         QString dateFormat("yyyy-MM-dd HH:mm:ss.sss");
         QString startDate = ui->dateTimeEditStart->dateTime().toUTC().toString(dateFormat);
         QString endDate = ui->dateTimeEditEnd->dateTime().toUTC().toString(dateFormat);
+
+        // DDD(startDate)
+        // DDD(endDate)
 
         bool omitStartDate = ui->checkBoxOmitStart->isChecked();
         bool omitEndDate = ui->checkBoxOmitEnd->isChecked();
