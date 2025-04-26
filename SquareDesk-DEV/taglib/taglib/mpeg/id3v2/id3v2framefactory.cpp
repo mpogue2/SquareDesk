@@ -488,8 +488,8 @@ bool FrameFactory::updateFrame(Frame::Header *header) const
        frameID == "TSI" ||
        frameID == "TDA")
     {
-      debug("ID3v2.4 no longer supports the frame type " + String(frameID) +
-            ".  It will be discarded from the tag.");
+      // debug("ID3v2.4 no longer supports the frame type " + String(frameID) +
+      //       ".  It will be discarded from the tag.");
       return false;
     }
 
@@ -515,8 +515,8 @@ bool FrameFactory::updateFrame(Frame::Header *header) const
        frameID == "TSIZ" ||
        frameID == "TDAT")
     {
-      debug("ID3v2.4 no longer supports the frame type " + String(frameID) +
-            ".  It will be discarded from the tag.");
+      // debug("ID3v2.4 no longer supports the frame type " + String(frameID) +
+      //       ".  It will be discarded from the tag.");
       return false;
     }
 
