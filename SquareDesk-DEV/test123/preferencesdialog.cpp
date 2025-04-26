@@ -498,14 +498,26 @@ void PreferencesDialog::setHotkeys(QHash<QString, KeyAction *> keyActions)
 static QComboBox *weekSelectionComboBox()
 {
     QComboBox *comboDay = new QComboBox();
-    comboDay->addItem("<none>", 0);
-    comboDay->addItem("Monday", 1);
-    comboDay->addItem("Tuesday", 2);
-    comboDay->addItem("Wednesday", 3);
-    comboDay->addItem("Thursday", 4);
-    comboDay->addItem("Friday", 5);
-    comboDay->addItem("Saturday", 6);
-    comboDay->addItem("Sunday", 7);
+
+    comboDay->addItem("<none>", 0);  // note that this is not localized
+
+    // comboDay->addItem("Monday", 1);
+    // comboDay->addItem("Tuesday", 2);
+    // comboDay->addItem("Wednesday", 3);
+    // comboDay->addItem("Thursday", 4);
+    // comboDay->addItem("Friday", 5);
+    // comboDay->addItem("Saturday", 6);
+    // comboDay->addItem("Sunday", 7);
+
+    QLocale locale = QLocale::system(); // Use system locale, or specify one like QLocale("fr_FR")
+
+    // Get day names, starting with Monday
+    for (int i = 1; i <= 7; i++) {
+        // Get long format (Monday, Tuesday, etc.)
+        QString longName = locale.dayName(i, QLocale::LongFormat);
+        comboDay->addItem(longName, i); // populate dropdown menu with localized names for the days of the week
+    }
+
     return comboDay;
 }
 
@@ -514,7 +526,18 @@ static QTimeEdit *timeSelectionControl(int start_minutes)
 {
     QTimeEdit *timeEdit = new QTimeEdit(QTime((int)(start_minutes / 60),
                                               start_minutes % 60));
-    timeEdit->setDisplayFormat("h:mm AP");
+
+    // NEW: use the locale to set the timeEdit displayFormat
+    // Get the current system locale
+    QLocale locale = QLocale::system();
+
+    // Set the display format based on the locale's date and time formats
+    QString timeFormat = locale.timeFormat(QLocale::ShortFormat);
+
+    // Apply the format to the widget
+    timeEdit->setDisplayFormat(timeFormat);
+
+    // timeEdit->setDisplayFormat("h:mm AP");
     return timeEdit;
 }
 
