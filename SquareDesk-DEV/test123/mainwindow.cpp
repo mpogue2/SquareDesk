@@ -5544,9 +5544,43 @@ bool MainWindow::someWebViewHasFocus() {
 // http://www.codeprogress.com/cpp/libraries/qt/showQtExample.php?key=QApplicationInstallEventFilter&index=188
 bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 {
-    if (Event->type() == QEvent::KeyPress) {
+    if (Event->type() == QEvent::KeyRelease) {
         QKeyEvent *KeyEvent = dynamic_cast<QKeyEvent *>(Event);
         int theKey = KeyEvent->key();
+
+        MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
+        if (maybeMainWindow == nullptr) {
+            // if the PreferencesDialog is open, for example, do not dereference the NULL pointer (duh!).
+//            qDebug() << "QObject::eventFilter()";
+            return QObject::eventFilter(Object,Event);
+        }
+
+        // Qt::ControlModifier == CMD on MacOS
+        // Qt::AltModifier     == OPT on MacOS
+        // Qt::ShiftModifier   == SHIFT on MacOS
+
+        // qDebug() << "Release: " << theKey << KeyEvent->nativeVirtualKey() << KeyEvent->nativeScanCode();
+
+        if (maybeMainWindow->auditionPlaying && (KeyEvent->modifiers() & Qt::AltModifier)) {
+            // qDebug() << "KeyRelease OPTION stopped Audition playback";
+            maybeMainWindow->auditionPlaying = false;
+            maybeMainWindow->auditionByKeyRelease(); // stop audition playback
+            return true;
+        }
+
+        if (maybeMainWindow->auditionPlaying && theKey == Qt::Key_Slash) {
+            // qDebug() << "KeyRelease SLASH stopped Audition playback";
+            maybeMainWindow->auditionPlaying = false;
+            maybeMainWindow->auditionByKeyRelease(); // stop audition playback
+            return true;
+        }
+
+    } else if (Event->type() == QEvent::KeyPress) {
+
+        QKeyEvent *KeyEvent = dynamic_cast<QKeyEvent *>(Event);
+        int theKey = KeyEvent->key();
+
+        // qDebug() << "Press: " << theKey << KeyEvent->nativeVirtualKey() << KeyEvent->nativeScanCode();
 
         // qDebug() << "eventFilter: theKey is " << theKey;
         MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
@@ -5554,6 +5588,19 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             // if the PreferencesDialog is open, for example, do not dereference the NULL pointer (duh!).
 //            qDebug() << "QObject::eventFilter()";
             return QObject::eventFilter(Object,Event);
+        }
+
+        // special handling for OPT-Slash, which is AUDITION HIGHLIGHTED ITEM
+        if (theKey == Qt::Key_Slash) {
+            if (KeyEvent->isAutoRepeat()) {
+                return true;  // ignore auto-repeated slashes
+            } else if ((KeyEvent->modifiers() & Qt::AltModifier) && !(KeyEvent->modifiers() & Qt::ControlModifier)) {
+                // qDebug() << "KeyPress OPTION Slash started Audition playback";
+                maybeMainWindow->auditionPlaying = true;
+                maybeMainWindow->auditionByKeyPress(); // start audition playback
+                return true;  // was exactly OPT-SLASH.
+            }
+            // else do regular processing with /, e.g. CMD-/, CMD-SHIFT-/, CMD-OPT-/
         }
 
 //        qDebug() << "Key event: " << KeyEvent->key() << KeyEvent->modifiers() << ui->tableWidgetCurrentSequence->hasFocus();
@@ -8341,6 +8388,9 @@ void MainWindow::darkTitleLabelDoubleClicked(QMouseEvent * /* event */)
 
 void MainWindow::on_actionClear_Search_triggered()
 {
+    ui->darkSearch->setText("");
+    ui->darkSearch->setFocus();  // When Clear Search is clicked (or ESC ESC), set focus to the darkSearch field, so that UP/DOWN works
+
     // on_clearSearchButton_clicked();
 }
 
@@ -13168,3 +13218,67 @@ void MainWindow::on_actionMove_on_to_Next_Song_triggered()
     on_actionNext_Playlist_Item_triggered();
 }
 
+void MainWindow::auditionByKeyPress(void) {
+    // qDebug() << "***** auditionByKeyPress";
+
+    QModelIndexList list1 = ui->playlist1Table->selectionModel()->selectedRows();
+    QList<int> rowsPaletteSlot1;
+    foreach (const QModelIndex &m, list1) {
+        rowsPaletteSlot1.append(m.row());
+    }
+
+    QModelIndexList list2 = ui->playlist2Table->selectionModel()->selectedRows();
+    QList<int> rowsPaletteSlot2;
+    foreach (const QModelIndex &m, list2) {
+        rowsPaletteSlot2.append(m.row());
+    }
+
+    QModelIndexList list3 = ui->playlist3Table->selectionModel()->selectedRows();
+    QList<int> rowsPaletteSlot3;
+    foreach (const QModelIndex &m, list3) {
+        rowsPaletteSlot3.append(m.row());
+    }
+
+    QModelIndexList list4 = ui->darkSongTable->selectionModel()->selectedRows();
+    QList<int> rowsDarkSongTable;
+    foreach (const QModelIndex &m, list4) {
+        rowsDarkSongTable.append(m.row());
+    }
+
+    // qDebug() << rowsDarkSongTable.count() << rowsPaletteSlot1.count() << rowsPaletteSlot2.count() << rowsPaletteSlot3.count();
+
+    QString auditionSongFilePath = "";
+
+    if (rowsDarkSongTable.count() >= 1) {
+        auditionInProgress = true;
+        int row = list4.at(0).row();
+        auditionSongFilePath = this->ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+    } else if (rowsPaletteSlot1.count() >= 1) {
+        int row = list1.at(0).row();
+        auditionSongFilePath = ui->playlist1Table->item(row,4)->text();
+    } else if (rowsPaletteSlot2.count() >= 1) {
+        int row = list2.at(0).row();
+        auditionSongFilePath = ui->playlist2Table->item(row,4)->text();
+    } else if (rowsPaletteSlot3.count() >= 1) {
+        int row = list3.at(0).row();
+        auditionSongFilePath = ui->playlist3Table->item(row,4)->text();
+    } else {
+        return;  // nothing was selected, so nothing to do
+    }
+    // qDebug() << "selection = auditionSongFilePath:" << auditionSongFilePath;
+
+    auditionInProgress = true;
+    // qDebug() << "setting auditionInProgress to true";
+
+    this->auditionPlayer.setSource(QUrl::fromLocalFile(auditionSongFilePath));
+    QAudioOutput *audioOutput = new QAudioOutput; // always update the output device, based on the CURRENT default audio device
+    this->auditionPlayer.setAudioOutput(audioOutput);
+    this->auditionPlayer.play();
+}
+
+void MainWindow::auditionByKeyRelease(void) {
+    // qDebug() << "***** auditionByKeyRelease";
+
+    this->auditionPlayer.stop();
+    auditionInProgress = false;
+}

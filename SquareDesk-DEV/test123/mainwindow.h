@@ -247,6 +247,10 @@ public:
 
 //    double songLoadedReplayGain_dB;
 
+    bool auditionPlaying = false;
+    void auditionByKeyPress(void);
+    void auditionByKeyRelease(void);
+
     QString currentThemeString;
     bool mainWindowReady = false;
 
