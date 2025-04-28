@@ -1179,16 +1179,23 @@ void MainWindow::saveLyricsAs()
         lastCuesheetSavePath = musicRootPath + "/lyrics";
     }
 
-    loadedCuesheetNameWithPath = lastCuesheetSavePath + "/" + fi.baseName() + ".html";
+    loadedCuesheetNameWithPath = lastCuesheetSavePath + "/" + fi.baseName().replace(QRegularExpression("\\(.*\\)"),"").simplified() + ".html";
 
     QString maybeFilename = loadedCuesheetNameWithPath;
     QFileInfo fi2(loadedCuesheetNameWithPath);
+
+    // qDebug() << "loadedCuesheetNameWithPath: " << loadedCuesheetNameWithPath;
+
     if (fi2.exists()) {
+        // qDebug() << "fi2 exists!";
+
         // choose the next name in the series (this won't be done, if we came from a template)
         QString cuesheetExt = loadedCuesheetNameWithPath.split(".").last();
         QString cuesheetBase = loadedCuesheetNameWithPath
-                .replace(QRegularExpression(cuesheetExt + "$"),"")  // remove extension, e.g. ".html"
-                .replace(QRegularExpression("[0-9]+\\.$"),"");      // remove .<number>, e.g. ".2"
+                .replace(QRegularExpression(cuesheetExt + "$"),"") // remove extension, e.g. ".html"
+                .replace(QRegularExpression("[0-9]+\\.$"),"")      // remove .<number>, e.g. ".2"
+                .replace(QRegularExpression("\\(.*\\)"),"")        // remove parens, e.g. AAA 123 - Foo Bar (NM).mp3
+                .simplified();                                     // trim and consolidate whitespace
 
         // find an appropriate not-already-used filename to save to
         bool done = false;
