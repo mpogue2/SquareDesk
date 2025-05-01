@@ -6,6 +6,10 @@ a cuesheet editor, and a powerful graphical version of the SD checker mover prog
 And, SquareDesk is under an Open Source license, so any programmer can modify
 SquareDesk itself to add cool new features or fix bugs!
 
+# How to get it
+Check out the Quick Reference Manual, that has info on how to get started!
+https://github.com/mpogue2/SquareDesk/wiki/SquareDesk-Quick-Reference-Manual
+
 # Music playback tab
 The MUSIC tab is the main tab for playback of MP3 files.  Automatic
 timers mean that you don't have to remember to press a Start Timer button!
@@ -45,7 +49,3 @@ calling").
 DARK MODE:
 
 ![SD](https://mpogue2.github.io/images/sd_DARK.png)
-
-LIGHT MODE:
-
-![SD](https://mpogue2.github.io/images/sd.png)
