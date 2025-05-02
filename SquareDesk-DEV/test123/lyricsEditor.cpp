@@ -124,6 +124,8 @@ void MainWindow::showHTML(QString fromWhere) {
     qDebug() << "***** showHTML(" << fromWhere << "):\n";
 
     QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
+    qDebug().noquote() << "***** NON-processed HTML is:\n" << editedCuesheet;
+
     QString pEditedCuesheet = postProcessHTMLtoSemanticHTML(editedCuesheet);
     qDebug().noquote() << "***** Post-processed HTML will be:\n" << pEditedCuesheet;
 }
@@ -984,7 +986,7 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     return(cuesheet3);
 }
 
-void MainWindow::maybeLoadCSSfileIntoTextBrowser() {
+void MainWindow::maybeLoadCSSfileIntoTextBrowser(bool useSquareDeskCSS) {
     // // makes the /lyrics directory, if it doesn't exist already
     // QString musicDirPath = prefsManager.GetmusicPath();
     // QString lyricsDir = musicDirPath + "/lyrics";
@@ -1005,7 +1007,12 @@ void MainWindow::maybeLoadCSSfileIntoTextBrowser() {
                   ".lyrics       { font-size: large;   font-weight: Normal; color: #030303; background-color: #FFC0CB;}\n"
                   ".bold         { font-weight: bold; }\n"
                   ".italic       { font-style: italic; }";
-    ui->textBrowserCueSheet->document()->setDefaultStyleSheet(css);
+
+    if (useSquareDeskCSS) {
+        ui->textBrowserCueSheet->document()->setDefaultStyleSheet(css);
+    } else {
+        ui->textBrowserCueSheet->document()->setDefaultStyleSheet(QString(""));  // clear out the CSS, not OUR HTML, perhaps MS Word
+    }
 }
 
 // Convert .txt file to .html string -------------------
@@ -1044,6 +1051,7 @@ void MainWindow::loadCuesheet(const QString cuesheetFilename)
         cueSheetLoaded = true;
         loadedCuesheetNameWithPath = cuesheetFilename;
         f1.close();
+        maybeLoadCSSfileIntoTextBrowser(true); // for .txt files, yes use the SquareDesk CSS
     }
     else if (cuesheetFilename.endsWith(".mp3", Qt::CaseInsensitive)) {
         // lyrics embedded in an MP3 file -------------
@@ -1054,16 +1062,20 @@ void MainWindow::loadCuesheet(const QString cuesheetFilename)
             ui->textBrowserCueSheet->setHtml(html);
             loadedCuesheetNameWithPath = cuesheetFilename;
             cueSheetLoaded = true;
+            maybeLoadCSSfileIntoTextBrowser(false); // for MP3 USLT lyrics, use its embedded CSS, if any
         }
     } else {
         // regular HTML cuesheet -------------
         QFile f1(cuesheetFilename);
+
+        // qDebug() << "READING: " << cuesheetFilename;
+
         QString cuesheet;
         if ( f1.open(QIODevice::ReadOnly | QIODevice::Text)) {
             QTextStream in(&f1);
             cuesheet = in.readAll();  // read the entire HTML file, assuming it exists
 
-//            qDebug() << "============ Cuesheet ===============\n" << cuesheet;
+            // qDebug() << "============ Cuesheet ===============\n" << cuesheet;
 
             cuesheet.replace("\xB4","'");  // replace wacky apostrophe, which doesn't display well in QEditText
 
@@ -1074,6 +1086,11 @@ void MainWindow::loadCuesheet(const QString cuesheetFilename)
             QRegularExpressionMatch match1;
             bool containsSquareDeskVersion = cuesheet.contains(QRegularExpression("<!-- squaredesk:version = (\\d+.\\d+.\\d+) -->"), &match1);
             Q_UNUSED(containsSquareDeskVersion)
+
+            bool containsMicrosoftHTML = cuesheet.contains("schemas-microsoft-com");
+
+            maybeLoadCSSfileIntoTextBrowser(!containsMicrosoftHTML); // turn SquareDesk CSS OFF for MS WORD HTML files
+
             cuesheetSquareDeskVersion = match1.captured(1);
 //            qDebug() << "contains: " << containsSquareDeskVersion << match1.captured(1);
 
@@ -1082,7 +1099,8 @@ void MainWindow::loadCuesheet(const QString cuesheetFilename)
             cueSheetLoaded = true;
             loadedCuesheetNameWithPath = cuesheetFilename;
             f1.close();
-//            showHTML(__FUNCTION__);  // DEBUG DEBUG DEBUG
+
+            // showHTML(__FUNCTION__);  // DEBUG DEBUG DEBUG
         } else {
             cueSheetLoaded = false;
             loadedCuesheetNameWithPath = cuesheetFilename;

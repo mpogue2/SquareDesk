@@ -1044,7 +1044,7 @@ private:
     void loadMP3File(QString filepath, QString songTitle, QString songCategory, QString songLabel, QString nextFilename="");
     void secondHalfOfLoad(QString songTitle);  // after we have duration and BPM, execute this
 
-    void maybeLoadCSSfileIntoTextBrowser();
+    void maybeLoadCSSfileIntoTextBrowser(bool useSquareDeskCSS);
     void loadCuesheet(const QString cuesheetFilename);
     bool loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet = QString(), QString nextFilename="");
     void findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets);

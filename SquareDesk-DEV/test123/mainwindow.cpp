@@ -1284,7 +1284,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    maybeLoadCSSfileIntoTextBrowser();
+    maybeLoadCSSfileIntoTextBrowser(true);
 
     t.elapsed(__LINE__);
 
