@@ -829,6 +829,7 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     cuesheet3.replace(QRegularExpression("<br />[\\s\n]*</span>", QRegularExpression::CaseInsensitiveOption), "<BR></span>");
     cuesheet3.replace(QRegularExpression("white-space: pre-wrap;"), "white-space:normal;");  // messes up line spacing
     cuesheet3.replace("<BR/><", "<BR>\n    <");
+    cuesheet3.replace("<BR><", "<BR>\n    <");
     cuesheet3.replace("<br />", "<BR>");
 //    cuesheet3.replace("<P>\n", "");   // there is only one of these, and it's not needed.
 //    cuesheet3.replace("</p>", "");  // there is only one of these, and it's not needed.
@@ -889,6 +890,9 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     cuesheet3.replace("</style>", "\n</STYLE>");
     cuesheet3.replace("</span>", "</SPAN>");
 
+    cuesheet3.replace("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">",
+                      "<!DOCTYPE html>");  // get rid of old style, replace with new style for better W3 compliance
+
     cuesheet3.replace(QRegularExpression("<STYLE type=\"text/css\">.*</STYLE>", QRegularExpression::InvertedGreedinessOption | QRegularExpression::DotMatchesEverythingOption), "");  // delete entire STYLE section
 
     // multi-step replacement
@@ -926,9 +930,11 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     QRegularExpressionMatch match2;
     QRegularExpression oldTitle("<TITLE>(.*)</TITLE>", QRegularExpression::DotMatchesEverythingOption);
     bool b2 = cuesheet3.contains(oldTitle, &match2);
-//    if (b2) {
-//        qDebug() << "Found TITLE: " << match2.captured(1);
-//    }
+   if (b2) {
+       // qDebug() << "Found TITLE: " << match2.captured(1);
+       cuesheet3.replace("<TITLE>", "<META charset=\"UTF-8\">\n    <TITLE>");  // W3 likes to see a character encoding
+                                                                           //  should be only 1 in the whole document
+   }
 
     QString userTitle;
     QRegularExpressionMatch match3;

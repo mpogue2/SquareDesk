@@ -143,14 +143,14 @@ void ConclusionMakeFlashDrivePage::initializePage()
 {
     QString confirmText;
     QString volName = field("destinationVolume").toString();
-    confirmText = QString("<b>Flash drive to copy to:</b> '%1'<br/><br/>").arg(volName);
+    confirmText = QString("<b>Flash drive to copy to:</b> '%1'<BR><BR>").arg(volName);
     confirmText += "\n<b>Folder to create:</b>";
-    confirmText += QString("     /Volumes/%1/SquareDesk<br/><br/>").arg(volName);
-    confirmText += "\n<b>Items to copy:</b><br/>";
-    confirmText += QString("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;Music Directory&gt; --> /Volumes/%1/SquareDesk/&lt;Music Directory&gt;<br/>").arg(volName);
-    confirmText += QString("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SquareDesk Application  --> /Volumes/%1/SquareDesk/SquareDesk.app<br/><br/>").arg(volName);
+    confirmText += QString("     /Volumes/%1/SquareDesk<BR><BR>").arg(volName);
+    confirmText += "\n<b>Items to copy:</b><BR>";
+    confirmText += QString("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;Music Directory&gt; --> /Volumes/%1/SquareDesk/&lt;Music Directory&gt;<BR>").arg(volName);
+    confirmText += QString("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SquareDesk Application  --> /Volumes/%1/SquareDesk/SquareDesk.app<BR><BR>").arg(volName);
 
-    confirmText += "NOTE: To save time, only those files which do not already exist on the destination drive will be copied.<br/><br/>";
+    confirmText += "NOTE: To save time, only those files which do not already exist on the destination drive will be copied.<BR><BR>";
 
 #if defined(Q_OS_MAC) | defined(Q_OS_LINUX)
     confirmText += "Make sure there is enough space on the flash drive, and then click Done to start copying.";
