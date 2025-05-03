@@ -303,7 +303,7 @@ static void setSelectedTextToClass(QTextEdit *editor, QString blockClass)
             cursor.removeSelectedText();
             QString newText = "<SPAN class=\"" + blockClass + "\">" + selectedText.toHtmlEscaped() + "</SPAN>";
 //            qDebug() << "newText before: " << newText;
-            newText = newText.replace(QChar(0x2028),"</SPAN><BR/><SPAN class=\"" + blockClass + "\">");  // 0x2028 = Unicode Line Separator
+            newText = newText.replace(QChar(0x2028),"</SPAN><BR><SPAN class=\"" + blockClass + "\">");  // 0x2028 = Unicode Line Separator
 //            qDebug() << "newText after: " << newText;
             cursor.insertHtml(newText);
             cursor.endEditBlock(); // end of grouping for UNDO purposes
@@ -826,10 +826,10 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
 
     // <BR/> --> <BR/>\n for readability --------
     cuesheet3.replace("<br />", "<br />\n    ");
-    cuesheet3.replace(QRegularExpression("<br />[\\s\n]*</span>", QRegularExpression::CaseInsensitiveOption), "<BR/></span>");
+    cuesheet3.replace(QRegularExpression("<br />[\\s\n]*</span>", QRegularExpression::CaseInsensitiveOption), "<BR></span>");
     cuesheet3.replace(QRegularExpression("white-space: pre-wrap;"), "white-space:normal;");  // messes up line spacing
-    cuesheet3.replace("<BR/><", "<BR/>\n    <");
-    cuesheet3.replace("<br />", "<BR/>");
+    cuesheet3.replace("<BR/><", "<BR>\n    <");
+    cuesheet3.replace("<br />", "<BR>");
 //    cuesheet3.replace("<P>\n", "");   // there is only one of these, and it's not needed.
 //    cuesheet3.replace("</p>", "");  // there is only one of these, and it's not needed.
 
@@ -854,9 +854,9 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     QRegularExpression spanRegExp("<span>(.*)</span>", QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption);
     cuesheet3.replace(spanRegExp,"\\1");  // don't be greedy, and replace <span>anything</span> with anything.  This gets rid of the crappy color:#000000 stuff.
 
-    // <p style="-qt-paragraph-type:empty;        font-size:large; color:#000000; background-color:#ffffe0;"><BR/></p>
-    // <p style="-qt-paragraph-type:empty;       font-size:large; color:#000000;"><BR/>    </p>
-    // <p style="-qt-paragraph-type:empty;      "><BR/>   </p>
+    // <p style="-qt-paragraph-type:empty;        font-size:large; color:#000000; background-color:#ffffe0;"><BR></p>
+    // <p style="-qt-paragraph-type:empty;       font-size:large; color:#000000;"><BR>    </p>
+    // <p style="-qt-paragraph-type:empty;      "><BR>   </p>
     // <p style="-qt-paragraph-type:empty;        font-family:'Verdana'; font-size:large; color:#000000;">
     // <p style="-qt-paragraph-type:empty;        font-size:25pt; color:#000000; background-color:#ffffe0;">
     cuesheet3.replace("font-family:'Verdana';", ""); // this is specified elsewhere
@@ -911,16 +911,16 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     // TODO: get rid of these, use body: <SPAN style="font-family:'Verdana'; font-size:large; color:#000000;">
 
     QRegularExpression P2BRRegExp("<p>(.*)</p>", QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption);
-    cuesheet3.replace(P2BRRegExp,"\\1<BR/>");  // don't be greedy, and replace the unneeded <P>...</P>
-    QRegularExpression BRTableRegExp("<BR/>[\\s\n]*(</?t[ard])", QRegularExpression::CaseInsensitiveOption);
-    cuesheet3.replace(BRTableRegExp,"\\1");  // replace the unneeded <BR/> before <table or <td or <tr
-    cuesheet3.replace("<BR/>\n    \n", "<BR/>\n");
-    cuesheet3.replace("<BR/>\n\n", "<BR/>\n");
+    cuesheet3.replace(P2BRRegExp,"\\1<BR>");  // don't be greedy, and replace the unneeded <P>...</P>
+    QRegularExpression BRTableRegExp("<BR>[\\s\n]*(</?t[ard])", QRegularExpression::CaseInsensitiveOption);
+    cuesheet3.replace(BRTableRegExp,"\\1");  // replace the unneeded <BR> before <table or <td or <tr
+    cuesheet3.replace("<BR>\n    \n", "<BR>\n");
+    cuesheet3.replace("<BR>\n\n", "<BR>\n");
     cuesheet3.replace("<BODY>\n\n", "<BODY>\n");
 
     cuesheet3.replace("<SPAN class=\"hdr\">", "\n    <SPAN class=\"hdr\">"); // a little extra space to make it easier to read
-    cuesheet3.replace("    <BR/>\n</BODY>", "</BODY>"); // cleanup on aisle 7
-    cuesheet3.replace("<BR/>\n</BODY>", "\n</BODY>"); // get rid of that last NL-equivalent at the end of the file (is this OK?)
+    cuesheet3.replace("    <BR>\n</BODY>", "</BODY>"); // cleanup on aisle 7
+    cuesheet3.replace("<BR>\n</BODY>", "\n</BODY>"); // get rid of that last NL-equivalent at the end of the file (is this OK?)
 
     // Let's update the TITLE
     QRegularExpressionMatch match2;
@@ -1023,7 +1023,7 @@ QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
     QString css = getResourceFile("cuesheet2.css");
 
     text = text.toHtmlEscaped();  // convert ">" to "&gt;" etc
-    text = text.replace(QRegularExpression("[\r|\n]"),"<br/>\n");
+    text = text.replace(QRegularExpression("[\r|\n]"),"<BR>\n");
 
     QString HTML;
     HTML += "<HTML>\n";

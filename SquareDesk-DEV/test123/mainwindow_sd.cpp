@@ -1292,7 +1292,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 }
                 if (!callTiming.isEmpty())
                 {
-//                    lastCall += "\n<BR/><small>&nbsp;&nbsp;" + callTiming + "</small>";
+//                    lastCall += "\n<BR><small>&nbsp;&nbsp;" + callTiming + "</small>";
                 }
                 QLabel *moveLabel(new SDSequenceCallLabel(this));
 //                moveLabel->setTextFormat(Qt::RichText);
@@ -2917,7 +2917,7 @@ QString MainWindow::render_image_item_as_html(QTableWidgetItem *imageItem, QGrap
                 }
                 svgText.seek(0);
                 QString s(svgText.readAll());
-                selection += "<BR/>" + s;
+                selection += "<BR>" + s;
             }
         }
     }
@@ -5440,7 +5440,7 @@ void MainWindow::on_actionSave_Current_Dance_As_HTML_triggered()
 
         QString newVersionString = QString("<!-- squaredesk:version = ") + QString(VERSIONSTRING) + QString(" -->");
 
-        stream << "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n\n";
+        stream << "<!DOCTYPE html>\n\n";
         stream << "<HTML>\n";
         stream << "    <HEAD> " + newVersionString + "\n";
         stream << "    <TITLE> " + frameName + "</TITLE>\n";
