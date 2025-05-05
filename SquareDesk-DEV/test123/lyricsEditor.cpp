@@ -1249,86 +1249,89 @@ void MainWindow::saveLyricsAs()
     }
 }
 
-// Automatically format a cuesheet:
-void MainWindow::on_actionAuto_format_Lyrics_triggered()
-{
-    qDebug() << "AUTO FORMAT CUESHEET";
+// // Automatically format a cuesheet:
+// void MainWindow::on_actionAuto_format_Lyrics_triggered()
+// {
+//     qDebug() << "AUTO FORMAT CUESHEET";
 
-    SelectionRetainer retainer(ui->textBrowserCueSheet);
-    QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
+//     SelectionRetainer retainer(ui->textBrowserCueSheet);
+//     QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
 
-    // now look at it as HTML
-    QString selected = cursor.selection().toHtml();
-//    qDebug() << "***** STEP 1 *****\n" << selected << "\n***** DONE *****";
-
-    // Qt gives us a whole HTML doc here.  Strip off all the parts we don't want.
-    QRegularExpression startSpan("<span.*>", QRegularExpression::InvertedGreedinessOption);  // don't be greedy!
-
-    selected.replace(QRegularExpression("<.*<!--StartFragment-->"),"")
-            .replace(QRegularExpression("<!--EndFragment-->.*</html>"),"")
-            .replace(startSpan,"")
-            .replace("</span>","")
-            ;
-
-//    qDebug() << "***** STEP 2 *****\n" << selected << "\n***** DONE *****";
-
-    // SUPER CLEAN -------
-//    if (cursor.selectionStart() == 0 && cursor.atEnd()) {
-    if (true) {
-        // selection starts at beginning of file (position 0), and cursor is at end of file, means everything in the file is selected
-        //   if this is the case, let's do a SUPER CLEAN to get rid of all formatting from say MS Word or OpenOffice.
-//            qDebug() << "BEFORE CLEANING: '" << selected << "'";
-        selected
-                .replace(QRegularExpression("<!DOCTYPE.*>"), "") // DOCTYPE needs to be gone, or extra /n at beginning of file will happen
-                .replace(QRegularExpression("<HEAD>.*</HEAD>", QRegularExpression::DotMatchesEverythingOption | QRegularExpression::CaseInsensitiveOption | QRegularExpression::InvertedGreedinessOption), "") // delete <head> section
-                .replace(QRegularExpression("<BR *>",  QRegularExpression::CaseInsensitiveOption), "|BRBRBR|") // preserve line breaks
-                .replace(QRegularExpression("<BR */>", QRegularExpression::CaseInsensitiveOption), "|BRBRBR|")
-//                .replace(QRegularExpression("<.*>", QRegularExpression::InvertedGreedinessOption), "") // delete ALL TAGS
-                .replace("|BRBRBR|", "<BR>") // restore line breaks
-                .replace(QRegularExpression("^(<BR>)+"), "")    // delete extra BR's at the start of the file
-                .replace(QRegularExpression("^\n+"), "")        // delete extra NL's at the start of the file
-                .replace("\n", "<BR>\n")     // restore line breaks
-                ;
-//            qDebug() << "SUPER CLEANED: '" << selected << "'";
-    }
+//     // now look at it as HTML
+//     QString selected = cursor.selection().toHtml();
+// //    qDebug() << "***** STEP 1 *****\n" << selected << "\n***** DONE *****";
 
 
-    // DO THE HARD WORK HERE ---------------
-//    qDebug() << "***** STEP 3 *****\n" << selected << "\n***** DONE *****";
+//     // TODO: USE NEW TRANSFORM() HERE ----
 
-    QString headerStart("<span style=\" font-family:'Verdana'; font-size:x-large; color:#ff0002;\">"); // should that 25 be 23?
-    QString headerEnd("</span>");
+//     // Qt gives us a whole HTML doc here.  Strip off all the parts we don't want.
+//     QRegularExpression startSpan("<span.*>", QRegularExpression::InvertedGreedinessOption);  // don't be greedy!
 
-    selected
-            .replace(QRegularExpression("<BR>OPENER",       QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "OPENER" + headerEnd)
-            .replace(QRegularExpression("<BR>FIGURE 1",     QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "FIGURE 1" + headerEnd)
-            .replace(QRegularExpression("<BR>FIGURE 2",     QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "FIGURE 2" + headerEnd)
-            .replace(QRegularExpression("<BR>BREAK",        QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "MIDDLE BREAK" + headerEnd)
-            .replace(QRegularExpression("<BR>MIDDLE BREAK", QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "MIDDLE BREAK" + headerEnd)
-            .replace(QRegularExpression("<BR>FIGURE 3",     QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "FIGURE 3" + headerEnd)
-            .replace(QRegularExpression("<BR>FIGURE 4",     QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "FIGURE 4" + headerEnd)
-            .replace(QRegularExpression("<BR>CLOSER",       QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "CLOSER" + headerEnd)
-            .replace(QRegularExpression("<BR>TAG",          QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "TAG"    + headerEnd)
-            .replace(QRegularExpression("HEADS ",           QRegularExpression::CaseInsensitiveOption),   "HEADS ")
-            .replace(QRegularExpression("SIDES ",           QRegularExpression::CaseInsensitiveOption),   "SIDES ")
-            .replace(QRegularExpression("BOYS ",            QRegularExpression::CaseInsensitiveOption),   "BOYS ")
-            .replace(QRegularExpression("GIRLS ",           QRegularExpression::CaseInsensitiveOption),   "GIRLS ")
-            .replace(QRegularExpression("<html><body><BR>\n", QRegularExpression::CaseInsensitiveOption), "<html><body>") // get rid of extra NL at start
-            ;
+//     selected.replace(QRegularExpression("<.*<!--StartFragment-->"),"")
+//             .replace(QRegularExpression("<!--EndFragment-->.*</html>"),"")
+//             .replace(startSpan,"")
+//             .replace("</span>","")
+//             ;
 
-//    qDebug() << "***** STEP 4 *****\n" << selected << "\n***** DONE *****";
+// //    qDebug() << "***** STEP 2 *****\n" << selected << "\n***** DONE *****";
 
-    // WARNING: this has a dependency on internal cuesheet2.css's definition of BODY text.
-    QString HTMLreplacement =
-            "<span style=\" font-family:'Verdana'; font-size:large; color:#000000;\">" +
-            selected +
-            "</span>";
+//     // SUPER CLEAN -------
+// //    if (cursor.selectionStart() == 0 && cursor.atEnd()) {
+//     if (true) {
+//         // selection starts at beginning of file (position 0), and cursor is at end of file, means everything in the file is selected
+//         //   if this is the case, let's do a SUPER CLEAN to get rid of all formatting from say MS Word or OpenOffice.
+// //            qDebug() << "BEFORE CLEANING: '" << selected << "'";
+//         selected
+//                 .replace(QRegularExpression("<!DOCTYPE.*>"), "") // DOCTYPE needs to be gone, or extra /n at beginning of file will happen
+//                 .replace(QRegularExpression("<HEAD>.*</HEAD>", QRegularExpression::DotMatchesEverythingOption | QRegularExpression::CaseInsensitiveOption | QRegularExpression::InvertedGreedinessOption), "") // delete <head> section
+//                 .replace(QRegularExpression("<BR *>",  QRegularExpression::CaseInsensitiveOption), "|BRBRBR|") // preserve line breaks
+//                 .replace(QRegularExpression("<BR */>", QRegularExpression::CaseInsensitiveOption), "|BRBRBR|")
+// //                .replace(QRegularExpression("<.*>", QRegularExpression::InvertedGreedinessOption), "") // delete ALL TAGS
+//                 .replace("|BRBRBR|", "<BR>") // restore line breaks
+//                 .replace(QRegularExpression("^(<BR>)+"), "")    // delete extra BR's at the start of the file
+//                 .replace(QRegularExpression("^\n+"), "")        // delete extra NL's at the start of the file
+//                 .replace("\n", "<BR>\n")     // restore line breaks
+//                 ;
+// //            qDebug() << "SUPER CLEANED: '" << selected << "'";
+//     }
 
-    cursor.beginEditBlock(); // start of grouping for UNDO purposes
-        cursor.removeSelectedText();  // remove the rich text...
-        cursor.insertHtml(HTMLreplacement);  // ...and put back in the stripped-down text
-    cursor.endEditBlock(); // end of grouping for UNDO purposes
-}
+
+//     // DO THE HARD WORK HERE ---------------
+// //    qDebug() << "***** STEP 3 *****\n" << selected << "\n***** DONE *****";
+
+//     QString headerStart("<span style=\" font-family:'Verdana'; font-size:x-large; color:#ff0002;\">"); // should that 25 be 23?
+//     QString headerEnd("</span>");
+
+//     selected
+//             .replace(QRegularExpression("<BR>OPENER",       QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "OPENER" + headerEnd)
+//             .replace(QRegularExpression("<BR>FIGURE 1",     QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "FIGURE 1" + headerEnd)
+//             .replace(QRegularExpression("<BR>FIGURE 2",     QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "FIGURE 2" + headerEnd)
+//             .replace(QRegularExpression("<BR>BREAK",        QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "MIDDLE BREAK" + headerEnd)
+//             .replace(QRegularExpression("<BR>MIDDLE BREAK", QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "MIDDLE BREAK" + headerEnd)
+//             .replace(QRegularExpression("<BR>FIGURE 3",     QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "FIGURE 3" + headerEnd)
+//             .replace(QRegularExpression("<BR>FIGURE 4",     QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "FIGURE 4" + headerEnd)
+//             .replace(QRegularExpression("<BR>CLOSER",       QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "CLOSER" + headerEnd)
+//             .replace(QRegularExpression("<BR>TAG",          QRegularExpression::CaseInsensitiveOption),   "<BR>" + headerStart + "TAG"    + headerEnd)
+//             .replace(QRegularExpression("HEADS ",           QRegularExpression::CaseInsensitiveOption),   "HEADS ")
+//             .replace(QRegularExpression("SIDES ",           QRegularExpression::CaseInsensitiveOption),   "SIDES ")
+//             .replace(QRegularExpression("BOYS ",            QRegularExpression::CaseInsensitiveOption),   "BOYS ")
+//             .replace(QRegularExpression("GIRLS ",           QRegularExpression::CaseInsensitiveOption),   "GIRLS ")
+//             .replace(QRegularExpression("<html><body><BR>\n", QRegularExpression::CaseInsensitiveOption), "<html><body>") // get rid of extra NL at start
+//             ;
+
+// //    qDebug() << "***** STEP 4 *****\n" << selected << "\n***** DONE *****";
+
+//     // WARNING: this has a dependency on internal cuesheet2.css's definition of BODY text.
+//     QString HTMLreplacement =
+//             "<span style=\" font-family:'Verdana'; font-size:large; color:#000000;\">" +
+//             selected +
+//             "</span>";
+
+//     cursor.beginEditBlock(); // start of grouping for UNDO purposes
+//         cursor.removeSelectedText();  // remove the rich text...
+//         cursor.insertHtml(HTMLreplacement);  // ...and put back in the stripped-down text
+//     cursor.endEditBlock(); // end of grouping for UNDO purposes
+// }
 
 // =============================================
 void MainWindow::on_actionBold_triggered()

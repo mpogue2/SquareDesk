@@ -72,6 +72,7 @@ SOURCES += main.cpp\
     flexible_audio.cpp \
 #    bass_audio.cpp \  # this is now #include'd by flexible_audio.cpp on non-M1-based Macs
     lyricsEditor.cpp \
+    lyricseditor_autoformat.cpp \
     mainwindow.cpp \
 #    miniBPM/MiniBpm.cpp \
     mainwindow_JUCE.cpp \
