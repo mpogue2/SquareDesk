@@ -1586,7 +1586,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     //     we reversed it for presentation
     // theRealPath is the actual relative path, used to determine whether the file exists or not
 
-    // qDebug() << isPlaylist << whichRow << relativePath << PlaylistFileName;
+    // qDebug() << "setTitleField" << isPlaylist << whichRow << relativePath << PlaylistFileName << theRealPath;
     static QRegularExpression dotMusicSuffix("\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption); // match with music extensions
     QString shortTitle = relativePath.split('/').last().replace(dotMusicSuffix, "");
 
@@ -1624,7 +1624,8 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
 
     // figure out colors
     SongSetting settings;
-    QString origPath = musicRootPath + relativePath;
+    // QString origPath = musicRootPath + relativePath;
+    QString origPath = musicRootPath + theRealPath;
     songSettings.loadSettings(origPath,
                               settings);
     if (settings.isSetTags())

@@ -7400,6 +7400,7 @@ void MainWindow::darkFilterMusic()
 
 QString MainWindow::FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags, QString titleColor)
 {
+    // qDebug() << "FormatTitlePlusTags:" << title << setTags << strtags << titleColor;
     QString titlePlusTags(title.toHtmlEscaped());
 
     // if the titleColor is not explicitly specified (defaults to ""), do not add a <span> to specify color.
