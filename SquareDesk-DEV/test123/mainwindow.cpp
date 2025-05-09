@@ -6917,8 +6917,10 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
     // getLocalPlaylists();  // and add them to the pathStackPlaylists, with newType == "PlaylistName%!% ", and fullPath = path to MP3 file on disk
     // t.elapsed(__LINE__);
 
-    // updateTreeWidget will reload the local Playlists, just clear it out first
-    pathStackPlaylists->clear();
+    // // updateTreeWidget will reload the local Playlists, just clear it out first  NO
+    // pathStackPlaylists->clear();  NO
+
+    // updateTreeWidget() now clears the pathStackPlaylists, because it always reloads it
     updateTreeWidget(); // this will also show the Apple Music playlists, found just now
     t.elapsed(__LINE__);
     t.stop();
@@ -6938,6 +6940,9 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
 }
 
 void MainWindow::updateTreeWidget() {
+
+    // updateTreeWidget always rescans for playlists, so we need to clear pathStackPlaylists here.
+    pathStackPlaylists->clear();
 
     // GET LIST OF TYPES AND POPULATE TREEWIDGET > TRACKS -------------
     QListIterator<QString> iter(*pathStack); // Tracks = search thru music (MP3, M4A) files
