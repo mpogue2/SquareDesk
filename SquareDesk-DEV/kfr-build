@@ -1,0 +1,43 @@
+#! /bin/zsh
+
+set -v	# show what's going on...
+
+# exit script if anything fails:
+set -e
+
+# cd to the SquareDesk-DEV directory
+# (this works if we are inside it or above it)
+HERE=$(pwd)
+case $HERE in
+    */SquareDesk-DEV/* )
+	DIR=$(echo $HERE | sed -e 's|SquareDesk-DEV/.*|SquareDesk-DEV|') ;;
+    */SquareDesk-DEV )
+	DIR=$HERE
+	;;
+    * )
+	DIR=$(find . -type d -name SquareDesk-DEV)
+	test -z "$DIR" && ( echo "could not find SquareDesk-DEV directory" ; exit 1 ; )
+	;;
+esac
+echo found SquareDesk-DEV directory $DIR
+cd $DIR
+
+cd kfr
+test -d build || mkdir build
+
+# install NINJA (if not already done), now needed to build kfr
+# as per instructions here: https://github.com/ninja-build/ninja/wiki/Pre-built-Ninja-package#1340
+type ninja || brew install ninja
+
+# build RELEASE stuff
+cmake -B build-release -GNinja -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$DIR/kfr/build -DCMAKE_CXX_COMPILER=/usr/bin/clang
+
+ninja -C build-release install
+
+# build DEBUG stuff
+cmake -B build-debug -GNinja -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$DIR/kfr/build -DCMAKE_CXX_COMPILER=/usr/bin/clang
+
+ninja -C build-debug install
+
+
+
