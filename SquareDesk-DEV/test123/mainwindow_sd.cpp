@@ -3460,7 +3460,7 @@ void MainWindow::refreshSDframes() {
 
 // loads a specified frame from a file in <musicDir>/sd/ into a listWidget (if not NULL), else into the tableSequence widget
 void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *list) {
-//    qDebug() << "----- loadFrame: " << i << filename << seqNum;
+    // qDebug() << "----- loadFrame: " << i << filename << seqNum;
 
     QStringList callList;
 
@@ -3494,15 +3494,33 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
 
         int seq = 0;
         bool wantThisSequence = false;
+        bool gotREC = false; // to work around a bug (#1373) where two #REC's somehow ended up with no @ between them
+        bool skipLines = false;
+
         while(!in.atEnd()) {
             QString line = in.readLine();
             // typical first two lines in a sequence:
             // #REC=1658300002#
             // #AUTHOR=16583#
 
+            if (line.startsWith("@")) {
+                skipLines = false; // end of sequence, so clear this flag
+                gotREC = false;    //   same....
+            } else if (skipLines) {
+                continue;
+            }
+
 //            qDebug() << "LINE: " << line;
 
             if (line.startsWith("#REC=")) {
+                if (gotREC) {
+                    // qDebug() << "STARTING TO SKIP" << line;
+                    skipLines = true;
+                    continue;
+                }
+
+                // the normal #REC code ------
+                // qDebug() << "NORMAL REQ" << line;
                 seq++;
                 wantThisSequence = (seq == seqNum); // want it, iff the seqNum matches the one we're looking at
 
@@ -3513,6 +3531,7 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
 //                    qDebug() << "currentSequenceRecordNumber: " << currentSequenceRecordNumber;
                     highlightedCalls.clear();  // if this is the central, then clear (it will be filled in below, if there is a #HIGHLIGHT= line)
                 }
+                gotREC = true;
                 continue;
             } else if (line.startsWith("#AUTHOR=")) {
                 if (frameVisible[i] == "central") {
@@ -3554,7 +3573,7 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
                 continue; // skip #PROOFREAD#, #EASY#, #SEQTYPE#, #AUTHOR=...#, etc.
             } else if (wantThisSequence){
                 // this is the place!
-//                qDebug() << "FOUND SEQ: " << seq << ": " << line;
+                // qDebug() << "FOUND SEQ: " << seq << ": " << line;
 
                 // TODO: this string processing needs to be made into a function that returns a QStringList (because
                 //   some strings like "Heads Lead Right & Veer Left" will return TWO calls to be sent to SD)
