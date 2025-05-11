@@ -2959,7 +2959,7 @@ void MainWindow::printPlaylistFromSlot(int whichSlot)
         snprintf(buf, sizeof(buf), "%02d: %s\n", rec.index, baseName.toLatin1().data());
 
         QStringList parts = baseName.split("/");
-        QString folderTypename = parts[1]; // /patter/foo.mp3 --> "patter"
+        QString folderTypename = parts[1].toLower(); // /patter/foo.mp3 --> "patter"
 
         QString colorString("black");
         if (songTypeNamesForPatter.contains(folderTypename)) {

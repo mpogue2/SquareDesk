@@ -377,7 +377,7 @@ void MainWindow::on_darkSegmentButton_clicked()
         // qDebug() << "on_darkSegmentButton_clicked(): s2[0] = " << s2[0];
 
         // if (numMP3files < maxFiles && s2[0] == "patter") {
-        if (numMP3files < maxFiles && songTypeNamesForPatter.contains(s2[0])) {
+        if (numMP3files < maxFiles && songTypeNamesForPatter.contains(s2[0], Qt::CaseInsensitive)) {
             // qDebug() << "adding: " << s2[0] << s;
             if (s2[1].endsWith(".mp3", Qt::CaseInsensitive)) {
                 mp3FilenamesToProcess.append(s2[1]);

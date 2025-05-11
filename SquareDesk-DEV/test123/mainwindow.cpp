@@ -10841,7 +10841,7 @@ QString MainWindow::filepath2SongCategoryName(QString MP3Filename)
     if (parts.length() <= 1) {
         return("unknown");
     } else {
-        QString folderTypename = parts[1];
+        QString folderTypename = parts[1].toLower();
         if (songTypeNamesForPatter.contains(folderTypename)) {
             return("patter");
         } else if (songTypeNamesForSinging.contains(folderTypename)) {
@@ -11037,7 +11037,7 @@ QList<QString> MainWindow::getListOfMusicFiles()
     while (iter.hasNext()) {
         QString s = iter.next();
         QStringList sl1 = s.split("#!#");
-        QString type = sl1[0];      // the type (of original pathname, before following aliases)
+        QString type = sl1[0].toLower();      // the type (of original pathname, before following aliases)
         QString filename = sl1[1];  // everything else
 
         // qDebug() << "getListOfMusicFiles(): type = " << type;
@@ -13295,7 +13295,7 @@ void MainWindow::maybeInstallTemplates() {
 // sets the current* from the pathname
 void MainWindow::setCurrentSongMetadata(QString type) {
     // qDebug() << "setCurrentSongMetadata: " << type;
-    currentSongTypeName = type;  // e.g "hoedown"
+    currentSongTypeName = type.toLower();  // e.g "hoedown"
 
     currentSongIsPatter = songTypeNamesForPatter.contains(currentSongTypeName);
     currentSongIsSinger = songTypeNamesForSinging.contains(currentSongTypeName);
