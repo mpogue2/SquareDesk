@@ -2221,6 +2221,10 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                                 qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
                             }
 
+                            // qDebug() << "convertCuesheetPathNameToCurrentRoot BEFORE:" << cuesheetPath;
+                            cuesheetPath = convertCuesheetPathNameToCurrentRoot(cuesheetPath);
+                            // qDebug() << "convertCuesheetPathNameToCurrentRoot AFTER:" << cuesheetPath;
+
                             if (cuesheetPath != "") {
                                 plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
                                                   [this, cuesheetPath]() {
@@ -2359,6 +2363,10 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                                 qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
                             }
 
+                            // qDebug() << "convertCuesheetPathNameToCurrentRoot BEFORE:" << cuesheetPath;
+                            cuesheetPath = convertCuesheetPathNameToCurrentRoot(cuesheetPath);
+                            // qDebug() << "convertCuesheetPathNameToCurrentRoot AFTER:" << cuesheetPath;
+
                             if (cuesheetPath != "") {
                                 plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
                                                   [this, cuesheetPath]() {
@@ -2496,6 +2504,10 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                             } else {
                                 qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
                             }
+
+                            // qDebug() << "convertCuesheetPathNameToCurrentRoot BEFORE:" << cuesheetPath;
+                            cuesheetPath = convertCuesheetPathNameToCurrentRoot(cuesheetPath);
+                            // qDebug() << "convertCuesheetPathNameToCurrentRoot AFTER:" << cuesheetPath;
 
                             if (cuesheetPath != "") {
                                 plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
@@ -9614,6 +9626,148 @@ void MainWindow::saveCurrentSongSettings()
 
 }
 
+QString MainWindow::convertCuesheetPathNameToCurrentRoot(QString str1) {
+    // attempts to converts any pathname (even one from an old musicRoot) to a full absolute pathname
+    //   in the CURRENT musicRoot.  The file is guaranteed to exist, and is (presumably)
+    //   the new location of the file.
+    //
+    // returns the ABSOLUTE pathname, if everything was OK
+    //   or "", if the pathname couldn't be mapped to an existing file in the current musicRoot.
+
+    QFileInfo fi1(str1);
+
+    if (str1.startsWith(musicRootPath) && fi1.exists()) {
+        // str1 was already an absolute pathname in the CURRENT root, and the file exists, all is well
+        return str1;
+    }
+
+    // OK, now we're in the more complicated case, where we need to try to peel off parts off the front of the abs pathname
+    //   to see if we can find the file in the current musicRoot.
+
+    QString str2 = str1;
+    int index;
+
+    // look for "/lyrics" folder
+    index = str2.indexOf("/lyrics/");
+    if (index != -1) {
+        // found "/lyrics/" at index
+        str2.replace(0, index, musicRootPath); // remove the old music root, and replace with new one!
+        QFileInfo fi2(str2);
+
+        if (fi2.exists()) {
+            return(str2);
+        } else {
+            return("");
+        }
+    }
+
+    // look for "/singing" folder
+    index = str2.indexOf("/singing/");
+    if (index != -1) {
+        // found "/singing/" at index
+        str2.replace(0, index, musicRootPath); // remove the old music root, and replace with new one!
+        QFileInfo fi3(str2);
+
+        if (fi3.exists()) {
+            return(str2);
+        } else {
+            return("");
+        }
+    }
+
+    // look for "/singing" folder
+    index = str2.indexOf("/singers/");
+    if (index != -1) {
+        // found "/singers/" at index
+        str2.replace(0, index, musicRootPath); // remove the old music root, and replace with new one!
+        QFileInfo fi4(str2);
+
+        if (fi4.exists()) {
+            return(str2);
+        } else {
+            return("");
+        }
+    }
+
+    return "";
+}
+
+bool MainWindow::compareCuesheetPathNamesRelative(QString str1, QString str2) {
+    // returns true, if str1 and str2 have equal RELATIVE pathnames, even though
+    //   the musicRoots might have been different.
+    // This is to fix a bug where the last_cuesheet field in the sqlite3 DB is absolute,
+    //   instead of relative (#1379).
+    //
+    // EXAMPLE: these string are all identical RELATIVE to the roots, which are different:
+    // /Users/mpogue/Dropbox/__squareDanceMusic/lyrics/BS 2623 - Besame Mucho.html
+    // /Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/lyrics/BS 2623 - Besame Mucho.html
+    // /Users/mpogue/Library/Mobile Documents/com~apple~CloudDocs/SquareDance/squareDanceMusic_iCloud/lyrics/BS 2623 - Besame Mucho.html
+    //
+    // The current musicRootPath could be any of these three folders, which makes this a hard problem to solve.
+    //   We don't have a record of what the other musicRootPaths might have been.
+    //   And, cuesheets could have been residing in subdirectories of the musicRoot.
+    //
+    // So, this implementation is probably not 100% correct for some cases where files have
+    //   copies with the same name in other subdirectories, but it's probably close enough for now to get around bug #1379.
+
+    if (str1 == str2) {
+        // simplest case, the two strings are identical
+        return true;
+    }
+
+    // but, if they didn't match, we need to check for matching with possibly different musicRootPaths,
+    //  which is more complicated
+
+    int len1 = str1.length();
+    int len2 = str2.length();
+    int maxlen = (len1 < len2 ? len1 : len2); // the smaller of the two
+    QString commonStr = "";  // what the strings have in common
+
+    // look at the string in backwards order
+    int i;
+    for (i = 0; i < maxlen; i++) {
+        QChar c1 = str1[len1 - i - 1];
+        QChar c2 = str2[len2 - i - 1];
+        if (c1 != c2) {
+            break; // if they don't match, exit the for loop, we're done.
+        }
+        commonStr = c1 + commonStr; // tack this matching character on at the BEGINNING of the string
+    }
+
+    // qDebug() << "-----------------------------------------";
+    // qDebug() << "compareCuesheetPathNamesRelative str1: " << str1;
+    // qDebug() << "compareCuesheetPathNamesRelative str2: " << str2;
+    // qDebug() << "compareCuesheetPathNamesRelative commonStr:" << commonStr;
+    // qDebug() << "-----------------------------------------";
+
+    bool result = false;  // default answer is false.
+
+    if (commonStr.startsWith(".")) {
+        // common case: the basenames don't match at all, so the matching part at the end of the strings is just ".html"
+        //   so don't bother to look further
+        return false;
+    } else if (commonStr.startsWith("/lyrics/")) {
+        // another simple case: different roots, but both cuesheets were in /lyrics, so they are RELATIVE equal
+        //   they might be in a subdirectory of /lyrics, but they are in the SAME subdirectory, relative to the musicRoot
+        // str1 is the correct pathname in the current musicRoot
+        result = true;
+    } else if (commonStr.startsWith("/singing/")) {
+        // a common case: different roots, but both cuesheets were in /singing/, probably along with the MP3 file
+        // str1 is the correct pathname in the current musicRoot
+        result = true;
+    } else if (commonStr.startsWith("/singers/")) {
+        // a common case: different roots, but both cuesheets were in /singers/, probably along with the MP3 file in a subdirectory
+        // str1 is the correct pathname in the current musicRoot
+        result = true;
+    }
+
+    // if you changed the names of the singing call folders in Preferences, this function will fail, and you'll need
+    //   to manually change the cuesheetComboBox to the correct item in the new musicRoot.
+
+    // qDebug() << "result: " << result;
+    return result;
+}
+
 void MainWindow::loadSettingsForSong(QString songTitle)
 {
     Q_UNUSED(songTitle)
@@ -9690,15 +9844,20 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         ui->darkStartLoopTime->setTime(iTime); // milliseconds
         ui->darkEndLoopTime->setTime(oTime); // milliseconds
 #endif
-
+        // qDebug() << "***** loadSettingsForSong cuesheetName: " << cuesheetName;
         if (cuesheetName.length() > 0)
         {
             for (int i = 0; i < ui->comboBoxCuesheetSelector->count(); ++i)
             {
                 QString itemName = ui->comboBoxCuesheetSelector->itemData(i).toString();
-                if (itemName == cuesheetName)
+                // qDebug() << "***** loadSettingsForSong itemName:" << itemName;
+                bool relativeEqual = compareCuesheetPathNamesRelative(itemName, cuesheetName); // ignore the musicRootPath parts
+
+                // if (itemName == cuesheetName)
+                if (relativeEqual)
                 {
-                    ui->comboBoxCuesheetSelector->setCurrentIndex(i);
+                    // qDebug() << "RELATIVE EQUAL --------";
+                    ui->comboBoxCuesheetSelector->setCurrentIndex(i);  // This will always select a cuesheet in the CURRENT MusicRootPath
                     break;
                 }
             }
@@ -13001,6 +13160,11 @@ void MainWindow::darkRevealAttachedLyricsFileInFinder() {
     SongSetting settings1;
     if (songSettings.loadSettings(currentMP3filenameWithPath, settings1)) {
             QString cuesheetPath = settings1.getCuesheetName();
+
+            // qDebug() << "convertCuesheetPathNameToCurrentRoot BEFORE:" << cuesheetPath;
+            cuesheetPath = convertCuesheetPathNameToCurrentRoot(cuesheetPath);
+            // qDebug() << "convertCuesheetPathNameToCurrentRoot AFTER:" << cuesheetPath;
+
             showInFinderOrExplorer(cuesheetPath);
     } else {
             qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;

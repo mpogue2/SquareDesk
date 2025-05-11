@@ -1023,6 +1023,8 @@ private:
     void writeCuesheet(QString filename);
     void saveCurrentSongSettings();
     void loadSettingsForSong(QString songTitle);
+    bool compareCuesheetPathNamesRelative(QString str1, QString str2);
+    QString convertCuesheetPathNameToCurrentRoot(QString str1);
 
     void loadGlobalSettingsForSong(QString songTitle); // settings that must be set after song is loaded
 

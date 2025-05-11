@@ -1795,6 +1795,10 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
 
                         // qDebug() << "cuesheetPath: " << cuesheetPath;
 
+                        // qDebug() << "convertCuesheetPathNameToCurrentRoot BEFORE:" << cuesheetPath;
+                        cuesheetPath = convertCuesheetPathNameToCurrentRoot(cuesheetPath);
+                        // qDebug() << "convertCuesheetPathNameToCurrentRoot AFTER:" << cuesheetPath;
+
                         if (cuesheetPath != "") {
                             plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
                                               [this, cuesheetPath]() {

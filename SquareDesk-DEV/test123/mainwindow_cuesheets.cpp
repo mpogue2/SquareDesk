@@ -532,6 +532,8 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 
 bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCuesheet, QString nextFilename)
 {
+    // qDebug() << "loadCuesheets" << MP3FileName << prefCuesheet << nextFilename;
+
     // if we're loading cuesheets, check to make sure we were not in the process
     //  of editing one already, and if so, ask what to do.
     // qDebug() << "loadCuesheets: nextFilename = " << nextFilename;
@@ -554,6 +556,7 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
         QStringList possibleCuesheets;
         findPossibleCuesheets(filenameToCheck, possibleCuesheets);
 
+        // qDebug() << "attempt:" << attempt;
         // qDebug() << "possibleCuesheets:" << possibleCuesheets;
         // qDebug() << "preferredCuesheet:" << preferredCuesheet;
 
@@ -563,6 +566,7 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
             SongSetting settings;
             if (songSettings.loadSettings(filenameToCheck, settings)) {
                 QString cuesheetName = settings.getCuesheetName();
+                // qDebug() << "cuesheetName:" << cuesheetName;
                 if (cuesheetName.length() > 0) {
                     preferredCuesheet = cuesheetName;
                     lyricsForDifferentSong = true;
@@ -577,16 +581,18 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
 
         foreach (const QString &cuesheet, possibleCuesheets) {
                 RecursionGuard guard(cuesheetEditorReactingToCursorMovement);
+            // qDebug() << "checking: " << cuesheet << preferredCuesheet;
                 if ((!preferredCuesheet.isNull()) && preferredCuesheet.length() >= 0
                     && cuesheet == preferredCuesheet)
                     {
                         defaultCuesheetIndex = ui->comboBoxCuesheetSelector->count();
+                        // qDebug() << "defaultCuesheetIndex: " << defaultCuesheetIndex;
                     }
 
                 QString displayName = cuesheet;
                 if (displayName.startsWith(musicRootPath))
                     displayName.remove(0, musicRootPath.length());
-
+                // qDebug() << "displayName:" << displayName;
                 ui->comboBoxCuesheetSelector->addItem(displayName,
                                                       cuesheet);
         }
