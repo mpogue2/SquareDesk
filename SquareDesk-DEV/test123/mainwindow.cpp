@@ -5515,18 +5515,18 @@ void MainWindow::aboutBox()
     QMessageBox msgBox;
 #if defined(Q_OS_MAC)
     // as of Qt6.5, links and rich text no longer work in QMessageBoxes
-    msgBox.setText("SquareDesk, V" + QString(VERSIONSTRING) + QString(" (Qt") + QString(QT_VERSION_STR) + QString(")"));
-    msgBox.setInformativeText(QString("Visit our website at\n") +
-                              "http://squaredesk.net\n\n" +
-                              "Uses: sd, qpdfjs, JUCE, minibpm, minimp3, Vamp (Queen Mary University of London & Segmentino), Icons8, kfr, and SoundTouch.\n\n" +
-                              "Thanks to: all8.com"
-                             );
-#else
+    msgBox.setText("<h2>SquareDesk, V" + QString(VERSIONSTRING) + QString(" (Qt") + QString(QT_VERSION_STR) + QString(")</h2>"));
+    // msgBox.setInformativeText(QString("Visit our website at\n") +
+    //                           "http://squaredesk.net\n\n" +
+    //                           "Uses: sd, qpdfjs, JUCE, minibpm, minimp3, Vamp (Queen Mary University of London & Segmentino), Icons8, kfr, and SoundTouch.\n\n" +
+    //                           "Thanks to: all8.com"
+    //                          );
     msgBox.setText(QString("<p><h2>SquareDesk, V") + QString(VERSIONSTRING) + QString(" (Qt") + QString(QT_VERSION_STR) + QString(")") + QString("</h2>") +
                    QString("<p>Visit our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: ") +
                    QString("<a href=\"http://www.lynette.org/sd\">sd</a>, ") +
                    QString("<a href=\"https://github.com/yshurik/qpdfjs\">qpdfjs</a>, ") +
+                   QString("<a href=\"https://juce.com\">JUCE</a>, ") +
                    QString("<a href=\"https://github.com/breakfastquay/minibpm\">miniBPM</a>, ") +
                    QString("<a href=\"https://vamp-plugins.org/plugin-doc/qm-vamp-plugins.html\">QM Vamp</a>, ") +
                    QString("<a href=\"https://icons8.com\">Icons8</a>, ") +
