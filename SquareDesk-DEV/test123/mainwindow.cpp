@@ -9330,9 +9330,7 @@ void MainWindow::darkChangeTagOnCurrentSongSelection(QString tag, bool add)
     }
 }
 
-void MainWindow::removeAllTagsFromSong()
-{
-    int row = darkSelectedSongRow();
+void MainWindow::removeAllTagsFromSongRow(int row) {
     if (row >= 0) {
         // exactly 1 row was selected (good)
         QString pathToMP3 = ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
@@ -9370,6 +9368,13 @@ void MainWindow::removeAllTagsFromSong()
         QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), theOriginalColor));
         dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(row,kTitleCol))->setText(titlePlusTags);
     }
+}
+
+
+void MainWindow::removeAllTagsFromSong()
+{
+    int row = darkSelectedSongRow();  // from THIS row
+    removeAllTagsFromSongRow(row);
 }
 
 void MainWindow::darkEditTags()
@@ -12867,6 +12872,57 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
             tagsMenu->addAction(action);
         }
         menu.addMenu(tagsMenu);
+    } else if (rowCount > 1) {
+        // more than one row in darkSongTable has been selected...
+        //   check to see if one or more songs have tags
+        bool someSongHasTags = false;
+
+        for (int i = 0; i < rowCount; i++) {
+            QString pathToMP3 = ui->darkSongTable->item(selectedRows[i], kPathCol)->data(Qt::UserRole).toString();
+            SongSetting settings;
+            songSettings.loadSettings(pathToMP3, settings);
+            if (settings.isSetTags())
+            {
+                QString curTagString = settings.getTags();
+                // currentTags = settings.getTags().split(" ");
+                currentTags = curTagString.split(" ");
+
+                // if the song has some tags, offer to Remove them
+                if (currentTags.count() > 1 || currentTags[0] != "") {
+                    someSongHasTags = true;
+                    break; // and break out of the for loop
+                }
+            }
+        }
+
+        //   if so, show "Remove all tags from these N songs" context menu item
+        if (someSongHasTags) {
+            menu.addSeparator(); // -------------------
+            menu.addAction( "Remove all Tags from these " + QString::number(rowCount) + " songs",
+                            this, [this, rowCount, selectedRows, currentTags] {
+                            for (int i = 0; i < rowCount; i++) {
+                                QString pathToMP3 = ui->darkSongTable->item(selectedRows[i], kPathCol)->data(Qt::UserRole).toString();
+                                SongSetting settings;
+                                songSettings.loadSettings(pathToMP3, settings);
+                                if (settings.isSetTags())
+                                {
+                                    QString curTagString = settings.getTags();
+                                    // currentTags = settings.getTags().split(" ");
+                                    QStringList currentTags = curTagString.split(" ");
+
+                                    // if the song has some tags, offer to Remove them
+                                    if (currentTags.count() > 1 || currentTags[0] != "") {
+                                        // for some reason, count == 1 is one tag that is an empty string, means there are zero tags
+                                        // but sometimes, like when we manually do Edit Tags, there's no empty string.
+                                        // thus the need for that counterintuitive if clause above.
+                                        // qDebug() << "removing tags from row: " << selectedRows[i];
+                                        removeAllTagsFromSongRow(selectedRows[i]);
+                                    }
+                                }
+                            }
+            });
+        }
+
     }
 
     // DO IT ==========

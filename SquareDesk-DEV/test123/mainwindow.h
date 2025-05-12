@@ -1066,6 +1066,7 @@ private:
     void changeTagOnCurrentSongSelection(QString tag, bool add);
     void darkChangeTagOnCurrentSongSelection(QString tag, bool add);
     void removeAllTagsFromSong();
+    void removeAllTagsFromSongRow(int row);
     void loadChoreographyList();
     void filterChoreography();
     QStringList getUncheckedItemsFromCurrentCallList();
