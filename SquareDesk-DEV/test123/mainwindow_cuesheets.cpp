@@ -590,9 +590,14 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
                     }
 
                 QString displayName = cuesheet;
-                if (displayName.startsWith(musicRootPath))
+                if (displayName.startsWith(musicRootPath)) {
                     displayName.remove(0, musicRootPath.length());
-                // qDebug() << "displayName:" << displayName;
+                }
+                // qDebug() << "displayName:" << displayName << maybeCuesheetLevel(displayName);
+                QString maybeLevelString = maybeCuesheetLevel(displayName);
+                if (maybeLevelString != "") {
+                    displayName += " [L: " + maybeLevelString + "]";
+                }
                 ui->comboBoxCuesheetSelector->addItem(displayName,
                                                       cuesheet);
         }
@@ -1258,4 +1263,42 @@ bool MainWindow::maybeSaveCuesheet(int optionCount) {
 
 //    qDebug() << "RETURNING TRUE, ALL IS WELL.";
     return true;
+}
+
+// Function to extract and return the dance level string from the cuesheet
+QString MainWindow::maybeCuesheetLevel(QString relativeFilePath) {
+    // Convert the relative path to an absolute path using musicRootPath
+    QString absolutePath = musicRootPath + "/" + relativeFilePath;
+    
+    // Open the file
+    QFile file(absolutePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return ""; // Return empty string if file can't be opened
+    }
+    
+    // Read up to 30 lines of the file
+    QTextStream in(&file);
+    int lineCount = 0;
+    
+    while (!in.atEnd() && lineCount < 30) {
+        QString line = in.readLine();
+        lineCount++;
+        
+        // Look for "L:<level string>" with proper spacing and termination
+        // Spacing: either preceded by at least one space OR at start of line
+        // Termination: followed by a letter and colon, comma, semicolon, <BR, or end of line
+        QRegularExpression levelRegex("(^|\\s+)(L|LEVEL):(.*?)([a-zA-Z]:|,|;|<BR|$)",
+                                      QRegularExpression::CaseInsensitiveOption);
+        
+        QRegularExpressionMatch match = levelRegex.match(line);
+        if (match.hasMatch()) {
+            QString levelString = match.captured(3).simplified();
+            return(levelString);
+        }
+    }
+    
+    file.close();
+    
+    // No dance level was found
+    return "";
 }

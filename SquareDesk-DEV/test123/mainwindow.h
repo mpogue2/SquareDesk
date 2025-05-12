@@ -262,6 +262,8 @@ public:
     bool handleKeypress(int key, QString text);
     bool handleSDFunctionKey(QKeyCombination key, QString text);
     bool someWebViewHasFocus();
+    
+    QString maybeCuesheetLevel(QString filePath); // Returns the dance level found in the specified cuesheet file
 
     void handleDurationBPM();  // when duration and BPM are ready, call this to setup tempo slider, et.al.
 
