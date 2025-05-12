@@ -3040,10 +3040,10 @@ void MainWindow::refreshAllPlaylists() {
                 relativePath.replace(musicRootPath, "");
 
                 PlaylistFileName = musicRootPath + "/playlists/" + relPathInSlot[i] + ".csv";
-                // qDebug() << "playlist title:" << relativePath << PlaylistFileName;
+                // qDebug() << "refreshAllPlaylists: relativePath, PlaylistFileName:" << relativePath << PlaylistFileName;
 
                 // this is what we want: "/patter/RIV 1180 - Sea Chanty.mp3" "/Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/playlists/Jokers/2024/Jokers_2024.06.05.csv"
-                setTitleField(theTable, j, relativePath, true, PlaylistFileName);
+                setTitleField(theTable, j, relativePath, true, PlaylistFileName, relativePath);
             }
 
         }
