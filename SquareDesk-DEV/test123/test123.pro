@@ -577,22 +577,20 @@ macx {
     export(copydata4sk.commands)
     QMAKE_EXTRA_TARGETS += copydata1sk copydata2sk copydata3sk copydata4sk
 
-    # Binary Resources for VAMP (beat/measure detection) -----------------
-    #  NOTE: These are X86 versions and will run (at least for now) on both M1 and X86 Macs
-    #copydata1vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp $$OUT_PWD/SquareDesk.app/Contents/MacOS # Do not do this. vamp must be in MacOS/
+    # Binary Resources for VAMP (beat/measure detection and segmentation) -----------------
+    #  NOTE: The dylibs and the vamp-simple-host executable are all ARM64 binaries.  Segmentino and QM plugins are universal binaries.
+    copydata1vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/vamp-simple-host      $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata2vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/qm-vamp-plugins.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata3vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/segmentino.dylib      $$OUT_PWD/SquareDesk.app/Contents/MacOS
 
-    copydata1vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/vamp-simple-host $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata2vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/qm-vamp-plugins.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata3vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/segmentino.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS
-
-    copydata4vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/libFLAC.12.dylib        $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata5vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/libmp3lame.0.dylib      $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata6vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/libmpg123.0.dylib       $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata7vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/libogg.0.8.5.dylib      $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata8vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/libopus.0.dylib         $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata9vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/libsndfile.1.0.37.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata10vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/libvorbis.0.dylib       $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata11vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/libvorbisenc.2.dylib    $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata4vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/libFLAC.14.dylib        $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata5vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/libmp3lame.0.dylib      $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata6vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/libmpg123.0.dylib       $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata7vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/libogg.0.dylib      $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata8vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/libopus.0.dylib         $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata9vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/libsndfile.1.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata10vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/libvorbis.0.dylib       $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata11vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/libvorbisenc.2.dylib    $$OUT_PWD/SquareDesk.app/Contents/MacOS
 
     first.depends += copydata1vamp copydata2vamp copydata3vamp copydata4vamp copydata5vamp copydata6vamp copydata7vamp copydata8vamp copydata9vamp copydata10vamp copydata11vamp
     export(first.depends)

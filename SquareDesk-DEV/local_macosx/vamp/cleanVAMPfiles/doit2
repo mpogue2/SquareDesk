@@ -1,0 +1,96 @@
+#!/bin/bash
+
+# Script to make VAMP files self-contained without dependencies on /opt/homebrew
+# Simplified version - all files in one directory, no wrapper script
+
+# Change to the directory containing the script
+cd "$(dirname "$0")"
+DIR="$(pwd)"
+
+echo "Creating a self-contained, signed VAMP environment..."
+
+# Create a new directory for the signed version
+CLEAN_DIR="$DIR/vamp-standalone"
+rm -rf "$CLEAN_DIR"  # Remove any existing directory to avoid permission issues
+mkdir -p "$CLEAN_DIR"
+
+# Copy the executable, libraries, and plugins
+echo "Copying files..."
+cp vamp-simple-host "$CLEAN_DIR/"
+cp *.dylib "$CLEAN_DIR/"
+
+echo "Setting correct file permissions..."
+chmod +x "$CLEAN_DIR/vamp-simple-host"
+chmod +w "$CLEAN_DIR"/*.dylib
+
+echo "Setting up proper @rpath connections for all libraries and the executable..."
+
+# First step: Modify the executable to use @rpath
+echo "Adding @rpath to the executable..."
+install_name_tool -add_rpath "@executable_path/" "$CLEAN_DIR/vamp-simple-host"
+
+# Second step: Update the library IDs to use @rpath
+echo "Updating library IDs to use @rpath..."
+for lib in "$CLEAN_DIR"/*.dylib; do
+    base=$(basename "$lib")
+    echo "  Setting ID for $base..."
+    install_name_tool -id "@rpath/$base" "$lib"
+done
+
+# Third step: Update dependencies within each library to use @rpath
+echo "Updating library dependencies to use @rpath..."
+for lib in "$CLEAN_DIR"/*.dylib; do
+    base=$(basename "$lib")
+    echo "  Updating dependencies for $base..."
+    
+    # Get all dependencies for this library
+    deps=$(otool -L "$lib" | grep -v $(basename "$lib") | grep -v "/usr/lib" | awk '{print $1}')
+    
+    # Update each dependency to use @rpath
+    for dep in $deps; do
+        dep_base=$(basename "$dep")
+        echo "    $dep: → @rpath/$dep_base"
+        install_name_tool -change "$dep" "@rpath/$dep_base" "$lib"
+    done
+done
+
+# Fourth step: Update the executable's dependencies
+echo "Updating executable dependencies..."
+# Get all dependencies for the executable, excluding system libraries
+deps=$(otool -L "$CLEAN_DIR/vamp-simple-host" | grep -v vamp-simple-host | grep -v "/usr/lib" | awk '{print $1}')
+
+# Update each dependency to use @rpath
+for dep in $deps; do
+    dep_base=$(basename "$dep")
+    echo "  $dep: → @rpath/$dep_base"
+    install_name_tool -change "$dep" "@rpath/$dep_base" "$CLEAN_DIR/vamp-simple-host"
+done
+
+# Fifth step: Sign everything with ad-hoc signatures
+echo "Signing libraries and executable with ad-hoc signatures..."
+for lib in "$CLEAN_DIR"/*.dylib; do
+    base=$(basename "$lib")
+    echo "  Signing $base..."
+    codesign --force --sign - "$lib"
+done
+
+echo "  Signing vamp-simple-host..."
+codesign --force --sign - "$CLEAN_DIR/vamp-simple-host"
+
+# Verify that all dependencies are correctly set
+echo "Verifying dependencies..."
+echo "  Checking executable dependencies:"
+otool -L "$CLEAN_DIR/vamp-simple-host" | grep -v "/usr/lib"
+
+echo "  Checking libsndfile.1.dylib dependencies:"
+otool -L "$CLEAN_DIR/libsndfile.1.dylib" | grep -v "/usr/lib"
+
+echo "Self-contained VAMP environment successfully created!"
+echo ""
+echo "All files are now in: $CLEAN_DIR"
+echo ""
+echo "You can run the vamp-simple-host directly:"
+echo "cd $CLEAN_DIR && ./vamp-simple-host -l"
+echo ""
+echo "All libraries and plugins are in the same directory, so vamp-simple-host"
+echo "will find them automatically without needing a wrapper script."
