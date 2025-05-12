@@ -12834,6 +12834,7 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
                 // thus the need for that counterintuitive if clause above.
                 menu.addAction( "Remove all Tags from this song", this, [this] {
                     this->removeAllTagsFromSong();
+                    refreshAllPlaylists();
                 });
             }
 
@@ -12868,6 +12869,7 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
                     [this, set, tag]()
                     {
                         this->darkChangeTagOnCurrentSongSelection(tag, !set);
+                        refreshAllPlaylists();
                     });
             tagsMenu->addAction(action);
         }
@@ -12920,6 +12922,7 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
                                     }
                                 }
                             }
+                            refreshAllPlaylists();
             });
         }
 
