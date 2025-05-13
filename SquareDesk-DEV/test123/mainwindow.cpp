@@ -859,10 +859,6 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     findMusic(musicRootPath, true);  // get the filenames from the user's directories
 
-    QString msg1 = QString("Songs found: %1")
-            .arg(QString::number(pathStack->size()));
-    ui->statusBar->showMessage(msg1);
-
     splash->setProgress(25, "Loading and sorting the song table...");
 
     t.elapsed(__LINE__);
@@ -2974,6 +2970,22 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
     splash->setProgress(90, "Almost there...");
+
+    vampStatus = -1;  // UNKNOWN
+    vampStatus = testVamp();  // 0 = GOOD, otherwise positive integer error code
+    // qDebug() << "testVamp:" << testVamp();
+
+    // QString vampIndicator = (vampStatus == 0 ? QString(QChar(0x263a)) + " " : QString(QChar(0x26a0)) + " "); // smiley vs ! warning triangle
+    QString vampIndicator = (vampStatus == 0 ? "" : QString(QChar(0x26a0))); // <nothing> vs ! warning triangle
+    QString msg1 = QString("%1Songs found: %2")
+            .arg(vampIndicator, QString::number(pathStack->size()));
+    ui->statusBar->showMessage(msg1);
+
+    if (vampStatus != 0) {
+        ui->statusBar->setToolTip(QString("Bar/Beat detection and Segmentation disabled: please report error ") + (QString::number(100 + vampStatus)));
+    } else {
+        ui->statusBar->setToolTip(""); // no problems, so no tooltip for you
+    }
 
     mainWindowReady = true;
 }
@@ -13510,4 +13522,63 @@ void MainWindow::auditionByKeyRelease(void) {
 
     this->auditionPlayer.stop();
     auditionInProgress = false;
+}
+
+// =============================================================================
+// check to see if a) vamp exists, b) vamp can be run, and c) vamp can find the beatbartracker and segmentino plugins
+//   returns
+//      0: everything is fine
+//      1: could not find vamp executable
+//      2: could not run vamp
+//      3: vamp could not find either QM plugins (beatbartracker)
+//      4: vamp could not find Segmentino
+int MainWindow::testVamp() {
+
+    // return(99); // DEBUG DEBUG DEBUG
+
+    QString pathNameToVamp(QCoreApplication::applicationDirPath());
+    pathNameToVamp.append("/vamp-simple-host");
+
+    // a) Check to see if vamp-simple-host exists ------------------
+    if (!QFileInfo::exists(pathNameToVamp) ) {
+        return(1);
+    }
+
+    // b) Check to see if we can execute ./vamp-simple-host -l ------------------
+    QProcess vamp;
+
+    QString workDir = QCoreApplication::applicationDirPath();
+    vamp.setWorkingDirectory(workDir);
+    // qDebug() << "working dir: " << workDir;
+
+    QStringList vampArgs;
+    vampArgs << "-l"; //
+
+    vamp.start(pathNameToVamp, vampArgs);
+    if (!vamp.waitForFinished(2000)) { // Wait 2 sec max for vamp to finish
+        return(2); // if we timed out, return 2
+    }
+
+    QStringList vampOutput = QString(vamp.readAllStandardOutput()).split("\n");
+    // qDebug() << "vamp output:" << vampOutput;
+
+    bool foundQM = false;
+    bool foundSegmentino = false;
+    for (const QString &str : vampOutput) {
+        if (str.contains("./qm-vamp-plugins.dylib:")) {
+            // qDebug() << "testVamp:" << str;
+            foundQM = true;
+        } else if (str.contains("./segmentino.dylib:")) {
+            // qDebug() << "testVamp:" << str;
+            foundSegmentino = true;
+        }
+    }
+
+    if (!foundQM) {
+        return(3); // can't do beat/bar detection
+    } else if (!foundSegmentino) {
+        return(4); // can't do segmentation
+    }
+
+    return(0); // all is well
 }

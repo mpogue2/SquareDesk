@@ -243,6 +243,8 @@ public:
     explicit MainWindow(SplashScreen *splash, bool dark, QWidget *parent = nullptr);
     ~MainWindow() override;
 
+    int testVamp();  // see if all is well with vamp
+
     friend class updateID3TagsDialog; // it can access private members of MainWindow
 
 //    double songLoadedReplayGain_dB;
@@ -854,6 +856,7 @@ public:
     QMutex mp3ResultsLock;
     QFuture<int> vampFuture; // cancel this at Quit time to stop more jobs from starting
     bool killAllVamps; // set to true at desstructor time, so that threads will kill their QProcesses ASAP
+    int vampStatus;
     void EstimateSectionsForThisSong(QString pathToMP3);
     void EstimateSectionsForTheseSongs(QList<int> rowNumbers);
     void RemoveSectionsForThisSong(QString pathToMP3);
