@@ -19,11 +19,11 @@ makes it really easy to create seamless loops for patter.
 
 SquareDesk has two primary viewing modes, DARK MODE:
 
-![Main Dark Mode Screenshot](https://mpogue2.github.io/images/musicplayer_DARK.png)
+![image](https://raw.githubusercontent.com/mpogue2/SquareDesk/master/SquareDesk-DEV/test123/docs/graphics/DarkMusicTab.png)
 
 and LIGHT MODE:
 
-![Main Screenshot](https://mpogue2.github.io/images/musicplayer.png)
+![LightModeMusicTab](https://github.com/user-attachments/assets/23e0c20c-1619-4ba9-9b24-13f5aa9bf4e6)
 
 # Cuesheet editor tab
 A built-in cuesheet editor provides a super-simple way to edit lyrics.
