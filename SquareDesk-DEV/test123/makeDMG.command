@@ -7,6 +7,22 @@ if [ -d "$dir" ]; then
     cd "$dir"
 fi
 
+# Parse command line arguments
+CUSTOM_CERT_ID=""
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --certid)
+            CUSTOM_CERT_ID="$2"
+            shift 2
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Usage: $0 [--certid <certificate_id>]"
+            exit 1
+            ;;
+    esac
+done
+
 # check we are in a build directory
 echo checking we are in suitable directory $PWD
 echo $PWD | grep -E -q 'build.*Qt.*macOS-(Debug|Release)/test123$' || { echo invalid directory ; exit 1; }
@@ -27,7 +43,47 @@ echo "WHICH =" $WHICH
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDesk"
-VERSION="1.0.30"  # <-- THIS IS THE ONE TO CHANGE
+
+# Find the SquareDesk_*.app in the Install directory to get the version number
+INSTALL_DIR="${BUILDDIR}/Install"
+if [ ! -d "$INSTALL_DIR" ]; then
+    echo "Error: Install directory not found at $INSTALL_DIR"
+    exit 1
+fi
+
+# Find SquareDesk_*.app in the Install directory
+FOUND_APPS=( $(find "$INSTALL_DIR" -maxdepth 1 -name "SquareDesk_*.app" -type d) )
+
+# Check if we found exactly one app
+if [ ${#FOUND_APPS[@]} -eq 0 ]; then
+    echo "Error: No SquareDesk_*.app found in $INSTALL_DIR"
+    exit 1
+elif [ ${#FOUND_APPS[@]} -gt 1 ]; then
+    echo "Error: Multiple SquareDesk_*.app files found in $INSTALL_DIR:"
+    for app in "${FOUND_APPS[@]}"; do
+        echo "  $(basename "$app")"
+    done
+    echo "Please clean up the Install directory and try again."
+    exit 1
+fi
+
+# Set the app path
+APP_PATH="${FOUND_APPS[0]}"
+APP_INFO_PLIST="$APP_PATH/Contents/Info.plist"
+
+# Extract version from Info.plist
+if [ ! -f "$APP_INFO_PLIST" ]; then
+    echo "Error: Info.plist not found at $APP_INFO_PLIST"
+    exit 1
+fi
+
+VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP_INFO_PLIST")
+if [ $? -ne 0 ] || [ -z "$VERSION" ]; then
+    echo "Error: Could not extract version number from Info.plist"
+    exit 1
+fi
+
+echo "Found app: $(basename "$APP_PATH") with version: $VERSION"
 
 QT_VERSION=$(echo $PWD | sed -e 's/.*Qt_//' -e 's/_for.*//')
 QTVERSION=$(echo $QT_VERSION | sed -e 's/_/./g')
@@ -181,8 +237,19 @@ hdiutil convert "${DMG_TMP}" -format UDZO -imagekey zlib-level=9 -o "${DMG_FINAL
 
 # Now code sign the DMG file, too.
 echo "-------------------------"
-echo code signing the DMG file...
-codesign --force --sign "Developer ID Application: Michael Pogue (K63QFQ4P65)" ${DMG_FINAL}
+echo "Code signing the DMG file..."
+
+# Set the certificate ID (use custom if provided, otherwise use default)
+DEFAULT_CERT_ID="Developer ID Application: Michael Pogue (K63QFQ4P65)"
+if [ -n "$CUSTOM_CERT_ID" ]; then
+    CERT_ID="$CUSTOM_CERT_ID"
+    echo "Using custom certificate ID: $CERT_ID"
+else
+    CERT_ID="$DEFAULT_CERT_ID"
+    echo "Using default certificate ID: $CERT_ID"
+fi
+
+codesign --force --sign "$CERT_ID" ${DMG_FINAL}
 
 # clean up
 echo "-------------------------"

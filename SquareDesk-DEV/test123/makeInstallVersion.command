@@ -44,7 +44,12 @@ echo "WHICH =" $WHICH
 
 # set up the app name and version number
 APP_NAME="SquareDesk"
-VERSION="1.0.30"  # <-- THIS IS THE ONE TO CHANGE
+# Check if version was passed as a parameter, otherwise use default
+if [ "$1" != "" ]; then
+    VERSION="$1"
+else
+    VERSION="1.0.30"  # Default version if none provided
+fi
 
 QT_VERSION=$(echo $PWD | sed -e 's/.*Qt_//' -e 's/_for.*//')
 QTVERSION=$(echo $QT_VERSION | sed -e 's/_/./g')

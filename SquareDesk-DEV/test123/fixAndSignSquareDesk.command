@@ -3,22 +3,68 @@
 # fixAndSignSquareDesk - Combined script to fix QWebEngine issues and sign SquareDesk
 # This script applies all necessary Info.plist modifications and performs proper code signing
 
-# Check if an app path was provided
-if [ $# -lt 1 ]; then
-    echo "Usage: $0 <path_to_app>"
-    echo "Example: $0 ./SquareDesk_1.0.30.app"
+# Make sure we're in the test123 directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$SCRIPT_DIR"
+
+# Parse command line arguments
+CUSTOM_CERT_ID=""
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --certid)
+            CUSTOM_CERT_ID="$2"
+            shift 2
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Usage: $0 [--certid <certificate_id>]"
+            exit 1
+            ;;
+    esac
+done
+
+# Check if we're in test123 directory
+if [[ "$(basename "$PWD")" != "test123" ]]; then
+    echo "Error: Script must be run from the test123 directory"
     exit 1
 fi
 
-APP_PATH="$1"
-# Validate that the path exists and is an .app
-if [ ! -d "$APP_PATH" ] || [[ "$APP_PATH" != *.app ]]; then
-    echo "Error: $APP_PATH is not a valid .app directory"
+# Look for the SquareDesk app in the Install directory
+INSTALL_DIR="../Install"
+if [ ! -d "$INSTALL_DIR" ]; then
+    echo "Error: Install directory not found at $INSTALL_DIR"
     exit 1
 fi
 
-# Certificate ID for signing
-CERT_ID="561BB66FEF321C105117D0F1AB62DF397A84BC5C"
+# Find SquareDesk_*.app in the Install directory
+FOUND_APPS=( $(find "$INSTALL_DIR" -maxdepth 1 -name "SquareDesk_*.app" -type d) )
+
+# Check if we found exactly one app
+if [ ${#FOUND_APPS[@]} -eq 0 ]; then
+    echo "Error: No SquareDesk_*.app found in $INSTALL_DIR"
+    exit 1
+elif [ ${#FOUND_APPS[@]} -gt 1 ]; then
+    echo "Error: Multiple SquareDesk_*.app files found in $INSTALL_DIR:"
+    for app in "${FOUND_APPS[@]}"; do
+        echo "  $(basename "$app")"
+    done
+    echo "Please clean up the Install directory and try again."
+    exit 1
+fi
+
+# Set the app path
+APP_PATH="${FOUND_APPS[0]}"
+echo "Found app: $(basename "$APP_PATH")"
+
+# Set the certificate ID (use custom if provided, otherwise use default)
+DEFAULT_CERT_ID="561BB66FEF321C105117D0F1AB62DF397A84BC5C"
+if [ -n "$CUSTOM_CERT_ID" ]; then
+    CERT_ID="$CUSTOM_CERT_ID"
+    echo "Using custom certificate ID: $CERT_ID"
+else
+    CERT_ID="$DEFAULT_CERT_ID"
+    echo "Using default certificate ID: $CERT_ID"
+fi
 
 echo "==== SquareDesk Fix and Sign Process ===="
 echo "Processing app: $APP_PATH"
