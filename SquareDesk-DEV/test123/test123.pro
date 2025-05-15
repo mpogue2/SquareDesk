@@ -519,8 +519,9 @@ installer2.commands = $(COPY) $$PWD/makeInstallVersion.command    $$OUT_PWD/make
 installer3.commands = $(COPY) $$PWD/fixAndSignSquareDesk.command  $$OUT_PWD/fixAndSignSquareDesk.command  # NEW RELEASE METHOD
 installer4.commands = $(COPY) $$PWD/notarizeSquareDesk.command    $$OUT_PWD/notarizeSquareDesk.command    # NEW RELEASE METHOD
 installer5.commands = $(COPY) $$PWD/makeDMG.command               $$OUT_PWD/makeDMG.command               # NEW RELEASE METHOD
+installer6.commands = $(COPY) $$PWD/releaseSquareDesk.command     $$OUT_PWD/releaseSquareDesk.command     # NEW RELEASE METHOD
 
-first.depends += installer1 installer2 installer3 installer4 installer5
+first.depends += installer1 installer2 installer3 installer4 installer5 installer6
 
 export(first.depends)
 export(installer1.commands)
@@ -528,8 +529,9 @@ export(installer2.commands)
 export(installer3.commands)
 export(installer4.commands)
 export(installer5.commands)
+export(installer6.commands)
 
-QMAKE_EXTRA_TARGETS += first installer1 installer2 installer3 installer4 installer5
+QMAKE_EXTRA_TARGETS += first installer1 installer2 installer3 installer4 installer5 installer6
 }
 
 # ************************************************************************************
@@ -561,18 +563,20 @@ macx {
     QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata0d copydata0e copydata1dir copydata1 copydata2 copydata3 copydata4s
 
     # For the PDF viewer -----------------
-    copydata1p.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
-    copydata2p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/web   $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
-    copydata3p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/build $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
-    copydata4p.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web/compressed.*.pdf
+    copydata1p.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web
+    copydata2p.commands = sleep 2;$(COPY_DIR) $$PWD/../qpdfjs/minified/*   $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
+    #copydata3p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/build $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
+    copydata4p.commands = sleep 2;$(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web/compressed.*.pdf
 
-    first.depends += copydata1p copydata2p copydata3p copydata4p
+    #first.depends += copydata1p copydata2p copydata3p copydata4p
+    first.depends += copydata1p copydata2p copydata4p
     export(first.depends)
     export(copydata1p.commands)
     export(copydata2p.commands)
-    export(copydata3p.commands)
+    #export(copydata3p.commands)
     export(copydata4p.commands)
-    QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p copydata4p
+    #QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p copydata4p
+    QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata4p
 
     # SVG Resources for sliders and knobs -----------------
     copydata1sk.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/Resources/knobs || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/knobs
