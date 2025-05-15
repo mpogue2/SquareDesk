@@ -623,7 +623,7 @@ public:
             if (pLoudMaxPluginRaw != nullptr) {
                 pLoudMaxPluginRaw->processBlock(buffer, emptyMidiBuffer); // processes IN PLACE (so outDataFloat/outDataFloatR are in play)
             } else {
-                qDebug() << "ERROR: tried to call processBlock, but pLoudMaxPluginRaw was zero.";
+                // qDebug() << "ERROR: tried to call processBlock, but pLoudMaxPluginRaw was zero.";
             }
 #endif
 
@@ -663,7 +663,7 @@ public:
             if (pLoudMaxPluginRaw != nullptr) {
                 pLoudMaxPluginRaw->processBlock(buffer, emptyMidiBuffer); // processes IN PLACE (so outDataFloat/outDataFloatR are in play)
             } else {
-                qDebug() << "ERROR: tried to call processBlock, but pLoudMaxPluginRaw was zero.";
+                // qDebug() << "ERROR: tried to call processBlock, but pLoudMaxPluginRaw was zero.";
             }
 #endif
 
