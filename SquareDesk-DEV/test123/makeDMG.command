@@ -41,6 +41,8 @@ case $PWD in
 esac
 echo "WHICH =" $WHICH
 
+BUILDDIR=$PWD
+
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDesk"
 
@@ -91,7 +93,6 @@ QTVERSION=$(echo $QT_VERSION | sed -e 's/_/./g')
 HOMEDIR=$HOME
 
 SOURCEDIR=$(pwd | sed -e 's|/build.*||')/SquareDesk-DEV/test123 
-BUILDDIR=$PWD
 QTDIR="${HOMEDIR}/Qt"
 
 DMG_BACKGROUND_IMG_SHORT="installer3.png"
