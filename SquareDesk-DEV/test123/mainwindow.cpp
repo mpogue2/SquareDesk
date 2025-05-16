@@ -13080,7 +13080,7 @@ void MainWindow::darkAddPlaylistItemToBottom(int whichSlot, QString title, QStri
     QString absPath = theFullPath; // already is fully qualified
 
     theRelativePath.replace(musicRootPath, "");
-    setTitleField(theTableWidget, songCount-1, theRelativePath, true, PlaylistFileName); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
+    setTitleField(theTableWidget, songCount-1, theRelativePath, true, PlaylistFileName, theRelativePath); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
 
     // PITCH column
     QTableWidgetItem *pit = new QTableWidgetItem(thePitch);
