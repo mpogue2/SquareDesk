@@ -30,8 +30,9 @@
 
 class MyTableWidget : public QTableWidget
 {
+    Q_OBJECT
 public:
-    MyTableWidget(QWidget *parent);
+    MyTableWidget(QWidget *parent = nullptr);
     bool isEditing();
 
     bool moveSelectedItemsUp();
@@ -48,16 +49,22 @@ public:
     QString fullPathOfSelectedSong();
 
     // for Drag and Drop
-    void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void dragEnterEvent(QDragEnterEvent *event);
-    void dragMoveEvent(QDragMoveEvent *event);
-    void dropEvent(QDropEvent *event);
-
-    QPoint dragStartPosition;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dragMoveEvent(QDragMoveEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
 
     void setMainWindow(void *m);  // so we can do stuff
+
+protected:
+    void paintEvent(QPaintEvent *event) override;
+    void dragLeaveEvent(QDragLeaveEvent *event) override;
+
+private:
     void *mw;
+    int dropIndicatorRow; // for drop location highlighting
+    QPoint dragStartPosition;
 };
 
 #endif // MYTABLEWIDGET_H

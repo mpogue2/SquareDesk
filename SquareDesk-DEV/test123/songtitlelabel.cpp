@@ -55,10 +55,13 @@ void darkSongTitleLabel::mousePressEvent(QMouseEvent *event)
 
 void darkSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
 {
+    // qDebug() << "darkSongTitleLabel::mouseMoveEvent";
     if (!(event->buttons() & Qt::LeftButton)) {
+        // qDebug() << "return 1";
         return; // return if not left button down and move
     }
     if ((event->pos() - dragStartPosition).manhattanLength() < QApplication::startDragDistance()) {
+        // qDebug() << "return 2";
         return; // return if haven't moved far enough with L mouse button down
     }
 
@@ -136,17 +139,22 @@ void darkPaletteSongTitleLabel::mouseDoubleClickEvent(QMouseEvent *e)
 void darkPaletteSongTitleLabel::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
+        // qDebug() << "***** darkPaletteSongTitleLabel::mousePressEvent";
         dragStartPosition = event->pos();
+        // qDebug() << "setting dragStartPosition" << dragStartPosition;
     }
     QLabel::mousePressEvent(event);
 }
 
 void darkPaletteSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
 {
+    // qDebug() << "***** darkPaletteSongTitleLabel::mouseMoveEvent";
     if (!(event->buttons() & Qt::LeftButton)) {
+        // qDebug() << "return darkPaletteSongTitleLabel no left button pressed";
         return; // return if not left button down and move
     }
     if ((event->pos() - dragStartPosition).manhattanLength() < QApplication::startDragDistance()) {
+        // qDebug() << "return darkPaletteSongTitleLabel not moved far enough";
         return; // return if haven't moved far enough with L mouse button down
     }
 

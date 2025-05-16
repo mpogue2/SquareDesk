@@ -33,6 +33,9 @@
 #include "mytablewidget.h"
 #include <QDebug>
 #include <QDrag>
+#include <QPainter>
+#include <QStyleOptionViewItem>
+#include "songtitlelabel.h"
 
 // Disable warning, see: https://github.com/llvm/llvm-project/issues/48757
 #pragma clang diagnostic push
@@ -45,7 +48,10 @@ MyTableWidget::MyTableWidget(QWidget *parent)
     : QTableWidget(parent)
 {
     setAcceptDrops(true);
+    setDragDropMode(QAbstractItemView::DragDrop);
+    setDropIndicatorShown(false); // We'll draw our own
     mw = nullptr;
+    dropIndicatorRow = -1; // for drop location highlighting
 }
 
 // returns true, if one of the items in the table is being edited (in which case,
@@ -586,8 +592,11 @@ QString MyTableWidget::fullPathOfSelectedSong() {
 
 void MyTableWidget::mousePressEvent(QMouseEvent *event)
 {
+    // qDebug() << "***** MyTableWidget::mousePressEvent";
     if (event->button() == Qt::LeftButton) {
-        dragStartPosition = event->pos();
+        dragStartPosition = event->position().toPoint(); // FIX: use position().toPoint() instead of deprecated pos()
+        // qDebug() << "***** MyTableWidget::mousePressEvent" << dragStartPosition;
+
     }
     QTableWidget::mousePressEvent(event);
 }
@@ -597,7 +606,7 @@ static QRegularExpression spanPrefixRemover2("<span style=\"color:.*\">(.*)</spa
 
 void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    // qDebug() << "mouseMoveEvent";
+    // qDebug() << "***** MyTableWidget::mouseMoveEvent";
     if (mw != nullptr) {
         // qDebug() << "auditionInProgress: " << ((MainWindow *)mw)->auditionInProgress;
         if (((MainWindow *)mw)->auditionInProgress) {
@@ -606,18 +615,22 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
     }
 
     if (!(event->buttons() & Qt::LeftButton)) {
+        qDebug() << "return myTableWidget no left button pressed";
         return; // return if not left button down and move
     }
-    if ((event->pos() - dragStartPosition).manhattanLength() < QApplication::startDragDistance()) {
+    if ((event->position().toPoint() - dragStartPosition).manhattanLength() < QApplication::startDragDistance()) { // FIX: use position().toPoint() instead of deprecated pos()
+        qDebug() << "return myTableWidget not moved far enough";
         return; // return if haven't moved far enough with L mouse button down
     }
 
     QDrag *drag = new QDrag(this);
     QMimeData *mimeData = new QMimeData;
 
-    int sourceRow; // = itemAt(dragStartPosition)->row();
+    int sourceRow = 0; // = itemAt(dragStartPosition)->row();
     QString sourceInfo;
     int rowNum = 0;
+
+    // qDebug() << "mouseMoveEvent:" << sourceRow;
 
     if (objectName().startsWith("playlist")) {
         // the source is a playlist or track filter --------
@@ -709,29 +722,155 @@ void MyTableWidget::dragEnterEvent(QDragEnterEvent *event)
 {
     // qDebug() << "dragEnterEvent!" << this;
     if (event->mimeData()->hasFormat("text/plain")) {
-        // qDebug() << "    event accepted." << event->mimeData()->text() << acceptDrops();
-        event->acceptProposedAction();
+        // Only accept drops on playlist tables
+        if (objectName().startsWith("playlist")) {
+            event->acceptProposedAction();
+        }
     }
 }
 
 void MyTableWidget::dragMoveEvent(QDragMoveEvent *event)
 {
-    // qDebug() << "dragMoveEvent: " << event;
+    // Only playlist tables allow reordering/dropping
+    if (!objectName().startsWith("playlist")) {
+        event->ignore();
+        return;
+    }
+
+    // Find the row where the drop would occur
+    QPoint pos = event->position().toPoint(); // FIX: use position().toPoint() instead of deprecated pos()
+    int row = rowAt(pos.y());
+    if (row < 0) {
+        // Below last row
+        dropIndicatorRow = rowCount();
+    } else {
+        QRect rect = visualRect(model()->index(row, 0));
+        if (pos.y() < rect.top() + rect.height() / 2) {
+            dropIndicatorRow = row;
+        } else {
+            dropIndicatorRow = row + 1;
+        }
+    }
+    viewport()->update();
     event->acceptProposedAction();
+}
+
+void MyTableWidget::dragLeaveEvent(QDragLeaveEvent *event)
+{
+    Q_UNUSED(event)
+    dropIndicatorRow = -1;
+    viewport()->update();
 }
 
 void MyTableWidget::dropEvent(QDropEvent *event)
 {
-    // qDebug() << "***** dropEvent *****";
+    // qDebug() << "***** MyTableWidget::dropEvent *****";
     // qDebug() << this << " got this text: " << event->mimeData()->text();
 
     event->acceptProposedAction();
 
     QStringList rows = event->mimeData()->text().split("!!&!!");
 
-    foreach (const QString &r, rows) {
-        // qDebug() << "drop got this: " << r; // we get one per selected row in darkSongTable
+    // Save drop position before clearing indicator
+    int targetRow = dropIndicatorRow; // FIX: avoid shadowing insertRow()
+    dropIndicatorRow = -1;
+    viewport()->update();
 
+    // If source and dest are the same playlist, do reordering
+    QString sourceName;
+    if (!rows.isEmpty()) {
+        QStringList fields = rows[0].split("!#!");
+        if (fields.size() > 1)
+            sourceName = fields[1];
+    }
+    QString destName = objectName();
+
+    if (sourceName == destName) {
+        // INTERNAL MOVE/REORDER ===================
+        QList<int> selRows;
+        foreach (const QModelIndex &mi, selectionModel()->selectedRows()) {
+            selRows.append(mi.row());
+        }
+        std::sort(selRows.begin(), selRows.end());
+
+        // Adjust targetRow if moving downwards
+        int minSel = selRows.first();
+        if (targetRow > minSel)
+            targetRow -= selRows.size();
+
+        // Copy row data
+        QList<QList<QTableWidgetItem*>> copiedItems;
+        QList<QWidget*> copiedWidgets;
+        for (int r : selRows) {
+            QList<QTableWidgetItem*> items;
+            for (int c = 0; c < columnCount(); ++c) {
+                QTableWidgetItem* orig = item(r, c);
+                items.append(orig ? orig->clone() : nullptr);
+            }
+            copiedItems.append(items);
+            QWidget* w = cellWidget(r, 1);
+            if (w) {
+                // QLabel* oldLabel = qobject_cast<QLabel*>(w);
+                // if (oldLabel) {
+                //     copiedWidgets.append(new QLabel(oldLabel->text()));
+                // } else {
+                //     copiedWidgets.append(nullptr);
+                // }
+                darkPaletteSongTitleLabel* oldLabel = dynamic_cast<darkPaletteSongTitleLabel*>(w);
+                if (oldLabel) {
+                    // clone the fancy palette label
+                    darkPaletteSongTitleLabel* newLabel = new darkPaletteSongTitleLabel((MainWindow *)mw);
+                    newLabel->setTextFormat(Qt::RichText);
+                    newLabel->setText(oldLabel->text());
+                    copiedWidgets.append(newLabel);
+                } else {
+                    copiedWidgets.append(nullptr);
+                }
+            } else {
+                copiedWidgets.append(nullptr);
+            }
+        }
+
+        // Remove from bottom up
+        for (int i = selRows.size()-1; i >= 0; --i) {
+            // qDebug() << "removing row" << selRows[i];
+            removeRow(selRows[i]);
+        }
+
+        // Insert at new location
+        for (int i = 0; i < copiedItems.size(); ++i) {
+            insertRow(targetRow + i);
+            for (int c = 0; c < columnCount(); ++c) {
+                setItem(targetRow + i, c, copiedItems[i][c]);
+            }
+            if (copiedWidgets[i])
+                setCellWidget(targetRow + i, 1, copiedWidgets[i]);
+        }
+
+        // internal playlist, must renumber them
+        // qDebug() << "INTERNAL RENUMBER:";
+
+        for (int i = 0; i < this->rowCount(); i++) {
+            this->item(i,0)->setText(QString::number(i+1));
+        }
+
+        // --- Fix: Reset dropIndicatorRow and force viewport update to restore drag state ---
+        dropIndicatorRow = -1;
+        viewport()->update();
+        // Also clear selection and focus to avoid selection model confusion
+        clearSelection();
+        setCurrentCell(-1, -1);
+        setFocus();
+
+        event->acceptProposedAction();
+        return;
+    }
+
+    // ...existing code for drag from darkSongTable or other playlist...
+    int itemNumber = 0;
+    foreach (const QString &r, rows) {
+        // ...existing code...
+        // Use targetRow instead of always appending to bottom
         QStringList fields = r.split("!#!"); // split the row into fields
         QString sourceTrackName = fields[0].trimmed();
         QString sourceName      = fields[1];
@@ -784,16 +923,19 @@ void MyTableWidget::dropEvent(QDropEvent *event)
                 // qDebug() << "NO REORDERING OF DARKSONGTABLE";
             } else {
                 // from darkSongTable to this playlist, this is feature request #1018
-                // qDebug() << "***** DROP:" << sourceName << sourceTrackName << sourcePitch << sourceTempo << sourcePath;
+                // qDebug() << "***** DROP:" << sourceName << sourceTrackName << sourcePitch << sourceTempo << sourcePath << targetRow;
 
                 // (MainWindow*)mw->darkAddPlaylistItemToBottom(whichSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, ""); // slot is 0 - 2
 
                 if (destIsTrackFilter) {
                     // qDebug() << "NO DROPPING FROM DARKSONGTABLE TO TRACK FILTERS";
                 } else {
+                    // FROM DARKSONGTABLE TO PLAYLIST-THAT-IS-NOT-A-TRACK-FILTER ================
                     if (mw != nullptr) {
                         // playlists only, not track filters
-                        ((MainWindow *)mw)->darkAddPlaylistItemToBottom(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "");
+                        // ((MainWindow *)mw)->darkAddPlaylistItemToBottom(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "");
+                        ((MainWindow *)mw)->darkAddPlaylistItemAt(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "", targetRow + itemNumber);
+                        itemNumber++;
                     } else {
                         qDebug() << "ERROR: mw not valid";
                     }
@@ -818,7 +960,8 @@ void MyTableWidget::dropEvent(QDropEvent *event)
                     // qDebug() << "***** DRAG N DROP from TRACK FILTER to PLAYLIST: " << sourceName << destName;
                     if (mw != nullptr) {
                         // qDebug() << "TF2PL: " << destSlot << sourceTrackName << sourcePitch << sourceTempo << sourcePath;
-                        ((MainWindow *)mw)->darkAddPlaylistItemToBottom(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "");
+                        ((MainWindow *)mw)->darkAddPlaylistItemAt(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "", targetRow + itemNumber);
+                        itemNumber++;
                     } else {
                         qDebug() << "ERROR: mw not valid";
                     }
@@ -835,16 +978,16 @@ void MyTableWidget::dropEvent(QDropEvent *event)
                         // qDebug() << "***** DRAG N DROP WITHIN A PLAYLIST: " << sourceName;
                     } else {
                         // dragging between playlists we want to support
-                        // qDebug() << "***** DRAG N DROP BETWEEN PLAYLISTS, source:" << sourceName << ", destination:" << destName;
+                        // --- Fix: insert at drop position, not at end ---
                         if (mw != nullptr) {
-                            ((MainWindow *)mw)->darkAddPlaylistItemToBottom(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "");
+                            ((MainWindow *)mw)->darkAddPlaylistItemAt(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "", targetRow + itemNumber);
+                            itemNumber++;
                         } else {
                             qDebug() << "ERROR: mw not valid";
                         }
                     }
                 }
             }
-
         }
 
 
@@ -855,4 +998,32 @@ void MyTableWidget::dropEvent(QDropEvent *event)
 
 void MyTableWidget::setMainWindow(void *m) {
     mw = m; // save it.  MainWindow will cast it
+}
+
+void MyTableWidget::paintEvent(QPaintEvent *event)
+{
+    QTableWidget::paintEvent(event);
+
+    // Draw drop indicator if needed
+    if (dropIndicatorRow >= 0 && objectName().startsWith("playlist")) {
+        QPainter painter(viewport());
+        painter.setRenderHint(QPainter::Antialiasing, true);
+        QPen pen(Qt::green, 3);
+        painter.setPen(pen);
+
+        int y = 0;
+        if (dropIndicatorRow < rowCount()) {
+            QRect rect = visualRect(model()->index(dropIndicatorRow, 0));
+            y = rect.top();
+        } else {
+            // After last row
+            if (rowCount() > 0) {
+                QRect rect = visualRect(model()->index(rowCount()-1, 0));
+                y = rect.bottom();
+            } else {
+                y = 0;
+            }
+        }
+        painter.drawLine(0, y, viewport()->width(), y);
+    }
 }

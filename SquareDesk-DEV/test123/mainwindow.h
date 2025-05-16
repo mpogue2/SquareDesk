@@ -343,6 +343,7 @@ public slots:
     // void darkAddPlaylistItemToTop(int slot);
     void darkAddPlaylistItemsToBottom(int slot);    // adds multiple selected darkSongTable items to the bottom of playlist in slot n
     void darkAddPlaylistItemToBottom(int whichSlot, QString title, QString thePitch, QString theTempo, QString theFullPath, QString isLoaded); // single item add
+    void darkAddPlaylistItemAt(int whichSlot, const QString &trackName, const QString &pitch, const QString &tempo, const QString &path, const QString &extra, int insertRow);
 
     void darkRevealInFinder();
     void darkRevealAttachedLyricsFileInFinder();

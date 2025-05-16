@@ -13594,3 +13594,75 @@ int MainWindow::testVamp() {
 
     return(0); // all is well
 }
+
+// void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, const QString &thePitch, const QString &theTempo, const QString &theFullPath, const QString &extra, int insertRowNum) {
+//     Q_UNUSED(extra)
+
+//     // qDebug() << "darkAddPlaylistItemAt" << whichSlot << trackName << theFullPath << insertRowNum;
+
+//     MyTableWidget *destTableWidget;
+//     QString PlaylistFileName = "foobar";
+//     switch (whichSlot) {
+//         default:
+//         case 0: destTableWidget = ui->playlist1Table; break;
+//         case 1: destTableWidget = ui->playlist2Table; break;
+//         case 2: destTableWidget = ui->playlist3Table; break;
+//     }
+
+//     // make a new row, after all the other ones, and fill it in with the new info
+//     destTableWidget->insertRow(insertRowNum); // always make a new row
+//     int songCount = destTableWidget->rowCount();
+
+//     // # column
+//     QTableWidgetItem *num = new TableNumberItem(QString::number(insertRowNum+1)); // use TableNumberItem so that it sorts numerically
+//     destTableWidget->setItem(insertRowNum, 0, num);
+
+//     // Now we have to renumber all the rows BELOW insertRowNum, to add 1 to them
+//     for (int i = insertRowNum+1; i < songCount; i++) {
+//        int currentNum = destTableWidget->item(i,0)->text().toInt();
+//        // qDebug() << "currentNum:" << currentNum;
+//        destTableWidget->item(i,0)->setText(QString::number(currentNum+1));
+//     }
+
+//     // TITLE column
+//     QString theRelativePath = theFullPath;
+//     QString absPath = theFullPath; // already is fully qualified
+
+//     theRelativePath.replace(musicRootPath, "");
+//     setTitleField(destTableWidget, insertRowNum, theRelativePath, true, PlaylistFileName, theRelativePath); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
+
+//     // PITCH column
+//     QTableWidgetItem *pit = new QTableWidgetItem(thePitch);
+//     destTableWidget->setItem(insertRowNum, 2, pit);
+
+//     // TEMPO column
+//     QTableWidgetItem *tem = new QTableWidgetItem(theTempo);
+//     destTableWidget->setItem(insertRowNum, 3, tem);
+
+//     // PATH column
+//     QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
+//     destTableWidget->setItem(insertRowNum, 4, fullPath);
+
+//     // LOADED column
+//     QTableWidgetItem *loaded = new QTableWidgetItem("");
+//     destTableWidget->setItem(insertRowNum, 5, loaded);
+
+//     destTableWidget->resizeColumnToContents(0); // FIX: perhaps only if this is the first row?
+// //    theTableWidget->resizeColumnToContents(2);
+// //    theTableWidget->resizeColumnToContents(3);
+
+//     // QTimer::singleShot(250, [destTableWidget]{
+//     //     // NOTE: We have to do it this way with a single-shot timer, because you can't scroll immediately to a new item, until it's been processed
+//     //     //   after insertion by the table.  So, there's a delay.  Yeah, this is kludgey, but it works.
+
+//     //     // theTableWidget->selectRow(songCount-1); // for some reason this has to be here, or it won't scroll all the way to the bottom.
+//     //     // theTableWidget->scrollToItem(theTableWidget->item(songCount-1,1), QAbstractItemView::PositionAtCenter); // ensure that the new item is visible
+
+//     //     // same thing, but without forcing us to select the last item in the playlist
+//     //     // theTableWidget->verticalScrollBar()->setSliderPosition(theTableWidget->verticalScrollBar()->maximum());
+//     //     });
+
+//     slotModified[whichSlot] = true;
+//     playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+
+// }
