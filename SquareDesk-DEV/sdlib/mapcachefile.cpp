@@ -73,32 +73,42 @@ MAPPED_CACHE_FILE::MAPPED_CACHE_FILE(int numsourcefiles,
 
    // Figure out the map file name.  Use a conservative estimate for the size.
    int mapfilenamesize = strlen(mapext) + numsourcefiles;
-   int i, j;
+   int i; //, j;  // -mpogue, 2025.05.16
 
    for (i=0 ; i<numsourcefiles ; i++)
       mapfilenamesize += strlen(srcnames[i]);
 
    innards->mapfilename = new char [mapfilenamesize];
 
-   int filenamepos = 0;
+   // -mpogue, always put the cache file (only one for us) in /tmp, 2025.05.16
+   // int filenamepos = 0;
+   //
+   // // Append the source file base names.
+   // for (i=0 ; i<numsourcefiles ; i++) {
+   //    const char *this_src = srcnames[i];
+   //    for (j=strlen(this_src)-1 ; ; j--) {
+   //       if (j <= 0 || this_src[j] == '.') {
+   //          if (j <= 0) j = strlen(this_src);
+   //          ::memcpy(innards->mapfilename+filenamepos, this_src, j);
+   //          filenamepos += j;
+   //          if (i != numsourcefiles-1)
+   //             innards->mapfilename[filenamepos++] = '+';
+   //          break;
+   //       }
+   //    }
+   // }
 
-   // Append the source file base names.
-   for (i=0 ; i<numsourcefiles ; i++) {
-      const char *this_src = srcnames[i];
-      for (j=strlen(this_src)-1 ; ; j--) {
-         if (j <= 0 || this_src[j] == '.') {
-            if (j <= 0) j = strlen(this_src);
-            ::memcpy(innards->mapfilename+filenamepos, this_src, j);
-            filenamepos += j;
-            if (i != numsourcefiles-1)
-               innards->mapfilename[filenamepos++] = '+';
-            break;
-         }
-      }
-   }
+   // innards->mapfilename[filenamepos++] = '.';
+   // ::strcpy(innards->mapfilename+filenamepos, mapext);
 
-   innards->mapfilename[filenamepos++] = '.';
-   ::strcpy(innards->mapfilename+filenamepos, mapext);
+   // here numsourcefiles should be 1, and it's always the sd_calls.dat file
+   //   that needs to be cached.  So, let's just hard-code the name.
+   char tempDir[] = "/tmp/sd_calls.";
+   ::strcpy(innards->mapfilename, tempDir);
+   ::strcat(innards->mapfilename, mapext);
+
+   // printf("SD mapfilename: %s\n", innards->mapfilename); // mpogue
+   // -mpogue, END MODIFICATIONS, 2025.05.16
 
    // Open the source files.
 
