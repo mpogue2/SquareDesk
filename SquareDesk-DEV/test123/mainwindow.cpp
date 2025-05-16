@@ -1484,55 +1484,67 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     on_actionShow_order_sequence_toggled(prefsManager.Getenableordersequence());
     {
         QString sizesStr = prefsManager.GetSDTabVerticalSplitterPosition();
+        // sizesStr = "";  // DEBUG ONLY
+        // qDebug() << "Vertical sizes: " << sizesStr;
+        QList<int> sizes;
         if (!sizesStr.isEmpty())
         {
-            QList<int> sizes;
+            // override the current sizes with the previously saved sizes
             for (const QString &sizeStr : sizesStr.split(","))
             {
                 sizes.append(sizeStr.toInt());
             }
-            // NOTE: assumes two widgets
-            if (sizes[0] == 0) {
-                sizes[0] += 300;
-                sizes[1] -= 300;  // please, oh Layout Manager, pay attention to the minheight of the checkers widget
-                                  //   so that user is not confused when the checkers widget disappears by dragging upward
-                                  //   and they don't notice the tiny little splitter handle.
-            }
-            if (sizes[1] == 0) {
-                sizes[0] -= 300;
-                sizes[1] += 300;  // please, oh Layout Manager, pay attention to the minheight of the menu options widget
-                                  //   so that user is not confused when the menu options widget disappears by dragging downward
-                                  //   and they don't notice the tiny little splitter handle.
-            }
-            ui->splitterSDTabVertical->setSizes(sizes);
+        } else {
+            sizes.append(300);
+            sizes.append(140);
         }
+        // NOTE: assumes two widgets
+        if (sizes[0] == 0) {
+            sizes[0] += 300;
+            sizes[1] -= 300;  // please, oh Layout Manager, pay attention to the minheight of the checkers widget
+                              //   so that user is not confused when the checkers widget disappears by dragging upward
+                              //   and they don't notice the tiny little splitter handle.
+        }
+        if (sizes[1] == 0) {
+            sizes[0] -= 300;
+            sizes[1] += 300;  // please, oh Layout Manager, pay attention to the minheight of the menu options widget
+                              //   so that user is not confused when the menu options widget disappears by dragging downward
+                              //   and they don't notice the tiny little splitter handle.
+        }
+        // qDebug() << "    Vertical using: " << sizes;
+        ui->splitterSDTabVertical->setSizes(sizes);
     }
     {
         QString sizesStr = prefsManager.GetSDTabHorizontalSplitterPosition();
+        // sizesStr = "";  // DEBUG ONLY
+        // qDebug() << "Horizontal sizes: " << sizesStr;
+        QList<int> sizes;
         if (!sizesStr.isEmpty())
         {
-            QList<int> sizes;
+            // override the current sizes with the previously saved sizes
             for (const QString &sizeStr : sizesStr.split(","))
             {
                 sizes.append(sizeStr.toInt());
             }
-
-            // NOTE: assumes two widgets
-            if (sizes[0] == 0) {
-                sizes[0] += 300;
-                sizes[1] -= 300;  // please, oh Layout Manager, pay attention to the minwidth of the current sequence widget
-                                  //   so that user is not confused when the current sequence widget disappears by dragging leftward
-                                  //   and they don't notice the tiny little splitter handle.
-            }
-            if (sizes[1] == 0) {
-                sizes[0] -= 300;
-                sizes[1] += 300;  // please, oh Layout Manager, pay attention to the minwidth of the checkers widget
-                                  //   so that user is not confused when the menu options widget disappears by dragging rightward
-                                  //   and they don't notice the tiny little splitter handle.
-            }
-
-            ui->splitterSDTabHorizontal->setSizes(sizes);
+        } else {
+            sizes.append(400);
+            sizes.append(440);
         }
+        // NOTE: assumes two widgets
+        if (sizes[0] == 0) {
+            sizes[0] += 300;
+            sizes[1] -= 300;  // please, oh Layout Manager, pay attention to the minwidth of the current sequence widget
+                              //   so that user is not confused when the current sequence widget disappears by dragging leftward
+                              //   and they don't notice the tiny little splitter handle.
+        }
+        if (sizes[1] == 0) {
+            sizes[0] -= 300;
+            sizes[1] += 300;  // please, oh Layout Manager, pay attention to the minwidth of the checkers widget
+                              //   so that user is not confused when the menu options widget disappears by dragging rightward
+                              //   and they don't notice the tiny little splitter handle.
+        }
+        // qDebug() << "    Horizontal using: " << sizes;
+        ui->splitterSDTabHorizontal->setSizes(sizes);
     }
 
     sdSliderSidesAreSwapped = false;  // start out NOT swapped
