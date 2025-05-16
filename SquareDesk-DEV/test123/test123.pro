@@ -84,6 +84,7 @@ SOURCES += main.cpp\
     mainwindow_metadata.cpp \
     mainwindow_themes.cpp \
     miniBPM/MiniBpm.cpp \
+    mytreewidget.cpp \
     newdancedialog.cpp \
     playlists.cpp \
     preferencesdialog.cpp \
@@ -166,6 +167,7 @@ HEADERS  += mainwindow.h \
     myslider.h \
     importdialog.h \
     exportdialog.h \
+    mytreewidget.h \
     newdancedialog.h \
     sessioninfo.h \
     songhistoryexportdialog.h \

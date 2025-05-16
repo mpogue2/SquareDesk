@@ -619,7 +619,7 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
         return; // return if not left button down and move
     }
     if ((event->position().toPoint() - dragStartPosition).manhattanLength() < QApplication::startDragDistance()) { // FIX: use position().toPoint() instead of deprecated pos()
-        qDebug() << "return myTableWidget not moved far enough";
+        // qDebug() << "return myTableWidget not moved far enough";
         return; // return if haven't moved far enough with L mouse button down
     }
 

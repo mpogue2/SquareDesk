@@ -1586,7 +1586,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     //     we reversed it for presentation
     // theRealPath is the actual relative path, used to determine whether the file exists or not
 
-    // qDebug() << "setTitleField" << isPlaylist << whichRow << relativePath << PlaylistFileName << theRealPath;
+    qDebug() << "setTitleField" << isPlaylist << whichRow << relativePath << PlaylistFileName << theRealPath;
     static QRegularExpression dotMusicSuffix("\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption); // match with music extensions
     QString shortTitle = relativePath.split('/').last().replace(dotMusicSuffix, "");
 
@@ -1594,7 +1594,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     // list1[0] = "/singing/BS 2641H - I'm Beginning To See The Light.mp3"
     // type = "singing"
     QString cType = relativePath.split('/').at(1).toLower();
-    // qDebug() << "cType:" << cType;
+    qDebug() << "cType:" << cType;
 
     QColor textCol; // = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
     if (songTypeNamesForExtras.contains(cType)) {
@@ -1844,9 +1844,11 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 //    qDebug() << "loadPlaylistFromFileToPaletteSlot: " << PlaylistFileName << relativePath;
 
     if (relativePath.startsWith("/Tracks") || relativePath.startsWith("Tracks")) { // FIX: might want to collapse these two later...
+
         relativePath.replace("/Tracks/", "").replace("Tracks/", "").replace(".csv", "");
 
-//        qDebug() << "TRACK SPECIFIER:" << relativePath;
+        qDebug() << "TRACK SPECIFIER:" << relativePath;
+        QString typeFilter = relativePath;
 
         // -------------
         // now that we have a TRACK FILTER SPECIFIER, let's load THAT into a palette slot
@@ -1864,6 +1866,7 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 
         theTableWidget->setRowCount(0); // delete all the rows in the slot
 
+// ======= OLD =========
         // The only way to get here is to RIGHT-CLICK on a Tracks/filterName in the TreeWidget.
         //  In that case, the darkSongTable has already been loaded with the filtered rows.
         //  We just need to transfer them up to the playlist.
@@ -1872,8 +1875,9 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
         static QRegularExpression spanPrefixRemover("<span style=\"color:.*\">(.*)</span>", QRegularExpression::InvertedGreedinessOption);
 
         int songCount = 0;
+        qDebug() << "*** darkSongTable rowCount:" << ui->darkSongTable->rowCount();
         for (int i = 0; i < ui->darkSongTable->rowCount(); i++) {
-            if (true || !ui->darkSongTable->isRowHidden(i)) {
+            if (true /*|| !ui->darkSongTable->isRowHidden(i)*/) {
 
                 // make sure this song has the "type" that we're looking for...
                 QString pathToMP3 = ui->darkSongTable->item(i,kPathCol)->data(Qt::UserRole).toString();
@@ -1881,7 +1885,7 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                 p1 = p1.replace(musicRootPath + "/", "");
 
                 QString typeOfFile = p1.split("/").first();
-                //                qDebug() << "TRACK: " << typeOfFile << pathToMP3;
+                qDebug() << "TRACK: " << typeOfFile << pathToMP3;
 
                 if (typeOfFile != relativePath) {
                     continue; // skip this one, if the type is not what we want
@@ -1930,7 +1934,7 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                 // DDD(QString("/") + p1)
                 QString s12 = QString("/") + p1;
                 QString categoryName = filepath2SongCategoryName(s12);
-                // DDD(categoryName)
+                DDD(categoryName)
                 // QString fakePath = "/" + p1;
                 QString fakePath = "/" + label + " - " + shortTitle;
                 if (!songTypeNamesForCalled.contains(categoryName) &&
@@ -1939,12 +1943,14 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                     !songTypeNamesForSinging.contains(categoryName)
                     ) {
                     fakePath = "/xtras" + fakePath;
+                } else {
+                    fakePath = "/" + categoryName + fakePath;
                 }
-                // DDD(fakePath)
+                DDD(fakePath)
                 // DDD(label)
                 // DDD(shortTitle)
                 // setTitleField(theTableWidget, songCount-1, "/" + p1, false, PlaylistFileName); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
-                setTitleField(theTableWidget, songCount-1, fakePath, false, PlaylistFileName); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
+                setTitleField(theTableWidget, songCount-1, fakePath, false, PlaylistFileName, pathToMP3); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
 
                 // PITCH column
                 QTableWidgetItem *pit = new QTableWidgetItem(pitch);
@@ -1964,10 +1970,239 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
             }
         }
 
-        theTableWidget->resizeColumnToContents(0);
-//        theTableWidget->resizeColumnToContents(2);
-//        theTableWidget->resizeColumnToContents(3);
+// ======= NEW =========
+        // // QListIterator<QString> iter(*pathStack); // filter the main pathStack to find the filtered items we need
+        // QColor textCol = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
 
+        // // first, filter down to just those string that are the type we are looking for -------
+        // // QString startsWithTypeFilter(QString("^") + typeFilter + ".*");
+        // // static QRegularExpression typeFilterRegex(startsWithTypeFilter);
+        // // QStringList justMyType = aPathStack->filter(typeFilterRegex);
+
+        // bool takeAll = false;
+        // // qDebug() << "darkLoadMusicList filtering:" << typeFilter << takeAll;
+
+        // // NOTE: pathStack items can look like:
+        // // "patter#!#/Users/mpogue/Library/Mobile Documents/com~apple~CloudDocs/SquareDance/squareDanceMusic_iCloud/patter/RIV 842 - Bluegrass Swing.mp3"
+        // // "singing#!#/Users/mpogue/Library/Mobile Documents/com~apple~CloudDocs/SquareDance/squareDanceMusic_iCloud/singing/HH 5363 -  I Just Called To Say I Love You.mp3"
+        // // "StarEights/StarEights_2024.07.21%!%0,126,03#!#/Users/mpogue/Library/Mobile Documents/com~apple~CloudDocs/SquareDance/squareDanceMusic_iCloud/patter/TBT 918 - Bad Guy.mp3"
+        // // "Second Playlist$!$04$!$Butterfly (Instrumental)#!#/Users/mpogue/Music/iTunes/iTunes Media/Music/Swingrowers/Butterfly - Single/02 Butterfly (Instrumental).m4a"
+
+        // QStringList justMyType;
+        // QString typeFilterNarrow  = typeFilter + "#!#"; // type must exactly equal, not just a prefix of
+        // QString typeFilterNarrow2 = typeFilter + "%!%"; // special delimiter for SquareDesk playlists
+        // QString typeFilterNarrow2b = typeFilter;        // special case for non-leaf nodes of SquareDesk playlists
+        // QString typeFilterNarrow3 = typeFilter + "$!$"; // special delimiter for Apple playlists
+        // QRegularExpression reTypeFilterNarrow2(typeFilterNarrow2);
+
+        // for (auto const &item : *pathStack) {
+        //     // qDebug() << "ITEM:" << item;
+        //     if (takeAll
+        //         || item.startsWith(typeFilterNarrow) // Tracks
+        //         || item.startsWith(typeFilterNarrow2) // SquareDesk playlists (e.g. "Jokers/2024/Jokers_2024.01.23")
+        //         || item.startsWith(typeFilterNarrow3) // Apple playlists
+        //         || (typeFilter.endsWith("/") && item.startsWith(typeFilterNarrow2b))  // SquareDesk non-leaf playlists (e.g. "Jokers/2024")
+        //         ) {
+        //         qDebug() << "TAKEN TO JUSTMYTYPE:" << item;
+        //         justMyType.append(item);
+        //     }
+        // }
+        // // t.elapsed(__LINE__);
+
+        // // qDebug() << "justMyType.size() = " << justMyType.size();
+
+        // // second, make sure that only audio files are left  -------
+        // // iterate over every item in the pathStack, and stick songs into the songTable
+        // //   with their SQLITE DB info populated later (when songs are visible)
+        // static QRegularExpression musicRegex(".*\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption); // match with music extensions
+        // QStringList justMusic = justMyType.filter(musicRegex); // we are interested only in songs here
+        // // t.elapsed(__LINE__);
+
+        // qDebug() << "justMusic.size() = " << justMusic.size();
+
+        // ui->darkSongTable->setRowCount(justMusic.length()); // make all the rows at once for speed
+        // // t.elapsed(__LINE__);
+
+        // // The font that we'll use for the QLabels that are used to implement the Title-with-Tags field
+        // QFont darkSongTableFont("Avenir Next");
+        // darkSongTableFont.setPointSize(20);
+        // darkSongTableFont.setWeight(QFont::Medium);
+
+        // // int totalNumberOfSquareDeskSongs = 0;
+        // // int totalNumberOfAppleSongs = 0;
+
+        // // ***** NOW ITERATE OVER JUSTMYTYPE songs *****
+        // int songCount = 0;
+        // for (const auto &s : justMusic) {
+        //     qDebug() << "s:" << s;
+
+        //     // make a new row, if needed
+        //     if (songCount > theTableWidget->rowCount()) {
+        //         qDebug() << "Inserting new row!" << songCount;
+        //         theTableWidget->insertRow(theTableWidget->rowCount());
+        //     }
+
+        //     QStringList sl1 = s.split("#!#");
+
+        //     QString type     = sl1[0];  // the type (of original pathname, before following aliases)
+        //     QString origPath = sl1[1];  // everything else
+
+        //     // NO:
+        //     // QStringList pathParts = origPath.split("/");
+        //     // QString typeFromPath = pathParts[pathParts.size()-2]; // second-to-last path part is the assumed type
+
+        //     // YES:
+        //     QString typeFromPath = filepath2SongCategoryName(origPath);
+
+        //     QFileInfo fi(origPath);
+        //     if (fi.canonicalPath() == musicRootPath) {
+        //         typeFromPath = "";
+        //     }
+
+        //     // qDebug() << "origPath: " << origPath;
+        //     // double check that type is non-music type (see Issue #298)
+        //     if (type == "reference" || type == "soundfx" || type == "sd") {
+        //         continue;
+        //     }
+
+        //     // --------------------------------
+        //     QString label = "";
+        //     QString labelnum = "";
+        //     QString labelnum_extra = "";
+        //     QString title = "";
+        //     QString shortTitle = "";
+        //     QString baseName = fi.completeBaseName();
+
+        //     // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
+        //     breakFilenameIntoParts(baseName, label, labelnum, labelnum_extra, title, shortTitle);
+        //     labelnum += labelnum_extra;
+
+        //     QString pitchOverride = "";
+        //     QString tempoOverride = "";
+
+        //     // if (type.contains("$!$")) {
+        //     //     // This is Apple Music, so we're going to override everything that breakFilenameIntoParts did (or tried to do)
+        //     //     // e.g. "ApplePlaylistName$!$lineNumber$!$Short Title from Apple Music#!#FullPathname"
+        //     //     QStringList sl10 = type.split("$!$");
+        //     //     QString ApplePlaylistName = sl10[0];
+        //     //     QString AppleLineNumber = sl10[1];
+        //     //     label = "Apple Music";
+        //     //     title = sl10[2];
+        //     //     shortTitle = title;
+
+        //     //     QString appleSymbol = QChar(0xF8FF);  // use APPLE symbol for Apple Music (sorts at the bottom)
+        //     //     // QString appleSymbol = QChar(0x039E);  // use GREEK XI for Local Playlists (sorts almost at the bottom, and looks like a playlist!)
+        //     //     type = appleSymbol + " " + sl10[0] + " " + AppleLineNumber; // this is tricky.  Leading Apple will force sort to bottom for "<APPLESYMBOL> Apple Playlist Name".
+        //     //     labelnum = "";
+        //     //     labelnum_extra = "";
+        //     //     // totalNumberOfAppleSongs++;
+        //     // } else if (type.contains("%!%")) {
+        //     //     // This is a SquareDesk Playlist, so we're going to override everything that breakFilenameIntoParts did (or tried to do)
+        //     //     // e.g. "SquareDeskPlaylistName%!%pitch,tempo#!#FullPathname"
+        //     //     QStringList sl11 = type.split("%!%");
+        //     //     QStringList sl11a = sl11[0].split("/");
+        //     //     QString playlistName = sl11[0];
+        //     //     QString pitchTempo = sl11[1];
+        //     //     QStringList sl12 = pitchTempo.split(",");
+        //     //     QString pitchOverride = sl12[0]; // TODO: implement this!
+        //     //     QString tempoOverride = sl12[1]; // not "" if there is an override because playlist
+        //     //     QString lineNumber = sl12[2];
+        //     //     type = sl11a[sl11a.size()-1] + " " + lineNumber;  // take only the last part of the hierarchical playlist name, tack on a line number for sorting
+        //     //     // label = "Playlist";
+        //     //     // title = lineNumber + " - " + title; // use the default SquareDesk name (from the FullPathname), but prepend the line number and a dash
+        //     //     shortTitle = title;
+
+        //     //     QString GreekXi = QChar(0x039E);  // use GREEK XI for Local Playlists (sorts almost at the bottom, and looks like a playlist!)
+        //     //     type = GreekXi + " " + type; // this is tricky.  Leading GREEK XI will force sort to almost bottom for "<GREEKXI> SquareDesk Playlist Name".
+        //     //     // labelnum = "";
+        //     //     // labelnum_extra = "";
+        //     // } else {
+        //     //     // totalNumberOfSquareDeskSongs++; // only count songs, not playlist entries
+        //     // }
+
+        //     // User preferences for colors
+        //     // qDebug() << "origPath/typeFromPath:" << typeFromPath << origPath;
+        //     QString cType = typeFromPath.toLower();  // type for Color purposes
+        //     if (cType.right(1)=="*") {
+        //         cType.chop(1);  // remove the "*" for the purposes of coloring
+        //     }
+
+        //     if (cType == "patter") {
+        //         textCol = QColor(patterColorString);
+        //     } else if (cType == "singing") {
+        //         textCol = QColor(singingColorString);
+        //     } else if (cType == "called") {
+        //         textCol = QColor(calledColorString);
+        //     } else if (cType == "extras") {
+        //         textCol = QColor(extrasColorString);
+        //     } else {
+        //         textCol = QColor(extrasColorString); // if not a recognized type, color it the xtras color (so user can control it)
+        //     }
+
+        //     QBrush textBrush(textCol); // make a brush for most of the widgets
+
+        //     // theTableWidget->setItem(i, kNumberCol, auditionItem);
+        //     // theTableWidget->setCellWidget(i, kNumberCol, auditionButton1);
+
+        //     // # (NUMBER) column -----
+        //     QTableWidgetItem *num = new TableNumberItem(QString::number(songCount)); // use TableNumberItem so that it sorts numerically
+        //     theTableWidget->setItem(songCount-1, 0, num);
+
+        //     // TITLE WIDGET (WITH TAGS) -----
+        //     SongSetting settings;
+        //     songSettings.loadSettings(origPath, settings);  // get settings from the SQLITE DB --
+        //     if (settings.isSetTags()) {
+        //         songSettings.addTags(settings.getTags());
+        //     }
+
+        //     // format the title string --
+        //     QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), textCol.name()));
+        //     darkSongTitleLabel *titleLabel = new darkSongTitleLabel(this);
+        //     titleLabel->setTextFormat(Qt::RichText);
+        //     titleLabel->setText(titlePlusTags);
+        //     titleLabel->textColor = textCol.name();  // remember the text color, so we can restore it when deselected
+        //     titleLabel->setFont(darkSongTableFont);
+
+        //     theTableWidget->setCellWidget(songCount-1, 1, titleLabel);
+
+        //     // PITCH FIELD -----
+        //     int pitch = 0;
+        //     if (settings.isSetPitch()) { pitch = settings.getPitch(); }
+
+        //     QTableWidgetItem *twi5 = new QTableWidgetItem(QString("%1").arg(pitch));
+        //     twi5->setForeground(textBrush);
+        //     twi5->setTextAlignment(Qt::AlignCenter);
+        //     twi5->setFlags(twi5->flags() & ~Qt::ItemIsEditable);      // not editable
+        //     theTableWidget->setItem(songCount-1, 2, twi5);
+
+        //     // TEMPO FIELD -----
+        //     int tempo = 0;
+        //     bool loadedTempoIsPercent(false);
+        //     if (settings.isSetTempo()) { tempo = settings.getTempo(); }
+        //     if (settings.isSetTempoIsPercent()) { loadedTempoIsPercent = settings.getTempoIsPercent(); }
+        //     QString tempoStr = QString("%1").arg(tempo);
+        //     if (loadedTempoIsPercent) tempoStr += "%";
+        //     //        qDebug() << "loadMusicList() is setting the kTempoCol to: " << tempoStr;
+
+        //     QTableWidgetItem *twi6 = new QTableWidgetItem(QString("%1").arg(tempoStr));
+        //     twi6->setForeground(textBrush);
+        //     twi6->setTextAlignment(Qt::AlignCenter);
+        //     twi6->setFlags(twi6->flags() & ~Qt::ItemIsEditable);      // not editable
+        //     theTableWidget->setItem(songCount-1, 3, twi6);
+
+        //     // PATH column
+        //     QTableWidgetItem *fullPath = new QTableWidgetItem(origPath); // full ABSOLUTE path
+        //     theTableWidget->setItem(songCount-1, 4, fullPath);
+
+        //     // LOADED column
+        //     QTableWidgetItem *loaded = new QTableWidgetItem("");
+        //     theTableWidget->setItem(songCount-1, 5, loaded);
+
+        //     songCount++;
+        // }
+
+// ======= FINISH LOADING THE PALETTE SLOT =======
+        theTableWidget->resizeColumnToContents(0);
         theTableWidget->setSortingEnabled(true);
         theTableWidget->show();
 

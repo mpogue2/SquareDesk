@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1229</width>
+    <width>1233</width>
     <height>728</height>
    </rect>
   </property>
@@ -1220,7 +1220,7 @@
              </layout>
             </item>
             <item>
-             <widget class="QTreeWidget" name="treeWidget">
+             <widget class="MyTreeWidget" name="treeWidget">
               <property name="horizontalScrollBarPolicy">
                <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
               </property>
@@ -4352,7 +4352,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1229</width>
+     <width>1233</width>
      <height>24</height>
     </rect>
    </property>
@@ -6377,6 +6377,11 @@
    <class>svgWaveformSlider</class>
    <extends>QSlider</extends>
    <header>svgWaveformSlider.h</header>
+  </customwidget>
+  <customwidget>
+   <class>MyTreeWidget</class>
+   <extends>QTreeWidget</extends>
+   <header location="global">mytreewidget.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
