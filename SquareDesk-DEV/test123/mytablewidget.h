@@ -65,6 +65,9 @@ private:
     void *mw;
     int dropIndicatorRow; // for drop location highlighting
     QPoint dragStartPosition;
+    
+    // Helper method to determine if this table is a writable drop target
+    bool isWritableTarget() const;
 };
 
 #endif // MYTABLEWIDGET_H

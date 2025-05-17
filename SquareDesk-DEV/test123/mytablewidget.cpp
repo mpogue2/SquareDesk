@@ -615,11 +615,11 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
     }
 
     if (!(event->buttons() & Qt::LeftButton)) {
-        qDebug() << "return myTableWidget no left button pressed";
+        // qDebug() << "return myTableWidget no left button pressed";
         return; // return if not left button down and move
     }
     if ((event->position().toPoint() - dragStartPosition).manhattanLength() < QApplication::startDragDistance()) { // FIX: use position().toPoint() instead of deprecated pos()
-        qDebug() << "return myTableWidget not moved far enough";
+        // qDebug() << "return myTableWidget not moved far enough";
         return; // return if haven't moved far enough with L mouse button down
     }
 
@@ -722,17 +722,75 @@ void MyTableWidget::dragEnterEvent(QDragEnterEvent *event)
 {
     // qDebug() << "dragEnterEvent!" << this;
     if (event->mimeData()->hasFormat("text/plain")) {
-        // Only accept drops on playlist tables
-        if (objectName().startsWith("playlist")) {
+        // Only accept drops on playlist tables that are writable
+        if (objectName().startsWith("playlist") && isWritableTarget()) {
             event->acceptProposedAction();
+        } else {
+            event->ignore();
         }
+    } else {
+        event->ignore();
     }
+}
+
+// Helper method to determine if this table is a writable drop target
+bool MyTableWidget::isWritableTarget() const
+{
+    // Only playlist tables can be writable
+    if (!objectName().startsWith("playlist")) {
+        return false;
+    }
+    
+    // If we don't have access to the MainWindow, be safe and assume it's not writable
+    if (mw == nullptr) {
+        return false;
+    }
+    
+    // Get the slot number based on the table name
+    int slot = -1;
+    if (objectName() == "playlist1Table") {
+        slot = 0;
+    } else if (objectName() == "playlist2Table") {
+        slot = 1;
+    } else if (objectName() == "playlist3Table") {
+        slot = 2;
+    } else {
+        return false;  // Unknown playlist table
+    }
+    
+    // Check if it's a Track Filter or Apple Music (read-only targets)
+    QString relPath = ((MainWindow *)mw)->relPathInSlot[slot];
+    
+    // For debugging
+    // qDebug() << "isWritableTarget checking: slot=" << slot << ", relPath=" << relPath;
+    
+    // Track filters start with "/tracks/" and are read-only
+    if (relPath.startsWith("/tracks/") || relPath.startsWith("/Tracks/")) {
+        // qDebug() << "  -> Track filter detected, not writable";
+        return false;
+    }
+    
+    // Check if the playlist is an Apple Music playlist (read-only)
+    if (relPath.startsWith("/Apple Music/")) {
+        // qDebug() << "  -> Apple Music playlist detected, not writable";
+        return false;
+    }
+    
+    // Check if the path is empty (could be a slot with nothing in it yet)
+    if (relPath.isEmpty()) {
+        // qDebug() << "  -> Empty path, slot is writable";
+        return true;
+    }
+    
+    // It's a regular playlist, which is writable
+    // qDebug() << "  -> Regular playlist, is writable";
+    return true;
 }
 
 void MyTableWidget::dragMoveEvent(QDragMoveEvent *event)
 {
-    // Only playlist tables allow reordering/dropping
-    if (!objectName().startsWith("playlist")) {
+    // Only playlist tables that are writable allow reordering/dropping
+    if (!objectName().startsWith("playlist") || !isWritableTarget()) {
         event->ignore();
         return;
     }
@@ -740,6 +798,8 @@ void MyTableWidget::dragMoveEvent(QDragMoveEvent *event)
     // Find the row where the drop would occur
     QPoint pos = event->position().toPoint(); // FIX: use position().toPoint() instead of deprecated pos()
     int row = rowAt(pos.y());
+    
+    // Set drop indicator row
     if (row < 0) {
         // Below last row
         dropIndicatorRow = rowCount();
@@ -751,6 +811,7 @@ void MyTableWidget::dragMoveEvent(QDragMoveEvent *event)
             dropIndicatorRow = row + 1;
         }
     }
+    
     viewport()->update();
     event->acceptProposedAction();
 }
@@ -758,6 +819,7 @@ void MyTableWidget::dragMoveEvent(QDragMoveEvent *event)
 void MyTableWidget::dragLeaveEvent(QDragLeaveEvent *event)
 {
     Q_UNUSED(event)
+    // Always clear the drop indicator when leaving
     dropIndicatorRow = -1;
     viewport()->update();
 }
@@ -766,6 +828,12 @@ void MyTableWidget::dropEvent(QDropEvent *event)
 {
     // qDebug() << "***** MyTableWidget::dropEvent *****";
     // qDebug() << this << " got this text: " << event->mimeData()->text();
+
+    // Check if this is a writable target - if not, reject the drop
+    if (!isWritableTarget()) {
+        event->ignore();
+        return;
+    }
 
     event->acceptProposedAction();
 
@@ -1004,8 +1072,8 @@ void MyTableWidget::paintEvent(QPaintEvent *event)
 {
     QTableWidget::paintEvent(event);
 
-    // Draw drop indicator if needed
-    if (dropIndicatorRow >= 0 && objectName().startsWith("playlist")) {
+    // Draw drop indicator if needed - only for writable targets
+    if (dropIndicatorRow >= 0 && isWritableTarget()) {
         QPainter painter(viewport());
         painter.setRenderHint(QPainter::Antialiasing, true);
         QPen pen(Qt::green, 3);
