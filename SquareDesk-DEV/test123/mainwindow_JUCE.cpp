@@ -28,6 +28,9 @@
 
 #include <QString>
 #include <QDebug>
+#include <QWindow>
+#include <QEvent>
+#include <QGuiApplication>
 #include <memory>
 
 // Disable warning, see: https://github.com/llvm/llvm-project/issues/48757
@@ -115,9 +118,27 @@ public:
         ui->FXbutton->setChecked(false);
     }
 
+#ifdef USE_JUCE
+    // Function to sync window level with the main window
+    void syncWindowLevelWithMain(QWindow* mainWindow)
+    {
+#ifdef Q_OS_MAC
+        // On macOS, use native APIs to sync window levels
+        if (mainWindow && isVisible()) {
+            syncWindowLevelsNative(mainWindow->winId(), getWindowHandle());
+        }
+#endif
+    }
+#endif
+
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginWindow)
     Ui::MainWindow *ui;
+    
+#ifdef Q_OS_MAC
+    // Platform-specific implementation for macOS
+    static void syncWindowLevelsNative(WId mainWindowId, void* pluginWindowHandle);
+#endif
 };
 
 // --------------------------------------------
@@ -242,7 +263,8 @@ void MainWindow::scanForPlugins() {
                                                 true,
                                                 ui);
     loudMaxWin->setUsingNativeTitleBar(true);
-    loudMaxWin->setAlwaysOnTop(true);
+    // Don't set to always on top - we want it to follow the same layering as the main window
+    // loudMaxWin->setAlwaysOnTop(true);
     loudMaxWin->setContentOwned (loudMaxPlugin->createEditor(), true);
     // loudMaxWin->setContentOwned (new GenericAudioProcessorEditor(*loudMaxPlugin), true);
     loudMaxWin->addToDesktop (/* flags */);
@@ -256,11 +278,30 @@ void MainWindow::scanForPlugins() {
                                           loudMaxWin->getWidth(),
                                           loudMaxWin->getHeight());
                     loudMaxWin->setVisible (true); // show the window!
+                    
+                    // Sync window levels when showing
+                    static_cast<PluginWindow*>(loudMaxWin.get())->syncWindowLevelWithMain(windowHandle());
                 } else {
                     loudMaxWin->setVisible (false); // hide the window!
                 }
             } );
 
+    // Install event filter on the main window to catch window state changes
+    this->installEventFilter(this);
+    
+    // Also connect to the application state changes for better window level management
+    connect(qApp, &QGuiApplication::applicationStateChanged, this, [this](Qt::ApplicationState state) {
+        if (state == Qt::ApplicationActive && loudMaxWin && loudMaxWin->isVisible()) {
+            // When application becomes active again, make sure window levels are in sync
+            static_cast<PluginWindow*>(loudMaxWin.get())->syncWindowLevelWithMain(windowHandle());
+            
+            // On macOS, explicitly raise the LoudMax window to ensure it comes to the front
+#ifdef Q_OS_MAC
+            loudMaxWin->toFront(false); // false means don't become the key window
+#endif
+        }
+    });
+    
     extern flexible_audio *cBass;
     cBass->setLoudMaxPlugin(loudMaxPlugin); // cBass is a flexible_audio, which passes to AudioDecoder, which passes to PlayerThread
                                             //   and PlayerThread calls PrepareToPlay and ProcessBlock to process audio.
@@ -268,4 +309,99 @@ void MainWindow::scanForPlugins() {
     // qDebug() << "PLUGINS =============";
 }
 
+// Handle window state changes
+bool MainWindow::eventFilter(QObject *watched, QEvent *event)
+{
+#ifdef USE_JUCE
+    if (watched == this && event->type() == QEvent::WindowStateChange) {
+        // Main window state changed (minimized or restored)
+        bool isMinimized = windowHandle()->windowState() & Qt::WindowMinimized;
+        
+        // Store whether LoudMax was visible before minimizing
+        static bool wasLoudMaxVisible = false;
+        
+        if (isMinimized) {
+            // Main window is being minimized
+            if (loudMaxWin) {
+                // Remember if LoudMax was visible
+                wasLoudMaxVisible = loudMaxWin->isVisible();
+                
+                // Hide LoudMax when main window is minimized
+                if (wasLoudMaxVisible) {
+                    loudMaxWin->setVisible(false);
+                }
+            }
+        } else {
+            // Main window is being restored
+            if (loudMaxWin && wasLoudMaxVisible && ui->FXbutton->isChecked()) {
+                // Restore LoudMax if it was visible before and button is still checked
+                loudMaxWin->setVisible(true);
+                
+                // Sync window levels after restoring
+                static_cast<PluginWindow*>(loudMaxWin.get())->syncWindowLevelWithMain(windowHandle());
+            }
+        }
+    }
+    else if (watched == this && event->type() == QEvent::ActivationChange) {
+        // Main window activation changed
+        if (isActiveWindow() && loudMaxWin && loudMaxWin->isVisible()) {
+            // Sync window levels when activated
+            static_cast<PluginWindow*>(loudMaxWin.get())->syncWindowLevelWithMain(windowHandle());
+            
+            // Also explicitly raise the LoudMax window when main window is activated
+#ifdef Q_OS_MAC
+            loudMaxWin->toFront(false); // false means don't become the key window
 #endif
+        }
+    }
+#endif
+
+    // Call the base class implementation
+    return QMainWindow::eventFilter(watched, event);
+}
+
+#endif
+
+// ==== Platform-specific implementation ====
+#ifdef Q_OS_MAC
+#ifdef __OBJC__
+#import <Cocoa/Cocoa.h>
+#endif
+
+// Implement the static method defined in PluginWindow
+void PluginWindow::syncWindowLevelsNative(WId mainWindowId, void* pluginWindowHandle)
+{
+#ifdef __OBJC__
+    // Implementation using Objective-C
+    NSView* mainView = reinterpret_cast<NSView*>(mainWindowId);
+    NSWindow* mainNSWindow = [mainView window];
+    
+    NSView* pluginView = (NSView*)pluginWindowHandle;
+    NSWindow* pluginNSWindow = [pluginView window];
+    
+    if (mainNSWindow && pluginNSWindow) {
+        // Sync the window level - ensure LoudMax has exactly the same level as the main window
+        [pluginNSWindow setLevel:[mainNSWindow level]];
+        
+        // Sync collection behavior - this controls how the window behaves with macOS window management
+        NSWindowCollectionBehavior behavior = [mainNSWindow collectionBehavior];
+        [pluginNSWindow setCollectionBehavior:behavior];
+        
+        // Ensure floating behavior matches
+        [pluginNSWindow setFloatingPanel:[mainNSWindow isFloatingPanel]];
+        
+        // Make sure the plugin window moves with the main window
+        [pluginNSWindow setMovableByWindowBackground:YES];
+        
+        // Force order the plugin window above the main window
+        if ([mainNSWindow isVisible] && [pluginNSWindow isVisible]) {
+            [pluginNSWindow orderWindow:NSWindowAbove relativeTo:[mainNSWindow windowNumber]];
+        }
+    }
+#else
+    // Silence unused parameter warnings when not using Objective-C
+    (void)mainWindowId;
+    (void)pluginWindowHandle;
+#endif
+}
+#endif // Q_OS_MAC

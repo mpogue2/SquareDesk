@@ -356,6 +356,7 @@ protected:
     bool maybeSavePlaylist(int whichSlot);
     bool maybeSaveCuesheet(int optionCount);
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
+    bool eventFilter(QObject *watched, QEvent *event) Q_DECL_OVERRIDE; // Handle window state changes
     void on_loopButton_toggled(bool checked);
     void on_monoButton_toggled(bool checked);
 
