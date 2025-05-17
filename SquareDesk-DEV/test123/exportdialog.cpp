@@ -29,6 +29,19 @@
 #include "songsettings.h"
 #include "utility.h"
 
+#include <QStringList>
+#include <QCollator>
+#include <algorithm>
+
+void sortAlphanumericCaseInsensitive(QStringList& list) {
+    QCollator collator;
+    collator.setNumericMode(true);
+    collator.setCaseSensitivity(Qt::CaseInsensitive);
+    std::sort(list.begin(), list.end(), [&collator](const QString& str1, const QString& str2) {
+        return collator.compare(str1, str2) < 0;
+    });
+}
+
 ExportDialog::ExportDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ExportDialog)
@@ -70,11 +83,33 @@ static void outputString(QTextStream &stream, const QString &str, bool quote)
     }
 }
 
+QString removeCuesheetDirs(QString s, QStringList songTypeNames) {
+    if (s == "") {
+        return(""); // quick return
+    }
+    QStringList allCuesheetDirs = songTypeNames;
+    allCuesheetDirs.prepend("lyrics");
+    QString leftOverPiece = s;
+    for (const auto &dirName : allCuesheetDirs) {
+        // qDebug() << "checking dirName" << dirName << ",s:" << s;
+        QRegularExpression rePath("^.*(/" + dirName + "/.*$)");
+        QRegularExpressionMatch match1 = rePath.match(s);
+        if (match1.hasMatch()) {
+            leftOverPiece = match1.captured(1);
+            // qDebug() << "   found a match:" << leftOverPiece;
+            return(leftOverPiece);
+        }
+    }
+    // qDebug() << "    returning:" << s;
+    return(s);
+}
+
 void exportSongList(QTextStream &stream, SongSettings &settings, QList<QString> *musicFilenames,
                     int outputFieldCount, enum ColumnExportData outputFields[],
                     char separator,
                     bool includeHeaderNames,
-                    bool relativePathNames)
+                    bool relativePathNames,
+                    QStringList songTypeNames)
 {
     const char *headerNames[] = { "Filename", "Pitch", "Tempo", "Intro", "Outro", "Volume", "Cuesheet", "None" };
     if (includeHeaderNames)
@@ -87,7 +122,10 @@ void exportSongList(QTextStream &stream, SongSettings &settings, QList<QString> 
         stream << ENDL;
     }
     
-    QListIterator<QString> musicFilenameIter(*musicFilenames);
+    QList<QString> musicFilenames2(*musicFilenames); // CLONED, so original is not affected
+    sortAlphanumericCaseInsensitive(musicFilenames2);
+
+    QListIterator<QString> musicFilenameIter(musicFilenames2);
     while (musicFilenameIter.hasNext())
     {
         QString s(musicFilenameIter.next());
@@ -156,7 +194,8 @@ void exportSongList(QTextStream &stream, SongSettings &settings, QList<QString> 
                 case ExportDataCuesheetPath :
                     if (relativePathNames)
                     {
-                        outputString(stream, settings.removeRootDirs(setting.getCuesheetName()),  ',' == separator);
+                        // outputString(stream, settings.removeRootDirs(setting.getCuesheetName()),  ',' == separator);
+                        outputString(stream, removeCuesheetDirs(setting.getCuesheetName(), songTypeNames), ',' == separator);
                     }
                     else
                     {
@@ -172,35 +211,41 @@ void exportSongList(QTextStream &stream, SongSettings &settings, QList<QString> 
     } // end of while iterating through filenames
 }
 
+// THIS FUNCTION IS OBSOLETE --------
 void ExportDialog::exportSongs(SongSettings &settings, QList<QString> *musicFilenames)
 {
-    QString filename(ui->labelFileName->text());
-    QFile file( filename );
-    if ( file.open(QIODevice::WriteOnly) )
-    {
-        QTextStream stream( &file );
+    Q_UNUSED(settings)
+    Q_UNUSED(musicFilenames)
 
-        enum ColumnExportData outputFields[7];
-        int outputFieldCount = sizeof(outputFields) / sizeof(*outputFields);
-        char separator = (ui->comboBoxTabOrCSV->currentIndex() == 0) ? '\t' : ',';
+    qDebug() << "ExportDialog::exportSongs is OBSOLETE.";
 
-        outputFields[0] = (ColumnExportData)(ui->comboBoxColumn1->currentIndex());
-        outputFields[1] = (ColumnExportData)(ui->comboBoxColumn2->currentIndex());
-        outputFields[2] = (ColumnExportData)(ui->comboBoxColumn3->currentIndex());
-        outputFields[3] = (ColumnExportData)(ui->comboBoxColumn4->currentIndex());
-        outputFields[4] = (ColumnExportData)(ui->comboBoxColumn5->currentIndex());
-        outputFields[5] = (ColumnExportData)(ui->comboBoxColumn6->currentIndex());
-        outputFields[6] = (ColumnExportData)(ui->comboBoxColumn7->currentIndex());
+    // QString filename(ui->labelFileName->text());
+    // QFile file( filename );
+    // if ( file.open(QIODevice::WriteOnly) )
+    // {
+    //     QTextStream stream( &file );
 
-        while (outputFieldCount > 0 && outputFields[outputFieldCount - 1] == ExportDataNone)
-        {
-            outputFieldCount--;
-        }
-        exportSongList(stream, settings, musicFilenames,
-                       outputFieldCount, outputFields,
-                       separator,
-                       0 == ui->comboBoxFirstRow->currentIndex(),
-                       0 == ui->comboBoxFormatSongName->currentIndex());
+    //     enum ColumnExportData outputFields[7];
+    //     int outputFieldCount = sizeof(outputFields) / sizeof(*outputFields);
+    //     char separator = (ui->comboBoxTabOrCSV->currentIndex() == 0) ? '\t' : ',';
 
-    } // end of successful open
+    //     outputFields[0] = (ColumnExportData)(ui->comboBoxColumn1->currentIndex());
+    //     outputFields[1] = (ColumnExportData)(ui->comboBoxColumn2->currentIndex());
+    //     outputFields[2] = (ColumnExportData)(ui->comboBoxColumn3->currentIndex());
+    //     outputFields[3] = (ColumnExportData)(ui->comboBoxColumn4->currentIndex());
+    //     outputFields[4] = (ColumnExportData)(ui->comboBoxColumn5->currentIndex());
+    //     outputFields[5] = (ColumnExportData)(ui->comboBoxColumn6->currentIndex());
+    //     outputFields[6] = (ColumnExportData)(ui->comboBoxColumn7->currentIndex());
+
+    //     while (outputFieldCount > 0 && outputFields[outputFieldCount - 1] == ExportDataNone)
+    //     {
+    //         outputFieldCount--;
+    //     }
+    //     exportSongList(stream, settings, musicFilenames,
+    //                    outputFieldCount, outputFields,
+    //                    separator,
+    //                    0 == ui->comboBoxFirstRow->currentIndex(),
+    //                    0 == ui->comboBoxFormatSongName->currentIndex());
+
+    // } // end of successful open
 }

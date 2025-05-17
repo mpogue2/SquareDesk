@@ -8553,7 +8553,7 @@ void MainWindow::on_actionExport_triggered()
         QString filename =
             QFileDialog::getSaveFileName(this, tr("Select Export File"),
                                          QDir::homePath(),
-                                         tr("Tab Separated (*.tsv);;Comma Separated (*.csv)"));
+                                         tr("Comma Separated (*.csv);;Tab Separated (*.tsv)")); // defaults to CSV
         if (!filename.isNull())
         {
             QFile file( filename );
@@ -8577,12 +8577,13 @@ void MainWindow::on_actionExport_triggered()
                 exportSongList(stream, songSettings, pathStack,  // export list of SONGS only
                                outputFieldCount, outputFields,
                                separator,
-                               true, false);
+                               true, true, songTypeNamesForSinging + songTypeNamesForCalled + songTypeNamesForPatter); // export using RELATIVE pathnames only, so it's portable
             }
         }
     }
     else
     {
+        // THIS CODE IS OBSOLETE NOW
         ExportDialog *exportDialog = new ExportDialog();
         setDynamicPropertyRecursive(exportDialog, "theme", currentThemeString);
 
@@ -9673,52 +9674,59 @@ QString MainWindow::convertCuesheetPathNameToCurrentRoot(QString str1) {
     // OK, now we're in the more complicated case, where we need to try to peel off parts off the front of the abs pathname
     //   to see if we can find the file in the current musicRoot.
 
-    QString str2 = str1;
-    int index;
+    // OLD ALGORITHM, HARD-CODED NAMES:
+    // QString str2 = str1;
+    // int index;
 
-    // look for "/lyrics" folder
-    index = str2.indexOf("/lyrics/");
-    if (index != -1) {
-        // found "/lyrics/" at index
-        str2.replace(0, index, musicRootPath); // remove the old music root, and replace with new one!
-        QFileInfo fi2(str2);
+    // // look for "/lyrics" folder
+    // index = str2.indexOf("/lyrics/");
+    // if (index != -1) {
+    //     // found "/lyrics/" at index
+    //     str2.replace(0, index, musicRootPath); // remove the old music root, and replace with new one!
+    //     QFileInfo fi2(str2);
 
-        if (fi2.exists()) {
-            return(str2);
-        } else {
-            return("");
-        }
-    }
+    //     if (fi2.exists()) {
+    //         return(str2);
+    //     } else {
+    //         return("");
+    //     }
+    // }
 
-    // look for "/singing" folder
-    index = str2.indexOf("/singing/");
-    if (index != -1) {
-        // found "/singing/" at index
-        str2.replace(0, index, musicRootPath); // remove the old music root, and replace with new one!
-        QFileInfo fi3(str2);
+    // // look for "/singing" folder
+    // index = str2.indexOf("/singing/");
+    // if (index != -1) {
+    //     // found "/singing/" at index
+    //     str2.replace(0, index, musicRootPath); // remove the old music root, and replace with new one!
+    //     QFileInfo fi3(str2);
 
-        if (fi3.exists()) {
-            return(str2);
-        } else {
-            return("");
-        }
-    }
+    //     if (fi3.exists()) {
+    //         return(str2);
+    //     } else {
+    //         return("");
+    //     }
+    // }
 
-    // look for "/singing" folder
-    index = str2.indexOf("/singers/");
-    if (index != -1) {
-        // found "/singers/" at index
-        str2.replace(0, index, musicRootPath); // remove the old music root, and replace with new one!
-        QFileInfo fi4(str2);
+    // // look for "/singing" folder
+    // index = str2.indexOf("/singers/");
+    // if (index != -1) {
+    //     // found "/singers/" at index
+    //     str2.replace(0, index, musicRootPath); // remove the old music root, and replace with new one!
+    //     QFileInfo fi4(str2);
 
-        if (fi4.exists()) {
-            return(str2);
-        } else {
-            return("");
-        }
-    }
+    //     if (fi4.exists()) {
+    //         return(str2);
+    //     } else {
+    //         return("");
+    //     }
+    // }
 
-    return "";
+    // return "";
+
+    // leverage the function that does this for Export Song Data ----
+    //   let's have it look in called/vocals and patter folders, too, since some people stick cuesheets there as well.
+    QString leftOverPiece = removeCuesheetDirs(str1, songTypeNamesForSinging + songTypeNamesForCalled + songTypeNamesForPatter);
+    // qDebug() << "convertCuesheetPathNameToCurrentRoot leftOverPiece " << musicRootPath + leftOverPiece;
+    return(musicRootPath + leftOverPiece);
 }
 
 bool MainWindow::compareCuesheetPathNamesRelative(QString str1, QString str2) {

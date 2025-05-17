@@ -55,15 +55,17 @@ public:
 private slots:
     void on_pushButtonChooseFile_clicked();
      
-
 private:
     Ui::ExportDialog *ui;
 };
+
+QString removeCuesheetDirs(QString s, QStringList songTypeNames);
 
 void exportSongList(QTextStream &stream, SongSettings &settings, QList<QString> *musicFilenames,
                     int outputFieldCount, enum ColumnExportData outputFields[],
                     char separator,
                     bool includeHeaderNames,
-                    bool relativePathNames);
+                    bool relativePathNames,
+                    QStringList songTypeNamesForSinging);
 
 #endif // EXPORTDIALOG_H

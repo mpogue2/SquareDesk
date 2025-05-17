@@ -66,6 +66,7 @@ void exportSongList(QTextStream &stream, SongSettings &settings, QList<QString> 
                     int outputFieldCount, enum ColumnExportData outputFields[],
                     char separator,
                     bool includeHeaderNames,
-                    bool relativePathNames);
+                    bool relativePathNames,
+                    QStringList songTypeNamesForSinging);
 
 #endif // SONGHISTORYEXPORTDIALOG_H
