@@ -1932,7 +1932,7 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                 QString categoryName = filepath2SongCategoryName(s12);
                 // DDD(categoryName)
                 // QString fakePath = "/" + p1;
-                QString fakePath = "/" + label + " - " + shortTitle;
+                QString fakePath = "/" + categoryName + "/" + label + " - " + shortTitle;
                 if (!songTypeNamesForCalled.contains(categoryName) &&
                     !songTypeNamesForExtras.contains(categoryName) &&
                     !songTypeNamesForPatter.contains(categoryName) &&
