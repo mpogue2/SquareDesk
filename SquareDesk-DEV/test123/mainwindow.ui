@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1229</width>
+    <width>1233</width>
     <height>728</height>
    </rect>
   </property>
@@ -1152,7 +1152,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QSplitter" name="splitter_3">
+         <widget class="QSplitter" name="splitterMusicTabVertical">
           <property name="orientation">
            <enum>Qt::Orientation::Horizontal</enum>
           </property>
@@ -1359,7 +1359,7 @@
             </item>
            </layout>
           </widget>
-          <widget class="QSplitter" name="splitter7">
+          <widget class="QSplitter" name="splitterMusicTabHorizontal">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>0</horstretch>
@@ -4352,7 +4352,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1229</width>
+     <width>1233</width>
      <height>24</height>
     </rect>
    </property>

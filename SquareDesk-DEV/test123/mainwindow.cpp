@@ -1482,7 +1482,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     on_actionShow_group_station_toggled(prefsManager.Getenablegroupstation());
     on_actionShow_order_sequence_toggled(prefsManager.Getenableordersequence());
+
     {
+        // SD TAB VERTICAL SPLITTER IS PERSISTENT ---------
         QString sizesStr = prefsManager.GetSDTabVerticalSplitterPosition();
         // sizesStr = "";  // DEBUG ONLY
         // qDebug() << "Vertical sizes: " << sizesStr;
@@ -1514,7 +1516,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
         // qDebug() << "    Vertical using: " << sizes;
         ui->splitterSDTabVertical->setSizes(sizes);
     }
+
     {
+        // SD TAB HORIZONTAL SPLITTER IS PERSISTENT ---------
         QString sizesStr = prefsManager.GetSDTabHorizontalSplitterPosition();
         // sizesStr = "";  // DEBUG ONLY
         // qDebug() << "Horizontal sizes: " << sizesStr;
@@ -1545,6 +1549,48 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
         }
         // qDebug() << "    Horizontal using: " << sizes;
         ui->splitterSDTabHorizontal->setSizes(sizes);
+    }
+
+    {
+        // MUSIC TAB VERTICAL SPLITTER IS PERSISTENT ---------
+        QString sizesStr = prefsManager.GetMusicTabVerticalSplitterPosition();
+        //sizesStr = "";  // DEBUG ONLY
+        qDebug() << "prefsManager Vertical sizes: " << sizesStr;
+        QList<int> sizes;
+        if (!sizesStr.isEmpty())
+        {
+            // override the current sizes with the previously saved sizes
+            for (const QString &sizeStr : sizesStr.split(","))
+            {
+                sizes.append(sizeStr.toInt());
+            }
+        } else {
+            sizes.append(1000);
+            sizes.append(4000);
+        }
+        qDebug() << "    Music Tab Vertical splitter using: " << sizes;
+        ui->splitterMusicTabVertical->setSizes(sizes);
+    }
+
+    {
+        // MUSIC TAB HORIZONTAL SPLITTER IS PERSISTENT ---------
+        QString sizesStr = prefsManager.GetMusicTabHorizontalSplitterPosition();
+        // sizesStr = "";  // DEBUG ONLY
+        qDebug() << "prefsManager Horizontal sizes: " << sizesStr;
+        QList<int> sizes;
+        if (!sizesStr.isEmpty())
+        {
+            // override the current sizes with the previously saved sizes
+            for (const QString &sizeStr : sizesStr.split(","))
+            {
+                sizes.append(sizeStr.toInt());
+            }
+        } else {
+            sizes.append(1000);
+            sizes.append(3000);
+        }
+        qDebug() << "    Music Tab Horizontal splitter using: " << sizes;
+        ui->splitterMusicTabHorizontal->setSizes(sizes);
     }
 
     sdSliderSidesAreSwapped = false;  // start out NOT swapped
@@ -2554,18 +2600,14 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    // SPLITTER BETWEEN TREEWIDGET AND SONGTABLE:
-    int largeWidth = QGuiApplication::primaryScreen ()->virtualSize ().width ();
-    ui->splitter_3->setSizes(QList<int>({largeWidth, 4 * largeWidth})); // split in 1:4 ratio
+    // VERTICAL SPLITTER BETWEEN TREEWIDGET AND SONGTABLE:
+    // int largeWidth = QGuiApplication::primaryScreen ()->virtualSize ().width ();
+    // ui->splitterMusicTabVertical->setSizes(QList<int>({largeWidth, 4 * largeWidth})); // split in 1:4 ratio
 
-    // SPLITTER BETWEEN PLAYLISTS AND SONGTABLE:
+    // HORIZONTAL SPLITTER BETWEEN PLAYLISTS AND SONGTABLE:
+    // ui->splitterMusicTabHorizontal->setSizes(QList<int>({1000,3000}));
+
     ui->toggleShowPaletteTables->setVisible(false);
-
-////    ui->splitter7->setSizes(QList<int>({largeWidth, 6 * largeWidth})); // split in 1:6 ratio to start
-
-//    ui->splitter7->setSizes(QList<int>({0,3000}));
-    ui->splitter7->setSizes(QList<int>({1000,3000}));
-
 
     //    currentSplitterSizes = ui->splitter7->sizes(); // for later restore, if needed
 
@@ -2573,7 +2615,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 //    on_toggleShowPaletteTables_toggled(false);  // default is to NOT show the playlist palette
 
 //    ui->splitter7->setCollapsible(0, false); // TEST TEST TEST
-    ui->splitter7->setCollapsible(1, false); // TEST TEST TEST
+    ui->splitterMusicTabHorizontal->setCollapsible(1, false); // TEST TEST TEST
 
     t.elapsed(__LINE__);
 
@@ -5491,6 +5533,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         saveCurrentSongSettings();
 
         {
+            // SAVE SD TAB VERTICAL SPLITTER SIZES ----------
             QList<int> sizes = ui->splitterSDTabVertical->sizes();
             QString sizeStr("");
             for (int s : sizes)
@@ -5503,10 +5546,10 @@ void MainWindow::closeEvent(QCloseEvent *event)
                 sizeStr += sstr;
             }
             prefsManager.SetSDTabVerticalSplitterPosition(sizeStr);
-        }
-        
+        }        
 
         {
+            // SAVE SD TAB HORIZONTAL SPLITTER SIZES ----------
             QList<int> sizes = ui->splitterSDTabHorizontal->sizes();
             QString sizeStr("");
             for (int s : sizes)
@@ -5519,6 +5562,38 @@ void MainWindow::closeEvent(QCloseEvent *event)
                 sizeStr += sstr;
             }
             prefsManager.SetSDTabHorizontalSplitterPosition(sizeStr);
+        }
+
+        {
+            // SAVE MUSIC TAB VERTICAL SPLITTER SIZES ----------
+            QList<int> sizes = ui->splitterMusicTabVertical->sizes();
+            QString sizeStr("");
+            for (int s : sizes)
+            {
+                if (sizeStr.length())
+                {
+                    sizeStr += ",";
+                }
+                QString sstr(QString("%1").arg(s));
+                sizeStr += sstr;
+            }
+            prefsManager.SetMusicTabVerticalSplitterPosition(sizeStr);
+        }
+
+        {
+            // SAVE MUSIC TAB HORIZONTAL SPLITTER SIZES ----------
+            QList<int> sizes = ui->splitterMusicTabHorizontal->sizes();
+            QString sizeStr("");
+            for (int s : sizes)
+            {
+                if (sizeStr.length())
+                {
+                    sizeStr += ",";
+                }
+                QString sstr(QString("%1").arg(s));
+                sizeStr += sstr;
+            }
+            prefsManager.SetMusicTabHorizontalSplitterPosition(sizeStr);
         }
 
         // as per http://doc.qt.io/qt-5.7/restoring-geometry.html

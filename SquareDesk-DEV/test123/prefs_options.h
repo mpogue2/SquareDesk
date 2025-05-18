@@ -192,9 +192,12 @@ CONFIG_ATTRIBUTE_SLIDER(intelGainDial, intelGain_dB, 30) // expressed as a posit
 CONFIG_ATTRIBUTE_SLIDER(panEQGainDial, panEQGain_dB, 0)  // expressed as a signed number (actually tenths of a dB)
 
 CONFIG_ATTRIBUTE_BOOLEAN(checkBoxSwapSDTabInputAndAvailableCallsSides, SwapSDTabInputAndAvailableCallsSides, false)
-    
+
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(SDTabHorizontalSplitterPosition, "")
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(SDTabVerticalSplitterPosition, "")
+
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(MusicTabHorizontalSplitterPosition, "")
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(MusicTabVerticalSplitterPosition, "")
 
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastPlaylistLoaded, "") // if the user had a playlist loaded, then reload it at next app start time (THIS IS PLAYLIST #1 = SLOT 0)
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastPlaylistLoaded2, "") // if the user had a playlist loaded, then reload it at next app start time (THIS IS PLAYLIST #2 = SLOT 1)
