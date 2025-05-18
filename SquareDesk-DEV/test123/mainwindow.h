@@ -1056,7 +1056,10 @@ private:
     void maybeLoadCSSfileIntoTextBrowser(bool useSquareDeskCSS);
     void loadCuesheet(const QString cuesheetFilename);
     bool loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet = QString(), QString nextFilename="");
+
     void findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets);
+    void betterFindPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets);
+
     bool breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &labenum_extra,
                                 QString &title, QString &shortTitle );
 

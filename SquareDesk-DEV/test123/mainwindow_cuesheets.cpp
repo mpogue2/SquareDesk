@@ -352,6 +352,367 @@ int compareSortedWordListsForRelevance(const QStringList &l1, const QStringList 
         return 0;
 }
 
+int MP3FilenameVsCuesheetnameScore(QString fn, QString cn) {
+    // Helper function to calculate Levenshtein distance
+    auto levenshteinDistance = [](const QString &s1, const QString &s2) -> int {
+        const int len1 = s1.size();
+        const int len2 = s2.size();
+        
+        QVector<QVector<int>> d(len1 + 1, QVector<int>(len2 + 1));
+        
+        for (int i = 0; i <= len1; i++)
+            d[i][0] = i;
+            
+        for (int j = 0; j <= len2; j++)
+            d[0][j] = j;
+            
+        for (int i = 1; i <= len1; i++) {
+            for (int j = 1; j <= len2; j++) {
+                int cost = (s1[i-1].toLower() == s2[j-1].toLower()) ? 0 : 1;
+                
+                d[i][j] = qMin(qMin(
+                    d[i-1][j] + 1,     // deletion
+                    d[i][j-1] + 1),    // insertion
+                    d[i-1][j-1] + cost // substitution
+                );
+                
+                // Check for transposition (adjacent character swap)
+                if (i > 1 && j > 1 && 
+                    s1[i-1].toLower() == s2[j-2].toLower() && 
+                    s1[i-2].toLower() == s2[j-1].toLower()) {
+                    d[i][j] = qMin(d[i][j], d[i-2][j-2] + cost);
+                }
+            }
+        }
+        return d[len1][len2];
+    };
+    
+    // Helper function to check if words are "fuzzy equal"
+    auto fuzzyWordEqual = [levenshteinDistance](const QString &w1, const QString &w2) -> bool {
+        // First check exact match
+        if (w1.compare(w2, Qt::CaseInsensitive) == 0)
+            return true;
+            
+        // Different length check (one character added/removed)
+        int lenDiff = w1.length() - w2.length();
+        if (qAbs(lenDiff) > 1)
+            return false;
+            
+        // Check for transposed letters
+        if (w1.length() == w2.length() && w1.length() >= 2) {
+            for (int i = 0; i < w1.length() - 1; i++) {
+                QString transposed = w1;
+                // Swap adjacent characters
+                QChar temp = transposed[i];
+                transposed[i] = transposed[i+1];
+                transposed[i+1] = temp;
+                
+                if (transposed.compare(w2, Qt::CaseInsensitive) == 0)
+                    return true;
+            }
+        }
+        
+        // Calculate Levenshtein distance
+        int distance = levenshteinDistance(w1, w2);
+        
+        // Allow 1 edit (character changed, added, or removed)
+        return distance <= 1;
+    };
+    
+    // Function to filter words that are 1-2 characters long
+    auto filterShortWords = [](const QStringList &words) -> QStringList {
+        QStringList filtered;
+        for (const QString &word : words) {
+            if (word.length() > 2) {
+                filtered.append(word);
+            }
+        }
+        return filtered;
+    };
+    
+    // Step 1: Preprocess both filenames
+    // Remove text in parentheses
+    auto removeParentheses = [](QString str) {
+        QRegularExpression regex("\\([^()]*\\)");
+        QRegularExpressionMatch match;
+        while ((match = regex.match(str)).hasMatch()) {
+            str.remove(match.capturedStart(), match.capturedLength());
+        }
+        return str;
+    };
+    
+    QString mp3Name = removeParentheses(fn);
+    QString cuesheetName = removeParentheses(cn);
+    
+    // Trim and simplify (collapse multiple spaces)
+    mp3Name = mp3Name.simplified();
+    cuesheetName = cuesheetName.simplified();
+
+    // I like to use cuesheet filenames like "Blue.2.html"
+    //   this removes the .2 part, for matching purposes
+    // QString before = cuesheetName;
+    QRegularExpression dotNumAtEnd("\\.[0-9]?$");
+    cuesheetName.replace(dotNumAtEnd, ""); // THIS IS NOT WORKING HERE
+    // qDebug() << "before/after = " << before << cuesheetName;
+
+    // Step 2: Check for exact match after preprocessing
+    if (mp3Name.compare(cuesheetName, Qt::CaseInsensitive) == 0) {
+        return 100;
+    }
+    
+    // Step 3: Split filenames into words for comparison and filter short words
+    QStringList mp3AllWords = mp3Name.split(QRegularExpression("\\s+"));
+    QStringList cuesheetAllWords = cuesheetName.split(QRegularExpression("\\s+"));
+    
+    QStringList mp3Words = filterShortWords(mp3AllWords);
+    QStringList cuesheetWords = filterShortWords(cuesheetAllWords);
+    
+    // If filtering removed all words, use the original lists
+    if (mp3Words.isEmpty() && !mp3AllWords.isEmpty()) {
+        mp3Words = mp3AllWords;
+    }
+    if (cuesheetWords.isEmpty() && !cuesheetAllWords.isEmpty()) {
+        cuesheetWords = cuesheetAllWords;
+    }
+    
+    // Step 4: Check if one contains all words of the other in same order (with fuzzy matching)
+    bool mp3ContainsAllCuesheet = true;
+    bool cuesheetContainsAllMp3 = true;
+    int mp3Index = 0;
+    int cuesheetIndex = 0;
+    
+    // Check if cuesheet contains all mp3 words in order
+    while (mp3Index < mp3Words.size() && cuesheetIndex < cuesheetWords.size()) {
+        if (fuzzyWordEqual(mp3Words[mp3Index], cuesheetWords[cuesheetIndex])) {
+            mp3Index++;
+            cuesheetIndex++;
+        } else {
+            cuesheetIndex++;
+            cuesheetContainsAllMp3 = false;
+        }
+    }
+    if (mp3Index < mp3Words.size()) {
+        cuesheetContainsAllMp3 = false; // Didn't find all mp3 words
+    }
+    
+    // Reset and check if mp3 contains all cuesheet words in order
+    mp3Index = 0;
+    cuesheetIndex = 0;
+    while (cuesheetIndex < cuesheetWords.size() && mp3Index < mp3Words.size()) {
+        if (fuzzyWordEqual(cuesheetWords[cuesheetIndex], mp3Words[mp3Index])) {
+            cuesheetIndex++;
+            mp3Index++;
+        } else {
+            mp3Index++;
+            mp3ContainsAllCuesheet = false;
+        }
+    }
+    if (cuesheetIndex < cuesheetWords.size()) {
+        mp3ContainsAllCuesheet = false; // Didn't find all cuesheet words
+    }
+    
+    if (cuesheetContainsAllMp3) {
+        return 95;
+    }
+    if (mp3ContainsAllCuesheet) {
+        return 90;
+    }
+    
+    // Step 5: Parse the filenames to extract components
+    // Try to identify label, label number, label extra, and title
+    auto parseFilename = [](const QString &name) {
+        struct ParsedName {
+            QString label;
+            QString labelNum;
+            QString labelExtra;
+            QString title;
+            bool reversed = false;
+        };
+        
+        ParsedName result;
+
+        // Try standard format: LABEL NUM[EXTRA] - TITLE
+        QRegularExpression stdFormat("^([A-Za-z]{1,8})\\s*([0-9]{1,6})([A-Za-z]{0,4})?\\s*-\\s*(.+)$",
+                                    QRegularExpression::CaseInsensitiveOption);
+        
+        // Try reversed format: TITLE - LABEL NUM[EXTRA]
+        QRegularExpression revFormat("^(.+)\\s*-\\s*([A-Za-z]{1,8})\\s*([0-9]{1,5})([A-Za-z]{0,4})?$",
+                                    QRegularExpression::CaseInsensitiveOption);
+        
+        QRegularExpressionMatch match = stdFormat.match(name);
+        if (match.hasMatch()) {
+            result.label = match.captured(1);
+            result.labelNum = match.captured(2);
+            result.labelExtra = match.captured(3);
+            result.title = match.captured(4);
+            result.reversed = false;
+            // qDebug() << "NORMAL ORDER: " << name;
+            return result;
+        }
+        
+        match = revFormat.match(name);
+        if (match.hasMatch()) {
+            result.title = match.captured(1);
+            result.label = match.captured(2);
+            result.labelNum = match.captured(3);
+            result.labelExtra = match.captured(4);
+            result.reversed = true;
+            // qDebug() << "REVERSED ORDER: " << name;
+            return result;
+        }
+        
+        // If no match, just consider the whole thing as title
+        result.title = name;
+        // qDebug() << "NEITHER ORDER: " << name;
+        return result;
+    };
+    
+    auto mp3Parsed = parseFilename(mp3Name);
+    auto cuesheetParsed = parseFilename(cuesheetName);
+    
+    // Step 6: Calculate score based on matching components
+    int score = 0;
+
+    bool labelMatch = false;
+    bool labelNumberMatch = false;
+
+    // Check if labels match (use fuzzy matching)
+    if (!mp3Parsed.label.isEmpty() && !cuesheetParsed.label.isEmpty() &&
+        fuzzyWordEqual(mp3Parsed.label, cuesheetParsed.label)) {
+        // score += 20;
+        labelMatch = true;
+    }
+    
+    // Check if label numbers match (ignore leading zeros)
+    if (!mp3Parsed.labelNum.isEmpty() && !cuesheetParsed.labelNum.isEmpty()) {
+        int mp3Num = mp3Parsed.labelNum.toInt();
+        int cuesheetNum = cuesheetParsed.labelNum.toInt();
+        if (mp3Num == cuesheetNum) {
+            // score += 20;
+            labelNumberMatch = true;
+        }
+    }
+
+    if (labelMatch && labelNumberMatch) {
+        score += 35;
+    }
+    
+    // qDebug() << ">>> " << score;
+
+    // Check if label extras match (use fuzzy matching)
+    if (!mp3Parsed.labelExtra.isEmpty() && !cuesheetParsed.labelExtra.isEmpty() && 
+        fuzzyWordEqual(mp3Parsed.labelExtra, cuesheetParsed.labelExtra)) {
+        score += 2;
+    }
+    
+    // Step 7: Calculate longest common sequence of words in title
+    QStringList mp3TitleAllWords = mp3Parsed.title.split(QRegularExpression("\\s+"));
+    QStringList cuesheetTitleAllWords = cuesheetParsed.title.split(QRegularExpression("\\s+"));
+    
+    // Filter short words
+    QStringList mp3TitleWords = filterShortWords(mp3TitleAllWords);
+    QStringList cuesheetTitleWords = filterShortWords(cuesheetTitleAllWords);
+    
+    // if (cuesheetParsed.title.contains("Blue")) {
+    //     // qDebug() << "after filter:"  << cuesheetParsed.title << cuesheetTitleWords.join(".") << mp3TitleWords.join(".");
+    // }
+
+    // If filtering removed all words, use the original lists
+    if (mp3TitleWords.isEmpty() && !mp3TitleAllWords.isEmpty()) {
+        mp3TitleWords = mp3TitleAllWords;
+    }
+    if (cuesheetTitleWords.isEmpty() && !cuesheetTitleAllWords.isEmpty()) {
+        cuesheetTitleWords = cuesheetTitleAllWords;
+    }
+    
+    // Calculate longest common subsequence (LCS) of words with fuzzy matching
+    QVector<QVector<int>> lcs(mp3TitleWords.size() + 1, QVector<int>(cuesheetTitleWords.size() + 1, 0));
+    int maxLength = 0;
+    
+    for (int i = 1; i <= mp3TitleWords.size(); i++) {
+        for (int j = 1; j <= cuesheetTitleWords.size(); j++) {
+            if (fuzzyWordEqual(mp3TitleWords[i-1], cuesheetTitleWords[j-1])) {
+                lcs[i][j] = lcs[i-1][j-1] + 1;
+                maxLength = qMax(maxLength, lcs[i][j]);
+            } else {
+                lcs[i][j] = 0;
+            }
+        }
+    }
+
+    // Score based on the proportion of matching words in the title
+    int titleWordMatchPercent = 0;
+    int maxWordCount = qMax(mp3TitleWords.size(), cuesheetTitleWords.size());
+    if (maxWordCount > 0) {
+        titleWordMatchPercent = (maxLength * 100) / maxWordCount;
+    }
+
+    // if (cuesheetParsed.title.contains("Blue")) {
+    //     qDebug() << "   maxLength:" << maxLength << cuesheetParsed.title << titleWordMatchPercent;
+    // }
+
+    // Scale the title match score to be at most 54 (so total can't exceed 89)
+    int titleMatchScore = qMin(54, titleWordMatchPercent * 54 / 100);
+    score += titleMatchScore;
+    
+    // Ensure score doesn't exceed 89 (reserving 90+ for special cases already handled)
+    score = qMin(89, score);
+    
+    // If score is too low, consider it no match
+    if (score <= 35) {
+        return 0;
+    }
+    
+    return score;
+}
+
+void MainWindow::betterFindPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets) {
+
+    QFileInfo mp3FileInfo(MP3Filename);
+    // QString mp3CanonicalPath = mp3FileInfo.canonicalPath();
+    QString mp3CompleteBaseName = mp3FileInfo.completeBaseName();
+
+    QList<CuesheetWithRanking *> possibleRankings;    // results go here
+
+    QListIterator<QString> iter(*pathStackCuesheets); // search through Lyrics/Cuesheets
+    while (iter.hasNext()) {
+        QString s = iter.next();
+        QStringList sl1 = s.split("#!#");
+        // QString type = sl1[0];  // the type (of original pathname, before following aliases)
+        QString cuesheetFilename = sl1[1];  // everything else
+        QFileInfo cuesheetFileInfo(cuesheetFilename);
+        QString cuesheetCompleteBaseName = cuesheetFileInfo.completeBaseName();
+
+        int score = MP3FilenameVsCuesheetnameScore(mp3CompleteBaseName, cuesheetCompleteBaseName);
+        if (score > 0) {
+            CuesheetWithRanking *cswr = new CuesheetWithRanking();
+            cswr->filename = cuesheetFilename;
+            cswr->name = cuesheetCompleteBaseName;
+            cswr->score = score;
+            possibleRankings.append(cswr);
+        }
+    }
+
+    // qDebug() << "betterFindPossibleCuesheets:" << possibleRankings;
+
+    // for (const auto &s : possibleRankings) {
+    //     qDebug() << s->score << s->name;
+    // }
+
+    std::sort(possibleRankings.begin(), possibleRankings.end(), CompareCuesheetWithRanking);
+    QListIterator<CuesheetWithRanking *> iterRanked(possibleRankings);
+    while (iterRanked.hasNext())
+    {
+        CuesheetWithRanking *cswr = iterRanked.next();
+        QFileInfo winner(cswr->filename);
+         // qDebug() << "betterFindPossibleCuesheets" << cswr->score << winner.completeBaseName();
+        possibleCuesheets.append(cswr->filename);
+        delete cswr;
+    }
+
+    // qDebug() << "betterFindPossibleCuesheets:" << possibleCuesheets;
+}
+
 
 // TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
 void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets)
@@ -570,7 +931,8 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
 //    QString HTML;
 
         QStringList possibleCuesheets;
-        findPossibleCuesheets(filenameToCheck, possibleCuesheets);
+        // findPossibleCuesheets(filenameToCheck, possibleCuesheets);    // THE OLD ALGORITHM
+        betterFindPossibleCuesheets(filenameToCheck, possibleCuesheets); // THE NEW ALGORITHM
 
         // qDebug() << "attempt:" << attempt;
         // qDebug() << "possibleCuesheets:" << possibleCuesheets;
