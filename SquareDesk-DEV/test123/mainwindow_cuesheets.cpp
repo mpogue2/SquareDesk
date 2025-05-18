@@ -41,6 +41,22 @@
 #include <QtSvg/QSvgGenerator>
 #include <algorithm>  // for random_shuffle
 
+#include <taglib/toolkit/tlist.h>
+#include <taglib/fileref.h>
+#include <taglib/toolkit/tfile.h>
+#include <taglib/tag.h>
+#include <taglib/toolkit/tpropertymap.h>
+
+#include <taglib/mpeg/mpegfile.h>
+#include <taglib/mpeg/id3v2/id3v2tag.h>
+#include <taglib/mpeg/id3v2/id3v2frame.h>
+#include <taglib/mpeg/id3v2/id3v2header.h>
+
+#include <taglib/mpeg/id3v2/frames/unsynchronizedlyricsframe.h>
+#include <taglib/mpeg/id3v2/frames/commentsframe.h>
+#include <taglib/mpeg/id3v2/frames/textidentificationframe.h>
+using namespace TagLib;
+
 struct FilenameMatchers {
     QRegularExpression regex;
     int title_match;
@@ -1301,4 +1317,37 @@ QString MainWindow::maybeCuesheetLevel(QString relativeFilePath) {
     
     // No dance level was found
     return "";
+}
+
+// Function moved from mainwindow.cpp
+QString MainWindow::loadLyrics(QString MP3FileName)
+{
+    QString USLTlyrics;
+
+    if (!MP3FileName.endsWith(".mp3", Qt::CaseInsensitive)) {
+        // WAV, FLAC, etc can have ID3 tags, but we don't support USLT in them right now
+        return(QString(""));
+    }
+
+    MPEG::File mp3file(MP3FileName.toStdString().c_str());
+    ID3v2::Tag *id3v2tag = mp3file.ID3v2Tag(true);
+
+    ID3v2::FrameList::ConstIterator it = id3v2tag->frameList().begin();
+    for (; it != id3v2tag->frameList().end(); it++)
+    {
+        if ((*it)->frameID() == "SYLT")
+        {
+//            qDebug() << "LOAD LYRICS -- found an SYLT frame!";
+        }
+
+        if ((*it)->frameID() == "USLT")
+        {
+//            qDebug() << "LOAD LYRICS -- found a USLT frame!";
+
+            ID3v2::UnsynchronizedLyricsFrame* usltFrame = dynamic_cast<ID3v2::UnsynchronizedLyricsFrame*>(*it);
+            USLTlyrics = usltFrame->text().toCString();
+        }
+    }
+//    qDebug() << "Got lyrics:" << USLTlyrics;
+    return (USLTlyrics);
 }

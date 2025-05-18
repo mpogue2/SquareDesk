@@ -79,6 +79,7 @@ SOURCES += main.cpp\
     mainwindow_bulk.cpp \
     mainwindow_choreo1.cpp \
     mainwindow_cuesheets.cpp \
+    mainwindow_filemgmt.cpp \
     mainwindow_flashcalls.cpp \
     mainwindow_fonts.cpp \
     mainwindow_metadata.cpp \

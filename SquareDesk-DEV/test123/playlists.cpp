@@ -3216,3 +3216,108 @@ void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, 
     playlistSlotWatcherTimer->start(std::chrono::seconds(10));
 
 }
+
+// Functions moved from mainwindow.cpp
+
+void MainWindow::clearSlot(int slotNumber) {
+    QTableWidget *theTableWidget;
+    QLabel *theLabel;
+
+    switch (slotNumber) {
+        case 0: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; break;
+        case 1: theTableWidget = ui->playlist2Table; theLabel = ui->playlist2Label; break;
+        case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; break;
+        default: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; break; // make the compiler warning go away
+    }
+
+    theTableWidget->setRowCount(0); // delete all the rows in the slot
+    theLabel->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist"); // clear out the label
+    slotModified[slotNumber] = false;  // not modified now
+    relPathInSlot[slotNumber] = "";    // nobody home now
+    // qDebug() << "clearSlot" << slotNumber;
+}
+
+void MainWindow::on_actionAt_TOP_triggered()    // Add > at TOP
+{
+    PlaylistItemsToTop();
+}
+
+void MainWindow::on_actionAt_BOTTOM_triggered()  // Add > at BOTTOM
+{
+    PlaylistItemsToBottom();
+}
+
+void MainWindow::on_actionRemove_from_Playlist_triggered()
+{
+    PlaylistItemsRemove();
+}
+
+void MainWindow::on_actionUP_in_Playlist_triggered()
+{
+    PlaylistItemsMoveUp();
+}
+
+void MainWindow::on_actionDOWN_in_Playlist_triggered()
+{
+    PlaylistItemsMoveDown();
+}
+
+void MainWindow::on_action0paletteSlots_triggered()
+{
+    ui->action0paletteSlots->setChecked(true);
+    ui->action1paletteSlots->setChecked(false);
+    ui->action2paletteSlots->setChecked(false);
+    ui->action3paletteSlots->setChecked(false);
+    ui->playlist1Label->setVisible(false);
+    ui->playlist1Table->setVisible(false);
+    ui->playlist2Label->setVisible(false);
+    ui->playlist2Table->setVisible(false);
+    ui->playlist3Label->setVisible(false);
+    ui->playlist3Table->setVisible(false);
+    prefsManager.Setnumpaletteslots("0");
+}
+
+void MainWindow::on_action1paletteSlots_triggered()
+{
+    ui->action0paletteSlots->setChecked(false);
+    ui->action1paletteSlots->setChecked(true);
+    ui->action2paletteSlots->setChecked(false);
+    ui->action3paletteSlots->setChecked(false);
+    ui->playlist1Label->setVisible(true);
+    ui->playlist1Table->setVisible(true);
+    ui->playlist2Label->setVisible(false);
+    ui->playlist2Table->setVisible(false);
+    ui->playlist3Label->setVisible(false);
+    ui->playlist3Table->setVisible(false);
+    prefsManager.Setnumpaletteslots("1");
+}
+
+void MainWindow::on_action2paletteSlots_triggered()
+{
+    ui->action0paletteSlots->setChecked(false);
+    ui->action1paletteSlots->setChecked(false);
+    ui->action2paletteSlots->setChecked(true);
+    ui->action3paletteSlots->setChecked(false);
+    ui->playlist1Label->setVisible(true);
+    ui->playlist1Table->setVisible(true);
+    ui->playlist2Label->setVisible(true);
+    ui->playlist2Table->setVisible(true);
+    ui->playlist3Label->setVisible(false);
+    ui->playlist3Table->setVisible(false);
+    prefsManager.Setnumpaletteslots("2");
+}
+
+void MainWindow::on_action3paletteSlots_triggered()
+{
+    ui->action0paletteSlots->setChecked(false);
+    ui->action1paletteSlots->setChecked(false);
+    ui->action2paletteSlots->setChecked(false);
+    ui->action3paletteSlots->setChecked(true);
+    ui->playlist1Label->setVisible(true);
+    ui->playlist1Table->setVisible(true);
+    ui->playlist2Label->setVisible(true);
+    ui->playlist2Table->setVisible(true);
+    ui->playlist3Label->setVisible(true);
+    ui->playlist3Table->setVisible(true);
+    prefsManager.Setnumpaletteslots("3");
+}
