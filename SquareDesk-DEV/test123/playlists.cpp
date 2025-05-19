@@ -1586,6 +1586,9 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     //     we reversed it for presentation
     // theRealPath is the actual relative path, used to determine whether the file exists or not
 
+    bool isAppleMusicFile = theRealPath.contains("/iTunes/iTunes Media/");
+    bool isDarkSongTable = (whichTable == ui->darkSongTable);
+
     // qDebug() << "setTitleField" << isPlaylist << whichRow << relativePath << PlaylistFileName << theRealPath;
     static QRegularExpression dotMusicSuffix("\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption); // match with music extensions
     QString shortTitle = relativePath.split('/').last().replace(dotMusicSuffix, "");
@@ -1597,7 +1600,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     // qDebug() << "cType:" << cType;
 
     QColor textCol; // = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
-    if (songTypeNamesForExtras.contains(cType)) {
+    if (songTypeNamesForExtras.contains(cType) || isAppleMusicFile) {  // special case for Apple Music items
         textCol = QColor(extrasColorString);
     }
     else if (songTypeNamesForPatter.contains(cType)) {
@@ -1633,6 +1636,11 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     // qDebug() << "origPath:" << origPath << settings;
 
     // format the title string -----
+    QString appleSymbol = QChar(0xF8FF);
+    if (isAppleMusicFile && !isDarkSongTable) {
+        shortTitle = appleSymbol + " " + shortTitle; // add Apple space as prefix to actual short title
+    }
+
     QString titlePlusTags(FormatTitlePlusTags(shortTitle, settings.isSetTags(), settings.getTags(), textCol.name()));
 
     // qDebug() << "setTitleField:" << shortTitle << titlePlusTags;
@@ -1652,12 +1660,12 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     }
 
     QString realPath = absPath;  // the usual case
-    if (theRealPath != "") {
+    if (theRealPath != "" && !isAppleMusicFile) { // special case for Apple Music items
         // real path specified, so use it to point at the real file
         realPath = musicRootPath + theRealPath;
     }
 
-    // DDD(theRealPath)
+    // DDD(realPath)
 
     // QFileInfo fi(absPath);
     QFileInfo fi(realPath);
@@ -1790,7 +1798,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
                             // qDebug() << "here are the settings: " << settings1;
                             cuesheetPath = settings1.getCuesheetName();
                         } else {
-                            qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << fullMP3Path;
+                            // qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << fullMP3Path;
                         }
 
                         // qDebug() << "cuesheetPath: " << cuesheetPath;
@@ -2063,7 +2071,10 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                 // QTableWidgetItem *tit = new QTableWidgetItem(sl[1]); // defaults to no pitch change
                 // theTableWidget->setItem(songCount-1, 1, tit); // title
 
-                setTitleField(theTableWidget, songCount-1, "/xtras/" + sl[1], false, sl[1]); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
+                QString appleSymbol = QChar(0xF8FF); // TODO: factor into global?
+                QString shortTitle = sl[1];
+                shortTitle = appleSymbol + " " + shortTitle;
+                setTitleField(theTableWidget, songCount-1, "/xtras/" + shortTitle, false, sl[1]); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
 
                 // PITCH column
                 QTableWidgetItem *pit = new QTableWidgetItem("0"); // defaults to no pitch change
@@ -2208,7 +2219,8 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                     }
                     // DDD(list1[0])
 
-                    QFileInfo fi(list1[0]);
+                    // QFileInfo fi(list1[0]);
+                    QFileInfo fi(absPath);
                     QString theBaseName = fi.completeBaseName();
                     QString theSuffix = fi.suffix();
 
@@ -2238,6 +2250,10 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                     QString theFakePath = "/" + categoryName + "/" + theLabel + " " + theLabelNum + " - " + theTitle + "." + theSuffix;
                     // DDD(theFakePath)
                     // DDD(PlaylistFileName)
+
+                    if (absPath.contains("/iTunes/iTunes Media/")) {
+                        theFakePath = absPath;
+                    }
 
                     // qDebug() << "loading playlist:" << list1[0] << PlaylistFileName;
                     // setTitleField(theTableWidget, songCount-1, list1[0], true, PlaylistFileName); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
@@ -2850,7 +2866,7 @@ void MainWindow::saveSlotNow(int whichSlot) {
         file.close(); // OK, we're done saving the file, so...
         slotModified[whichSlot] = false;
     } else {
-        qDebug() << "ERROR: could not save playlist to CSV file.";
+        qDebug() << "ERROR: could not save playlist to CSV file: " << relPathInSlot[whichSlot];
     }
 }
 
