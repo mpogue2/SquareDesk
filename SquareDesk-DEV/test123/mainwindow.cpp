@@ -1916,7 +1916,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                             if (songSettings.loadSettings(fullMP3Path, settings1)) {
                                 cuesheetPath = settings1.getCuesheetName();
                             } else {
-                                qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
+                                // qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
                             }
 
                             // qDebug() << "convertCuesheetPathNameToCurrentRoot BEFORE:" << cuesheetPath;
@@ -2054,7 +2054,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                             if (songSettings.loadSettings(fullMP3Path, settings1)) {
                                 cuesheetPath = settings1.getCuesheetName();
                             } else {
-                                qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
+                                // qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
                             }
 
                             // qDebug() << "convertCuesheetPathNameToCurrentRoot BEFORE:" << cuesheetPath;
@@ -2192,7 +2192,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                             if (songSettings.loadSettings(fullMP3Path, settings1)) {
                                 cuesheetPath = settings1.getCuesheetName();
                             } else {
-                                qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
+                                // qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
                             }
 
                             // qDebug() << "convertCuesheetPathNameToCurrentRoot BEFORE:" << cuesheetPath;
@@ -9755,7 +9755,7 @@ void MainWindow::darkRevealAttachedLyricsFileInFinder() {
 
     int selectedRow = darkSelectedSongRow();  // get current row or -1
     if (selectedRow == -1) {
-            qDebug() << "Tried to revealAttachedLyricsFile, but no selected row."; // if nothing selected, give up
+            // qDebug() << "Tried to revealAttachedLyricsFile, but no selected row."; // if nothing selected, give up
             return;
     }
 
@@ -9771,7 +9771,7 @@ void MainWindow::darkRevealAttachedLyricsFileInFinder() {
 
             showInFinderOrExplorer(cuesheetPath);
     } else {
-            qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
+            // qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
     }
 }
 
