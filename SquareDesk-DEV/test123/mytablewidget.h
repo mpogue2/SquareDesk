@@ -27,7 +27,28 @@
 #define MYTABLEWIDGET_H
 
 #include <QTableWidget>
+#include <QQueue>
 
+struct sortOperation {
+    int column;
+    Qt::SortOrder sortOrder;
+
+    sortOperation(int c, Qt::SortOrder so) : column(c), sortOrder(so) {};
+    sortOperation(QString s) {
+        // e.g. "c:2,so:0"
+        QStringList sl = s.split(",");
+        QStringList c1 = sl[0].split(":");
+        QStringList so1 = sl[1].split(":");
+        column = c1[1].toInt();
+        sortOrder = static_cast<Qt::SortOrder>(so1[1].toInt());
+    };
+
+    QString toString() const {
+        return QString("c:%1,so:%2").arg(column).arg(sortOrder); // 0 = ascending, 1 = descending
+    }
+};
+
+// -------------------------------------------------------
 class MyTableWidget : public QTableWidget
 {
     Q_OBJECT
@@ -57,6 +78,10 @@ public:
 
     void setMainWindow(void *m);  // so we can do stuff
 
+    // void sortItems(int column, Qt::SortOrder order = Qt::AscendingOrder); // override
+    void setOrderFromString(QString s);
+    void initializeSortOrder();
+
 protected:
     void paintEvent(QPaintEvent *event) override;
     void dragLeaveEvent(QDragLeaveEvent *event) override;
@@ -68,6 +93,15 @@ private:
     
     // Helper method to determine if this table is a writable drop target
     bool isWritableTarget() const;
+
+    int maxSortOperations = 7;
+    QList<sortOperation> sortOperations;
+
+signals:
+    void newStableSort(QString sortString);
+
+public slots:
+    void onHeaderClicked(int column);
 };
 
 #endif // MYTABLEWIDGET_H

@@ -1128,9 +1128,23 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
     // these must be in "backwards" order to get the right order, which
     //   is that Type is primary, Title is secondary, Label is tertiary
     // qDebug() << "darkLoadMusicList::sortItems";
-    ui->darkSongTable->sortItems(kLabelCol);  // sort last by label/label #
-    ui->darkSongTable->sortItems(kTitleCol);  // sort second by title in alphabetical order
-    ui->darkSongTable->sortItems(kTypeCol);   // sort first by type (singing vs patter)
+
+    // NOTE: here is where we set the sort order
+
+    QString desiredSortOrder = prefsManager.GetcurrentSortOrder();
+    // qDebug() << "darkLoadMusicList desiredSortOrder: " << desiredSortOrder;
+    if (desiredSortOrder == "") {
+        // it hasn't been set yet!
+        // ui->darkSongTable->sortItems(kLabelCol);  // sort last by label/label #
+        // ui->darkSongTable->sortItems(kTitleCol);  // sort second by title in alphabetical order
+        // ui->darkSongTable->sortItems(kTypeCol);   // sort first by type (singing vs patter)
+        // qDebug() << "setting to default sort order!";
+        sortByDefaultSortOrder();  // this will be persisted...
+    } else {
+        // qDebug() << "setting to new sort order!" << desiredSortOrder;
+        ui->darkSongTable->setOrderFromString(desiredSortOrder);
+    }
+
     // qDebug() << "darkLoadMusicList::DONE with sortItems";
 
     ui->darkSongTable->selectRow(0); // DEBUG

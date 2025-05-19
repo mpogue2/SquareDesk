@@ -248,7 +248,7 @@ void MainWindow::haveDuration2(void) {
 }
 
 // ----------------------------------------------------------------------
-// MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
+// MAINWINDOW CONSTRUCTOR -----
 MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -391,6 +391,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     //on_actionReset_triggered();  // set initial layout
 
     t.elapsed(__LINE__);
+
+    connect(ui->darkSongTable->horizontalHeader(), &QHeaderView::sortIndicatorChanged,
+            ui->darkSongTable, &MyTableWidget::onHeaderClicked);
 
     ui->darkSongTable->setColumnWidth(kNumberCol,40);  // NOTE: This must remain a fixed width, due to a bug in Qt's tracking of its width.
     ui->darkSongTable->setColumnWidth(kTypeCol,96);
@@ -2512,7 +2515,32 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     }
 
     mainWindowReady = true;
+
+    // this is down here intentionally.
+    // darkLoadMusicList will either:
+    //  a) not have a previous sort order, so it will sort by label/title/type
+    //  b) it will have a previous sort order, so it will set that up.
+    // Now that it's initialized, this connect will allow FUTURE clicks on the darksongTable's header to
+    //   persist the NEW sort order, based on any FUTURE changes to it.
+    connect(ui->darkSongTable, SIGNAL(newStableSort(QString)),
+            this, SLOT(handleNewSort(QString))); // for persisting stable sort of darkSongTable
+
+    // if the user wants to go back to the default sort order
+    ui->darkSongTable->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->darkSongTable->horizontalHeader(), &QTableWidget::customContextMenuRequested,
+            this, [this]() {
+                        QMenu *hdrMenu = new QMenu();
+                        hdrMenu->setProperty("theme", currentThemeString);
+                        hdrMenu->addAction(QString("Reset Sort Order"),
+                                           [this]() {   // qDebug() << "Resetting sort order...";
+                                                        sortByDefaultSortOrder(); } );
+                        hdrMenu->popup(QCursor::pos());
+                        hdrMenu->exec();
+                        delete hdrMenu; // done with it
+
+    });
 }
+// END CONSTRUCTOR ---------
 
 void MainWindow::newFromTemplate() {
     QString templateName = sender()->property("name").toString();
@@ -7331,9 +7359,11 @@ void MainWindow::sortByDefaultSortOrder()
 {
     // these must be in "backwards" order to get the right order, which
     //   is that Type is primary, Title is secondary, Label is tertiary
-    // ui->songTable->sortItems(kLabelCol);  // sort last by label/label #
-    // ui->songTable->sortItems(kTitleCol);  // sort second by title in alphabetical order
-    // ui->songTable->sortItems(kTypeCol);   // sort first by type (singing vs patter)
+    ui->darkSongTable->initializeSortOrder(); // clear out the queue and start over
+
+    ui->darkSongTable->sortItems(kLabelCol);  // sort last by label/label #
+    ui->darkSongTable->sortItems(kTitleCol);  // sort second by title in alphabetical order
+    ui->darkSongTable->sortItems(kTypeCol);   // sort first by type (singing vs patter)
 }
 
 void MainWindow::sdActionTriggered(QAction * action) {
@@ -10051,4 +10081,12 @@ int MainWindow::testVamp() {
     }
 
     return(0); // all is well
+}
+
+// ---------------------------------------------
+// SORT Persistence
+//
+void MainWindow::handleNewSort(QString newSortString) {
+    // qDebug() << "handleNewSort:" << newSortString;
+    prefsManager.SetcurrentSortOrder(newSortString); // persist it
 }

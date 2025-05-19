@@ -204,3 +204,5 @@ CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastPlaylistLoaded2, "") // if the user had a p
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastPlaylistLoaded3, "") // if the user had a playlist loaded, then reload it at next app start time (THIS IS PLAYLIST #3 = SLOT 2)
 
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastDance,  "")
+
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(currentSortOrder, "")

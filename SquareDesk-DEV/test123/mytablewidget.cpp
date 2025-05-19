@@ -1095,3 +1095,87 @@ void MyTableWidget::paintEvent(QPaintEvent *event)
         painter.drawLine(0, y, viewport()->width(), y);
     }
 }
+
+// ================================================================================
+//  Dark Table Widget persistent sorting order
+// ================================================================================
+//
+// ------------------------------------------------
+// we're doing this so we can keep track of the ordering, so we can make it persistent
+//  this doesn't catch the user header clicks, though...
+// void MyTableWidget::sortItems (int column, Qt::SortOrder order) {
+//     // emit sort();
+//     // qDebug() << "MyTableWidget::sortItems was called: " << column << order;
+
+//     // if (sortOperations.size() >= maxSortOperations) {
+//     //     // full
+//     //     sortOperations.dequeue();  // throw away the head
+//     // }
+//     // sortOperations.enqueue(sortOperation(column, order)); // push new one into the FIFO
+
+//     // // DEBUG: tell me what's in the FIFO now -----
+//     // qDebug() << "*** updated sortOperations ***";
+//     // for (const auto &item : sortOperations) {
+//     //     qDebug() << "sortOperations sortItems: " << item.toString();
+//     // }
+
+//     QTableWidget::sortItems(column, order);
+// }
+
+// this catches the user header clicks -----
+void MyTableWidget::onHeaderClicked(int column) {
+    QHeaderView *header = this->horizontalHeader();
+    Qt::SortOrder order = header->sortIndicatorOrder();
+    // qDebug() << "onHeaderClicked to sort: " << column << order;
+
+    // push into the FIFO -----
+    if (sortOperations.size() >= maxSortOperations) {
+        // it's full, so kick one out
+        sortOperations.remove(0);  // throw away the head (item 0)
+    }
+
+    // must delete any prior remembered sortOperations on that column, before
+    //   we put in this one
+    for (int i = 0; i < sortOperations.size(); i++) {
+        if (sortOperations[i].column == column) {
+            sortOperations.removeAt(i); // delete if the column matches
+        }
+    }
+
+    sortOperations.append(sortOperation(column, order)); // push new one into the FIFO
+
+    // DEBUG: tell me what's in the FIFO now -----
+    QString allSortOperationsString = "";
+    // qDebug() << "*** updated sortOperations ***";
+    for (int i = 0; i < sortOperations.size(); i++) {
+        allSortOperationsString += sortOperations[i].toString();
+
+        if (i < sortOperations.size()-1) {
+            allSortOperationsString += ";";
+        }
+    }
+
+    // qDebug() << "onHeaderClicked allSortOperations =" << allSortOperationsString;
+    emit newStableSort(allSortOperationsString); // asks MainWindow to persist it
+}
+
+void MyTableWidget::setOrderFromString(QString s) {
+    // called from darkloadMusicList to set the sort order in the darkSongTable
+    // qDebug() << "setOrderFromString:" << s;
+
+    // sortOperations.clear(); // NO, DON'T clear out the old here, do it only when told in initializeSortOrder() (when resetting)
+
+    // string looks like: "c:2,so:0;c:1,so:0;c:3,so:0"
+    QStringList a = s.split(";");
+    for (const auto &q : a) {
+        sortOperation so(q);
+        sortOperations.append(so);
+        sortItems(so.column, so.sortOrder); // do the sorting of the table items
+    }
+
+}
+
+void MyTableWidget::initializeSortOrder() {
+    sortOperations.clear();
+    emit newStableSort("");
+}

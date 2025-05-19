@@ -325,6 +325,8 @@ public:
 
 public slots:
 
+    void handleNewSort(QString newSortString);
+
 #ifdef DEBUG_LIGHT_MODE
     void svgClockStateChanged(QString newStateName);
 #endif
