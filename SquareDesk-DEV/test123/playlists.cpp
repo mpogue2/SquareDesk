@@ -2848,6 +2848,13 @@ void MainWindow::saveSlotNow(int whichSlot) {
 
     QFile file(PlaylistFileName);
 
+    if (PlaylistFileName.contains("/Apple Music/", Qt::CaseInsensitive)) {
+        // Apple Music playlists are not SquareDesk CSV playlists, so they don't need to be saved
+        return;
+    }
+
+    // qDebug() << "***** Saving playlist: " << PlaylistFileName;
+
     if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         QTextStream stream(&file);
 
