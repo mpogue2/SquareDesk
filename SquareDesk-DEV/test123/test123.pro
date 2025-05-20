@@ -961,6 +961,7 @@ DISTFILES += \
     PackageIt_M1.command \
     abbrevs.txt \
     cuesheet2.css \
+    fixAndSignSquareDesk.command \
     lyrics.template.2col.html \
     lyrics.template.html \
     PackageIt.command \
@@ -968,6 +969,7 @@ DISTFILES += \
     makeInstallVersion.command \
     notarizeSquareDesk.command \
     patter.template.html \
+    releaseSquareDesk.command \
     signSquareDesk.command \
     soundtouch/include/soundtouch_config.h.in \
     themes/Themes.qss
