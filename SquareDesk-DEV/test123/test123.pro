@@ -10,7 +10,6 @@ unix {
     PRE_TARGETDEPS += $$OUT_PWD/../sdlib/libsdlib.a
 }
 macx {
-    QMAKE_INFO_PLIST = $$PWD/Info.plist
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 12.0
 
     # for BULK operations
@@ -255,6 +254,17 @@ FORMS    += mainwindow.ui \
     choreosequencedialog.ui \
     preferencesdialog.ui \
     updateID3TagsDialog.ui
+
+macx {
+  # to ensure that Info.plist gets copied over (build will not overwrite one that's already there)
+  QMAKE_INFO_PLIST = $$PWD/Info.plist
+  plist.target = Info.plist
+  plist.depends = $$PWD/Info.plist "$$OUT_PWD/SquareDesk.app/Contents/Info.plist"
+  plist.commands = $(DEL_FILE) \"$$OUT_PWD/SquareDesk.app/Contents/Info.plist\" $$escape_expand(\n\t) \
+                         $(COPY_FILE) $$PWD/Info.plist \"$$OUT_PWD/SquareDesk.app/Contents/Info.plist\"
+  QMAKE_EXTRA_TARGETS = plist
+  PRE_TARGETDEPS += $$plist.target
+}
 
 macx {
 # This is just for libtidy at this point... (NOTE: libtidy no longer needed)
