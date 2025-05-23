@@ -1204,14 +1204,17 @@ void MainWindow::saveLyricsAs()
     }
 
     loadedCuesheetNameWithPath = lastCuesheetSavePath + "/" + fi.baseName().replace(QRegularExpression("\\(.*\\)"),"").simplified() + ".html";
+    QString loadedCuesheetNameWithPathHTM = lastCuesheetSavePath + "/" + fi.baseName().replace(QRegularExpression("\\(.*\\)"),"").simplified() + ".htm";
 
-    QString maybeFilename = loadedCuesheetNameWithPath;
+    QString maybeFilename = loadedCuesheetNameWithPath;  // prefer HTML extension rather than HTM
     QFileInfo fi2(loadedCuesheetNameWithPath);
+
+    QFileInfo fi3(loadedCuesheetNameWithPathHTM);
 
     // qDebug() << "loadedCuesheetNameWithPath: " << loadedCuesheetNameWithPath;
 
-    if (fi2.exists()) {
-        // qDebug() << "fi2 exists!";
+    if (fi2.exists() || fi3.exists()) {
+        // qDebug() << "fi2 (HTML) or fi3 (HTM) exists!";
 
         // choose the next name in the series (this won't be done, if we came from a template)
         QString cuesheetExt = loadedCuesheetNameWithPath.split(".").last();
