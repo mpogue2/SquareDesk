@@ -5077,6 +5077,7 @@ void MainWindow::sdLoadDance(QString danceName) {
     }
 
     frameName = danceName;    // TODO: "frameName" is a misnomer now.  This really should be fixed.
+    microphoneStatusUpdate();  // force update of the Dance: name
 
     frameFiles.clear();
     frameVisible.clear();
