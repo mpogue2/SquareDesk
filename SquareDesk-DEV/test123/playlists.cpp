@@ -844,15 +844,24 @@ void MainWindow::PlaylistItemsToTop() {
     if (darkmode) {
         if (!relPathInSlot[0].startsWith("/tracks/")) {
             slotModified[0] = ui->playlist1Table->moveSelectedItemsToTop() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+            if (slotModified[0]) {
+                saveSlotNow(0);
+            }
         }
         if (!relPathInSlot[1].startsWith("/tracks/")) {
             slotModified[1] = ui->playlist2Table->moveSelectedItemsToTop() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+            if (slotModified[1]) {
+                saveSlotNow(1);
+            }
         }
         if (!relPathInSlot[2].startsWith("/tracks/")) {
             slotModified[2] = ui->playlist3Table->moveSelectedItemsToTop() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+            if (slotModified[2]) {
+                saveSlotNow(2);
+            }
         }
         if (slotModified[0] || slotModified[1] || slotModified[2]) {
-            playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+//            playlistSlotWatcherTimer->start(std::chrono::seconds(10));  // no need for this, because these changes are immediate now
             return; // we changed something, no need to check songTable
         }
     }
@@ -939,15 +948,24 @@ void MainWindow::PlaylistItemsToBottom() {
     if (darkmode) {
         if (!relPathInSlot[0].startsWith("/tracks/")) {
             slotModified[0] = ui->playlist1Table->moveSelectedItemsToBottom() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+            if (slotModified[0]) {
+                saveSlotNow(0);
+            }
         }
         if (!relPathInSlot[1].startsWith("/tracks/")) {
             slotModified[1] = ui->playlist2Table->moveSelectedItemsToBottom() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+            if (slotModified[1]) {
+                saveSlotNow(1);
+            }
         }
         if (!relPathInSlot[2].startsWith("/tracks/")) {
             slotModified[2] = ui->playlist3Table->moveSelectedItemsToBottom() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+            if (slotModified[2]) {
+                saveSlotNow(2);
+            }
         }
         if (slotModified[0] || slotModified[1] || slotModified[2]) {
-            playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+            // playlistSlotWatcherTimer->start(std::chrono::seconds(10));  // not needed now
             return; // we changed something, no need to check songTable
         }
     }
@@ -1020,15 +1038,24 @@ void MainWindow::PlaylistItemsMoveUp() {
         // qDebug() << "relPathInSlot: " << relPathInSlot[0] << relPathInSlot[1] << relPathInSlot[2];
         if (!relPathInSlot[0].startsWith("/tracks/")) {
             slotModified[0] = ui->playlist1Table->moveSelectedItemsUp() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+            if (slotModified[0]) {
+                saveSlotNow(0);
+            }
         }
         if (!relPathInSlot[1].startsWith("/tracks/")) {
             slotModified[1] = ui->playlist2Table->moveSelectedItemsUp() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+            if (slotModified[1]) {
+                saveSlotNow(1);
+            }
         }
         if (!relPathInSlot[2].startsWith("/tracks/")) {
             slotModified[2] = ui->playlist3Table->moveSelectedItemsUp() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+            if (slotModified[2]) {
+                saveSlotNow(2);
+            }
         }
         if (slotModified[0] || slotModified[1] || slotModified[2]) {
-            playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+            // playlistSlotWatcherTimer->start(std::chrono::seconds(10));  // not needed now
             return; // we changed something, no need to check songTable
         }
     }
@@ -1094,15 +1121,24 @@ void MainWindow::PlaylistItemsMoveDown() {
     if (darkmode) {
         if (!relPathInSlot[0].startsWith("/tracks/")) {
             slotModified[0] = ui->playlist1Table->moveSelectedItemsDown() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+            if (slotModified[0]) {
+                saveSlotNow(0);
+            }
         }
         if (!relPathInSlot[1].startsWith("/tracks/")) {
             slotModified[1] = ui->playlist2Table->moveSelectedItemsDown() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+            if (slotModified[1]) {
+                saveSlotNow(1);
+            }
         }
         if (!relPathInSlot[2].startsWith("/tracks/")) {
             slotModified[2] = ui->playlist3Table->moveSelectedItemsDown() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+            if (slotModified[2]) {
+                saveSlotNow(2);
+            }
         }
         if (slotModified[0] || slotModified[1] || slotModified[2]) {
-            playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+            // playlistSlotWatcherTimer->start(std::chrono::seconds(10));  // not needed now
             return; // we changed something, no need to check songTable
         }
     }
@@ -1176,18 +1212,27 @@ void MainWindow::PlaylistItemsRemove() {
         if (!relPathInSlot[0].startsWith("/tracks/")) {
     //        ui->playlist1Table->removeSelectedItem();  // if nothing was selected in this slot, this call does nothing
             slotModified[0] = ui->playlist1Table->removeSelectedItems() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+            if (slotModified[0]) {
+                saveSlotNow(0);
+            }
         }
         if (!relPathInSlot[1].startsWith("/tracks/")) {
     //        ui->playlist2Table->removeSelectedItem();  // if nothing was selected in this slot, this call does nothing
             slotModified[1] = ui->playlist2Table->removeSelectedItems() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+            if (slotModified[1]) {
+                saveSlotNow(1);
+            }
         }
         if (!relPathInSlot[2].startsWith("/tracks/")) {
     //        ui->playlist3Table->removeSelectedItem();  // if nothing was selected in this slot, this call does nothing
             slotModified[2] = ui->playlist3Table->removeSelectedItems() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+            if (slotModified[2]) {
+                saveSlotNow(2);
+            }
         }
 
         if (slotModified[0] || slotModified[1] || slotModified[2]) {
-            playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+            // playlistSlotWatcherTimer->start(std::chrono::seconds(10));  // not needed now
             return; // we changed something, no need to check songTable
         }
 
@@ -2813,7 +2858,21 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
 // -----------
 // DARK MODE: NO file dialog, just save slot to that same file where it came from
 // SAVE a playlist in a slot to a CSV file
+
+void MainWindow::saveSlotNow(MyTableWidget *mtw) {
+    if (mtw == ui->playlist1Table) {
+        saveSlotNow(0);
+    } else if (mtw == ui->playlist2Table) {
+        saveSlotNow(1);
+    } else if (mtw == ui->playlist3Table) {
+        saveSlotNow(2);
+    }
+    return;
+}
+
 void MainWindow::saveSlotNow(int whichSlot) {
+
+    // qDebug() << "saveSlotNow" << whichSlot;
 
     if (relPathInSlot[whichSlot] == "") {
         // nothing in this slot
@@ -2832,11 +2891,19 @@ void MainWindow::saveSlotNow(int whichSlot) {
 
     // which tableWidget are we dealing with?
     MyTableWidget *theTableWidget;
+    QString theTableLabelText = "";
     switch (whichSlot) {
-        case 1: theTableWidget = ui->playlist2Table; break;
-        case 2: theTableWidget = ui->playlist3Table; break;
+        case 1: theTableWidget = ui->playlist2Table;
+                theTableLabelText = ui->playlist2Label->text();
+                break;
+        case 2: theTableWidget = ui->playlist3Table;
+                theTableLabelText = ui->playlist3Label->text();
+                break;
         case 0:
-        default: theTableWidget = ui->playlist1Table; break;
+        default: theTableWidget = ui->playlist1Table;
+                theTableLabelText = ui->playlist1Label->text();
+                break;
+
     }
 
     QString playlistShortName = PlaylistFileName;
@@ -2874,6 +2941,61 @@ void MainWindow::saveSlotNow(int whichSlot) {
         slotModified[whichSlot] = false;
     } else {
         qDebug() << "ERROR: could not save playlist to CSV file: " << relPathInSlot[whichSlot];
+    }
+
+    // special case:  If a CSV playlist is in a Palette Slot, and also is visible as a playlist in the darkSongTable,
+    //   we need to reload the darkSongTable when the Palette Slot is changed (10s after the last change).
+
+    // qDebug() << "saveSlotNow: currentTreePath = " << currentTreePath; // e.g. "Playlists/Jokers/2025/"
+    // qDebug() << "saveSlotNow: header title = " << theTableLabelText; // e.g. "<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers/2025/Test_2025.05.22"
+
+    if (currentTreePath.startsWith("Playlists/")) {
+        QString ctp = currentTreePath;
+        ctp.replace(QRegularExpression("^Playlists/"), ""); // e.g. "Jokers/2025/" or "Jokers/2025/Test_2025.05.22"
+        QString headerTitle = theTableLabelText.replace(QRegularExpression("^<img.*>"), "");
+        // qDebug() << "ctp and headerTitle:" << ctp << headerTitle;
+        if (headerTitle.startsWith(ctp)) {
+            // it's a playlist, and the title of the modified playlist would be visible in the darkSongTable right now
+            // qDebug() << "***** NEED TO RELOAD THE SONG TABLE: ";
+
+            // // before removal
+            // for (const auto &item : *pathStackPlaylists) {
+            //     qDebug() << "before: " << item;
+            // }
+
+            // first we get rid of the old playlist items in pathStackPlaylists
+            // items look like e.g. "Jokers/2025/Test_2025.05.22%!%-3,122,01#!#/Users/mpogue/Library/Mobile Documents/com~apple~CloudDocs/SquareDance/squareDanceMusic_iCloud/patter/ESP 451 - 'Cuda.mp3"
+            pathStackPlaylists->removeIf([headerTitle](const QString& path) {
+                                            return path.startsWith(headerTitle + "%!%"); // e.g. "Jokers/2025/Test_2025.05.22%!%"
+                                        });
+
+            // then we stick in the new playlist
+            // for (const auto &item : *pathStackPlaylists) {
+            //     qDebug() << "after 1: " << item;
+            // }
+
+            for (int i = 0; i < theTableWidget->rowCount(); i++) {
+                // what we need to append to pathStackPlaylists is an item like:
+                //   "Jokers/2025/Test_2025.05.22%!%-3,122,01#!#/Users/mpogue/Library/Mobile Documents/com~apple~CloudDocs/SquareDance/squareDanceMusic_iCloud/patter/ESP 451 - 'Cuda.mp3"
+                QString itemNumber = QString::number(i+1);
+                if (itemNumber.length() < 2) {
+                    itemNumber = "0" + itemNumber; // 9 --> 09
+                }
+                QString path = theTableWidget->item(i, 4)->text();
+                QString pitch = theTableWidget->item(i, 2)->text();
+                QString tempo = theTableWidget->item(i, 3)->text();
+
+                QString newItem = headerTitle + "%!%" + pitch + "," + tempo + "," + itemNumber + "#!#" + path;
+                // qDebug() << "newItem:" << newItem;
+                pathStackPlaylists->append(newItem);
+            }
+
+            // for (const auto &item : *pathStackPlaylists) {
+            //     qDebug() << "after 2: " << item;
+            // }
+            // then finally we force a refresh of the darkSongTable
+            darkLoadMusicList(pathStackPlaylists, currentTypeFilter, true, false, true);  // refresh and force same filter, and YES suppress focus/selection change
+        }
     }
 }
 
@@ -3236,7 +3358,7 @@ void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, 
     //     });
 
     slotModified[whichSlot] = true;
-    playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+    // playlistSlotWatcherTimer->start(std::chrono::seconds(10)); // no need for this now, always done via saveSlotNow elsewhere
 
 }
 

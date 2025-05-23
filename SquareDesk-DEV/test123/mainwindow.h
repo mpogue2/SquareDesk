@@ -479,7 +479,6 @@ private slots:
     void reloadPaletteSlots(); // called twice, once at constructor time, once after changing preferences colors
 
     void saveSlotAsPlaylist(int whichSlot); // SAVE AS a playlist in a slot to a CSV file
-    void saveSlotNow(int whichSlot);           // SAVE a playlist in a slot to a CSV file
 
     void clearSlot(int whichSlot);  // clears out the slot, both table and label
 
@@ -851,6 +850,8 @@ private slots:
     void on_actionNew_Dance_triggered();
 
 public:
+    void saveSlotNow(int whichSlot);           // SAVE a playlist in a slot to a CSV file, public intentionally for MyTableWidget()
+    void saveSlotNow(MyTableWidget *mtw);       // SAVE a playlist in a slot to a CSV file, public intentionally for MyTableWidget()
 
     // BULK operations -----
     int  processOneFile(const QString &mp3filename);
@@ -1072,7 +1073,7 @@ private:
     void filterMusic();  // filter them into the songTable
     void loadMusicList();  // filter them into the songTable
     void darkFilterMusic();  // filter them into the songTable
-    void darkLoadMusicList(QList<QString> *aPathStack, QString typeFilter, bool forceTypeFilter, bool reloadPaletteSlots);  // filter one of the pathstacks into the darkSongTable
+    void darkLoadMusicList(QList<QString> *aPathStack, QString typeFilter, bool forceTypeFilter, bool reloadPaletteSlots, bool suppressSelectionChange = false);  // filter one of the pathstacks into the darkSongTable
     QString FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags, QString titleColor = "");
 
     void changeTagOnCurrentSongSelection(QString tag, bool add);
@@ -1141,6 +1142,7 @@ private:
 
     QList<QString> *currentlyShowingPathStack;
     QString currentTypeFilter;
+    QString currentTreePath; // e.g. "Track/patter", "Playlists/CPSD/" "Apple Music/CuriousBlend"
     bool forceFilter;
 
     // Experimental Timer stuff ----------
@@ -1186,7 +1188,6 @@ private:
     QTimer *fileWatcherDisabledTimer;   // disable the filewatcher for 5 sec after a LOAD operation (workaround Ventura problem)
 
     QTimer *playlistSlotWatcherTimer;   // after all changes are made, THEN auto-save the playlist slot.
-    bool slotModified[3];               // true, if the slot has been modified and needs to be saved
 
     LevelMeter *vuMeter;
 
@@ -1298,6 +1299,8 @@ private:
     void AddHotkeyMappingsFromMenus(QHash<QString, KeyAction *> &hotkeyMappings);
     void AddHotkeyMappingsFromShortcuts(QHash<QString, KeyAction *> &hotkeyMappings);
 public:
+
+    bool slotModified[3];               // true, if the slot has been modified and needs to be saved
 
     void darkPaletteTitleLabelDoubleClicked(QMouseEvent *e);
     void setTitleField(QTableWidget *whichTable, int whichRow, QString fullPath,

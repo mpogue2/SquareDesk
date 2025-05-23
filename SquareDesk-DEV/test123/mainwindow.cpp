@@ -289,6 +289,8 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     doNotCallDarkLoadMusicList = false;
 
+    currentTreePath = "Tracks/";
+
     QString darkTextColor = "black";
     lastMinuteInHour = -1;
     lastSessionID = -2; // initial startup
@@ -8756,18 +8758,20 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
         QString shortTreePath = treePath;
         const QRegularExpression firstItem("^.*?/");
         shortTreePath.replace(firstItem, "");
-        // qDebug() << "SHORT TREEPATH:" << shortTreePath;
+        // qDebug() << "on_treeWidget_itemSelectionChanged -- TREEPATH/SHORT TREE PATH:" << treePath << shortTreePath;
 
         // clicked on some item (not a top level category) -------
         if (maybeParentsItem == nullptr) {
 //            qDebug() << "PARENT ITEM:" << thisItem->text(0);
             ui->darkSearch->setText(""); // clear the search to show all Tracks
             if (!doNotCallDarkLoadMusicList) {
+                currentTreePath = "Tracks/";
                 darkLoadMusicList(pathStack, "Tracks", true, false);  // show MUSIC TRACKS
             }
         } else {
             ui->darkSearch->setText(""); // clear the search to show all Tracks
             if (!doNotCallDarkLoadMusicList) {
+                currentTreePath = treePath; // e.g. "Tracks/patter", "Playlists/CPSD/" "Apple Music/CuriousBlend"
                 if (treePath.startsWith("Tracks")) {
                     darkLoadMusicList(pathStack, shortTreePath, true, false);  // show MUSIC TRACKS
                 } else if (treePath.startsWith("Playlists")) {
@@ -9678,7 +9682,8 @@ void MainWindow::darkAddPlaylistItemsToBottom(int whichSlot) { // slot is 0 - 2
         });
 
     slotModified[whichSlot] = true;
-    playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+    saveSlotNow(whichSlot);
+    // playlistSlotWatcherTimer->start(std::chrono::seconds(10)); // no need for this now, it's immediate
 
     // DDD(relPathInSlot[0])
     // DDD(relPathInSlot[1])
@@ -9747,7 +9752,8 @@ void MainWindow::darkAddPlaylistItemToBottom(int whichSlot, QString title, QStri
         });
 
     slotModified[whichSlot] = true;
-    playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+    // playlistSlotWatcherTimer->start(std::chrono::seconds(10));  // no need for this, it's immediate now
+    saveSlotNow(whichSlot);
 }
 
 void MainWindow::darkRevealInFinder()

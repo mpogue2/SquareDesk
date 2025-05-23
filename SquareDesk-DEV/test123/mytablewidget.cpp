@@ -257,6 +257,8 @@ if (rows.count() == 0) {
     // NOTE: the rows we moved to the top will still be selected!
     scrollToItem(item(0, 0));      // EnsureVisible for the first row in the table
 
+    ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the darkSongTable view immediately
+
     return true; // we did it!
 } else {
     // MULTI ROW CASE
@@ -303,6 +305,8 @@ if (rows.count() == 0) {
 
     // NOTE: the rows we moved to the top will still be selected!
     scrollToItem(item(0, 0));      // EnsureVisible for the first row in the table
+
+    ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the darkSongTable view immediately
 
     return true; // we did it!
     }
@@ -361,6 +365,8 @@ bool MyTableWidget::moveSelectedItemsToBottom(bool scrollWhenDone) { // defaults
             scrollToBottom();
         }
 
+        ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the darkSongTable view immediately
+
         return true; // we did it!
     } else {
         // MULTI ROW CASE
@@ -409,6 +415,8 @@ bool MyTableWidget::moveSelectedItemsToBottom(bool scrollWhenDone) { // defaults
         // NOTE: the rows we moved to the bottom will still be selected!
         scrollToItem(item(rowCount()-1, 0));      // EnsureVisible for the last row in the table
 
+        ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the darkSongTable view immediately
+
         return true; // we did it!
     }
 }
@@ -451,6 +459,9 @@ bool MyTableWidget::removeSelectedItems() {
             scrollToItem(item(row-1, 0)); // EnsureVisible for the row that was deleted, OR last row in table
             // qDebug() << "AFTER selected rows: " << selectionModel()->selectedRows() << row;
         }
+
+        ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the darkSongTable view immediately
+
         return true;
     } else {
         // MULTI ROW CASE
@@ -491,6 +502,8 @@ bool MyTableWidget::removeSelectedItems() {
 
         // selectRow(0); // we are done deleting all the rows, so select first row (what would be better?)
         // scrollToItem(item(0, 0));     // EnsureVisible for the first row in the table
+
+        ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the darkSongTable view immediately
 
         return true; // yeah, we handled this
     }
@@ -855,6 +868,8 @@ void MyTableWidget::dropEvent(QDropEvent *event)
 
     if (sourceName == destName) {
         // INTERNAL MOVE/REORDER ===================
+        qDebug() << "INTERNAL MOVE/REORDER";
+
         QList<int> selRows;
         foreach (const QModelIndex &mi, selectionModel()->selectedRows()) {
             selRows.append(mi.row());
@@ -931,6 +946,20 @@ void MyTableWidget::dropEvent(QDropEvent *event)
         setFocus();
 
         event->acceptProposedAction();
+
+        int whichSlot = 0;
+        if (this == ((MainWindow *)mw)->ui->playlist1Table) {
+            whichSlot = 0;
+        } else if (this == ((MainWindow *)mw)->ui->playlist2Table) {
+            whichSlot = 1;
+        } else if (this == ((MainWindow *)mw)->ui->playlist3Table) {
+            whichSlot = 2;
+        }
+
+        ((MainWindow *)mw)->slotModified[whichSlot] = true;
+
+        ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the darkSongTable view immediately
+
         return;
     }
 
@@ -1004,6 +1033,7 @@ void MyTableWidget::dropEvent(QDropEvent *event)
                         // ((MainWindow *)mw)->darkAddPlaylistItemToBottom(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "");
                         ((MainWindow *)mw)->darkAddPlaylistItemAt(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "", targetRow + itemNumber);
                         itemNumber++;
+                        ((MainWindow *)mw)->saveSlotNow(destSlot);  // drag operations save and possibly update the darkSongTable view immediately
                     } else {
                         qDebug() << "ERROR: mw not valid";
                     }
@@ -1030,6 +1060,7 @@ void MyTableWidget::dropEvent(QDropEvent *event)
                         // qDebug() << "TF2PL: " << destSlot << sourceTrackName << sourcePitch << sourceTempo << sourcePath;
                         ((MainWindow *)mw)->darkAddPlaylistItemAt(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "", targetRow + itemNumber);
                         itemNumber++;
+                        ((MainWindow *)mw)->saveSlotNow(destSlot);  // drag operations save and possibly update the darkSongTable view immediately
                     } else {
                         qDebug() << "ERROR: mw not valid";
                     }
@@ -1050,6 +1081,7 @@ void MyTableWidget::dropEvent(QDropEvent *event)
                         if (mw != nullptr) {
                             ((MainWindow *)mw)->darkAddPlaylistItemAt(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "", targetRow + itemNumber);
                             itemNumber++;
+                            ((MainWindow *)mw)->saveSlotNow(destSlot);  // drag operations save and possibly update the darkSongTable view immediately
                         } else {
                             qDebug() << "ERROR: mw not valid";
                         }

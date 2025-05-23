@@ -667,7 +667,7 @@ void MainWindow::loadMusicList()
 //
 // Note: if aPathStack == currentShowingPathStack, then don't do anything
 
-void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilter, bool forceFilter, bool reloadPaletteSlots)
+void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilter, bool forceFilter, bool reloadPaletteSlots, bool suppressSelectionChange)
 {
     // qDebug() << "darkLoadMusicList: " << typeFilter << forceFilter << reloadPaletteSlots;
 
@@ -1147,10 +1147,11 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
     // qDebug() << "darkLoadMusicList::DONE with sortItems";
 
-    ui->darkSongTable->selectRow(0); // DEBUG
-    ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
+        ui->darkSongTable->show();
 
-    ui->darkSongTable->show();
+    if (!suppressSelectionChange) {
+        ui->darkSongTable->selectRow(0); // DEBUG
+        ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
 
     // // PERFORMANCE TESTING --------
     // QFile file("/Users/mpogue/pathStack.txt");
@@ -1176,31 +1177,36 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
     //         .arg(QString::number(totalNumberOfAppleSongs));
     // ui->statusBar->showMessage(msg1);
 
-    lastSongTableRowSelected = -1;  // don't modify previous one, just set new selected one to color
-    on_darkSongTable_itemSelectionChanged();  // to re-highlight the selection, if music was reloaded while an item was selected
-    lastSongTableRowSelected = 0; // first row is highlighted now
+        // do this only if we WANT the selection and focus to go to the darkSearch or darkSongTable
+        //   when reloading darkSongTable + filter because of a playlist change, do NOT change focus or selection
+        lastSongTableRowSelected = -1;  // don't modify previous one, just set new selected one to color
+        on_darkSongTable_itemSelectionChanged();  // to re-highlight the selection, if music was reloaded while an item was selected
+        lastSongTableRowSelected = 0; // first row is highlighted now
 
-    ui->darkSongTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-    ui->darkSongTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
-    bool searchHasFocus = ui->darkSearch->hasFocus();
-    bool darkSongTableHasFocus = ui->darkSongTable->hasFocus();
-    // qDebug() << "yeah, I don't want to go to row 0 here";
-    // ui->darkSongTable->selectRow(0);
-    if (searchHasFocus) {
+        ui->darkSongTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+        ui->darkSongTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
+        bool searchHasFocus = ui->darkSearch->hasFocus();
+        bool darkSongTableHasFocus = ui->darkSongTable->hasFocus();
+        // qDebug() << "yeah, I don't want to go to row 0 here";
+        // ui->darkSongTable->selectRow(0);
+        if (searchHasFocus) {
+            ui->darkSearch->setFocus();
+        } else if (darkSongTableHasFocus) {
+            ui->darkSongTable->setFocus();
+        }
+
+        // ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
         ui->darkSearch->setFocus();
-    } else if (darkSongTableHasFocus) {
-        ui->darkSongTable->setFocus();
+    } else {
+        // qDebug() << "SELECTION/FOCUS CHANGE SUPPRESSED";
     }
-
-    // ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
-    ui->darkSearch->setFocus();
 
     t.elapsed(__LINE__);
 
     if (reloadPaletteSlots) {
         // now, if we just loaded the darkMusicList, we have to check the palette slots, to see if they need to
         //  be reloaded, too.  This normally happens just when the fileWatcher is triggered.
-
+        qDebug() << "reloading the palette slots too";
         for (int i = 0; i < 3; i++) {
     //        qDebug() << "TRACKS? " << relPathInSlot[i];
             if (relPathInSlot[i].startsWith("/tracks")) {
