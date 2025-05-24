@@ -39,6 +39,7 @@
 #include <QMouseEvent>
 #include <QPoint>
 #include <QTimer>
+#include <QDateTime>
 
 #include "clickablelabel.h"
 #include "typetracker.h"
@@ -82,6 +83,10 @@ public:
     bool coloringIsHidden;
 
     void setTheme(QString s);
+    
+    // Sleep/wake handling methods
+    void clearMissedMinutes(const QDateTime &lastTime, const QDateTime &currentTime);
+    void updateClockDisplay();
 
 //    int currentSongType; // TEST: setType()
 
@@ -153,6 +158,10 @@ private:
     QTimer secondTimer;
 
     double lengthOfHourHand, lengthOfMinuteHand, lengthOfSecondHand, lengthOfShortSecondHand;
+    
+    // Sleep/wake detection variables
+    QDateTime lastUpdateTime;      // Track when updateClock was last called
+    bool firstUpdate;              // Flag to handle the first update after startup
 };
 
 #endif // SVGCLOCK_H

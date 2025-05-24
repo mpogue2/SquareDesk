@@ -27,6 +27,7 @@
 #include <QMenu>
 #include <QRegularExpression>
 #include <QTime>
+#include <QDateTime>
 #include "globaldefines.h"
 #include "svgClock.h"
 #include "math.h"
@@ -36,7 +37,8 @@
 // -------------------------------------
 // from: https://stackoverflow.com/questions/7537632/custom-look-svg-gui-widgets-in-qt-very-bad-performance
 svgClock::svgClock(QWidget *parent) :
-    QLabel(parent)
+    QLabel(parent),
+    firstUpdate(true)  // Initialize sleep/wake detection flag
 {
     // TIMER LABEL HANDLING ---------------
     timerLabelCuesheet = nullptr;
@@ -248,12 +250,32 @@ svgClock::svgClock(QWidget *parent) :
 
 #endif
 
+    // Initialize the last update time for sleep/wake detection
+    lastUpdateTime = QDateTime::currentDateTime();
 }
 
 // ========================================================================================================================
 void svgClock::updateClock() {
+    QDateTime currentTime = QDateTime::currentDateTime();
+    
+    // Handle sleep/wake scenario - detect if we've missed significant time
+    if (!firstUpdate) {
+        qint64 secondsSinceLastUpdate = lastUpdateTime.secsTo(currentTime);
+        
+        // If more than 90 seconds have passed, we likely went to sleep
+        // (allowing some buffer beyond the normal 1-second update interval)
+        if (secondsSinceLastUpdate > 90) {
+            // qDebug() << "Detected sleep/wake - clearing missed minutes. Seconds elapsed:" << secondsSinceLastUpdate;
+            clearMissedMinutes(lastUpdateTime, currentTime);
+        }
+    } else {
+        firstUpdate = false;
+    }
+    
+    lastUpdateTime = currentTime;
+    
     // HANDS -----------
-    QTime theTime = QTime::currentTime();
+    QTime theTime = currentTime.time();
 
 #ifdef DEBUG_LIGHT_MODE
     QPen hourPen(hourHandColor(), 4, Qt::SolidLine, Qt::RoundCap);
@@ -395,6 +417,74 @@ void svgClock::paintEvent(QPaintEvent *pe)
 void svgClock::resizeEvent(QResizeEvent *re)
 {
     QLabel::resizeEvent(re);
+}
+
+// ========================================================================================================================
+// Handle sleep/wake scenario by clearing segment colors for missed minutes
+void svgClock::clearMissedMinutes(const QDateTime &lastTime, const QDateTime &currentTime) {
+    // Handle the case where we might have crossed midnight
+    QDateTime iterTime = lastTime.addSecs(60); // Start from next minute after last update
+    int segmentsCleared = 0; // Track how many segments we've processed
+    
+    while (iterTime < currentTime && segmentsCleared < 60) {
+        int minuteToClear = iterTime.time().minute();
+        
+        // Clear this minute's segment only if no song was playing during sleep
+        // (we assume nothing was playing while asleep)
+        if (typeInMinute[minuteToClear] != NONE) {
+            // Only clear if this minute segment was set in a previous hour
+            // This prevents clearing segments that were legitimately set before sleep
+            QDateTime segmentTime = QDateTime::currentDateTime();
+            segmentTime.setTime(QTime(segmentTime.time().hour(), minuteToClear, 0));
+            
+            if (segmentTime < lastTime || segmentTime > currentTime) {
+                typeInMinute[minuteToClear] = NONE;
+                lastHourSet[minuteToClear] = -1;
+            }
+        }
+        
+        iterTime = iterTime.addSecs(60); // Move to next minute
+        segmentsCleared++; // Increment counter
+    }
+    
+    // Force immediate clock update to reflect changes
+    updateClockDisplay();
+}
+
+// ========================================================================================================================
+// Update just the clock display without the full updateClock logic
+void svgClock::updateClockDisplay() {
+    QTime theTime = QTime::currentTime();
+    
+    // Update the clock coloring (extracted from updateClock)
+#ifndef DEBUGCLOCK
+    int startMinute = theTime.minute();
+#else
+    int startMinute = theTime.second();
+#endif
+
+    if (!coloringIsHidden) {
+        for (int i = 0; i < 60; i++) {
+            int currentMinute = startMinute - i;
+            if (currentMinute < 0) {
+                currentMinute += 60;
+            }
+            if (typeInMinute[currentMinute] != NONE) {
+                if (arc[currentMinute] != nullptr) {
+                    arc[currentMinute]->setPen(QPen(colorForType[typeInMinute[currentMinute]], ARCPENSIZE, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin));
+                    arc[currentMinute]->setVisible(true);
+                }
+            } else {
+                // arc is hidden
+                if (arc[currentMinute] != nullptr) {
+                    arc[currentMinute]->setVisible(false);
+#ifdef DEBUGCOLORING
+                    arc[currentMinute]->setVisible(true); // DEBUG
+#endif
+                }
+            }
+        }
+    }
 }
 
 // CLOCK COLORING ------
