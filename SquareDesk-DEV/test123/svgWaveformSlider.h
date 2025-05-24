@@ -35,8 +35,10 @@
 
 #include <QGraphicsView>
 #include <QGraphicsScene>
+#include <QFrame>
 
 #include <QMouseEvent>
+#include <QShowEvent>
 #include <QPoint>
 
 #include "globaldefines.h"
@@ -89,6 +91,8 @@ public:
     void setWholeTrackPeak(double p);
 
     void finishInit();
+    
+    void refreshViewGeometry();  // Call this after tab switching to fix positioning
 
     void updateBgPixmap(float *f, size_t t);
 
@@ -109,6 +113,7 @@ protected:
     void mousePressEvent(QMouseEvent *event);
     void mouseDoubleClickEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
+    void showEvent(QShowEvent *event);  // Handle visibility changes (like tab switching)
     double valueFromMouseEvent(QMouseEvent* e);
 
 signals:

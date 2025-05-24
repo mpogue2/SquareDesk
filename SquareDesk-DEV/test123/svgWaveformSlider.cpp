@@ -111,6 +111,12 @@ void svgWaveformSlider::resizeEvent(QResizeEvent *re)
 //    qDebug() << "RESIZE:" << re->size().width() << re->size().height();
 
     updateBgPixmap((float*)1, 1); // stretch/squish the bgPixmap, using cached values
+    
+    // Make the graphics view fill the entire widget without borders
+    if (view.parent() == this) {
+        view.setGeometry(0, 0, width(), height());
+        scene.setSceneRect(0, 0, width(), height());
+    }
 }
 
 void svgWaveformSlider::setFloatValue(float val) {
@@ -121,7 +127,7 @@ void svgWaveformSlider::setFloatValue(float val) {
     }
 
     // note that position is float here, so that currentPosition can move by a smaller number of pixels at a time
-    int currentPositionX = round((float)val * ((float)(width()-4)/(float)maximum()));
+    int currentPositionX = round((float)val * ((float)width()/(float)maximum()));
 
     currentPos->setPos(currentPositionX, 0);
 
@@ -152,7 +158,7 @@ void svgWaveformSlider::setValue(int val) {
         return; // slider is not fully initialized yet
     }
 
-    int currentPositionX = round((float)val * ((float)(width()-4)/(float)maximum()));
+    int currentPositionX = round((float)val * ((float)width()/(float)maximum()));
 
     currentPos->setPos(currentPositionX, 0);
 
@@ -177,14 +183,14 @@ void svgWaveformSlider::setValue(int val) {
 };
 
 // MOUSE EVENTS ============
-#define XADJUST 3
+#define XADJUST 0  // No adjustment needed since we fill the entire widget
 void svgWaveformSlider::mousePressEvent(QMouseEvent* e) {
     double val;
 
     switch (e->button()) {
         case Qt::LeftButton:
             // val = this->maximum() * (fmax(0,(e->pos().rx() - 6))/(width()-4));
-            val = this->maximum() * (fmax(0,(e->pos().rx()-XADJUST))/(width()-4));
+            val = this->maximum() * (fmax(0,(e->pos().rx()-XADJUST))/(width()));
             val = round(val);
             // qDebug() << "LEFT BUTTON:" << e->pos().rx() << width()-4 << this->maximum() << val;
             this->setValue(val);
@@ -201,7 +207,7 @@ void svgWaveformSlider::mousePressEvent(QMouseEvent* e) {
 
 void svgWaveformSlider::mouseMoveEvent(QMouseEvent* e) {
     // Q_UNUSED(e)
-    double val = this->maximum() * (fmax(0,(e->pos().rx()-XADJUST))/(width()-4));
+    double val = this->maximum() * (fmax(0,(e->pos().rx()-XADJUST))/(width()));
     val = round(val);
     this->setValue(val);
     // qDebug() << "* mouseMoveEvent, set to:" << val;
@@ -215,11 +221,17 @@ void svgWaveformSlider::mouseDoubleClickEvent(QMouseEvent* e) {
 
 void svgWaveformSlider::mouseReleaseEvent(QMouseEvent* e) {
     // Q_UNUSED(e)
-    double val = this->maximum() * (fmax(0,(e->pos().rx()-XADJUST))/(width()-4));
+    double val = this->maximum() * (fmax(0,(e->pos().rx()-XADJUST))/(width()));
     val = round(val);
     this->setValue(val);
     // qDebug() << "* mouseReleaseEvent, set to:" << val << e->pos().rx();
     emit sliderMoved(val);
+}
+
+void svgWaveformSlider::showEvent(QShowEvent *event) {
+    QSlider::showEvent(event);
+    // Refresh view geometry when widget becomes visible (e.g., after tab switching)
+    refreshViewGeometry();
 }
 
 void svgWaveformSlider::finishInit() {
@@ -338,6 +350,8 @@ void svgWaveformSlider::finishInit() {
     view.setDisabled(true);
     view.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view.setFrameStyle(QFrame::NoFrame);  // Remove frame border
+    view.setStyleSheet("border: none; background: transparent;");  // Remove any CSS borders
 
     scene.addItem(bg);  // on BOTTOM
     scene.addItem(loadingMessage);
@@ -349,6 +363,18 @@ void svgWaveformSlider::finishInit() {
 
     view.setScene(&scene);
     view.setParent(this);
+    view.setGeometry(0, 0, width(), height());  // Fill entire widget
+    scene.setSceneRect(0, 0, width(), height());  // Match scene to widget size
+}
+
+void svgWaveformSlider::refreshViewGeometry() {
+    // Call this method after tab switching to ensure proper positioning
+    if (view.parent() == this) {
+        view.setGeometry(0, 0, width(), height());
+        scene.setSceneRect(0, 0, width(), height());
+        view.update();
+        update(); // Force widget repaint
+    }
 }
 
 bool svgWaveformSlider::eventFilter(QObject *obj, QEvent *event)
@@ -430,8 +456,8 @@ void svgWaveformSlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, double es
         outroFrac = loopEnd_frac;
     }
 
-    introPosition = introFrac * (width()-4);
-    outroPosition = outroFrac * (width()-4);
+    introPosition = introFrac * width();
+    outroPosition = outroFrac * width();
 }
 
 // ================================================================
@@ -457,8 +483,8 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
         cachedWaveform = f;  // squirrel this away (but we don't own it, so do NOT delete it in the destructor!)
     }
     // qDebug() << "updatePixmap" << width();
-    // int waveformSliderWidth = fmin(width()-4, 784); // BUG: don't ask me why it can't do more...
-    int waveformSliderWidth = fmin(width()+2, 784); // BUG: don't ask me why it can't do more...
+    // Make pixmap fill the entire widget area
+    int waveformSliderWidth = fmin(width(), 784);
     int waveformSliderHeight = height();
 
     // qDebug() << "DIMENSIONS: " << waveformSliderWidth << waveformSliderHeight;
@@ -761,7 +787,7 @@ void svgWaveformSlider::setLoop(bool b) {
 
 void svgWaveformSlider::setIntro(double frac) {
 //    introPosition = frac * WAVEFORMWIDTH;
-    introPosition = frac * (width()-4);
+    introPosition = frac * width();
     introFrac = frac;
 
     //        qDebug() << "*** setIntro:" << introPosition;
@@ -788,7 +814,7 @@ void svgWaveformSlider::setIntro(double frac) {
 }
 
 void svgWaveformSlider::setOutro(double frac) {
-    outroPosition = frac * (width()-4);
+    outroPosition = frac * width();
     outroFrac = frac;
 
     //        qDebug() << "*** setOutro:" << outroPosition;
