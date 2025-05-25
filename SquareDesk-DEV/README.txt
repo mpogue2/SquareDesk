@@ -17,7 +17,6 @@ REQUIREMENTS
 	* XCode (generally the latest version, from the Apple App Store)
 	* MacOS Big Sur or Monterey (NOTE: not tested on Ventura yet)
 	* M1/ARM Mac or X86/Intel Mac (NOTE: Windows is no longer supported)
-	* If it complains about kfr include file(s) missing, run script kfr-build
 	* If it complains about juce include file(s) missing, run script juce-install
 
 OPTIONAL TOOLS
