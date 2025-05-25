@@ -378,7 +378,7 @@ if (KFR_EXTENDED_TESTS)
     target_compile_definitions(kfr INTERFACE -DKFR_EXTENDED_TESTS)
 endif ()
 
-set(KFR_DEBUG_INSTALL_SUFFIX "/debug" CACHE STRING "")
+# set(KFR_DEBUG_INSTALL_SUFFIX "/debug" CACHE STRING "")
 
 add_subdirectory(src/dsp)
 add_subdirectory(src/io)
