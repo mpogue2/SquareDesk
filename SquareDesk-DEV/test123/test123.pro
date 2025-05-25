@@ -82,6 +82,7 @@ SOURCES += main.cpp\
     mainwindow_flashcalls.cpp \
     mainwindow_fonts.cpp \
     mainwindow_metadata.cpp \
+    mainwindow_music.cpp \
     mainwindow_themes.cpp \
     miniBPM/MiniBpm.cpp \
     newdancedialog.cpp \

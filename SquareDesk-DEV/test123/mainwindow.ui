@@ -4453,6 +4453,7 @@
     <addaction name="actionForce_Mono_Aahz_mode"/>
     <addaction name="actionNormalize_Track_Audio"/>
     <addaction name="actionAutostart_playback"/>
+    <addaction name="actionPreview_Playback_Device"/>
     <addaction name="separator"/>
     <addaction name="menuSound_FX"/>
     <addaction name="separator"/>
@@ -6318,6 +6319,11 @@
   <action name="actionNew_Dance">
    <property name="text">
     <string>New Dance...</string>
+   </property>
+  </action>
+  <action name="actionPreview_Playback_Device">
+   <property name="text">
+    <string>Preview Playback Device</string>
    </property>
   </action>
  </widget>
