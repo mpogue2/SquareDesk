@@ -3041,6 +3041,52 @@ void MainWindow::loadPlaylistFromFileToSlot(int whichSlot)
 
     int songCount;
     loadPlaylistFromFileToPaletteSlot(PlaylistFileName, whichSlot, songCount);
+    
+    // Update the recent playlists list with the newly loaded playlist
+    // Only update for real playlist files (not track filters or Apple Music playlists)
+    if (PlaylistFileName.endsWith(".csv") && 
+        !PlaylistFileName.contains("/Tracks/") && 
+        !PlaylistFileName.contains("/Apple Music/")) {
+        updateRecentPlaylistsList(PlaylistFileName);
+    }
+}
+
+// ----------------------------
+void MainWindow::updateRecentPlaylistsList(const QString &playlistPath)
+{
+    // Convert full path to relative path for storage
+    QString relativePath = playlistPath;
+    QString playlistsPrefix = musicRootPath + "/playlists/";
+    
+    // Remove the musicRootPath + "/playlists/" prefix and ".csv" suffix
+    if (relativePath.startsWith(playlistsPrefix)) {
+        relativePath = relativePath.mid(playlistsPrefix.length());
+    }
+    if (relativePath.endsWith(".csv")) {
+        relativePath = relativePath.left(relativePath.length() - 4);
+    }
+    
+    QString currentList = prefsManager.GetlastNPlaylistsLoaded();
+    QStringList recentPlaylists;
+    
+    if (!currentList.isEmpty()) {
+        recentPlaylists = currentList.split(";", Qt::SkipEmptyParts);
+    }
+    
+    // Remove the playlist if it already exists in the list
+    recentPlaylists.removeAll(relativePath);
+    
+    // Add the new playlist to the front of the list
+    recentPlaylists.prepend(relativePath);
+    
+    // Keep only the last 5 playlists
+    while (recentPlaylists.size() > 5) {
+        recentPlaylists.removeLast();
+    }
+    
+    // Save the updated list
+    QString updatedList = recentPlaylists.join(";");
+    prefsManager.SetlastNPlaylistsLoaded(updatedList);
 }
 
 // ----------------------------

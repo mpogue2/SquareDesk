@@ -1113,6 +1113,7 @@ private:
     QString loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount); // returns error song string and songCount
     void loadPlaylistFromFileToSlot(int whichSlot);   // ask user which file, load file into slot
     void printPlaylistFromSlot(int whichSlot);        // show print dialog to user, print this playlist (not tracks)
+    void updateRecentPlaylistsList(const QString &playlistPath); // update the recent playlists list
 
     void finishLoadingPlaylist(QString PlaylistFileName);
 
