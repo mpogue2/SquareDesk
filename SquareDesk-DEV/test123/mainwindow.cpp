@@ -2541,6 +2541,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                         delete hdrMenu; // done with it
 
     });
+
+    // Initialize Preview Playback Device menu
+    populatePlaybackDeviceMenu();
 }
 // END CONSTRUCTOR ---------
 
@@ -10018,7 +10021,16 @@ void MainWindow::auditionByKeyPress(void) {
     // qDebug() << "setting auditionInProgress to true";
 
     this->auditionPlayer.setSource(QUrl::fromLocalFile(auditionSongFilePath));
-    QAudioOutput *audioOutput = new QAudioOutput; // always update the output device, based on the CURRENT default audio device
+    
+    // Use the selected audition playback device, or default if not set
+    QAudioDevice selectedDevice;
+    if (!auditionPlaybackDeviceName.isEmpty()) {
+        selectedDevice = getAudioDeviceByName(auditionPlaybackDeviceName);
+    } else {
+        selectedDevice = QMediaDevices::defaultAudioOutput();
+    }
+    QAudioOutput *audioOutput = new QAudioOutput(selectedDevice);
+    
     this->auditionPlayer.setAudioOutput(audioOutput);
     this->auditionPlayer.play();
 }

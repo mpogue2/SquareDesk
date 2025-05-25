@@ -206,3 +206,5 @@ CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastPlaylistLoaded3, "") // if the user had a p
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastDance,  "")
 
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(currentSortOrder, "")
+
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(currentPreviewPlaybackDeviceName, "") // "" means "user has not chosen yet"

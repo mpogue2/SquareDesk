@@ -252,6 +252,7 @@ public:
     bool auditionPlaying = false;
     void auditionByKeyPress(void);
     void auditionByKeyRelease(void);
+    QString auditionPlaybackDeviceName;
 
     QString currentThemeString;
     bool mainWindowReady = false;
@@ -896,6 +897,11 @@ public:
 
     QString musicRootPath; // needed by sd to do output_prefix
     QString relPathInSlot[3]; // playlist slot 1 --> relPathInSlot[0], used also by MyTableWidgets to know what's inside themselves
+
+    // Preview Playback Device functions
+    void populatePlaybackDeviceMenu();
+    void setPreviewPlaybackDevice(const QString &playbackDeviceName);
+    QAudioDevice getAudioDeviceByName(const QString &deviceName);
 
 private:
     QString lastAudioDeviceName;
