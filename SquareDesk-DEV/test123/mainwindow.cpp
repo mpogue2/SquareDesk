@@ -2693,6 +2693,48 @@ void MainWindow::reloadPaletteSlots() {
             loadPlaylistFromFileToPaletteSlot(fullPlaylistPath3, 2, songCount); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 2
         }
     }
+    
+    // Initialize the recent playlists list if it's empty
+    QString currentRecentPlaylists = prefsManager.GetlastNPlaylistsLoaded();
+    if (currentRecentPlaylists.isEmpty()) {
+        QStringList initialRecentPlaylists;
+        
+        // Add loaded playlists to the recent list (only real playlists, not tracks or Apple Music)
+        if (loadThisPlaylist1 != "" && !loadThisPlaylist1.startsWith("tracks/") && !loadThisPlaylist1.startsWith("/Apple Music/")) {
+            // Remove "playlists/" prefix if present for consistency
+            QString relativePath = loadThisPlaylist1;
+            if (relativePath.startsWith("playlists/")) {
+                relativePath = relativePath.mid(10); // Remove "playlists/" prefix
+            }
+            initialRecentPlaylists.append(relativePath);
+        }
+        
+        if (loadThisPlaylist2 != "" && !loadThisPlaylist2.startsWith("tracks/") && !loadThisPlaylist2.startsWith("/Apple Music/")) {
+            QString relativePath = loadThisPlaylist2;
+            if (relativePath.startsWith("playlists/")) {
+                relativePath = relativePath.mid(10);
+            }
+            if (!initialRecentPlaylists.contains(relativePath)) {
+                initialRecentPlaylists.append(relativePath);
+            }
+        }
+        
+        if (loadThisPlaylist3 != "" && !loadThisPlaylist3.startsWith("tracks/") && !loadThisPlaylist3.startsWith("/Apple Music/")) {
+            QString relativePath = loadThisPlaylist3;
+            if (relativePath.startsWith("playlists/")) {
+                relativePath = relativePath.mid(10);
+            }
+            if (!initialRecentPlaylists.contains(relativePath)) {
+                initialRecentPlaylists.append(relativePath);
+            }
+        }
+        
+        // Save the initial recent playlists list
+        if (!initialRecentPlaylists.isEmpty()) {
+            QString initialRecentPlaylistsString = initialRecentPlaylists.join(";");
+            prefsManager.SetlastNPlaylistsLoaded(initialRecentPlaylistsString);
+        }
+    }
 }
 
 void MainWindow::fileWatcherTriggered() {
@@ -8951,6 +8993,41 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
                           loadPlaylistFromFileToSlot(whichSlot);
                       }
                       );
+
+    // Add "Load Recent Playlist" submenu
+    QString recentPlaylistsString = prefsManager.GetlastNPlaylistsLoaded();
+    if (!recentPlaylistsString.isEmpty()) {
+        QStringList recentPlaylists = recentPlaylistsString.split(";", Qt::SkipEmptyParts);
+        if (!recentPlaylists.isEmpty()) {
+            QMenu *recentMenu = new QMenu("Load Recent Playlist");
+            recentMenu->setProperty("theme", currentThemeString);
+            
+            for (const QString &relativePath : recentPlaylists) {
+                if (!relativePath.isEmpty()) {
+                    // Use the relative path as the display name
+                    QString displayName = relativePath;
+                    
+                    recentMenu->addAction(displayName, [this, whichSlot, relativePath]() {
+                        // Reconstruct the full path for loading
+                        QString fullPath = musicRootPath + "/playlists/" + relativePath + ".csv";
+                        
+                        int songCount;
+                        loadPlaylistFromFileToPaletteSlot(fullPath, whichSlot, songCount);
+                        
+                        // Update the recent playlists list
+                        updateRecentPlaylistsList(fullPath);
+                    });
+                }
+            }
+            
+            plMenu->addMenu(recentMenu);
+            
+            // Add "Clear Recent Playlists" menu item (only when there are recent playlists)
+            plMenu->addAction(QString("Clear Recent Playlists"), [this]() {
+                prefsManager.SetlastNPlaylistsLoaded("");
+            });
+        }
+    }
 
     if (relPathInSlot[whichSlot] != "" &&
             !relPathInSlot[whichSlot].startsWith("/tracks/") &&
