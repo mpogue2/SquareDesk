@@ -1,0 +1,62 @@
+#! /bin/zsh
+
+# This should be called with 2 parameter:  
+#  1.  the build directory
+#  2.  the build type (debug or release)
+
+# Ninja is no longer used here:
+# (a) it creates a different directory structure between debug and release types
+#	(for debug builds there is an extra debug directory)
+# (b) it isn't needed because we only need the library built and cmake step does that
+
+if [ $# -ne 2 ] ; then
+    echo $0 needs 2 parameters
+    exit 1
+fi
+
+script_dir_path=`dirname $0`
+SRCDIR=$(cd $script_dir_path/../kfr; pwd)
+
+BUILD_DIR=$1
+BUILD_TYPE=$2
+CBUILD_TYPE=${(C)BUILD_TYPE}	# capitalized (requires zsh)
+mkdir -p $BUILD_DIR
+echo BUILD_DIR is $BUILD_DIR
+
+# Default location of brew directory if not already set
+HOMEBREW_PREFIX=${HOMEBREW_PREFIX:-/opt/homebrew}
+
+# Is cmake not on the path ?  
+if ! type -p cmake  ; then
+    #  If so,  see if homebrew is installed and can be added to path
+    if [ ! -d $HOMEBREW_PREFIX ] ; then
+	echo >&2 please install homebrew so that cmake and ninja can be installed
+	echo >&2 visit https://docs.brew.sh/Installation for instructions
+	exit 1
+    fi
+    export PATH=$PATH:$HOMEBREW_PREFIX/bin
+    # Now, check if cmake is there, if not try and install it
+    if ! type -p cmake ;  then
+	echo >&2 cmake not found, will try and install it using homebrew
+	brew install cmake
+	if ! type -p cmake ;  then
+	    echo >&2 Unable to install cmake
+	    exit 1
+	fi
+    fi
+fi
+
+cmake -B build-$BUILD_TYPE -S $SRCDIR -GNinja -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+      -DCMAKE_BUILD_TYPE=$CBUILD_TYPE -DCMAKE_INSTALL_PREFIX=$BUILD_DIR -DCMAKE_CXX_COMPILER=/usr/bin/clang
+
+# ninja -v -C build-$BUILD_TYPE install
+
+# Just copy the lib directory to the output directory
+# (the following syntax works if $BUILD_DIR/lib does not exist)
+cp -R -v build-$BUILD_TYPE/lib $BUILD_DIR
+LIBDIR=$BUILD_DIR/lib
+
+
+
+
+      

@@ -396,11 +396,27 @@ LIBS += -framework AudioToolbox
 LIBS += -framework CoreAudioKit
 
 # KFR for filters -----------------------------------
-# INCLUDEPATH += $$PWD/../kfr/include
-# LIBS += -L$$PWD/../kfr/lib/$${ARCHDIR} -lkfr_dft -lkfr_io
 
-INCLUDEPATH += $$PWD/../kfr/include
-LIBS += -L$$PWD/../kfr/build/lib -lkfr_dsp_neon64 -lkfr_io
+macx {
+    QMAKE_EXTRA_TARGETS += libkfr
+    CONFIG(debug, debug|release) {
+        KFR_BUILD_TYPE = debug
+    } else {
+        KFR_BUILD_TYPE = release
+    }
+    KFR_DIR = $$OUT_PWD/../kfr
+    KFR_LIB = $$KFR_DIR/lib
+    message(KFR_LIB is $$KFR_LIB)
+
+    libkfr.target = $$KFR_LIB
+    libkfr.depends =
+    libkfr.commands = $$PWD/../kfr/create-kfr-lib $$KFR_DIR $$KFR_BUILD_TYPE
+
+    PRE_TARGETDEPS += $$libkfr.target
+
+    INCLUDEPATH += $$PWD/../kfr/include
+    LIBS += -L$$KFR_LIB -lkfr_dsp_neon64 -lkfr_io
+}
 
 # MiniBPM for BPM detection -----------------------------------
 INCLUDEPATH += $$PWD/miniBPM
