@@ -1,0 +1,57 @@
+#! /bin/zsh
+
+# This should be called with 2 parameter:  
+#  1.  the build directory
+#  2.  the build type (debug or release)
+
+if [ $# -ne 2 ] ; then
+    echo $0 needs 2 parameters
+    exit 1
+fi
+
+script_dir_path=`dirname $0`
+SRCDIR=$(cd $script_dir_path/../kfr; pwd)
+
+BUILD_DIR=$1
+BUILD_TYPE=$2
+CBUILD_TYPE=${(C)BUILD_TYPE}	# capitalized (requires zsh)
+mkdir -p $BUILD_DIR
+echo BUILD_DIR is $BUILD_DIR
+cd $BUILD_DIR
+
+# Default location of brew directory if not already set
+HOMEBREW_PREFIX=${HOMEBREW_PREFIX:-/opt/homebrew}
+
+# Is cmake not on the path ?  
+if ! type -p cmake  ; then
+    #  If so,  see if homebrew is installed and can be added to path
+    if [ ! -d $HOMEBREW_PREFIX ] ; then
+	echo >&2 please install homebrew so that cmake and ninja can be installed
+	echo >&2 visit https://docs.brew.sh/Installation for instructions
+	exit 1
+    fi
+    export PATH=$PATH:$HOMEBREW_PREFIX/bin
+    # Now, check if cmake is there, if not try and install it
+    if ! type -p cmake ;  then
+	echo >&2 cmake not found, will try and install it using homebrew
+	brew install cmake
+	if ! type -p cmake ;  then
+	    echo >&2 Unable to install cmake
+	    exit 1
+	fi
+    fi
+fi
+
+echo running cmake in $PWD
+cmake -B build -S $SRCDIR -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+      -DCMAKE_BUILD_TYPE=$CBUILD_TYPE -DCMAKE_INSTALL_PREFIX=$BUILD_DIR -DCMAKE_CXX_COMPILER=/usr/bin/clang
+
+cd build
+make install
+cd ..
+
+rm -fr build
+
+# show the result (should be 3 files)
+echo contents of $BUILD_DIR/lib are:
+ls -l $BUILD_DIR/lib

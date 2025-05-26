@@ -58,6 +58,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Welaborated-enum-base"
 #include "mainwindow.h"
+#include "cuesheetmatchingdebugdialog.h"
 #pragma clang diagnostic pop
 
 #include "ui_mainwindow.h"
@@ -382,6 +383,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     t.elapsed(__LINE__);
     micStatusLabel = new QLabel("MICS OFF");
     ui->statusBar->addPermanentWidget(micStatusLabel);
+
+    // Initialize debug dialog
+    cuesheetDebugDialog = nullptr;
 
     // NEW INIT ORDER *******
     t.elapsed(__LINE__);
@@ -2693,6 +2697,48 @@ void MainWindow::reloadPaletteSlots() {
             loadPlaylistFromFileToPaletteSlot(fullPlaylistPath3, 2, songCount); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 2
         }
     }
+    
+    // Initialize the recent playlists list if it's empty
+    QString currentRecentPlaylists = prefsManager.GetlastNPlaylistsLoaded();
+    if (currentRecentPlaylists.isEmpty()) {
+        QStringList initialRecentPlaylists;
+        
+        // Add loaded playlists to the recent list (only real playlists, not tracks or Apple Music)
+        if (loadThisPlaylist1 != "" && !loadThisPlaylist1.startsWith("tracks/") && !loadThisPlaylist1.startsWith("/Apple Music/")) {
+            // Remove "playlists/" prefix if present for consistency
+            QString relativePath = loadThisPlaylist1;
+            if (relativePath.startsWith("playlists/")) {
+                relativePath = relativePath.mid(10); // Remove "playlists/" prefix
+            }
+            initialRecentPlaylists.append(relativePath);
+        }
+        
+        if (loadThisPlaylist2 != "" && !loadThisPlaylist2.startsWith("tracks/") && !loadThisPlaylist2.startsWith("/Apple Music/")) {
+            QString relativePath = loadThisPlaylist2;
+            if (relativePath.startsWith("playlists/")) {
+                relativePath = relativePath.mid(10);
+            }
+            if (!initialRecentPlaylists.contains(relativePath)) {
+                initialRecentPlaylists.append(relativePath);
+            }
+        }
+        
+        if (loadThisPlaylist3 != "" && !loadThisPlaylist3.startsWith("tracks/") && !loadThisPlaylist3.startsWith("/Apple Music/")) {
+            QString relativePath = loadThisPlaylist3;
+            if (relativePath.startsWith("playlists/")) {
+                relativePath = relativePath.mid(10);
+            }
+            if (!initialRecentPlaylists.contains(relativePath)) {
+                initialRecentPlaylists.append(relativePath);
+            }
+        }
+        
+        // Save the initial recent playlists list
+        if (!initialRecentPlaylists.isEmpty()) {
+            QString initialRecentPlaylistsString = initialRecentPlaylists.join(";");
+            prefsManager.SetlastNPlaylistsLoaded(initialRecentPlaylistsString);
+        }
+    }
 }
 
 void MainWindow::fileWatcherTriggered() {
@@ -3199,6 +3245,11 @@ void MainWindow::on_menuLyrics_aboutToShow()
     ui->actionSave_Cuesheet->setEnabled(ui->textBrowserCueSheet->document()->isModified() && !loadedCuesheetNameWithPath.contains(".template.html"));
     ui->actionSave_Cuesheet_As->setEnabled(hasLyrics);  // Cuesheet > Save Cuesheet As... is enabled if there are lyrics
     ui->actionLyricsCueSheetRevert_Edits->setEnabled(ui->textBrowserCueSheet->document()->isModified());
+
+    // qDebug() << "About to show:" << optionCurrentlyPressed;
+
+    // Cuesheet > Explore Cuesheet Matching... dialog box option visible only when OPT is held down
+    ui->actionExplore_Cuesheet_Matching->setVisible(optionCurrentlyPressed);
 }
 
 void MainWindow::on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/)
@@ -3243,6 +3294,12 @@ MainWindow::~MainWindow()
 
     delete ui;
     delete sd_redo_stack;
+    
+    // Clean up debug dialog
+    if (cuesheetDebugDialog) {
+        delete cuesheetDebugDialog;
+        cuesheetDebugDialog = nullptr;
+    }
 
     if (sdthread)
     {
@@ -4681,11 +4738,24 @@ bool MainWindow::someWebViewHasFocus() {
 // http://www.codeprogress.com/cpp/libraries/qt/showQtExample.php?key=QApplicationInstallEventFilter&index=188
 bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 {
+    // OPTION key monitoring
+    MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
+
+    if (maybeMainWindow != nullptr) {
+        if (Event->type() == QEvent::KeyPress || Event->type() == QEvent::KeyRelease) {
+            QKeyEvent *keyEvent = static_cast<QKeyEvent*>(Event);
+            if (keyEvent->key() == Qt::Key_Alt) {
+                maybeMainWindow->optionCurrentlyPressed = (Event->type() == QEvent::KeyPress);
+                // qDebug() << "optionCurrentlyPressed:" << maybeMainWindow->optionCurrentlyPressed;
+            }
+        }
+    }
+
     if (Event->type() == QEvent::KeyRelease) {
         QKeyEvent *KeyEvent = dynamic_cast<QKeyEvent *>(Event);
         int theKey = KeyEvent->key();
 
-        MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
+        // MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
         if (maybeMainWindow == nullptr) {
             // if the PreferencesDialog is open, for example, do not dereference the NULL pointer (duh!).
 //            qDebug() << "QObject::eventFilter()";
@@ -8951,6 +9021,41 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
                           loadPlaylistFromFileToSlot(whichSlot);
                       }
                       );
+
+    // Add "Load Recent Playlist" submenu
+    QString recentPlaylistsString = prefsManager.GetlastNPlaylistsLoaded();
+    if (!recentPlaylistsString.isEmpty()) {
+        QStringList recentPlaylists = recentPlaylistsString.split(";", Qt::SkipEmptyParts);
+        if (!recentPlaylists.isEmpty()) {
+            QMenu *recentMenu = new QMenu("Load Recent Playlist");
+            recentMenu->setProperty("theme", currentThemeString);
+            
+            for (const QString &relativePath : recentPlaylists) {
+                if (!relativePath.isEmpty()) {
+                    // Use the relative path as the display name
+                    QString displayName = relativePath;
+                    
+                    recentMenu->addAction(displayName, [this, whichSlot, relativePath]() {
+                        // Reconstruct the full path for loading
+                        QString fullPath = musicRootPath + "/playlists/" + relativePath + ".csv";
+                        
+                        int songCount;
+                        loadPlaylistFromFileToPaletteSlot(fullPath, whichSlot, songCount);
+                        
+                        // Update the recent playlists list
+                        updateRecentPlaylistsList(fullPath);
+                    });
+                }
+            }
+            
+            plMenu->addMenu(recentMenu);
+            
+            // Add "Clear Recent Playlists" menu item (only when there are recent playlists)
+            plMenu->addAction(QString("Clear Recent Playlists"), [this]() {
+                prefsManager.SetlastNPlaylistsLoaded("");
+            });
+        }
+    }
 
     if (relPathInSlot[whichSlot] != "" &&
             !relPathInSlot[whichSlot].startsWith("/tracks/") &&

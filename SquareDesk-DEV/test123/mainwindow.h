@@ -60,6 +60,7 @@
 #include <QSplashScreen>
 #include <QStack>
 #include <QTableWidgetItem>
+#include <QTextEdit>
 #include <QToolTip>
 #include <QVariant>
 #include <QVector>
@@ -91,6 +92,9 @@
 #include "console.h"
 //#include "renderarea.h"
 #include "songsettings.h"
+
+// Forward declaration for debug dialog
+class CuesheetMatchingDebugDialog;
 
 #if defined(Q_OS_MAC)
 #include "macUtils.h"
@@ -246,6 +250,7 @@ public:
     int testVamp();  // see if all is well with vamp
 
     friend class updateID3TagsDialog; // it can access private members of MainWindow
+    friend class CuesheetMatchingDebugDialog; // it can access private members of MainWindow
 
 //    double songLoadedReplayGain_dB;
 
@@ -253,6 +258,11 @@ public:
     void auditionByKeyPress(void);
     void auditionByKeyRelease(void);
     QString auditionPlaybackDeviceName;
+
+    bool optionCurrentlyPressed;
+
+    void readLabelNames(void);
+    QMultiMap<QString, QString> labelName2labelID;
 
     QString currentThemeString;
     bool mainWindowReady = false;
@@ -530,6 +540,7 @@ private slots:
 
     void on_menuLyrics_aboutToShow();
     void on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/);
+    void on_actionExplore_Cuesheet_Matching_triggered();
 
     // THE FOLLOWING FUNCTIONS ARE USED IN LIGHT MODE ONLY =========
     void on_actionAt_TOP_triggered();
@@ -930,6 +941,9 @@ private:
 
     QLabel *micStatusLabel;
 
+    // Debug dialog for cuesheet matching
+    CuesheetMatchingDebugDialog *cuesheetDebugDialog;
+
     void saveLyrics();
     void saveLyricsAs();
     void saveSequenceAs();
@@ -1072,6 +1086,8 @@ private:
     bool breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &labenum_extra,
                                 QString &title, QString &shortTitle );
 
+    int MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit *debugOut = nullptr);
+
     bool cuesheetIsUnlockedForEditing;
 
     void findMusic(QString mainRootDir, bool refreshDatabase);    // get the filenames into pathStack, pathStackCuesheets
@@ -1113,6 +1129,7 @@ private:
     QString loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount); // returns error song string and songCount
     void loadPlaylistFromFileToSlot(int whichSlot);   // ask user which file, load file into slot
     void printPlaylistFromSlot(int whichSlot);        // show print dialog to user, print this playlist (not tracks)
+    void updateRecentPlaylistsList(const QString &playlistPath); // update the recent playlists list
 
     void finishLoadingPlaylist(QString PlaylistFileName);
 

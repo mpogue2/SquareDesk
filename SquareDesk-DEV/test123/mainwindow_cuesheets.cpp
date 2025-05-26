@@ -28,6 +28,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Welaborated-enum-base"
 #include "mainwindow.h"
+#include "cuesheetmatchingdebugdialog.h"
 #pragma clang diagnostic pop
 
 #include "ui_mainwindow.h"
@@ -352,7 +353,15 @@ int compareSortedWordListsForRelevance(const QStringList &l1, const QStringList 
         return 0;
 }
 
-int MP3FilenameVsCuesheetnameScore(QString fn, QString cn) {
+int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit *debugOut) {
+    if (debugOut != nullptr) {
+        debugOut->append("=== MP3 FILENAME vs CUESHEET NAME SCORING DEBUG ===");
+        debugOut->append(QString("Song filename: %1").arg(fn));
+        debugOut->append(QString("Cuesheet filename: %1").arg(cn));
+        debugOut->append("");
+        debugOut->append("--- Starting MP3 vs Cuesheet scoring analysis ---");
+    }
+    
     // Helper function to calculate Levenshtein distance
     auto levenshteinDistance = [](const QString &s1, const QString &s2) -> int {
         const int len1 = s1.size();
@@ -418,6 +427,24 @@ int MP3FilenameVsCuesheetnameScore(QString fn, QString cn) {
         // Allow 1 edit (character changed, added, or removed)
         return distance <= 1;
     };
+
+    // Helper function to check if two labels are "fuzzy equal", using the labelName <-> labelID map
+    auto labelWordEqual = [this](const QString &w1, const QString &w2) -> bool {
+        // check it both ways
+        // way 1:
+        QStringList sl1 = labelName2labelID.values(w1.toLower());
+        if (sl1.contains(w2.toLower())) {
+            // example:  "RR" in w1 matches either "Rhythm" or "Rhythm Records" in w2
+            return true;
+        }
+        // way 2:
+        QStringList sl2 = labelName2labelID.values(w2.toLower());
+        if (sl2.contains(w1.toLower())) {
+            // example:  "RR" in w2 matches either "Rhythm" or "Rhythm Records" in w1
+            return true;
+        }
+        return false;
+    };
     
     // Function to filter words that are 1-2 characters long
     auto filterShortWords = [](const QStringList &words) -> QStringList {
@@ -444,20 +471,55 @@ int MP3FilenameVsCuesheetnameScore(QString fn, QString cn) {
     QString mp3Name = removeParentheses(fn);
     QString cuesheetName = removeParentheses(cn);
     
+    if (debugOut != nullptr) {
+        debugOut->append("Step 1: Preprocessing - Remove parentheses");
+        debugOut->append(QString("  MP3:      '%1' -> '%2'").arg(fn, mp3Name));
+        debugOut->append(QString("  Cuesheet: '%1' -> '%2'").arg(cn, cuesheetName));
+    }
+    
     // Trim and simplify (collapse multiple spaces)
     mp3Name = mp3Name.simplified();
     cuesheetName = cuesheetName.simplified();
 
+    if (debugOut != nullptr) {
+        debugOut->append("");
+        debugOut->append("After simplifying whitespace:");
+        debugOut->append(QString("  MP3:      '%1'").arg(mp3Name));
+        debugOut->append(QString("  Cuesheet: '%1'").arg(cuesheetName));
+    }
+
     // I like to use cuesheet filenames like "Blue.2.html"
     //   this removes the .2 part, for matching purposes
-    // QString before = cuesheetName;
+    QString beforeDotRemoval = cuesheetName;
     QRegularExpression dotNumAtEnd("\\.[0-9]?$");
     cuesheetName.replace(dotNumAtEnd, ""); // THIS IS NOT WORKING HERE
-    // qDebug() << "before/after = " << before << cuesheetName;
+    
+    if (debugOut != nullptr && beforeDotRemoval != cuesheetName) {
+        debugOut->append(QString("After removing dot-number: '%1' -> '%2'").arg(beforeDotRemoval, cuesheetName));
+    }
+    
+    if (debugOut != nullptr) {
+        debugOut->append("");
+        debugOut->append("Step 2: Check for exact match after preprocessing");
+    }
 
     // Step 2: Check for exact match after preprocessing
     if (mp3Name.compare(cuesheetName, Qt::CaseInsensitive) == 0) {
+        if (debugOut != nullptr) {
+            debugOut->append("✓ EXACT MATCH after preprocessing -> SCORE: 100");
+        }
         return 100;
+    } else {
+        if (debugOut != nullptr) {
+            debugOut->append("✗ Not an exact match after preprocessing");
+            debugOut->append(QString("  MP3:      '%1'").arg(mp3Name));
+            debugOut->append(QString("  Cuesheet: '%1'").arg(cuesheetName));
+        }
+    }
+    
+    if (debugOut != nullptr) {
+        debugOut->append("");
+        debugOut->append("Step 3: Split filenames into words and filter");
     }
     
     // Step 3: Split filenames into words for comparison and filter short words
@@ -467,12 +529,35 @@ int MP3FilenameVsCuesheetnameScore(QString fn, QString cn) {
     QStringList mp3Words = filterShortWords(mp3AllWords);
     QStringList cuesheetWords = filterShortWords(cuesheetAllWords);
     
+    if (debugOut != nullptr) {
+        debugOut->append(QString("  MP3 all words: [%1]").arg(mp3AllWords.join(", ")));
+        debugOut->append(QString("  MP3 filtered words (>2 chars): [%1]").arg(mp3Words.join(", ")));
+        debugOut->append(QString("  Cuesheet all words: [%1]").arg(cuesheetAllWords.join(", ")));
+        debugOut->append(QString("  Cuesheet filtered words (>2 chars): [%1]").arg(cuesheetWords.join(", ")));
+    }
+    
     // If filtering removed all words, use the original lists
     if (mp3Words.isEmpty() && !mp3AllWords.isEmpty()) {
         mp3Words = mp3AllWords;
+        if (debugOut != nullptr) {
+            debugOut->append("  Using original MP3 words (filtering removed all)");
+        }
     }
     if (cuesheetWords.isEmpty() && !cuesheetAllWords.isEmpty()) {
         cuesheetWords = cuesheetAllWords;
+        if (debugOut != nullptr) {
+            debugOut->append("  Using original cuesheet words (filtering removed all)");
+        }
+    }
+    
+    mp3Words.sort(Qt::CaseInsensitive);
+    cuesheetWords.sort(Qt::CaseInsensitive);
+
+    if (debugOut != nullptr) {
+        debugOut->append("");
+        debugOut->append("Step 4: Check if cuesheet words contained in mp3 words or vise-versa (with FUZZY word matching)");
+        debugOut->append(QString("  mp3Words:      [%1]").arg(mp3Words.join(";")));
+        debugOut->append(QString("  cuesheetWords: [%1]").arg(cuesheetWords.join(";")));
     }
     
     // Step 4: Check if one contains all words of the other in same order (with fuzzy matching)
@@ -511,16 +596,28 @@ int MP3FilenameVsCuesheetnameScore(QString fn, QString cn) {
         mp3ContainsAllCuesheet = false; // Didn't find all cuesheet words
     }
     
-    if (cuesheetContainsAllMp3) {
+    if (cuesheetContainsAllMp3 && mp3Words.size() >= 2) {
+        if (debugOut != nullptr) {
+            debugOut->append(QString("✓ Cuesheet contains all %1 MP3 words in order -> SCORE: 95").arg(mp3Words.size()));
+        }
         return 95;
     }
-    if (mp3ContainsAllCuesheet) {
+    if (mp3ContainsAllCuesheet && cuesheetWords.size() >= 2) {
+        if (debugOut != nullptr) {
+            debugOut->append(QString("✓ MP3 contains all %1 cuesheet words in order -> SCORE: 90").arg(cuesheetWords.size()));
+        }
         return 90;
+    }
+    
+    if (debugOut != nullptr) {
+        debugOut->append("✗ No complete word containment pattern found");
+        debugOut->append("");
+        debugOut->append("Step 5: Parse filenames to extract components");
     }
     
     // Step 5: Parse the filenames to extract components
     // Try to identify label, label number, label extra, and title
-    auto parseFilename = [](const QString &name) {
+    auto parseFilename = [debugOut](const QString &name) {
         struct ParsedName {
             QString label;
             QString labelNum;
@@ -532,11 +629,11 @@ int MP3FilenameVsCuesheetnameScore(QString fn, QString cn) {
         ParsedName result;
 
         // Try standard format: LABEL NUM[EXTRA] - TITLE
-        QRegularExpression stdFormat("^([A-Za-z]{1,8})\\s*([0-9]{1,6})([A-Za-z]{0,4})?\\s*-\\s*(.+)$",
+        QRegularExpression stdFormat("^([A-Za-z ]{1,20})\\s*([0-9]{1,5})([A-Za-z]{0,4})?\\s*-\\s*(.+)$",
                                     QRegularExpression::CaseInsensitiveOption);
         
         // Try reversed format: TITLE - LABEL NUM[EXTRA]
-        QRegularExpression revFormat("^(.+)\\s*-\\s*([A-Za-z]{1,8})\\s*([0-9]{1,5})([A-Za-z]{0,4})?$",
+        QRegularExpression revFormat("^(.+)\\s*-\\s*([A-Za-z ]{1,20})\\s*([0-9]{1,5})([A-Za-z]{0,4})?$",
                                     QRegularExpression::CaseInsensitiveOption);
         
         QRegularExpressionMatch match = stdFormat.match(name);
@@ -547,6 +644,9 @@ int MP3FilenameVsCuesheetnameScore(QString fn, QString cn) {
             result.title = match.captured(4);
             result.reversed = false;
             // qDebug() << "NORMAL ORDER: " << name;
+            if (debugOut != nullptr) {
+                debugOut->append(QString("  '%1' appears to be NORMAL order.").arg(name));
+            }
             return result;
         }
         
@@ -558,17 +658,36 @@ int MP3FilenameVsCuesheetnameScore(QString fn, QString cn) {
             result.labelExtra = match.captured(4);
             result.reversed = true;
             // qDebug() << "REVERSED ORDER: " << name;
+            if (debugOut != nullptr) {
+                debugOut->append(QString("  '%1' appears to be REVERSED order.").arg(name));
+            }
             return result;
         }
         
         // If no match, just consider the whole thing as title
         result.title = name;
         // qDebug() << "NEITHER ORDER: " << name;
+        if (debugOut != nullptr) {
+            debugOut->append(QString("  '%1': could not determine normal vs reversed order.").arg(name));
+        }
         return result;
     };
     
     auto mp3Parsed = parseFilename(mp3Name);
     auto cuesheetParsed = parseFilename(cuesheetName);
+
+    mp3Parsed.label = mp3Parsed.label.simplified();             // simplify whitespace
+    cuesheetParsed.label = cuesheetParsed.label.simplified();   // simplify whitespace
+
+    if (debugOut != nullptr) {
+        debugOut->append("");
+        debugOut->append(QString("  MP3 parsed - Label: '%1', Number: '%2', Title: '%3'")
+                         .arg(mp3Parsed.label, mp3Parsed.labelNum, mp3Parsed.title));
+        debugOut->append(QString("  Cuesheet parsed - Label: '%1', Number: '%2', Title: '%3'")
+                         .arg(cuesheetParsed.label, cuesheetParsed.labelNum, cuesheetParsed.title));
+        debugOut->append("");
+        debugOut->append("Step 6: Calculate score based on matching components");
+    }
     
     // Step 6: Calculate score based on matching components
     int score = 0;
@@ -577,10 +696,24 @@ int MP3FilenameVsCuesheetnameScore(QString fn, QString cn) {
     bool labelNumberMatch = false;
 
     // Check if labels match (use fuzzy matching)
-    if (!mp3Parsed.label.isEmpty() && !cuesheetParsed.label.isEmpty() &&
-        fuzzyWordEqual(mp3Parsed.label, cuesheetParsed.label)) {
-        // score += 20;
-        labelMatch = true;
+    if (!mp3Parsed.label.isEmpty() && !cuesheetParsed.label.isEmpty()) {
+        if (fuzzyWordEqual(mp3Parsed.label, cuesheetParsed.label)) {
+            labelMatch = true;
+            if (debugOut != nullptr) {
+                debugOut->append("  ✓ Labels match (fuzzy)");
+            }
+        } else if (labelWordEqual(mp3Parsed.label, cuesheetParsed.label)) {
+            labelMatch = true;
+            if (debugOut != nullptr) {
+                debugOut->append("  ✓ Labels match (labelName2labelID match)");
+            }
+        } else {
+            if (debugOut != nullptr) {
+                debugOut->append("  ✗ Labels don't match");
+            }
+        }
+    } else if (debugOut != nullptr) {
+        debugOut->append("  ✗ Labels don't match: one or both were empty");
     }
     
     // Check if label numbers match (ignore leading zeros)
@@ -590,11 +723,21 @@ int MP3FilenameVsCuesheetnameScore(QString fn, QString cn) {
         if (mp3Num == cuesheetNum) {
             // score += 20;
             labelNumberMatch = true;
+            if (debugOut != nullptr) {
+                debugOut->append(QString("  ✓ Label numbers match (%1 == %2)").arg(mp3Num).arg(cuesheetNum));
+            }
+        } else if (debugOut != nullptr) {
+            debugOut->append(QString("  ✗ Label numbers don't match (%1 != %2)").arg(mp3Num).arg(cuesheetNum));
         }
+    } else if (debugOut != nullptr) {
+        debugOut->append("  - No label numbers to compare");
     }
 
     if (labelMatch && labelNumberMatch) {
-        score += 35;
+        score += 36;
+        if (debugOut != nullptr) {
+            debugOut->append("  → Adding 36 points for label+number match");
+        }
     }
     
     // qDebug() << ">>> " << score;
@@ -602,6 +745,9 @@ int MP3FilenameVsCuesheetnameScore(QString fn, QString cn) {
     // Check if label extras match (use fuzzy matching)
     if (!mp3Parsed.labelExtra.isEmpty() && !cuesheetParsed.labelExtra.isEmpty() && 
         fuzzyWordEqual(mp3Parsed.labelExtra, cuesheetParsed.labelExtra)) {
+        if (debugOut != nullptr) {
+            debugOut->append("  → Adding 2 points for label extras match");
+        }
         score += 2;
     }
     
@@ -655,12 +801,36 @@ int MP3FilenameVsCuesheetnameScore(QString fn, QString cn) {
     int titleMatchScore = qMin(54, titleWordMatchPercent * 54 / 100);
     score += titleMatchScore;
     
+    if (debugOut != nullptr) {
+        debugOut->append("");
+        debugOut->append("Step 7: Title word matching results");
+        debugOut->append(QString("  mp3TitleWords:      [%1]").arg(mp3TitleWords.join(";")));
+        debugOut->append(QString("  cuesheetTitleWords: [%1]").arg(cuesheetTitleWords.join(";")));
+        debugOut->append(QString("  Title word match percentage: %1%").arg(titleWordMatchPercent));
+        debugOut->append(QString("  Title match score: %1").arg(titleMatchScore));
+        debugOut->append(QString("  Running score: %1").arg(score));
+    }
+    
     // Ensure score doesn't exceed 89 (reserving 90+ for special cases already handled)
     score = qMin(89, score);
     
     // If score is too low, consider it no match
+
+    if (debugOut != nullptr) {
+        debugOut->append("");
+        debugOut->append(QString("=== FINAL SCORE: %1 ===").arg(score));
+    }
+
     if (score <= 35) {
+        if (debugOut != nullptr) {
+            debugOut->append("");
+            debugOut->append(QString("Final score %1 is too low (≤35) -> returning 0").arg(score));
+        }
         return 0;
+    }
+    
+    if (debugOut != nullptr) {
+            debugOut->append("✓ MATCH (score > 35)");
     }
     
     return score;
@@ -683,7 +853,7 @@ void MainWindow::betterFindPossibleCuesheets(const QString &MP3Filename, QString
         QFileInfo cuesheetFileInfo(cuesheetFilename);
         QString cuesheetCompleteBaseName = cuesheetFileInfo.completeBaseName();
 
-        int score = MP3FilenameVsCuesheetnameScore(mp3CompleteBaseName, cuesheetCompleteBaseName);
+        int score = this->MP3FilenameVsCuesheetnameScore(mp3CompleteBaseName, cuesheetCompleteBaseName);
         if (score > 0) {
             CuesheetWithRanking *cswr = new CuesheetWithRanking();
             cswr->filename = cuesheetFilename;
@@ -1712,4 +1882,64 @@ QString MainWindow::loadLyrics(QString MP3FileName)
     }
 //    qDebug() << "Got lyrics:" << USLTlyrics;
     return (USLTlyrics);
+}
+
+
+// ----------------------------------------------------------------
+void MainWindow::setupCuesheetMenu()
+{
+    // Set initial state: hide the "Explore Cuesheet Matching..." menu item
+    ui->actionExplore_Cuesheet_Matching->setVisible(false);    
+}
+
+
+// ----------------------------------------------------------------
+void MainWindow::on_actionExplore_Cuesheet_Matching_triggered()
+{
+    // Create and show the debug dialog
+    if (!cuesheetDebugDialog) {
+        cuesheetDebugDialog = new CuesheetMatchingDebugDialog(this);
+    }
+    
+    cuesheetDebugDialog->show();
+    cuesheetDebugDialog->raise();
+    cuesheetDebugDialog->activateWindow();
+}
+
+// ---------------------------------------------------------------
+void MainWindow::readLabelNames(void) {
+    // read the label names and label IDs and stick into a dictionary
+    QString labelFilePath = qApp->applicationDirPath() + "/../Resources/squareDanceLabelIDs.csv";
+
+    QFile inputFile(labelFilePath);
+    if (inputFile.open(QIODevice::ReadOnly)) { // defaults to Text mode
+        QTextStream in(&inputFile);
+
+        QString header = in.readLine();  // read header (and throw away for now), should be "abspath,pitch,tempo"
+        Q_UNUSED(header) // turn off the warning (actually need the readLine to happen);
+
+        while (!in.atEnd()) {
+            QString line = in.readLine();
+
+            if (line == "") {
+                // ignore, it's a blank line
+            }
+            else {
+                QStringList list1 = parseCSV(line);  // This is more robust than split(). Handles commas inside double quotes, double double quotes, etc.
+
+                if (list1.length() != 3) {
+                    continue;  // skip lines that don't have exactly 3 fields
+                }
+
+                if (list1[2] == "?") {
+                    continue;  // skip lines where we don't know what the labelID is
+                }
+
+                // qDebug() << "found a valid line:" << list1[0] << list1[2]; // e.g. "Wagon Wheel" "WW"
+                labelName2labelID.insert(list1[2].toLower(), list1[0].toLower());  // key "WW" could have multiple values
+            }
+        }
+    } else {
+        qDebug() << "Could not open: " << labelFilePath;
+    }
 }

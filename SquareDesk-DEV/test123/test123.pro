@@ -89,6 +89,7 @@ SOURCES += main.cpp\
     playlists.cpp \
     preferencesdialog.cpp \
     choreosequencedialog.cpp \
+    cuesheetmatchingdebugdialog.cpp \
     importdialog.cpp \
     exportdialog.cpp \
     songhistoryexportdialog.cpp \
@@ -172,6 +173,7 @@ HEADERS  += mainwindow.h \
     songhistoryexportdialog.h \
     preferencesdialog.h \
     choreosequencedialog.h \
+    cuesheetmatchingdebugdialog.h \
     soundtouch/include/BPMDetect.h \
     soundtouch/include/FIFOSampleBuffer.h \
     soundtouch/include/FIFOSamplePipe.h \
@@ -397,11 +399,27 @@ LIBS += -framework AudioToolbox
 LIBS += -framework CoreAudioKit
 
 # KFR for filters -----------------------------------
-# INCLUDEPATH += $$PWD/../kfr/include
-# LIBS += -L$$PWD/../kfr/lib/$${ARCHDIR} -lkfr_dft -lkfr_io
 
-INCLUDEPATH += $$PWD/../kfr/include
-LIBS += -L$$PWD/../kfr/build/lib -lkfr_dsp_neon64 -lkfr_io
+macx {
+    QMAKE_EXTRA_TARGETS += libkfr
+    CONFIG(debug, debug|release) {
+        KFR_BUILD_TYPE = debug
+    } else {
+        KFR_BUILD_TYPE = release
+    }
+    KFR_DIR = $$OUT_PWD/../kfr
+    KFR_LIB = $$KFR_DIR/lib
+    message(KFR_LIB is $$KFR_LIB)
+
+    libkfr.target = $$KFR_LIB
+    libkfr.depends =
+    libkfr.commands = $$PWD/../kfr/create-kfr-lib $$KFR_DIR $$KFR_BUILD_TYPE
+
+    PRE_TARGETDEPS += $$libkfr.target
+
+    INCLUDEPATH += $$PWD/../kfr/include
+    LIBS += -L$$KFR_LIB -lkfr_dsp_neon64 -lkfr_io
+}
 
 # MiniBPM for BPM detection -----------------------------------
 INCLUDEPATH += $$PWD/miniBPM
@@ -479,6 +497,10 @@ copydata2.commands = $(COPY) $$PWD/../sdlib/sd_doc.pdf $$OUT_PWD/SquareDesk.app/
 copydata3.commands = $(COPY) $$PWD/allcalls.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata4s.commands = $(COPY) $$PWD/abbrevs.txt     $$OUT_PWD/SquareDesk.app/Contents/Resources
 
+# DATA --------------------------------------------
+# Copy the squareDanceLabelIDs.csv file to the Resources spot in bundle
+copydata5.commands = $(COPY) $$PWD/squareDanceLabelIDs.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
+
 # SquareDesk Manual (PDF)
 # copydata2b.commands = $(COPY) $$PWD/docs/SquareDeskManual.0.9.1.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources/squaredesk.pdf
 
@@ -553,7 +575,7 @@ macx {
     DEFINES += M1MAC=1
     QT += multimedia
 
-    first.depends += copydata1dir copydata0a copydata0b copydata0c copydata0d copydata0e copydata1 copydata2 copydata3 copydata4s copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
+    first.depends += copydata1dir copydata0a copydata0b copydata0c copydata0d copydata0e copydata1 copydata2 copydata3 copydata4s copydata5 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
 
     # lyrics and patter templates
     export(copydata0a.commands)
@@ -571,8 +593,9 @@ macx {
     # export(copydata2b.commands)
     export(copydata3.commands)
     export(copydata4s.commands)
+    export(copydata5.commands)
 
-    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata0d copydata0e copydata1dir copydata1 copydata2 copydata3 copydata4s
+    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata0d copydata0e copydata1dir copydata1 copydata2 copydata3 copydata4s copydata5
 
     # For the PDF viewer -----------------
     copydata1p.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web
@@ -983,6 +1006,7 @@ DISTFILES += \
     releaseSquareDesk.command \
     signSquareDesk.command \
     soundtouch/include/soundtouch_config.h.in \
+    squareDanceLabelIDs.csv \
     themes/Themes.qss
 
 CONFIG += c++11

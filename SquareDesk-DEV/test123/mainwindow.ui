@@ -4616,6 +4616,7 @@
     <addaction name="separator"/>
     <addaction name="actionAuto_scroll_during_playback"/>
     <addaction name="separator"/>
+    <addaction name="actionExplore_Cuesheet_Matching"/>
    </widget>
    <widget class="QMenu" name="menuSession">
     <property name="title">
