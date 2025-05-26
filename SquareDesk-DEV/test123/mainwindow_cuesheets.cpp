@@ -706,7 +706,7 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
     if (labelMatch && labelNumberMatch) {
         score += 36;
         if (debugOut != nullptr) {
-            debugOut->append("  → Adding 35 points for label+number match");
+            debugOut->append("  → Adding 36 points for label+number match");
         }
     }
     
