@@ -60,6 +60,7 @@
 #include <QSplashScreen>
 #include <QStack>
 #include <QTableWidgetItem>
+#include <QTextEdit>
 #include <QToolTip>
 #include <QVariant>
 #include <QVector>
@@ -91,6 +92,9 @@
 #include "console.h"
 //#include "renderarea.h"
 #include "songsettings.h"
+
+// Forward declaration for debug dialog
+class CuesheetMatchingDebugDialog;
 
 #if defined(Q_OS_MAC)
 #include "macUtils.h"
@@ -246,6 +250,7 @@ public:
     int testVamp();  // see if all is well with vamp
 
     friend class updateID3TagsDialog; // it can access private members of MainWindow
+    friend class CuesheetMatchingDebugDialog; // it can access private members of MainWindow
 
 //    double songLoadedReplayGain_dB;
 
@@ -253,6 +258,8 @@ public:
     void auditionByKeyPress(void);
     void auditionByKeyRelease(void);
     QString auditionPlaybackDeviceName;
+
+    bool optionCurrentlyPressed;
 
     QString currentThemeString;
     bool mainWindowReady = false;
@@ -530,6 +537,7 @@ private slots:
 
     void on_menuLyrics_aboutToShow();
     void on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/);
+    void on_actionExplore_Cuesheet_Matching_triggered();
 
     // THE FOLLOWING FUNCTIONS ARE USED IN LIGHT MODE ONLY =========
     void on_actionAt_TOP_triggered();
@@ -902,6 +910,9 @@ public:
     void populatePlaybackDeviceMenu();
     void setPreviewPlaybackDevice(const QString &playbackDeviceName);
     QAudioDevice getAudioDeviceByName(const QString &deviceName);
+    
+    // Cuesheet Menu functions
+    void setupCuesheetMenu();
 
 private:
     QString lastAudioDeviceName;
@@ -929,6 +940,9 @@ private:
     unsigned int screensaverSeconds;  // increments every second, disable screensaver every 60 seconds
 
     QLabel *micStatusLabel;
+
+    // Debug dialog for cuesheet matching
+    CuesheetMatchingDebugDialog *cuesheetDebugDialog;
 
     void saveLyrics();
     void saveLyricsAs();
@@ -1071,6 +1085,8 @@ private:
 
     bool breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &labenum_extra,
                                 QString &title, QString &shortTitle );
+
+    int MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit *debugOut = nullptr);
 
     bool cuesheetIsUnlockedForEditing;
 

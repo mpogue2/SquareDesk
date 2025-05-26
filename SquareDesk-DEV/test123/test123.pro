@@ -89,6 +89,7 @@ SOURCES += main.cpp\
     playlists.cpp \
     preferencesdialog.cpp \
     choreosequencedialog.cpp \
+    cuesheetmatchingdebugdialog.cpp \
     importdialog.cpp \
     exportdialog.cpp \
     songhistoryexportdialog.cpp \
@@ -172,6 +173,7 @@ HEADERS  += mainwindow.h \
     songhistoryexportdialog.h \
     preferencesdialog.h \
     choreosequencedialog.h \
+    cuesheetmatchingdebugdialog.h \
     soundtouch/include/BPMDetect.h \
     soundtouch/include/FIFOSampleBuffer.h \
     soundtouch/include/FIFOSamplePipe.h \
