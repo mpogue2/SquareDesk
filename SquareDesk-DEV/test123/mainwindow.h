@@ -913,6 +913,9 @@ public:
     void populatePlaybackDeviceMenu();
     void setPreviewPlaybackDevice(const QString &playbackDeviceName);
     QAudioDevice getAudioDeviceByName(const QString &deviceName);
+    
+    // Cuesheet Menu functions
+    void setupCuesheetMenu();
 
 private:
     QString lastAudioDeviceName;

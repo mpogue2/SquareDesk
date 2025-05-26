@@ -6327,6 +6327,11 @@
     <string>Preview Playback Device</string>
    </property>
   </action>
+  <action name="actionExplore_Cuesheet_Matching">
+   <property name="text">
+    <string>Explore Cuesheet Matching...</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

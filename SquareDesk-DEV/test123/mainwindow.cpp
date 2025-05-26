@@ -2548,6 +2548,12 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     // Initialize Preview Playback Device menu
     populatePlaybackDeviceMenu();
+    
+    // Initialize Cuesheet menu
+    setupCuesheetMenu();
+
+    // read label names and IDs
+    readLabelNames();
 }
 // END CONSTRUCTOR ---------
 
