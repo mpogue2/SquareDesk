@@ -2551,6 +2551,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     
     // Initialize Cuesheet menu
     setupCuesheetMenu();
+
+    // read label names and IDs
+    readLabelNames();
 }
 // END CONSTRUCTOR ---------
 

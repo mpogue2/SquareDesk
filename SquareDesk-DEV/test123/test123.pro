@@ -481,6 +481,10 @@ copydata2.commands = $(COPY) $$PWD/../sdlib/sd_doc.pdf $$OUT_PWD/SquareDesk.app/
 copydata3.commands = $(COPY) $$PWD/allcalls.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata4s.commands = $(COPY) $$PWD/abbrevs.txt     $$OUT_PWD/SquareDesk.app/Contents/Resources
 
+# DATA --------------------------------------------
+# Copy the squareDanceLabelIDs.csv file to the Resources spot in bundle
+copydata5.commands = $(COPY) $$PWD/squareDanceLabelIDs.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
+
 # SquareDesk Manual (PDF)
 # copydata2b.commands = $(COPY) $$PWD/docs/SquareDeskManual.0.9.1.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources/squaredesk.pdf
 
@@ -555,7 +559,7 @@ macx {
     DEFINES += M1MAC=1
     QT += multimedia
 
-    first.depends += copydata1dir copydata0a copydata0b copydata0c copydata0d copydata0e copydata1 copydata2 copydata3 copydata4s copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
+    first.depends += copydata1dir copydata0a copydata0b copydata0c copydata0d copydata0e copydata1 copydata2 copydata3 copydata4s copydata5 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
 
     # lyrics and patter templates
     export(copydata0a.commands)
@@ -573,8 +577,9 @@ macx {
     # export(copydata2b.commands)
     export(copydata3.commands)
     export(copydata4s.commands)
+    export(copydata5.commands)
 
-    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata0d copydata0e copydata1dir copydata1 copydata2 copydata3 copydata4s
+    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata0d copydata0e copydata1dir copydata1 copydata2 copydata3 copydata4s copydata5
 
     # For the PDF viewer -----------------
     copydata1p.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web
@@ -985,6 +990,7 @@ DISTFILES += \
     releaseSquareDesk.command \
     signSquareDesk.command \
     soundtouch/include/soundtouch_config.h.in \
+    squareDanceLabelIDs.csv \
     themes/Themes.qss
 
 CONFIG += c++11
