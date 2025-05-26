@@ -58,6 +58,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Welaborated-enum-base"
 #include "mainwindow.h"
+#include "cuesheetmatchingdebugdialog.h"
 #pragma clang diagnostic pop
 
 #include "ui_mainwindow.h"
@@ -382,6 +383,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     t.elapsed(__LINE__);
     micStatusLabel = new QLabel("MICS OFF");
     ui->statusBar->addPermanentWidget(micStatusLabel);
+
+    // Initialize debug dialog
+    cuesheetDebugDialog = nullptr;
 
     // NEW INIT ORDER *******
     t.elapsed(__LINE__);
@@ -2544,6 +2548,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     // Initialize Preview Playback Device menu
     populatePlaybackDeviceMenu();
+    
+    // Initialize Cuesheet menu
+    setupCuesheetMenu();
 }
 // END CONSTRUCTOR ---------
 
@@ -3241,6 +3248,11 @@ void MainWindow::on_menuLyrics_aboutToShow()
     ui->actionSave_Cuesheet->setEnabled(ui->textBrowserCueSheet->document()->isModified() && !loadedCuesheetNameWithPath.contains(".template.html"));
     ui->actionSave_Cuesheet_As->setEnabled(hasLyrics);  // Cuesheet > Save Cuesheet As... is enabled if there are lyrics
     ui->actionLyricsCueSheetRevert_Edits->setEnabled(ui->textBrowserCueSheet->document()->isModified());
+
+    // qDebug() << "About to show:" << optionCurrentlyPressed;
+
+    // Cuesheet > Explore Cuesheet Matching... dialog box option visible only when OPT is held down
+    ui->actionExplore_Cuesheet_Matching->setVisible(optionCurrentlyPressed);
 }
 
 void MainWindow::on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/)
@@ -3285,6 +3297,12 @@ MainWindow::~MainWindow()
 
     delete ui;
     delete sd_redo_stack;
+    
+    // Clean up debug dialog
+    if (cuesheetDebugDialog) {
+        delete cuesheetDebugDialog;
+        cuesheetDebugDialog = nullptr;
+    }
 
     if (sdthread)
     {
@@ -4723,11 +4741,24 @@ bool MainWindow::someWebViewHasFocus() {
 // http://www.codeprogress.com/cpp/libraries/qt/showQtExample.php?key=QApplicationInstallEventFilter&index=188
 bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 {
+    // OPTION key monitoring
+    MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
+
+    if (maybeMainWindow != nullptr) {
+        if (Event->type() == QEvent::KeyPress || Event->type() == QEvent::KeyRelease) {
+            QKeyEvent *keyEvent = static_cast<QKeyEvent*>(Event);
+            if (keyEvent->key() == Qt::Key_Alt) {
+                maybeMainWindow->optionCurrentlyPressed = (Event->type() == QEvent::KeyPress);
+                // qDebug() << "optionCurrentlyPressed:" << maybeMainWindow->optionCurrentlyPressed;
+            }
+        }
+    }
+
     if (Event->type() == QEvent::KeyRelease) {
         QKeyEvent *KeyEvent = dynamic_cast<QKeyEvent *>(Event);
         int theKey = KeyEvent->key();
 
-        MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
+        // MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
         if (maybeMainWindow == nullptr) {
             // if the PreferencesDialog is open, for example, do not dereference the NULL pointer (duh!).
 //            qDebug() << "QObject::eventFilter()";
