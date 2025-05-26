@@ -432,14 +432,14 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
     auto labelWordEqual = [this](const QString &w1, const QString &w2) -> bool {
         // check it both ways
         // way 1:
-        QStringList sl1 = labelName2labelID.values(w1);
-        if (sl1.contains(w2)) {
+        QStringList sl1 = labelName2labelID.values(w1.toLower());
+        if (sl1.contains(w2.toLower())) {
             // example:  "RR" in w1 matches either "Rhythm" or "Rhythm Records" in w2
             return true;
         }
         // way 2:
-        QStringList sl2 = labelName2labelID.values(w2);
-        if (sl2.contains(w1)) {
+        QStringList sl2 = labelName2labelID.values(w2.toLower());
+        if (sl2.contains(w1.toLower())) {
             // example:  "RR" in w2 matches either "Rhythm" or "Rhythm Records" in w1
             return true;
         }
@@ -1936,7 +1936,7 @@ void MainWindow::readLabelNames(void) {
                 }
 
                 // qDebug() << "found a valid line:" << list1[0] << list1[2]; // e.g. "Wagon Wheel" "WW"
-                labelName2labelID.insert(list1[2], list1[0]);  // key "WW" could have multiple values
+                labelName2labelID.insert(list1[2].toLower(), list1[0].toLower());  // key "WW" could have multiple values
             }
         }
     } else {
