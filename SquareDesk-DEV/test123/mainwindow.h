@@ -261,6 +261,9 @@ public:
 
     bool optionCurrentlyPressed;
 
+    void readLabelNames(void);
+    QMultiMap<QString, QString> labelName2labelID;
+
     QString currentThemeString;
     bool mainWindowReady = false;
 

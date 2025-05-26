@@ -427,6 +427,24 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
         // Allow 1 edit (character changed, added, or removed)
         return distance <= 1;
     };
+
+    // Helper function to check if two labels are "fuzzy equal", using the labelName <-> labelID map
+    auto labelWordEqual = [this](const QString &w1, const QString &w2) -> bool {
+        // check it both ways
+        // way 1:
+        QStringList sl1 = labelName2labelID.values(w1);
+        if (sl1.contains(w2)) {
+            // example:  "RR" in w1 matches either "Rhythm" or "Rhythm Records" in w2
+            return true;
+        }
+        // way 2:
+        QStringList sl2 = labelName2labelID.values(w2);
+        if (sl2.contains(w1)) {
+            // example:  "RR" in w2 matches either "Rhythm" or "Rhythm Records" in w1
+            return true;
+        }
+        return false;
+    };
     
     // Function to filter words that are 1-2 characters long
     auto filterShortWords = [](const QStringList &words) -> QStringList {
@@ -611,11 +629,11 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
         ParsedName result;
 
         // Try standard format: LABEL NUM[EXTRA] - TITLE
-        QRegularExpression stdFormat("^([A-Za-z ]{1,12})\\s*([0-9]{1,6})([A-Za-z]{0,4})?\\s*-\\s*(.+)$",
+        QRegularExpression stdFormat("^([A-Za-z ]{1,20})\\s*([0-9]{1,5})([A-Za-z]{0,4})?\\s*-\\s*(.+)$",
                                     QRegularExpression::CaseInsensitiveOption);
         
         // Try reversed format: TITLE - LABEL NUM[EXTRA]
-        QRegularExpression revFormat("^(.+)\\s*-\\s*([A-Za-z ]{1,12})\\s*([0-9]{1,5})([A-Za-z]{0,4})?$",
+        QRegularExpression revFormat("^(.+)\\s*-\\s*([A-Za-z ]{1,20})\\s*([0-9]{1,5})([A-Za-z]{0,4})?$",
                                     QRegularExpression::CaseInsensitiveOption);
         
         QRegularExpressionMatch match = stdFormat.match(name);
@@ -657,7 +675,10 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
     
     auto mp3Parsed = parseFilename(mp3Name);
     auto cuesheetParsed = parseFilename(cuesheetName);
-    
+
+    mp3Parsed.label = mp3Parsed.label.simplified();             // simplify whitespace
+    cuesheetParsed.label = cuesheetParsed.label.simplified();   // simplify whitespace
+
     if (debugOut != nullptr) {
         debugOut->append("");
         debugOut->append(QString("  MP3 parsed - Label: '%1', Number: '%2', Title: '%3'")
@@ -675,15 +696,24 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
     bool labelNumberMatch = false;
 
     // Check if labels match (use fuzzy matching)
-    if (!mp3Parsed.label.isEmpty() && !cuesheetParsed.label.isEmpty() &&
-        fuzzyWordEqual(mp3Parsed.label, cuesheetParsed.label)) {
-        // score += 20;
-        labelMatch = true;
-        if (debugOut != nullptr) {
-            debugOut->append("  ✓ Labels match (fuzzy)");
+    if (!mp3Parsed.label.isEmpty() && !cuesheetParsed.label.isEmpty()) {
+        if (fuzzyWordEqual(mp3Parsed.label, cuesheetParsed.label)) {
+            labelMatch = true;
+            if (debugOut != nullptr) {
+                debugOut->append("  ✓ Labels match (fuzzy)");
+            }
+        } else if (labelWordEqual(mp3Parsed.label, cuesheetParsed.label)) {
+            labelMatch = true;
+            if (debugOut != nullptr) {
+                debugOut->append("  ✓ Labels match (labelName2labelID match)");
+            }
+        } else {
+            if (debugOut != nullptr) {
+                debugOut->append("  ✗ Labels don't match");
+            }
         }
     } else if (debugOut != nullptr) {
-        debugOut->append("  ✗ Labels don't match");
+        debugOut->append("  ✗ Labels don't match: one or both were empty");
     }
     
     // Check if label numbers match (ignore leading zeros)
@@ -785,6 +815,12 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
     score = qMin(89, score);
     
     // If score is too low, consider it no match
+
+    if (debugOut != nullptr) {
+        debugOut->append("");
+        debugOut->append(QString("=== FINAL SCORE: %1 ===").arg(score));
+    }
+
     if (score <= 35) {
         if (debugOut != nullptr) {
             debugOut->append("");
@@ -794,8 +830,7 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
     }
     
     if (debugOut != nullptr) {
-        debugOut->append("");
-        debugOut->append(QString("=== FINAL SCORE: %1 ===").arg(score));
+            debugOut->append("✓ MATCH (score > 35)");
     }
     
     return score;
@@ -1869,4 +1904,42 @@ void MainWindow::on_actionExplore_Cuesheet_Matching_triggered()
     cuesheetDebugDialog->show();
     cuesheetDebugDialog->raise();
     cuesheetDebugDialog->activateWindow();
+}
+
+// ---------------------------------------------------------------
+void MainWindow::readLabelNames(void) {
+    // read the label names and label IDs and stick into a dictionary
+    QString labelFilePath = qApp->applicationDirPath() + "/../Resources/squareDanceLabelIDs.csv";
+
+    QFile inputFile(labelFilePath);
+    if (inputFile.open(QIODevice::ReadOnly)) { // defaults to Text mode
+        QTextStream in(&inputFile);
+
+        QString header = in.readLine();  // read header (and throw away for now), should be "abspath,pitch,tempo"
+        Q_UNUSED(header) // turn off the warning (actually need the readLine to happen);
+
+        while (!in.atEnd()) {
+            QString line = in.readLine();
+
+            if (line == "") {
+                // ignore, it's a blank line
+            }
+            else {
+                QStringList list1 = parseCSV(line);  // This is more robust than split(). Handles commas inside double quotes, double double quotes, etc.
+
+                if (list1.length() != 3) {
+                    continue;  // skip lines that don't have exactly 3 fields
+                }
+
+                if (list1[2] == "?") {
+                    continue;  // skip lines where we don't know what the labelID is
+                }
+
+                // qDebug() << "found a valid line:" << list1[0] << list1[2]; // e.g. "Wagon Wheel" "WW"
+                labelName2labelID.insert(list1[2], list1[0]);  // key "WW" could have multiple values
+            }
+        }
+    } else {
+        qDebug() << "Could not open: " << labelFilePath;
+    }
 }
