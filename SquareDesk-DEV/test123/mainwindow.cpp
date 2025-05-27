@@ -4744,28 +4744,32 @@ bool MainWindow::someWebViewHasFocus() {
 // http://www.codeprogress.com/cpp/libraries/qt/showQtExample.php?key=QApplicationInstallEventFilter&index=188
 bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 {
-    // OPTION key monitoring
-    MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
+    // // OPTION key monitoring
+    // MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
 
-    if (maybeMainWindow != nullptr) {
-        if (Event->type() == QEvent::KeyPress || Event->type() == QEvent::KeyRelease) {
-            QKeyEvent *keyEvent = static_cast<QKeyEvent*>(Event);
-            if (keyEvent->key() == Qt::Key_Alt) {
-                maybeMainWindow->optionCurrentlyPressed = (Event->type() == QEvent::KeyPress);
-                // qDebug() << "optionCurrentlyPressed:" << maybeMainWindow->optionCurrentlyPressed;
-            }
-        }
-    }
+    // if (maybeMainWindow != nullptr) {
+    //     if (Event->type() == QEvent::KeyPress || Event->type() == QEvent::KeyRelease) {
+    //         QKeyEvent *keyEvent = static_cast<QKeyEvent*>(Event);
+    //         if (keyEvent->key() == Qt::Key_Alt) {
+    //             maybeMainWindow->optionCurrentlyPressed = (Event->type() == QEvent::KeyPress);
+    //             // qDebug() << "optionCurrentlyPressed:" << maybeMainWindow->optionCurrentlyPressed;
+    //         }
+    //     }
+    // }
 
     if (Event->type() == QEvent::KeyRelease) {
         QKeyEvent *KeyEvent = dynamic_cast<QKeyEvent *>(Event);
         int theKey = KeyEvent->key();
 
-        // MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
+        MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
         if (maybeMainWindow == nullptr) {
             // if the PreferencesDialog is open, for example, do not dereference the NULL pointer (duh!).
 //            qDebug() << "QObject::eventFilter()";
             return QObject::eventFilter(Object,Event);
+        }
+
+        if (KeyEvent->key() == Qt::Key_Alt) {
+            maybeMainWindow->optionCurrentlyPressed = false;
         }
 
         // Qt::ControlModifier == CMD on MacOS
@@ -4801,6 +4805,10 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             // if the PreferencesDialog is open, for example, do not dereference the NULL pointer (duh!).
 //            qDebug() << "QObject::eventFilter()";
             return QObject::eventFilter(Object,Event);
+        }
+
+        if (KeyEvent->key() == Qt::Key_Alt) {
+            maybeMainWindow->optionCurrentlyPressed = true;
         }
 
         // special handling for OPT-Slash, which is AUDITION HIGHLIGHTED ITEM
