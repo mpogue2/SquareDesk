@@ -222,7 +222,7 @@ public:
 //   remember to change the version in the .plist file
 
 // Also remember to change the "latest" file on GitHub (for Beta releases)!
-#define VERSIONSTRING "1.1.1"
+#define VERSIONSTRING "1.1.2"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
