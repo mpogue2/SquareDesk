@@ -262,7 +262,7 @@ macx {
   # to ensure that Info.plist gets copied over (build will not overwrite one that's already there)
   QMAKE_INFO_PLIST = $$PWD/Info.plist
   plist.target = Info.plist
-  plist.depends = $$PWD/Info.plist "$$OUT_PWD/SquareDesk.app/Contents/Info.plist"
+  plist.depends = $$PWD/Info.plist # "$$OUT_PWD/SquareDesk.app/Contents/Info.plist"
   plist.commands = $(DEL_FILE) \"$$OUT_PWD/SquareDesk.app/Contents/Info.plist\" $$escape_expand(\n\t) \
                          $(COPY_FILE) $$PWD/Info.plist \"$$OUT_PWD/SquareDesk.app/Contents/Info.plist\"
   QMAKE_EXTRA_TARGETS = plist
