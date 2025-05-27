@@ -4757,6 +4757,21 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
     //     }
     // }
 
+    if (Event->type() == QEvent::KeyPress || Event->type() == QEvent::KeyRelease) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent*>(Event);
+        if (keyEvent->key() == Qt::Key_Alt) {
+            if (keyEvent->isAutoRepeat()) {
+                return true;  // ignore ALT auto-repeats
+            }
+            MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
+            if (maybeMainWindow == nullptr) {
+                return QObject::eventFilter(Object,Event);
+            }
+            maybeMainWindow->optionCurrentlyPressed = (Event->type() == QEvent::KeyPress);
+            // qDebug() << "optionCurrentlyPressed:" << maybeMainWindow->optionCurrentlyPressed;
+        }
+    }
+
     if (Event->type() == QEvent::KeyRelease) {
         QKeyEvent *KeyEvent = dynamic_cast<QKeyEvent *>(Event);
         int theKey = KeyEvent->key();
@@ -4768,9 +4783,9 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             return QObject::eventFilter(Object,Event);
         }
 
-        if (KeyEvent->key() == Qt::Key_Alt) {
-            maybeMainWindow->optionCurrentlyPressed = false;
-        }
+        // if (KeyEvent->key() == Qt::Key_Alt) {
+        //     maybeMainWindow->optionCurrentlyPressed = false;
+        // }
 
         // Qt::ControlModifier == CMD on MacOS
         // Qt::AltModifier     == OPT on MacOS
@@ -4807,9 +4822,9 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             return QObject::eventFilter(Object,Event);
         }
 
-        if (KeyEvent->key() == Qt::Key_Alt) {
-            maybeMainWindow->optionCurrentlyPressed = true;
-        }
+        // if (KeyEvent->key() == Qt::Key_Alt) {
+        //     maybeMainWindow->optionCurrentlyPressed = true;
+        // }
 
         // special handling for OPT-Slash, which is AUDITION HIGHLIGHTED ITEM
         if (theKey == Qt::Key_Slash) {
