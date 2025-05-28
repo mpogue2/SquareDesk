@@ -2214,6 +2214,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                                                         showInFinderOrExplorer(cuesheetPath);
                                                   }
                                                   );
+                                
                             }
                         }
 
@@ -9571,6 +9572,7 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
             menu.addSeparator();
             menu.addAction( "Reveal Audio File in Finder",       this, SLOT (darkRevealInFinder()) );
             menu.addAction( "Reveal Current Cuesheet in Finder", this, SLOT (darkRevealAttachedLyricsFileInFinder()) );
+            menu.addAction( "Load Cuesheet", this, SLOT (darkShowCuesheet()) );
 
             // SECTIONS STUFF ============
             // just do ONE
@@ -9945,6 +9947,30 @@ void MainWindow::darkRevealAttachedLyricsFileInFinder() {
             showInFinderOrExplorer(cuesheetPath);
     } else {
             // qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
+    }
+}
+
+void MainWindow::darkShowCuesheet() {
+
+    int selectedRow = darkSelectedSongRow();  // get current row or -1
+    if (selectedRow == -1) {
+            qDebug() << "Tried to revealAttachedLyricsFile, but no selected row."; // if nothing selected, give up
+            return;
+    }
+
+    QString currentMP3filenameWithPath = ui->darkSongTable->item(selectedRow, kPathCol)->data(Qt::UserRole).toString();
+
+    SongSetting settings1;
+    if (songSettings.loadSettings(currentMP3filenameWithPath, settings1)) {
+            QString cuesheetPath = settings1.getCuesheetName();
+
+            // qDebug() << "convertCuesheetPathNameToCurrentRoot BEFORE:" << cuesheetPath;
+            cuesheetPath = convertCuesheetPathNameToCurrentRoot(cuesheetPath);
+            // qDebug() << "convertCuesheetPathNameToCurrentRoot AFTER:" << cuesheetPath;
+
+            maybeLoadCuesheet(cuesheetPath);
+    } else {
+            qDebug() << "Tried to load cuesheet, but could not get settings for: " << currentMP3filenameWithPath;
     }
 }
 

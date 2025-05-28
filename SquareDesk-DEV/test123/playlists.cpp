@@ -1858,6 +1858,11 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
                                                   showInFinderOrExplorer(cuesheetPath);
                                               }
                                               );
+                            plMenu->addAction(QString("Load Cuesheet"),
+                                              [this, cuesheetPath]() {
+                                                  maybeLoadCuesheet(cuesheetPath);
+                                              }
+                                              );
                         }
                     }
                 } // if there's just one row in the selection
