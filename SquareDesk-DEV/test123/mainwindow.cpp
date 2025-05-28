@@ -4720,6 +4720,7 @@ void MainWindow::aboutBox()
     msgBox.setText(QString("<p><h2>SquareDesk, V") + QString(VERSIONSTRING) + QString(" (Qt") + QString(QT_VERSION_STR) + QString(")") + QString("</h2>") +
                    QString("<p>Visit our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: ") +
+                   QString("<a href=\"https://www.tamtwirlers.org/taminations\">Taminations</a>, ") +
                    QString("<a href=\"http://www.lynette.org/sd\">sd</a>, ") +
                    QString("<a href=\"https://github.com/yshurik/qpdfjs\">qpdfjs</a>, ") +
                    QString("<a href=\"https://juce.com\">JUCE</a>, ") +
