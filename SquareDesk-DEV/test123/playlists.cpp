@@ -1858,7 +1858,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
                                                   showInFinderOrExplorer(cuesheetPath);
                                               }
                                               );
-                            plMenu->addAction(QString("Load Cuesheet"),
+                            plMenu->addAction(QString("Load Current Cuesheet"),
                                               [this, cuesheetPath]() {
                                                   maybeLoadCuesheet(cuesheetPath);
                                               }

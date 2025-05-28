@@ -1938,6 +1938,11 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                                                         showInFinderOrExplorer(cuesheetPath);
                                                   }
                                                   );
+                                plMenu->addAction(QString("Load Current Cuesheet"),
+                                                  [this, cuesheetPath]() {
+                                                        maybeLoadCuesheet(cuesheetPath);
+                                                  }
+                                                  );
                             }
                         }
 
@@ -2076,6 +2081,11 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                                                         showInFinderOrExplorer(cuesheetPath);
                                                   }
                                                   );
+                                plMenu->addAction(QString("Load Current Cuesheet"),
+                                                  [this, cuesheetPath]() {
+                                                        maybeLoadCuesheet(cuesheetPath);
+                                                  }
+                                                  );
                             }
                         }
 
@@ -2194,7 +2204,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                                               });
 
                             // if the current song has a cuesheet, offer to show it to the user -----
-                            QString fullMP3Path = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
+                            QString fullMP3Path = this->ui->playlist3Table->item(this->ui->playlist3Table->itemAt(q)->row(), 4)->text();
                             QString cuesheetPath;
 
                             SongSetting settings1;
@@ -2212,6 +2222,11 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                                 plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
                                                   [this, cuesheetPath]() {
                                                         showInFinderOrExplorer(cuesheetPath);
+                                                  }
+                                                  );
+                                plMenu->addAction(QString("Load Current Cuesheet"),
+                                                  [this, cuesheetPath]() {
+                                                        maybeLoadCuesheet(cuesheetPath);
                                                   }
                                                   );
                                 
@@ -9572,7 +9587,7 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
             menu.addSeparator();
             menu.addAction( "Reveal Audio File in Finder",       this, SLOT (darkRevealInFinder()) );
             menu.addAction( "Reveal Current Cuesheet in Finder", this, SLOT (darkRevealAttachedLyricsFileInFinder()) );
-            menu.addAction( "Load Cuesheet", this, SLOT (darkShowCuesheet()) );
+            menu.addAction( "Load Current Cuesheet", this, SLOT (darkShowCuesheet()) );
 
             // SECTIONS STUFF ============
             // just do ONE
