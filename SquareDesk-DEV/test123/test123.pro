@@ -14,6 +14,9 @@ macx {
 
     # for BULK operations
     QT += concurrent
+
+    # for Taminations HTTP server
+    QT += httpserver
 }
 
 macx {
@@ -70,6 +73,7 @@ SOURCES += main.cpp\
     auditionbutton.cpp \
     flexible_audio.cpp \
 #    bass_audio.cpp \  # this is now #include'd by flexible_audio.cpp on non-M1-based Macs
+    embeddedserver.cpp \
     lyricsEditor.cpp \
     lyricseditor_autoformat.cpp \
     mainwindow.cpp \
@@ -83,6 +87,7 @@ SOURCES += main.cpp\
     mainwindow_fonts.cpp \
     mainwindow_metadata.cpp \
     mainwindow_music.cpp \
+    mainwindow_taminations.cpp \
     mainwindow_themes.cpp \
     miniBPM/MiniBpm.cpp \
     newdancedialog.cpp \
@@ -160,6 +165,7 @@ HEADERS  += mainwindow.h \
     addcommentdialog.h \
     audiodecoder.h \
     auditionbutton.h \
+    embeddedserver.h \
     flexible_audio.h \
     globaldefines.h \
     miniBPM/MiniBpm.h \
@@ -626,6 +632,20 @@ macx {
     export(copydata3sk.commands)
     export(copydata4sk.commands)
     QMAKE_EXTRA_TARGETS += copydata1sk copydata2sk copydata3sk copydata4sk
+
+    # TAMINATIONS ----------------
+    #  unzip the web.zip file into the Resources/Taminations/web folder
+    copydata1tam.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations/web || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations/web
+    copydata2tam.commands = sleep 2;unzip -o -q $$PWD/../Taminations/web.zip -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations/web
+
+    first.depends += copydata1tam copydata2tam
+
+    export(first.depends)
+
+    export(copydata1tam.commands)
+    export(copydata2tam.commands)
+
+    QMAKE_EXTRA_TARGETS += copydata1tam copydata2tam
 
     # Binary Resources for VAMP (beat/measure detection and segmentation) -----------------
     #  NOTE: The dylibs and the vamp-simple-host executable are all ARM64 binaries.  Segmentino and QM plugins are universal binaries.

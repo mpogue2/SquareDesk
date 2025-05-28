@@ -67,6 +67,7 @@
 #include "tablenumberitem.h"
 #include "tablelabelitem.h"
 #include "importdialog.h"
+#include "embeddedserver.h"
 #include "exportdialog.h"
 #include "songhistoryexportdialog.h"
 #include "calllistcheckbox.h"
@@ -2554,6 +2555,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     // read label names and IDs
     readLabelNames();
+
+    // embedded HTTP server for Taminations
+    startTaminationsServer();
 }
 // END CONSTRUCTOR ---------
 
@@ -4844,6 +4848,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         int cindex = ui->tabWidget->currentIndex();  // get index of tab, so we can see which it is
         bool tabIsCuesheet = (ui->tabWidget->tabText(cindex) == CUESHEET_TAB_NAME);
         bool tabIsSD = (ui->tabWidget->tabText(cindex) == "SD");
+        // bool tabIsTaminations = (ui->tabWidget->tabText(cindex) == "Taminations");
         bool tabIsDarkMode = (ui->tabWidget->tabText(cindex) == "Music");
 
         bool cmdC_KeyPressed = (KeyEvent->modifiers() & Qt::ControlModifier) && KeyEvent->key() == Qt::Key_C;

@@ -80,7 +80,7 @@
 #include "math.h"
 
 #include "flexible_audio.h"
-
+#include "embeddedserver.h"
 
 #include "myslider.h"
 #include "preferencesdialog.h"
@@ -253,6 +253,9 @@ public:
     friend class CuesheetMatchingDebugDialog; // it can access private members of MainWindow
 
 //    double songLoadedReplayGain_dB;
+
+    EmbeddedServer *taminationsServer;
+    void startTaminationsServer(void);
 
     bool auditionPlaying = false;
     void auditionByKeyPress(void);
