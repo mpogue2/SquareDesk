@@ -919,6 +919,15 @@ public:
     
     // Cuesheet Menu functions
     void setupCuesheetMenu();
+    
+    // Now Playing integration for iOS/watchOS remote control
+    void setupNowPlaying();
+    void updateNowPlayingMetadata();
+    void nowPlayingPlay();
+    void nowPlayingPause();
+    void nowPlayingNext();
+    void nowPlayingPrevious();
+    void nowPlayingSeek(double timeInSeconds);
 
 private:
     QString lastAudioDeviceName;

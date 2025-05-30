@@ -77,6 +77,7 @@ SOURCES += main.cpp\
     lyricsEditor.cpp \
     lyricseditor_autoformat.cpp \
     mainwindow.cpp \
+    mainwindow_nowplaying.cpp \
 #    miniBPM/MiniBpm.cpp \
     mainwindow_JUCE.cpp \
     mainwindow_bulk.cpp \
@@ -383,6 +384,7 @@ win32:CONFIG(release, debug|release): {
 macx {
 LIBS += -framework CoreFoundation
 LIBS += -framework AppKit
+LIBS += -framework MediaPlayer
 #LIBS += -framework Accelerate  # needed just for RubberBand, for vDSP FFT
 
 # TAGLIB ----------------------------------------
