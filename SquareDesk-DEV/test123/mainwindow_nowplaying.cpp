@@ -342,7 +342,8 @@ void MainWindow::nowPlayingSeek(double timeInSeconds) {
         Info_Seekbar(false);
         
         // Give BASS a moment to update its position, then update Now Playing info
-        QTimer::singleShot(100, [this, positionSeconds]() {
+        // QTimer::singleShot(100, [this, positionSeconds]() {
+        QTimer::singleShot(100, [this]() {
             // printf("Updating Now Playing info after seek to %.2f seconds\n", positionSeconds);
             
             // Force the position update first

@@ -4318,7 +4318,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
     if (songLoaded && (Stream_State == BASS_ACTIVE_PLAYING || Stream_State == BASS_ACTIVE_PAUSED || Stream_State == BASS_ACTIVE_STOPPED)) {
         // Update immediately if state changed (play/pause/stop)
         if (stateChanged) {
-            printf("Stream state changed from %u to %u, updating Now Playing immediately\n", lastStreamState, Stream_State);
+            // printf("Stream state changed from %u to %u, updating Now Playing immediately\n", lastStreamState, Stream_State);
             updateNowPlayingMetadata();
             nowPlayingUpdateCounter = 0;
         }
@@ -4326,7 +4326,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
         else if (Stream_State == BASS_ACTIVE_PLAYING) {
             nowPlayingUpdateCounter++;
             if (nowPlayingUpdateCounter >= 10) {
-                printf("Periodic Now Playing update during playback\n");
+                // printf("Periodic Now Playing update during playback\n");
                 updateNowPlayingMetadata();
                 nowPlayingUpdateCounter = 0;
             }

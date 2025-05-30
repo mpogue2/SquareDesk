@@ -320,7 +320,7 @@ extern "C" {
         commandCenter.togglePlayPauseCommand.enabled = YES;
         
         // Verify it was set
-        NSDictionary *verifyInfo = center.nowPlayingInfo;
+        // NSDictionary *verifyInfo = center.nowPlayingInfo;
         // printf("Verified now playing info has %lu items\n", verifyInfo ? (unsigned long)[verifyInfo count] : 0);
         
         // printf("Now playing info set successfully\n");
@@ -401,7 +401,7 @@ extern "C" {
         commandCenter.togglePlayPauseCommand.enabled = YES;
         
         // Verify it was set
-        NSDictionary *verifyInfo = center.nowPlayingInfo;
+        // NSDictionary *verifyInfo = center.nowPlayingInfo;
         // printf("Verified now playing info has %lu items\n", verifyInfo ? (unsigned long)[verifyInfo count] : 0);
         
         // printf("Now playing info with artwork set successfully\n");
