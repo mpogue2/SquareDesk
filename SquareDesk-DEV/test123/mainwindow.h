@@ -359,8 +359,6 @@ public slots:
     void darkAddPlaylistItemAt(int whichSlot, const QString &trackName, const QString &pitch, const QString &tempo, const QString &path, const QString &extra, int insertRow);
 
     void darkRevealInFinder();
-    void darkRevealAttachedLyricsFileInFinder();
-    void darkShowCuesheet();
     
     void customPlaylistMenuRequested(QPoint pos);
     void customTreeWidgetMenuRequested(QPoint pos);
@@ -1081,7 +1079,7 @@ private:
     void secondHalfOfLoad(QString songTitle);  // after we have duration and BPM, execute this
 
     void maybeLoadCSSfileIntoTextBrowser(bool useSquareDeskCSS);
-    void maybeLoadCuesheet(const QString cuesheetFilename);
+    void maybeLoadCuesheets(const QString &MP3FileName, const QString cuesheetFilename);    
     void loadCuesheet(const QString cuesheetFilename);
     bool loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet = QString(), QString nextFilename="");
 

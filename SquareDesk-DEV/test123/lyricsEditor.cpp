@@ -1042,18 +1042,6 @@ QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
 
 // LOAD A CUESHEET INTO THE EDITOR -------------------------------------------
 
-// Load a cuesheet unless one is being edited
-void MainWindow::maybeLoadCuesheet(const QString cuesheetFilename)
-{
-    if (!maybeSaveCuesheet(3)) {
-        // event->ignore();        // is this necesary?
-        return;
-    }
-    loadCuesheet(cuesheetFilename);
-    ui->comboBoxCuesheetSelector->clear();
-    actionSwitchToTab("Cuesheet");
-}
-
 
 void MainWindow::loadCuesheet(const QString cuesheetFilename)
 {
