@@ -100,7 +100,7 @@ static void (*g_seekCallback)(double) = nullptr;
 @implementation MPNowPlayingTarget
 
 - (MPRemoteCommandHandlerStatus)handlePlayCommand:(MPRemoteCommandEvent *)event {
-    // printf("handlePlayCommand called\n");
+    // printf("=== PLAY COMMAND RECEIVED ===\n");
     // printf("g_playCallback pointer: %p\n", g_playCallback);
     if (g_playCallback) {
         // printf("Calling g_playCallback...\n");
@@ -113,7 +113,7 @@ static void (*g_seekCallback)(double) = nullptr;
 }
 
 - (MPRemoteCommandHandlerStatus)handlePauseCommand:(MPRemoteCommandEvent *)event {
-    // printf("handlePauseCommand called\n");
+    // printf("=== PAUSE COMMAND RECEIVED ===\n");
     if (g_pauseCallback) {
         g_pauseCallback();
         return MPRemoteCommandHandlerStatusSuccess;
@@ -123,13 +123,18 @@ static void (*g_seekCallback)(double) = nullptr;
 }
 
 - (MPRemoteCommandHandlerStatus)handleTogglePlayPauseCommand:(MPRemoteCommandEvent *)event {
-    // printf("handleTogglePlayPauseCommand called\n");
-    // For toggle, we'll call the pause callback which should handle the current state
-    if (g_pauseCallback) {
-        g_pauseCallback(); 
+    // printf("=== F8 PRESSED - handleTogglePlayPauseCommand called ===\n");
+    // printf("g_playCallback pointer: %p\n", g_playCallback);
+    
+    // For toggle, we need to determine current state and call appropriate callback
+    // We'll use the play callback which should handle the toggle logic properly
+    if (g_playCallback) {
+        // printf("Calling g_playCallback for toggle...\n");
+        g_playCallback(); 
+        // printf("g_playCallback completed\n");
         return MPRemoteCommandHandlerStatusSuccess;
     }
-    // printf("No pause callback set for toggle\n");
+    // printf("ERROR: No play callback set for toggle\n");
     return MPRemoteCommandHandlerStatusCommandFailed;
 }
 
@@ -247,21 +252,21 @@ extern "C" {
     
     void updateNowPlayingInfo(const char* title, const char* artist, const char* album, 
                              double duration, double currentTime, bool isPlaying) {
-        // printf("updateNowPlayingInfo() called:\n");
-        // printf("  Title: %s\n", title ? title : "(null)");
-        // printf("  Artist: %s\n", artist ? artist : "(null)");
-        // printf("  Album: %s\n", album ? album : "(null)");
-        // printf("  Duration: %.2f seconds\n", duration);
-        // printf("  Current Time: %.2f seconds\n", currentTime);
-        // printf("  Is Playing: %s\n", isPlaying ? "YES" : "NO");
+        printf("updateNowPlayingInfo() called:\n");
+        printf("  Title: %s\n", title ? title : "(null)");
+        printf("  Artist: %s\n", artist ? artist : "(null)");
+        printf("  Album: %s\n", album ? album : "(null)");
+        printf("  Duration: %.2f seconds\n", duration);
+        printf("  Current Time: %.2f seconds\n", currentTime);
+        printf("  Is Playing: %s\n", isPlaying ? "YES" : "NO");
         
         // Check if MPNowPlayingInfoCenter is available
         MPNowPlayingInfoCenter *center = [MPNowPlayingInfoCenter defaultCenter];
         if (!center) {
-            // printf("ERROR: MPNowPlayingInfoCenter not available!\n");
+            printf("ERROR: MPNowPlayingInfoCenter not available!\n");
             return;
         }
-        // printf("MPNowPlayingInfoCenter available: %p\n", center);
+        printf("MPNowPlayingInfoCenter available: %p\n", center);
         
         NSMutableDictionary *nowPlayingInfo = [[NSMutableDictionary alloc] init];
         
@@ -294,7 +299,7 @@ extern "C" {
         NSString *artworkPath = @"/Users/mpogue/clean3/SquareDesk/SquareDesk-DEV/test123/images/icon1.png";
         NSImage *artworkImage = [[NSImage alloc] initWithContentsOfFile:artworkPath];
         if (artworkImage) {
-            // printf("Loaded artwork image: %s (size: %.0fx%.0f)\n", 
+            // printf("Loaded artwork image: %s (size: %.0fx%.0f)\n",
             //        [artworkPath UTF8String], artworkImage.size.width, artworkImage.size.height);
             
             MPMediaItemArtwork *artwork = [[MPMediaItemArtwork alloc] initWithBoundsSize:artworkImage.size 
@@ -313,7 +318,7 @@ extern "C" {
         // Set the new info
         center.nowPlayingInfo = nowPlayingInfo;
         
-        // Ensure our commands are enabled 
+        // Ensure our commands are enabled (but don't do the disable/re-enable cycle)
         MPRemoteCommandCenter *commandCenter = [MPRemoteCommandCenter sharedCommandCenter];
         commandCenter.playCommand.enabled = YES;
         commandCenter.pauseCommand.enabled = YES;
@@ -374,7 +379,7 @@ extern "C" {
             NSString *artworkPathStr = [NSString stringWithUTF8String:artworkPath];
             NSImage *artworkImage = [[NSImage alloc] initWithContentsOfFile:artworkPathStr];
             if (artworkImage) {
-                // printf("Loaded artwork image: %s (size: %.0fx%.0f)\n", 
+                // printf("Loaded artwork image: %s (size: %.0fx%.0f)\n",
                 //        artworkPath, artworkImage.size.width, artworkImage.size.height);
                 
                 MPMediaItemArtwork *artwork = [[MPMediaItemArtwork alloc] initWithBoundsSize:artworkImage.size 
@@ -394,7 +399,7 @@ extern "C" {
         // Set the new info
         center.nowPlayingInfo = nowPlayingInfo;
         
-        // Ensure our commands are enabled
+        // Ensure our commands are enabled (but don't do the disable/re-enable cycle)
         MPRemoteCommandCenter *commandCenter = [MPRemoteCommandCenter sharedCommandCenter];
         commandCenter.playCommand.enabled = YES;
         commandCenter.pauseCommand.enabled = YES;

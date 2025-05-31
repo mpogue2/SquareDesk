@@ -146,7 +146,7 @@ void MainWindow::setupNowPlaying() {
 
 void MainWindow::updateNowPlayingMetadata() {
 #ifdef Q_OS_MACOS
-    // qDebug() << "updateNowPlayingMetadata() called";
+    // printf("updateNowPlayingMetadata() called\n");
     
     // Get current song information
     QString title = "Unknown Title";
@@ -157,7 +157,7 @@ void MainWindow::updateNowPlayingMetadata() {
     if (!currentMP3filenameWithPath.isEmpty()) {
         QFileInfo fileInfo(currentMP3filenameWithPath);
         QString baseName = fileInfo.baseName();
-        // qDebug() << "Song filename:" << baseName;
+        // printf("Song filename: %s\n", baseName.toUtf8().constData());
         
         // Try to split on common separators to get artist and title
         if (baseName.contains(" - ")) {
@@ -182,36 +182,42 @@ void MainWindow::updateNowPlayingMetadata() {
     // Check stream state again after getting position, in case it changed
     uint32_t Stream_State_After = cBass->currentStreamState();
     if (Stream_State != Stream_State_After) {
-        printf("Stream state changed during position update: %u -> %u\n", Stream_State, Stream_State_After);
+        // printf("Stream state changed during position update: %u -> %u\n", Stream_State, Stream_State_After);
         Stream_State = Stream_State_After;
     }
     
     bool isPlaying = (Stream_State == BASS_ACTIVE_PLAYING);
     
-    // printf("Stream state check: %u, BASS_ACTIVE_PLAYING=%u, isPlaying=%s\n", 
+    // printf("Stream state check: %u, BASS_ACTIVE_PLAYING=%u, isPlaying=%s\n",
     //        Stream_State, BASS_ACTIVE_PLAYING, isPlaying ? "true" : "false");
     
     // Both FileLength and Current_Position are already in seconds (not milliseconds)
     double duration = static_cast<double>(cBass->FileLength);
     double currentTime = static_cast<double>(cBass->Current_Position);
     
-    // qDebug() << "Raw values:";
-    // qDebug() << "  FileLength (seconds):" << cBass->FileLength;
-    // qDebug() << "  Current_Position (seconds):" << cBass->Current_Position;
-    // qDebug() << "Converted values:";
-    // qDebug() << "  Duration:" << duration << "seconds";
-    // qDebug() << "  Current Time:" << currentTime << "seconds";
-    // qDebug() << "  Progress:" << (duration > 0 ? (currentTime / duration * 100.0) : 0) << "%";
+    // printf("Raw values:\n");
+    // printf("  FileLength (seconds): %.2f\n", cBass->FileLength);
+    // printf("  Current_Position (seconds): %.2f\n", cBass->Current_Position);
+    // printf("Converted values:\n");
+    // printf("  Duration: %.2f seconds\n", duration);
+    // printf("  Current Time: %.2f seconds\n", currentTime);
+    // printf("  Progress: %.2f%%\n", (duration > 0 ? (currentTime / duration * 100.0) : 0));
     
-    // qDebug() << "Now Playing Info:";
-    // qDebug() << "  Title:" << title;
-    // qDebug() << "  Artist:" << artist;
-    // qDebug() << "  Album:" << album;
-    // qDebug() << "  Is Playing:" << isPlaying;
-    // qDebug() << "  Stream State:" << Stream_State;
+    // printf("Now Playing Info:\n");
+    // printf("  Title: %s\n", title.toUtf8().constData());
+    // printf("  Artist: %s\n", artist.toUtf8().constData());
+    // printf("  Album: %s\n", album.toUtf8().constData());
+    // printf("  Is Playing: %s\n", isPlaying ? "true" : "false");
+    // printf("  Stream State: %u\n", Stream_State);
+    
+    // Check the condition that might be preventing the update
+    // printf("Condition check: currentMP3filenameWithPath.isEmpty()=%s, duration=%.2f\n",
+    //        currentMP3filenameWithPath.isEmpty() ? "true" : "false", duration);
     
     // Only update if we have valid song information  
     if (!currentMP3filenameWithPath.isEmpty() && duration > 0) {
+        // printf("CONDITION MET: Proceeding with Now Playing update\n");
+        
         // Extract the icon from Qt resources to a temporary file
         QString tempDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
         QString artworkPath = tempDir + "/squaredesk_icon.png";
@@ -240,6 +246,7 @@ void MainWindow::updateNowPlayingMetadata() {
         
         if (!artworkPath.isEmpty()) {
             // Update the Now Playing info with artwork
+            // printf("C++: About to call updateNowPlayingInfoWithArtwork\n");
             updateNowPlayingInfoWithArtwork(title.toUtf8().constData(), 
                                           artist.toUtf8().constData(), 
                                           album.toUtf8().constData(),
@@ -247,20 +254,51 @@ void MainWindow::updateNowPlayingMetadata() {
                                           currentTime, 
                                           isPlaying,
                                           artworkPath.toUtf8().constData());
+            // printf("C++: updateNowPlayingInfoWithArtwork completed\n");
         } else {
             // Update the Now Playing info without artwork
+            // printf("C++: About to call updateNowPlayingInfo\n");
             updateNowPlayingInfo(title.toUtf8().constData(), 
                                 artist.toUtf8().constData(), 
                                 album.toUtf8().constData(),
                                 duration, 
                                 currentTime, 
                                 isPlaying);
+            // printf("C++: updateNowPlayingInfo completed\n");
         }
         
         // printf("updateNowPlayingInfo() called with above parameters\n");
         
+        // Only do the media activation for the first registration of a new song
+        static QString lastRegisteredSong;
+        if (lastRegisteredSong != currentMP3filenameWithPath && duration > 0) {
+            lastRegisteredSong = currentMP3filenameWithPath;
+            // printf("C++: First Now Playing registration for this song - attempting brief activation\n");
+
+
+            // NOTE: This code makes F8 right after load work, but it breaks a lot of other stuff,
+            //  like the automatic timers, the auto-switch-to-cuesheet, etc.
+            // So, before F8 will work, you need to press play/pause twice manually.
+            //
+            // QTimer::singleShot(500, [this]() {
+            //     if (!currentMP3filenameWithPath.isEmpty() && cBass->FileLength > 0) {
+            //         printf("C++: Starting brief media activation cycle using UI button...\n");
+                    
+            //         // Use the same UI button that Control Center would trigger
+            //         ui->darkPlayButton->click();
+                    
+            //         QTimer::singleShot(5, [this]() {
+            //             // Click again to pause after just 5ms
+            //             ui->darkPlayButton->click();
+            //             printf("C++: Media activation cycle complete using UI - F8 should now work!\n");
+            //             updateNowPlayingMetadata();
+            //         });
+            //     }
+            // });
+        }
+        
     } else {
-        // printf("Skipping Now Playing update - no song loaded or invalid duration\n");
+        // printf("CONDITION NOT MET: Skipping Now Playing update\n");
         // printf("  currentMP3filenameWithPath isEmpty: %s\n", currentMP3filenameWithPath.isEmpty() ? "true" : "false");
         // printf("  duration: %.2f\n", duration);
     }
@@ -269,24 +307,40 @@ void MainWindow::updateNowPlayingMetadata() {
 
 // Callback methods that handle remote commands
 void MainWindow::nowPlayingPlay() {
-    printf("nowPlayingPlay() called from remote control\n");
+    // printf("nowPlayingPlay() called from remote control\n");
     
     // Check if we have a song loaded
     if (currentMP3filenameWithPath.isEmpty()) {
-        printf("Remote play: No song loaded, ignoring play command\n");
+        // printf("Remote play: No song loaded, ignoring play command\n");
         return;
     }
     
-    // Check current stream state to determine if we should play
+    // Check current stream state to determine what action to take
     uint32_t Stream_State = cBass->currentStreamState();
+    // printf("Remote play: Current stream state is %u (BASS_ACTIVE_PLAYING=%u)\n", Stream_State, BASS_ACTIVE_PLAYING);
+    // printf("Remote play: Song loaded: %s\n", currentMP3filenameWithPath.toUtf8().constData());
     
-    if (Stream_State != BASS_ACTIVE_PLAYING) {
-        // Currently not playing, so start playing
-        printf("Remote play: Starting playback (stream state was %u)\n", Stream_State);
+    // For F8 toggle behavior, we need to handle all possible states:
+    // State 0 = Never been played (should start)
+    // State 1 = Currently playing (should pause) 
+    // State 3 = Paused (should resume)
+    // Any other state = Try to start/resume
+    
+    if (Stream_State == BASS_ACTIVE_PLAYING) {
+        // Currently playing, so pause it
+        // printf("Remote play: Currently playing, pausing\n");
         ui->darkPlayButton->click();
     } else {
-        printf("Remote play: Already playing (stream state: %u)\n", Stream_State);
+        // Not playing (could be never played, paused, or stopped), so start/resume
+        // printf("Remote play: Not playing (state %u), starting/resuming playback\n", Stream_State);
+        ui->darkPlayButton->click();
     }
+    
+    // Check the state after clicking to see what happened
+    QTimer::singleShot(50, []() {
+        // Note: can't access 'this' in this context, but that's okay for this debug check
+        // printf("Remote play: Button click completed\n");
+    });
 }
 
 void MainWindow::nowPlayingPause() {
@@ -305,17 +359,49 @@ void MainWindow::nowPlayingPause() {
 }
 
 void MainWindow::nowPlayingNext() {
-    // Simulate next track action - use the skip forward functionality
-    if (ui->actionSkip_Forward) {
-        ui->actionSkip_Forward->trigger();
+    // Use the same 15-second skip as Control Center buttons
+    double currentPos = static_cast<double>(cBass->Current_Position);
+    double newPos = currentPos + 15.0; // 15 second skip forward
+    
+    if (newPos >= static_cast<double>(cBass->FileLength)) {
+        newPos = static_cast<double>(cBass->FileLength) - 0.1;
     }
+
+    // Make sure we don't skip past the end
+    // if (newPos <= static_cast<double>(cBass->FileLength)) {
+    cBass->StreamSetPosition(newPos);
+    Info_Seekbar(false);
+
+    // Update Now Playing position immediately after skip
+    QTimer::singleShot(50, [this]() {
+        cBass->StreamGetPosition();
+        updateNowPlayingMetadata();
+        // printf("Now Playing updated after F9 skip forward (15 seconds)\n");
+    });
+    // }
 }
 
 void MainWindow::nowPlayingPrevious() {
-    // Simulate previous track action - use the skip back functionality  
-    if (ui->actionSkip_Backward) {
-        ui->actionSkip_Backward->trigger();
+    // Use the same 15-second skip as Control Center buttons
+    double currentPos = static_cast<double>(cBass->Current_Position);
+    double newPos = currentPos - 15.0; // 15 second skip backward
+    
+    // Make sure we don't skip before the beginning
+    if (newPos < 0.0) {
+        newPos = 0.0;
     }
+
+    // if (newPos >= 0.0) {
+    cBass->StreamSetPosition(newPos);
+    Info_Seekbar(false);
+
+    // Update Now Playing position immediately after skip
+    QTimer::singleShot(50, [this]() {
+        cBass->StreamGetPosition();
+        updateNowPlayingMetadata();
+        // printf("Now Playing updated after F7 skip backward (15 seconds)\n");
+    });
+    // }
 }
 
 void MainWindow::nowPlayingSeek(double timeInSeconds) {
@@ -335,6 +421,12 @@ void MainWindow::nowPlayingSeek(double timeInSeconds) {
         // printf("Now Playing absolute seek to: %.2f seconds\n", positionSeconds);
     }
     
+    if (positionSeconds < 0.0) {
+        positionSeconds = 0.0;
+    } else if (positionSeconds >= static_cast<double>(cBass->FileLength)) {
+        positionSeconds = static_cast<double>(cBass->FileLength - 0.1);
+    }
+
     // Make sure the position is within bounds  
     if (positionSeconds >= 0 && positionSeconds <= static_cast<double>(cBass->FileLength)) {
         // Use the same method as the existing seek functionality
@@ -342,15 +434,11 @@ void MainWindow::nowPlayingSeek(double timeInSeconds) {
         Info_Seekbar(false);
         
         // Give BASS a moment to update its position, then update Now Playing info
-        // QTimer::singleShot(100, [this, positionSeconds]() {
-        QTimer::singleShot(100, [this]() {
-            // printf("Updating Now Playing info after seek to %.2f seconds\n", positionSeconds);
-            
+        QTimer::singleShot(50, [this]() {
             // Force the position update first
             cBass->StreamGetPosition();
-            // printf("After StreamGetPosition: Current_Position = %.2f\n", static_cast<double>(cBass->Current_Position));
-            
             updateNowPlayingMetadata();
+            // printf("Now Playing updated after seek operation\n");
         });
     } else {
         // printf("Now Playing seek out of bounds: %.2f seconds (max: %.2f)\n", positionSeconds, static_cast<double>(cBass->FileLength));
