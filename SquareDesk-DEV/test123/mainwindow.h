@@ -254,6 +254,8 @@ public:
 
 //    double songLoadedReplayGain_dB;
 
+    QString makeCanonicalRelativePath(QString s);
+
     EmbeddedServer *taminationsServer;
     void startTaminationsServer(void);
 
