@@ -226,8 +226,8 @@ public:
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
-#define CURRENTSQVIEWLYRICSNAME "SqViewCueSheets_2017.03.14"
-#define CURRENTSQVIEWCUESHEETSDIR "https://squaredesk.net/cuesheets/SqViewCueSheets_2017.10.13/"
+#define CURRENTSQVIEWLYRICSNAME "SqViewCueSheets_2025.05.10"
+#define CURRENTSQVIEWCUESHEETSDIR "https://squaredesk.net/cuesheets/SqViewCueSheets_2025.05.10/"
 
 #define NUMBEREDSOUNDFXFILES 8
 
