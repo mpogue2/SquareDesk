@@ -32,6 +32,8 @@
 #include <QDebug>
 
 // ------------------------------------------------------------------
+#define SYSTEMSOUNDDEVICENAME "System Sound Device"
+
 void MainWindow::populatePlaybackDeviceMenu()
 {
     // Find the "Preview Playback Device" menu item
@@ -51,19 +53,38 @@ void MainWindow::populatePlaybackDeviceMenu()
     // Create a submenu for the playback devices
     QMenu *deviceMenu = new QMenu("Preview Playback Device", this);
     previewPlaybackAction->setMenu(deviceMenu);
-    
-    // Get list of available audio output devices
-    QList<QAudioDevice> audioOutputList = QMediaDevices::audioOutputs();
-    QAudioDevice defaultDevice = QMediaDevices::defaultAudioOutput();
-    
-    QString previewDeviceName = prefsManager.GetcurrentPreviewPlaybackDeviceName();
+
+    // Mutually exclusive devices
+    QActionGroup *deviceActionGroup = new QActionGroup(this);
+
+    // SPECIAL HANDLING FOR "SYSTEM SOUND DEVICE" ----------
+    QAction *SystemSoundDeviceAction = deviceMenu->addAction(SYSTEMSOUNDDEVICENAME);
+    SystemSoundDeviceAction->setCheckable(true);
 
     // Initialize auditionPlaybackDeviceName - use saved preference or default device
-    if (previewDeviceName.isEmpty()) {
-        auditionPlaybackDeviceName = defaultDevice.description();
+    QAudioDevice defaultDevice = QMediaDevices::defaultAudioOutput();
+
+    QString previewDeviceName = prefsManager.GetcurrentPreviewPlaybackDeviceName();
+    if (previewDeviceName.isEmpty() || (previewDeviceName == SYSTEMSOUNDDEVICENAME)) {
+        auditionPlaybackDeviceName = SYSTEMSOUNDDEVICENAME;
+        SystemSoundDeviceAction->setChecked(true);
+        setPreviewPlaybackDevice(SYSTEMSOUNDDEVICENAME); // and remember this choice for "next time"
+        previewDeviceName = SYSTEMSOUNDDEVICENAME;
     } else {
         auditionPlaybackDeviceName = previewDeviceName;
     }
+
+    // Connect the action to our slot
+    connect(SystemSoundDeviceAction, &QAction::triggered, [this]() {
+        setPreviewPlaybackDevice(SYSTEMSOUNDDEVICENAME);
+    });
+
+    deviceActionGroup->addAction(SystemSoundDeviceAction); // add to the mutual-exclusion group
+
+    deviceMenu->addSeparator();
+
+    // Get list of available audio output devices ----------
+    QList<QAudioDevice> audioOutputList = QMediaDevices::audioOutputs();
 
     // Add each device as a menu item
     foreach (const QAudioDevice &device, audioOutputList) {
@@ -71,18 +92,10 @@ void MainWindow::populatePlaybackDeviceMenu()
         QAction *deviceAction = deviceMenu->addAction(deviceName);
         deviceAction->setCheckable(true);
         
-        // Mark the default device as checked
-        if (previewDeviceName == "") {
-            // if we've never done this before, just [X] default system device
-            if (device.id() == defaultDevice.id()) {
-                deviceAction->setChecked(true);
-                setPreviewPlaybackDevice(deviceName); // and remember this choice for "next time"
-            }
-        } else {
+        // Mark the default device as checked (none of THESE will be checked, if System Sound Device was checked
+        if (previewDeviceName == deviceName) {
             // if we HAVE done this before (it's "next time"), use what we chose last time
-            if (deviceName == previewDeviceName) {
-                deviceAction->setChecked(true);
-            }
+            deviceAction->setChecked(true);
         }
         
         // Connect the action to our slot
@@ -92,7 +105,6 @@ void MainWindow::populatePlaybackDeviceMenu()
     }
     
     // Make device selections mutually exclusive
-    QActionGroup *deviceActionGroup = new QActionGroup(this);
     foreach (QAction *action, deviceMenu->actions()) {
         deviceActionGroup->addAction(action);
     }
@@ -114,6 +126,10 @@ void MainWindow::setPreviewPlaybackDevice(const QString &playbackDeviceName)
 // ------------------------------------------------------------------
 QAudioDevice MainWindow::getAudioDeviceByName(const QString &deviceName)
 {
+    if (deviceName == SYSTEMSOUNDDEVICENAME) {
+        return QMediaDevices::defaultAudioOutput();
+    }
+
     QList<QAudioDevice> audioOutputList = QMediaDevices::audioOutputs();
     
     // First, try to find the device by exact name match
@@ -123,7 +139,7 @@ QAudioDevice MainWindow::getAudioDeviceByName(const QString &deviceName)
         }
     }
     
-    // If not found, return the default device
+    // If not found, return the default device, and log an error...
     qDebug() << "Audio device not found:" << deviceName << ", using default device";
     return QMediaDevices::defaultAudioOutput();
 }
