@@ -65,18 +65,18 @@
 #pragma clang diagnostic pop
 
 #include "ui_mainwindow.h"
-#include "utility.h"
+// #include "utility.h"
 #include "perftimer.h"
 #include "tablenumberitem.h"
-#include "tablelabelitem.h"
-#include "importdialog.h"
+// #include "tablelabelitem.h"
+// #include "importdialog.h"
 #include "exportdialog.h"
 #include "songhistoryexportdialog.h"
 #include "calllistcheckbox.h"
-#include "sessioninfo.h"
+// #include "sessioninfo.h"
 #include "songtitlelabel.h"
-#include "tablewidgettimingitem.h"
-#include "danceprograms.h"
+// #include "tablewidgettimingitem.h"
+// #include "danceprograms.h"
 #include "startupwizard.h"
 #include "makeflashdrivewizard.h"
 // #include "downloadmanager.h"
@@ -86,7 +86,7 @@
 #include "svgWaveformSlider.h"
 #include "auditionbutton.h"
 
-#include "src/communicator.h"
+// #include "src/communicator.h"
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #ifndef M1MAC
@@ -114,7 +114,7 @@
 #include <taglib/mpeg/id3v2/frames/textidentificationframe.h>
 #include <string>
 
-#include "typetracker.h"
+// #include "typetracker.h"
 using namespace TagLib;
 
 #include <QProxyStyle>
@@ -368,6 +368,13 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     // emit ui->trebleSlider->valueChanged(ui->trebleSlider->value()); // force treble change, if treble slider preset before load
 
     cBass->Stop();
+
+#ifdef Q_OS_MACOS
+    // Update Now Playing info immediately after loading to register as active media app
+    // This allows F8 to work even before the first play
+    updateNowPlayingMetadata();
+    // printf("Updated Now Playing metadata after song load to enable F8 key\n");
+#endif
 
 }
 

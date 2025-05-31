@@ -24,7 +24,7 @@
        <enum>Qt::FocusPolicy::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="MusicTab">
        <attribute name="title">
@@ -4253,6 +4253,11 @@
          </layout>
         </item>
        </layout>
+      </widget>
+      <widget class="QWidget" name="TaminationsTab">
+       <attribute name="title">
+        <string>Taminations</string>
+       </attribute>
       </widget>
       <widget class="QWidget" name="DanceProgramsTab">
        <attribute name="title">

@@ -67,6 +67,7 @@
 #include "tablenumberitem.h"
 #include "tablelabelitem.h"
 #include "importdialog.h"
+#include "embeddedserver.h"
 #include "exportdialog.h"
 #include "songhistoryexportdialog.h"
 #include "calllistcheckbox.h"
@@ -2570,6 +2571,12 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     // read label names and IDs
     readLabelNames();
+
+    // embedded HTTP server for Taminations
+    startTaminationsServer();
+    
+    // Initialize Now Playing integration for iOS/watchOS remote control
+    setupNowPlaying();
 }
 // END CONSTRUCTOR ---------
 
@@ -4309,13 +4316,39 @@ void MainWindow::on_UIUpdateTimerTick(void)
 //    qDebug() << "VERTICAL SCROLL VALUE: " << ui->textBrowserCueSheet->verticalScrollBar()->value();
 
     Info_Seekbar(true);
-
+    
     // update the session coloring analog clock
     QTime time = QTime::currentTime();
     int theType = NONE;
 //    qDebug() << "Stream_State:" << cBass->Stream_State; //FIX
 //    if (cBass->Stream_State == BASS_ACTIVE_PLAYING) {
     uint32_t Stream_State = cBass->currentStreamState();
+    
+    // Update Now Playing info when state changes, and less frequently during playback  
+    static uint32_t lastStreamState = 0;
+    static int nowPlayingUpdateCounter = 0;
+    
+    bool stateChanged = (Stream_State != lastStreamState);
+    lastStreamState = Stream_State;
+    
+    if (songLoaded && (Stream_State == BASS_ACTIVE_PLAYING || Stream_State == BASS_ACTIVE_PAUSED || Stream_State == BASS_ACTIVE_STOPPED)) {
+        // Update immediately if state changed (play/pause/stop)
+        if (stateChanged) {
+            // printf("Stream state changed from %u to %u, updating Now Playing immediately\n", lastStreamState, Stream_State);
+            updateNowPlayingMetadata();
+            nowPlayingUpdateCounter = 0;
+        }
+        // Update periodically during playback for position updates (every 10 seconds)
+        else if (Stream_State == BASS_ACTIVE_PLAYING) {
+            nowPlayingUpdateCounter++;
+            if (nowPlayingUpdateCounter >= 10) {
+                // printf("Periodic Now Playing update during playback\n");
+                updateNowPlayingMetadata();
+                nowPlayingUpdateCounter = 0;
+            }
+        }
+    }
+    
     if (Stream_State == BASS_ACTIVE_PLAYING) {
         // if it's currently playing (checked once per second), then color this segment
         //   with the current segment type
@@ -4732,6 +4765,7 @@ void MainWindow::aboutBox()
     msgBox.setText(QString("<p><h2>SquareDesk, V") + QString(VERSIONSTRING) + QString(" (Qt") + QString(QT_VERSION_STR) + QString(")") + QString("</h2>") +
                    QString("<p>Visit our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: ") +
+                   QString("<a href=\"https://www.tamtwirlers.org/taminations\">Taminations</a>, ") +
                    QString("<a href=\"http://www.lynette.org/sd\">sd</a>, ") +
                    QString("<a href=\"https://github.com/yshurik/qpdfjs\">qpdfjs</a>, ") +
                    QString("<a href=\"https://juce.com\">JUCE</a>, ") +
@@ -4860,6 +4894,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         int cindex = ui->tabWidget->currentIndex();  // get index of tab, so we can see which it is
         bool tabIsCuesheet = (ui->tabWidget->tabText(cindex) == CUESHEET_TAB_NAME);
         bool tabIsSD = (ui->tabWidget->tabText(cindex) == "SD");
+        // bool tabIsTaminations = (ui->tabWidget->tabText(cindex) == "Taminations");
         bool tabIsDarkMode = (ui->tabWidget->tabText(cindex) == "Music");
 
         bool cmdC_KeyPressed = (KeyEvent->modifiers() & Qt::ControlModifier) && KeyEvent->key() == Qt::Key_C;
@@ -5586,6 +5621,9 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     songLoaded = true;  // now seekBar can be updated
     setInOutButtonState();
     loadingSong = false;
+
+    // Update Now Playing info with new song metadata
+    updateNowPlayingMetadata();
 
     // UPDATE THE WAVEFORM since load is complete! ---------------
 //    qDebug() << "end of second half of load...";
@@ -8610,6 +8648,9 @@ void MainWindow::on_darkStopButton_clicked()
     cBass->StopAllSoundEffects();  // and, it also stops ALL sound effects
 
     setNowPlayingLabelWithColor(currentSongTitle);
+    
+    // Update Now Playing info for remote control  
+    updateNowPlayingMetadata();
 
     ui->seekBarCuesheet->setValue(0);
         ui->darkSeekBar->setValue(0);
@@ -8692,6 +8733,9 @@ void MainWindow::on_darkPlayButton_clicked()
         }
         ui->darkPlayButton->setIcon(*darkPauseIcon);  // change PLAY to PAUSE
         ui->actionPlay->setText("Pause");
+        
+        // Update Now Playing info for remote control  
+        updateNowPlayingMetadata();
 
         // ui->songTable->setFocus(); // while playing, songTable has focus
 
@@ -8713,6 +8757,9 @@ void MainWindow::on_darkPlayButton_clicked()
         ui->actionPlay->setText("Play");
         // qDebug() << "on_play" << currentSongTitle;
         setNowPlayingLabelWithColor(currentSongTitle);
+
+        // Update Now Playing info for remote control  
+        updateNowPlayingMetadata();
 
         // restore focus
         if (oldFocusWidget != nullptr  && !tabIsSD) { // only set focus back on pause when tab is NOT SD

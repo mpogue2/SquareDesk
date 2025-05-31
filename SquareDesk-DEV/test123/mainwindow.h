@@ -80,7 +80,7 @@
 #include "math.h"
 
 #include "flexible_audio.h"
-
+#include "embeddedserver.h"
 
 #include "myslider.h"
 #include "preferencesdialog.h"
@@ -253,6 +253,9 @@ public:
     friend class CuesheetMatchingDebugDialog; // it can access private members of MainWindow
 
 //    double songLoadedReplayGain_dB;
+
+    EmbeddedServer *taminationsServer;
+    void startTaminationsServer(void);
 
     bool auditionPlaying = false;
     void auditionByKeyPress(void);
@@ -915,6 +918,15 @@ public:
     
     // Cuesheet Menu functions
     void setupCuesheetMenu();
+    
+    // Now Playing integration for iOS/watchOS remote control
+    void setupNowPlaying();
+    void updateNowPlayingMetadata();
+    void nowPlayingPlay();
+    void nowPlayingPause();
+    void nowPlayingNext();
+    void nowPlayingPrevious();
+    void nowPlayingSeek(double timeInSeconds);
 
 private:
     QString lastAudioDeviceName;
