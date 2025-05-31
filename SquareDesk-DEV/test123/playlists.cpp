@@ -2792,7 +2792,7 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
     }
 
     QString fullFilePath = PlaylistFileName;
-//    qDebug() << "fullFilePath: " << fullFilePath;
+    // qDebug() << "fullFilePath Save Playlist As: " << fullFilePath;
 
     // // not null, so save it in Settings (File Dialog will open in same dir next time)
     // QFileInfo fInfo(PlaylistFileName);
@@ -2849,6 +2849,8 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
         }
 
         ui->statusBar->showMessage(QString("Saved Playlist %1").arg(playlistShortName));
+
+        updateRecentPlaylistsList(fullFilePath); // remember this one in the "recently-used playlists" menu
     } else {
         ui->statusBar->showMessage(QString("ERROR: could not save playlist to CSV file."));
     }
