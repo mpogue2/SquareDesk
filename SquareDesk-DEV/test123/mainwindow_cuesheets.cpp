@@ -838,6 +838,10 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
 
 void MainWindow::betterFindPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets) {
 
+    // if it's a patter MP3, then do NOT match it against anything in the lyrics folder
+    QString fileCategory = filepath2SongCategoryName(MP3Filename); // get the CATEGORY name
+    bool fileCategoryIsPatter = (fileCategory == "patter");
+
     QFileInfo mp3FileInfo(MP3Filename);
     // QString mp3CanonicalPath = mp3FileInfo.canonicalPath();
     QString mp3CompleteBaseName = mp3FileInfo.completeBaseName();
@@ -848,7 +852,14 @@ void MainWindow::betterFindPossibleCuesheets(const QString &MP3Filename, QString
     while (iter.hasNext()) {
         QString s = iter.next();
         QStringList sl1 = s.split("#!#");
-        // QString type = sl1[0];  // the type (of original pathname, before following aliases)
+        QString type = sl1[0];  // the type (of original pathname, before following aliases)
+
+        if (fileCategoryIsPatter && (type=="lyrics")) {
+            // if it's a patter MP3, then do NOT match it against anything in the lyrics folder
+            // qDebug() << "NOT maching patter MP3 vs cuesheet in lyrics folder" << sl1[1];
+            continue;
+        }
+
         QString cuesheetFilename = sl1[1];  // everything else
         QFileInfo cuesheetFileInfo(cuesheetFilename);
         QString cuesheetCompleteBaseName = cuesheetFileInfo.completeBaseName();
@@ -1079,7 +1090,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 
 bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCuesheet, QString nextFilename)
 {
-    // qDebug() << "loadCuesheets" << MP3FileName << prefCuesheet << nextFilename;
+    qDebug() << "loadCuesheets" << MP3FileName << prefCuesheet << nextFilename;
 
     // if we're loading cuesheets, check to make sure we were not in the process
     //  of editing one already, and if so, ask what to do.
