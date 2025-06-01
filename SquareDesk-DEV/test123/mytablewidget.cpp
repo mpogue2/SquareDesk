@@ -868,7 +868,7 @@ void MyTableWidget::dropEvent(QDropEvent *event)
 
     if (sourceName == destName) {
         // INTERNAL MOVE/REORDER ===================
-        qDebug() << "INTERNAL MOVE/REORDER";
+        // qDebug() << "INTERNAL MOVE/REORDER";
 
         QList<int> selRows;
         foreach (const QModelIndex &mi, selectionModel()->selectedRows()) {

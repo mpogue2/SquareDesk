@@ -354,6 +354,7 @@ int compareSortedWordListsForRelevance(const QStringList &l1, const QStringList 
 }
 
 int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit *debugOut) {
+    // qDebug() << fn << cn;  // fn and cn are basenames only, e.g. "ESP 1041 - All Of Me" and "RIV 426 - Lion Sleeps Tonight MS"
     if (debugOut != nullptr) {
         debugOut->append("=== MP3 FILENAME vs CUESHEET NAME SCORING DEBUG ===");
         debugOut->append(QString("Song filename: %1").arg(fn));
@@ -838,6 +839,10 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
 
 void MainWindow::betterFindPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets) {
 
+    // if it's a patter MP3, then do NOT match it against anything in the lyrics folder
+    QString fileCategory = filepath2SongCategoryName(MP3Filename); // get the CATEGORY name
+    bool fileCategoryIsPatter = (fileCategory == "patter");
+
     QFileInfo mp3FileInfo(MP3Filename);
     // QString mp3CanonicalPath = mp3FileInfo.canonicalPath();
     QString mp3CompleteBaseName = mp3FileInfo.completeBaseName();
@@ -848,7 +853,14 @@ void MainWindow::betterFindPossibleCuesheets(const QString &MP3Filename, QString
     while (iter.hasNext()) {
         QString s = iter.next();
         QStringList sl1 = s.split("#!#");
-        // QString type = sl1[0];  // the type (of original pathname, before following aliases)
+        QString type = sl1[0];  // the type (of original pathname, before following aliases)
+
+        if (fileCategoryIsPatter && (type=="lyrics")) {
+            // if it's a patter MP3, then do NOT match it against anything in the lyrics folder
+            // qDebug() << "NOT maching patter MP3 vs cuesheet in lyrics folder" << sl1[1];
+            continue;
+        }
+
         QString cuesheetFilename = sl1[1];  // everything else
         QFileInfo cuesheetFileInfo(cuesheetFilename);
         QString cuesheetCompleteBaseName = cuesheetFileInfo.completeBaseName();
@@ -1457,10 +1469,14 @@ void MainWindow::cuesheetListDownloadEnd() {
         numChecked++;
 
         for (i = musicFiles.begin(); i != musicFiles.end(); ++i) {
-            if (fuzzyMatchFilenameToCuesheetname(*i, *j)) {
+            // qDebug() << "cuesheetListDownloadEnd" << *i << *j;
+            // *i and *j are basenames, but they still have .mp3 and .html on the end
+            QFileInfo ii(*i);
+            QFileInfo jj(*j);
+            if (MP3FilenameVsCuesheetnameScore(ii.completeBaseName(), jj.completeBaseName()) > 0) {
                 // yes, let's download it, if we don't have it already.
                 maybeFilesToDownload.append(*j);
-//                qDebug() << "Will maybe download: " << *j;
+                // qDebug() << "Will maybe download: " << *j << "matches: " << *i;
                 break;  // once we've decided to download this file, go on and look at the NEXT cuesheet
             }
         }
@@ -1592,14 +1608,14 @@ QList<QString> MainWindow::getListOfCuesheets() {
 //            static QRegularExpression regex_cuesheetName("^<li><a href=\"(.*?)\">(.*)</a></li>$"); // don't be greedy!
             static QRegularExpression regex_cuesheetName("^.*<a href=\"(.*?)\">(.*)</a>.*$"); // don't be greedy!
             QRegularExpressionMatch match = regex_cuesheetName.match(line);
-//            qDebug() << "line: " << line;
+            // qDebug() << "line: " << line;
             if (match.hasMatch())
             {
 //                QString cuesheetFilename(match.captured(2).trimmed());
                 // we do NOT want the elided filename ending in ".."
                 // AND we want to replace HTML-encoded spaces with real spaces
                 QString cuesheetFilename(match.captured(1).replace("%20"," ").trimmed());
-//                qDebug() << "****** Cloud has cuesheet: " << cuesheetFilename << " *****";
+                // qDebug() << "****** Cloud has cuesheet: " << cuesheetFilename << " *****";
 
                 list.append(cuesheetFilename);
 //                downloadCuesheetFileIfNeeded(cuesheetFilename, &musicFiles);

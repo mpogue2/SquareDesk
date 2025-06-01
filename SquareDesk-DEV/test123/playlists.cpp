@@ -1634,9 +1634,10 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     bool isAppleMusicFile = theRealPath.contains("/iTunes/iTunes Media/");
     bool isDarkSongTable = (whichTable == ui->darkSongTable);
 
-    // qDebug() << "setTitleField" << isPlaylist << whichRow << relativePath << PlaylistFileName << theRealPath;
     static QRegularExpression dotMusicSuffix("\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption); // match with music extensions
     QString shortTitle = relativePath.split('/').last().replace(dotMusicSuffix, "");
+
+    // qDebug() << "setTitleField:" << isPlaylist << whichRow << relativePath << PlaylistFileName << theRealPath << shortTitle;
 
     // example:
     // list1[0] = "/singing/BS 2641H - I'm Beginning To See The Light.mp3"
@@ -2797,7 +2798,7 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
     }
 
     QString fullFilePath = PlaylistFileName;
-//    qDebug() << "fullFilePath: " << fullFilePath;
+    // qDebug() << "fullFilePath Save Playlist As: " << fullFilePath;
 
     // // not null, so save it in Settings (File Dialog will open in same dir next time)
     // QFileInfo fInfo(PlaylistFileName);
@@ -2854,6 +2855,8 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
         }
 
         ui->statusBar->showMessage(QString("Saved Playlist %1").arg(playlistShortName));
+
+        updateRecentPlaylistsList(fullFilePath); // remember this one in the "recently-used playlists" menu
     } else {
         ui->statusBar->showMessage(QString("ERROR: could not save playlist to CSV file."));
     }
@@ -3340,11 +3343,84 @@ void MainWindow::getLocalPlaylists() {
     // qDebug() << "getLocalPlaylists ==================";
 }
 
+QString MainWindow::makeCanonicalRelativePath(QString s) {
+    // input:  "/patter/Hello Test Backwards - AAA 102.mp3"
+    // output: "/patter/AAA 102 - Hello Test Backwards.mp3"
+    //
+    // input:  "/patter/AAA 102 - Hello Test Canonical.mp3"
+    // output: "/patter/AAA 102 - Hello Test Canonical.mp3"
+
+    // qDebug() << "makeCanonicalRelativePath:" << s;
+
+    QStringList sl1 = s.split("/");
+    int lastItem = sl1.count() - 1;
+
+    QFileInfo fi1(sl1[lastItem]);
+    QString name = fi1.completeBaseName();
+    QString suffix = fi1.suffix();
+
+    // qDebug() << "suffix:" << suffix;
+
+    // NOTE: THIS NEEDS TO MATCH STEP 5 IN MP3FilenameVsCuesheetnameScore()
+    //   TODO: Factor this code out into a separate function
+    //
+    // Step 5: Parse the filenames to extract components
+    // Try to identify label, label number, label extra, and title
+    struct ParsedName {
+        QString label;
+        QString labelNum;
+        QString labelExtra;
+        QString title;
+        QString canonicalTitle;
+        bool reversed = false;
+    };
+
+    ParsedName result;
+
+    // Try standard format: LABEL NUM[EXTRA] - TITLE
+    QRegularExpression stdFormat("^([A-Za-z ]{1,20})\\s*([0-9]{1,5})([A-Za-z]{0,4})?\\s*-\\s*(.+)$",
+                                 QRegularExpression::CaseInsensitiveOption);
+
+    // Try reversed format: TITLE - LABEL NUM[EXTRA]
+    QRegularExpression revFormat("^(.+)\\s*-\\s*([A-Za-z ]{1,20})\\s*([0-9]{1,5})([A-Za-z]{0,4})?$",
+                                 QRegularExpression::CaseInsensitiveOption);
+
+    QRegularExpressionMatch match = stdFormat.match(name);
+    if (match.hasMatch()) {
+        // NORMAL ORDER, e.g. "AAA 102 - Foo Bar.mp3"
+        result.label = match.captured(1);
+        result.labelNum = match.captured(2);
+        result.labelExtra = match.captured(3);
+        result.title = match.captured(4);
+        result.reversed = false;
+        result.canonicalTitle = s; // no change
+        // qDebug() << "makeCanonicalRelativePath: NORMAL ORDER: " << name << result.canonicalTitle;
+    } else {
+        match = revFormat.match(name);
+        if (match.hasMatch()) {
+            // REVERSED ORDER, e.g. "Foo Bar - AAA 102.mp3"
+            result.title = match.captured(1);
+            result.label = match.captured(2);
+            result.labelNum = match.captured(3);
+            result.labelExtra = match.captured(4);
+            result.reversed = true;
+            sl1[lastItem] = result.label + result.labelNum + " - " + result.title.simplified() + "." + suffix;
+            result.canonicalTitle = sl1.join("/");
+            // qDebug() << "makeCanonicalRelativePath: REVERSED ORDER: " << result.canonicalTitle;
+        } else {
+            // If no match, just consider the whole thing as title
+            result.canonicalTitle = s;
+        }
+    }
+
+    return(result.canonicalTitle);
+}
+
 void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, const QString &thePitch, const QString &theTempo, const QString &theFullPath, const QString &extra, int insertRowNum) {
     Q_UNUSED(trackName)
     Q_UNUSED(extra)
 
-    // qDebug() << "darkAddPlaylistItemAt" << whichSlot << trackName << theFullPath << insertRowNum;
+    // qDebug() << "darkAddPlaylistItemAt:" << whichSlot << trackName << extra << theFullPath << insertRowNum;
 
     MyTableWidget *destTableWidget;
     QString PlaylistFileName = "foobar";
@@ -3375,7 +3451,11 @@ void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, 
     QString absPath = theFullPath; // already is fully qualified
 
     theRelativePath.replace(musicRootPath, "");
-    setTitleField(destTableWidget, insertRowNum, theRelativePath, true, PlaylistFileName, theRelativePath); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
+    // qDebug() << "darkAddPlaylistItemAt calling setTitleField" << theRelativePath;
+
+    QString theCanonicalRelativePath = makeCanonicalRelativePath(theRelativePath);
+
+    setTitleField(destTableWidget, insertRowNum, theCanonicalRelativePath, true, PlaylistFileName, theRelativePath); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
 
     // PITCH column
     QTableWidgetItem *pit = new QTableWidgetItem(thePitch);
