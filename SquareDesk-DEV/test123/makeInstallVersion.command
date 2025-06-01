@@ -25,6 +25,8 @@ fi
 # check we are in a build directory
 echo checking that we are in suitable directory, PWD = $PWD
 echo $PWD | grep -E -q 'build.*Qt.*macOS-(Debug|Release)/test123$' || { echo invalid directory ; exit 1; }
+APP_INFO_PLIST=$PWD/SquareDesk.app/Contents/Info.plist 
+test -f $APP_INFO_PLIST || { echo missing $APP_INFO_PLIST ; exit 1; }
 
 # we need to be in the directory above the test123 directory
 cd ..
@@ -48,7 +50,9 @@ APP_NAME="SquareDesk"
 if [ "$1" != "" ]; then
     VERSION="$1"
 else
-    VERSION="1.0.30"  # Default version if none provided
+    # get default from Info.plist
+    VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $APP_INFO_PLIST)
+    echo "VERSION is $VERSION"
 fi
 
 QT_VERSION=$(echo $PWD | sed -e 's/.*Qt_//' -e 's/_for.*//')
@@ -78,7 +82,7 @@ echo "---------------------------"
 echo
 
 # ----------------------------------------------------------------------------------------
-echo Now making Install/SquareDesk_<version>.app ....
+echo "Now making Install/SquareDesk_<version>.app ...."
 
 # you should not need to change these
 APP_EXE="${APP_NAME}.app/Contents/MacOS/${APP_NAME}"

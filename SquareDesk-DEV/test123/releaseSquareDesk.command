@@ -28,9 +28,8 @@ done
 
 # Validate required parameters
 if [ -z "$APP_SPECIFIC_PWD" ]; then
-    echo "Error: --app-specific-pwd parameter is required"
-    echo "Usage: $0 --app-specific-pwd <app_specific_password> [--certid <certificate_id>]"
-    exit 1
+    echo "Warning: --app-specific-pwd parameter not supplied, so only notorizing will not be done"
+    echo "         and only self signing will be done"
 fi
 
 echo "Starting SquareDesk Release Process..."
@@ -75,13 +74,17 @@ echo "SquareDesk fixed and signed successfully."
 echo
 
 # Step 3: Notarize SquareDesk
-echo "Step 3: Notarizing SquareDesk..."
-./notarizeSquareDesk.command --app_specific_pwd "$APP_SPECIFIC_PWD"
-if [ $? -ne 0 ]; then
-    echo "Error: notarizeSquareDesk.command failed. Aborting release process."
-    exit 1
+if [ ! -z "$APP_SPECIFIC_PWD" ] ; then
+    echo "Step 3: Notarizing SquareDesk..."
+    ./notarizeSquareDesk.command --app_specific_pwd "$APP_SPECIFIC_PWD"
+    if [ $? -ne 0 ]; then
+	echo "Error: notarizeSquareDesk.command failed. Aborting release process."
+	exit 1
+    fi
+    echo "SquareDesk notarized successfully."
+else
+    echo No --app-specific-pwd supplied, so not notarizing SquareDesk
 fi
-echo "SquareDesk notarized successfully."
 echo
 
 # Step 4: Create DMG
