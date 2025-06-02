@@ -315,7 +315,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     lyricsTabNumber = 1;
     lyricsForDifferentSong = false;
     cueSheetLoaded = false;
-
+    override_filename = "";
+    override_cuesheet = "";
+    
     lastSavedPlaylist = "";  // no playlists saved yet in this session
     playlistHasBeenModified = false; // playlist hasn't been modified yet
 
@@ -3187,6 +3189,7 @@ void MainWindow::on_comboBoxCallListProgram_currentIndexChanged(int currentIndex
 }
 
 
+
 void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex)
 {
 //    qDebug() << "on_comboBoxCuesheetSelector_currentIndexChanged currentIndex = " << currentIndex;
@@ -3201,6 +3204,9 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
 
         QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(currentIndex).toString();
 //        qDebug() << "on_comboBoxCuesheetSelector_currentIndexChanged is about to load: " << cuesheetFilename;
+        if (override_filename != "") {
+            saveCuesheet(override_filename, cuesheetFilename);
+        }
         loadCuesheet(cuesheetFilename);
     }
 }
@@ -6953,6 +6959,28 @@ void MainWindow::saveCurrentSongSettings()
 
 
 }
+
+// Save just the cuesheet.  This is called when "Load Cuesheets" has been called and
+// using the dropdown menu a different cuesheet has been selected.
+// We need to do it here because this song (songFilename) is different
+// from the current song playing (currentMP3filenameWithPath).
+void MainWindow::saveCuesheet(const QString songFilename, const QString cuesheetFilename) {
+//    SongSetting oldSettings;
+//    QString prevcuesheetName = "";
+//    if (songSettings.loadSettings(songFilename, oldSettings)) {
+//        if (oldSettings.isSetCuesheetName()) {
+//            prevcuesheetName = oldSettings.getCuesheetName();
+//            qDebug() << "Cuesheet for " << songFilename
+//                     << " was " << prevcuesheetName;
+//        }
+//    }
+    SongSetting setting;
+    setting.setCuesheetName(cuesheetFilename);
+    songSettings.saveSettings(songFilename, setting);
+//    qDebug() << "Cuesheet for " << songFilename
+//             << " changed to " << cuesheetFilename;
+}
+
 
 QString MainWindow::convertCuesheetPathNameToCurrentRoot(QString str1) {
     // attempts to converts any pathname (even one from an old musicRoot) to a full absolute pathname

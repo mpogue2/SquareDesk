@@ -1036,7 +1036,9 @@ private:
     bool songLoaded;
     bool fileModified;
     bool lyricsForDifferentSong;
-
+    QString override_filename;
+    QString override_cuesheet;  // cuesheet selected when in "Load Cuesheets" menu item
+    
     // SEARCH --------------
     QString typeSearch, labelSearch, titleSearch;
     bool searchAllFields;
@@ -1068,6 +1070,7 @@ private:
 
     void writeCuesheet(QString filename);
     void saveCurrentSongSettings();
+    void saveCuesheet(const QString songFilename, const QString cuesheetFilename);
     void loadSettingsForSong(QString songTitle);
     bool compareCuesheetPathNamesRelative(QString str1, QString str2);
     QString convertCuesheetPathNameToCurrentRoot(QString str1);

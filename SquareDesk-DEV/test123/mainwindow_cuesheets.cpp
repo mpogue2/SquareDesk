@@ -1090,7 +1090,8 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 
 void MainWindow::maybeLoadCuesheets(const QString &MP3FileName, const QString cuesheetFilename) {
     loadCuesheets(MP3FileName, cuesheetFilename);
-    // ui->comboBoxCuesheetSelector->clear();
+    override_filename = MP3FileName;
+    override_cuesheet = cuesheetFilename;
     actionSwitchToTab("Cuesheet");
 }
 
