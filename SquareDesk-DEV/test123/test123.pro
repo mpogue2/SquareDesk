@@ -1010,6 +1010,7 @@ OBJECTIVE_SOURCES += \
 
 DISTFILES += \
     ../../README.md \
+    ../juce-install \
     CurrentKeyAssignments.txt \
     Info.plist \
     LICENSE.GPL3 \
