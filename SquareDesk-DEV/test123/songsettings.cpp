@@ -218,6 +218,9 @@ RowDefinition song_rows[] =
     RowDefinition("tags", "text"),
     RowDefinition("replayGain", "float"),  // NULL = not set yet, else replayGain in dB
 
+    // Adding a new per-song setting?  This is location 2 out of 6 to change.
+    RowDefinition("VSTsettings", "text"),  // NULL = not set yet, else "LoudMax:123,456,789,123;OtherPlugin:a,b,c"
+
     RowDefinition(nullptr, nullptr), // NULL, NULL),
 };
 
@@ -910,6 +913,9 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     if (settings.isSetTags()) { fields.append("tags"); }
 //    if (settings.isSetReplayGain()) { fields.append("replayGain"); }
 
+    // Adding a new per-song setting?  This is location 3 out of 6 to change.
+    if (settings.isSetVSTsettings()) { fields.append("vstSettings"); }
+
 //    qDebug() << "saveSettings: " << fields;
 
     QSqlQuery q(m_db);
@@ -982,6 +988,9 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     q.bindValue(":tags", settings.getTags());
 //    q.bindValue(":replayGain", settings.getReplayGain());
 
+    // Adding a new per-song setting?  This is location 4 out of 6 to change.
+    q.bindValue(":vstSettings", settings.getVSTsettings());
+
     exec("saveSettings", q);
 }
 
@@ -1005,13 +1014,17 @@ void setSongSettingFromSQLQuery(QSqlQuery &q, SongSetting &settings)
     if (!q.value(14).isNull()) { settings.setLoop(q.value(14).toInt()); }
     if (!q.value(15).isNull()) { settings.setTags(q.value(15).toString()); }
 //    if (!q.value(16).isNull()) { settings.setReplayGain(q.value(16).toFloat()); }
+
+    // Adding a new per-song setting?  This is location 5 out of 6 to change.
+    if (!q.value(16).isNull()) { settings.setVSTsettings(q.value(16).toString()); }
 }
 
 bool SongSettings::loadSettings(const QString &filenameWithPath,
                                 SongSetting &settings)
 {
 //    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags, replayGain FROM songs WHERE ";
-    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags FROM songs WHERE ";
+    // Adding a new per-song setting?  This is location 6 out of 6 to change.
+    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags, VSTsettings FROM songs WHERE ";
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
 
 //    qDebug() << "********* DEBUG get/setSongMarkers **********";

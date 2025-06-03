@@ -6910,6 +6910,14 @@ void MainWindow::saveCurrentSongSettings()
 
 //        setting.setReplayGain();  // TODO:
 
+        // only update the LoudMax setting if the LoudMax plugin is present.
+        //  otherwise, leave it alone.  This prevents SquareDesk from erasing previous
+        //  LoudMax settings, if transferring to a laptop that temporarily does not
+        //  have LoudMax installed.
+        if (loudMaxPlugin != nullptr) {
+            setting.setVSTsettings(getCurrentLoudMaxSettings()); // get parameters from LoudMax plugin, and persist them
+        }
+
         if (ui->actionLoop->isChecked()) {
             setting.setLoop( 1 );
         } else {
@@ -7186,6 +7194,11 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         ui->darkMidKnob->setValue(SliderToKnob(0));
         // ui->mixSlider->setValue(0);
     }
+
+    // LoudMax settings for this song -----------------
+    if (settings.isSetVSTsettings()) {
+        // qDebug() << "Calling setLoudMaxFromPersistedSettings from loadSettingsFor Song...";
+        setLoudMaxFromPersistedSettings(settings.getVSTsettings()); } // ADDED *****
 }
 
 void MainWindow::loadGlobalSettingsForSong(QString songTitle) {

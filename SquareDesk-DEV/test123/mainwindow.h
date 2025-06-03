@@ -1542,6 +1542,9 @@ public:
     // juce::DocumentWindow *loudMaxWin;
     std::unique_ptr<juce::DocumentWindow> loudMaxWin;
     void scanForPlugins();
+
+    QString getCurrentLoudMaxSettings();
+    void setLoudMaxFromPersistedSettings(QString s);
 #endif
 };
 

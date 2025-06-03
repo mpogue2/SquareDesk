@@ -164,32 +164,149 @@ void MainWindow::scanForPlugins() {
         }
     }
 #else
-    // ALTERNATE: does this work?  Why yes, it does. This is way simpler, if we are only loading
-    //    1 plugin from a known location.
-    //    https://forum.juce.com/t/instantiate-plug-in/34099/2
-    PluginDescription altDesc;
+    // Try VST2 version first (often more compatible), then VST3, then AudioUnit
+    PluginDescription vstDesc;
     File home = File::getSpecialLocation(File::SpecialLocationType::userHomeDirectory);
-    altDesc.fileOrIdentifier = home.getChildFile("Library/Audio/Plug-Ins/Components/LoudMax.component").getFullPathName();
-    altDesc.pluginFormatName = "AudioUnit";
+    
+    // // First try VST2 version (more compatible with older JUCE versions)
+    // vstDesc.fileOrIdentifier = home.getChildFile("Library/Audio/Plug-Ins/VST/LoudMax.vst").getFullPathName();
+    // vstDesc.pluginFormatName = "VST";
+    
+    // qDebug() << "Trying VST2 version at:" << vstDesc.fileOrIdentifier.toStdString().c_str();
+    
+    // // Check if VST2 file exists
+    // File vstFile(vstDesc.fileOrIdentifier);
+    // if (!vstFile.exists()) {
+    //     qDebug() << "VST2 not found, trying VST3...";
+    //     // Try VST3 version
+    //     vstDesc.fileOrIdentifier = home.getChildFile("Library/Audio/Plug-Ins/VST3/LoudMax.vst3").getFullPathName();
+    //     vstDesc.pluginFormatName = "VST3";
+        
+    //     vstFile = File(vstDesc.fileOrIdentifier);
+    //     if (!vstFile.exists()) {
+    //         qDebug() << "VST3 not found, falling back to AudioUnit...";
+    //         // Fallback to AudioUnit
+    //         vstDesc.fileOrIdentifier = home.getChildFile("Library/Audio/Plug-Ins/Components/LoudMax.component").getFullPathName();
+    //         vstDesc.pluginFormatName = "AudioUnit";
+    //     }
+    // }
+
+    // Try VST3 version
+    vstDesc.fileOrIdentifier = home.getChildFile("Library/Audio/Plug-Ins/VST3/LoudMax.vst3").getFullPathName();
+    vstDesc.pluginFormatName = "VST3";
+
+    File vstFile(vstDesc.fileOrIdentifier);
+    // vstFile = File(vstDesc.fileOrIdentifier);
+    if (!vstFile.exists()) {
+        // qDebug() << "VST3 not found, falling back to AudioUnit...";
+        // Fallback to AudioUnit
+        vstDesc.fileOrIdentifier = home.getChildFile("Library/Audio/Plug-Ins/Components/LoudMax.component").getFullPathName();
+        vstDesc.pluginFormatName = "AudioUnit";
+    }
+
+    // qDebug() << "Using plugin format:" << vstDesc.pluginFormatName.toStdString().c_str();
+    // qDebug() << "Plugin path:" << vstDesc.fileOrIdentifier.toStdString().c_str();
 #endif
     // HOW TO INSTANTIATE A PLUGIN
     // https://forum.juce.com/t/instantiate-plug-in/34099/2
 
-    String error;
+    String errorMessage;
     AudioPluginFormatManager plugmgr;
     plugmgr.addDefaultFormats();
 
-    // std::unique_ptr<AudioPluginInstance> loudMaxPlugin =
 #ifdef OLDSCAN
     loudMaxPlugin =
         plugmgr.createPluginInstance(loudMaxPluginDescription, 44100.0, 512, error); // THIS WORKS
 #else
-    loudMaxPlugin =
-        plugmgr.createPluginInstance(altDesc, 44100.0, 512, error);  // THIS WORKS (and we could ship with an embedded copy of LoudMax?)
+    // For the direct file approach, we need to scan the plugin file first
+    // qDebug() << "Scanning plugin file to get proper description...";
+    // qDebug() << "Available plugin formats:";
+    // for (auto* format : plugmgr.getFormats()) {
+    //     qDebug() << "  -" << format->getName().toStdString().c_str();
+    // }
+    
+    PluginDescription foundDesc;
+    bool pluginFound = false;
+    
+    File pluginFile(vstDesc.fileOrIdentifier);
+    if (pluginFile.exists()) {
+        // qDebug() << "Plugin file exists, attempting to scan...";
+        
+        // Get the appropriate format for scanning
+        for (auto* format : plugmgr.getFormats()) {
+            // qDebug() << "Checking format:" << format->getName().toStdString().c_str() << "vs" << vstDesc.pluginFormatName.toStdString().c_str();
+            if (format->getName() == vstDesc.pluginFormatName) {
+                // qDebug() << "Found format manager for:" << format->getName().toStdString().c_str();
+                
+                try {
+                    OwnedArray<PluginDescription> descriptions;
+                    format->findAllTypesForFile(descriptions, vstDesc.fileOrIdentifier);
+                    
+                    // qDebug() << "Found" << descriptions.size() << "plugin(s) in file";
+                    
+                    if (descriptions.size() > 0) {
+                        foundDesc = *descriptions[0]; // Use first plugin found
+                        pluginFound = true;
+                        // qDebug() << "Using plugin:" << foundDesc.name.toStdString().c_str()
+                        //          << format->getName().toStdString().c_str()
+                        //          << vstDesc.fileOrIdentifier.toStdString().c_str();
+                        QString theToolTip = QString("LoudMax: ") + format->getName().toStdString().c_str() + " Compressor\n" +
+                            "Per-song compression settings ENABLED";
+                        // if (QString(format->getName().toStdString().c_str()) == "AudioUnit") {
+                        //     theToolTip += " DISABLED";
+                        // } else {
+                        //     theToolTip += " ENABLED";
+                        // }
+                        ui->FXbutton->setToolTip(theToolTip);
+                        break;
+                    } else {
+                        qDebug() << "No plugins found in file by" << format->getName().toStdString().c_str();
+                    }
+                } catch (const std::exception& e) {
+                    qDebug() << "Exception during plugin scan:" << e.what();
+                } catch (...) {
+                    qDebug() << "Unknown exception during plugin scan";
+                }
+            }
+        }
+    }
+    
+    if (pluginFound) {
+        loudMaxPlugin = plugmgr.createPluginInstance(foundDesc, 44100.0, 512, errorMessage);
+        if (loudMaxPlugin == nullptr) {
+            qDebug() << "ERROR 101: " << QString::fromStdString(errorMessage.toStdString());
+        }
+    } else {
+        // qDebug() << "Could not scan plugin file, falling back to AudioUnit...";
+        // Fallback to AudioUnit with proper scanning
+        File auFile = File::getSpecialLocation(File::SpecialLocationType::userHomeDirectory)
+                        .getChildFile("Library/Audio/Plug-Ins/Components/LoudMax.component");
+        
+        if (auFile.exists()) {
+            for (auto* format : plugmgr.getFormats()) {
+                if (format->getName() == "AudioUnit") {
+                    OwnedArray<PluginDescription> descriptions;
+                    format->findAllTypesForFile(descriptions, auFile.getFullPathName());
+                    
+                    if (descriptions.size() > 0) {
+                        loudMaxPlugin = plugmgr.createPluginInstance(*descriptions[0], 44100.0, 512, errorMessage);
+                        if (loudMaxPlugin == nullptr) {
+                            qDebug() << "ERROR 102: " << QString::fromStdString(errorMessage.toStdString());
+                        }
+                        // qDebug() << "Loaded AudioUnit fallback successfully";
+                        ui->FXbutton->setToolTip("LoudMax: AU Compressor\nPer-song compression settings ENABLED");
+                        break;
+                    }
+                }
+            }
+        } else {
+            // qDebug() << "LoudMax AU file does not exist.";
+        }
+    }
 #endif
 
     if (loudMaxPlugin == nullptr) {
-        qDebug() << error.toStdString(); // there was an error in loading
+        // qDebug() << "ERROR 103: " << errorMessage.toStdString(); // there was an error in loading
         ui->FXbutton->setVisible(false);
         return;
     } else {
@@ -405,3 +522,118 @@ void PluginWindow::syncWindowLevelsNative(WId mainWindowId, void* pluginWindowHa
 #endif
 }
 #endif // Q_OS_MAC
+
+// =============================================================================
+// PER-SONG PERSISTANCE OF LOUDMAX PARAMS
+
+// Array< AudioProcessorParameter * > parms = loudMaxPlugin->getParameters();
+// for (auto a : parms) {
+//     qDebug() << "LoudMax parameter:"
+//              << a->getName(15).toStdString()
+//              << a->getCurrentValueAsText().toStdString();
+//     for (auto b : a->getAllValueStrings()) {
+//         qDebug() << "   possible value:" << b.toStdString();
+//     }
+// }
+
+// LoudMax parameter: "Thresh" "0.0"
+// LoudMax parameter: "Output" "0.0"
+// LoudMax parameter: "Fader Link" "Off"
+//     possible value: "Off"
+//     possible value: "On"
+// LoudMax parameter: "ISP Detection" "Off"
+//     possible value: "Off"
+//     possible value: "On"
+// LoudMax parameter: "Large GUI" "Off"
+//     possible value: "Off"
+//     possible value: "On"
+
+// // auto paramThresh = loudMaxPlugin->getHostedParameter(0); // 0.0 - 1.0 maps to -30 - 0 dB threshold. This is the important one.
+// // auto paramOutput = loudMaxPlugin->getHostedParameter(1); // OK to leave at 1.0 = 0.0dB output
+// // auto paramFaderLink = loudMaxPlugin->getHostedParameter(2); // leave at OFF. We do not need to link the Thresh and Output faders.
+// // auto paramISPDetect = loudMaxPlugin->getHostedParameter(3); // leave at OFF. We do not need to detect peaks BETWEEN samples (takes lots of CPU).
+// // auto paramLargeGUI = loudMaxPlugin->getHostedParameter(4);  // leave at OFF. We do not use the GUI right now.
+
+// qDebug() << "Before: " << paramThresh->getValue()
+//          << paramThresh->getCurrentValueAsText().toStdString()
+//          << paramThresh->getDefaultValue();
+// paramThresh->setValue(0.5);
+// qDebug() << "After: " << paramThresh->getValue()
+//          << paramThresh->getCurrentValueAsText().toStdString()
+//          << paramThresh->getDefaultValue();
+
+QString MainWindow::getCurrentLoudMaxSettings() {
+
+    if (loudMaxPlugin == nullptr) {
+        return("");  // no LoudMax, so return empty string nothing to do
+    }
+
+    QStringList persistParameters;
+    Array< AudioProcessorParameter * > parms = loudMaxPlugin->getParameters();
+    for (auto a : parms) {
+        // qDebug() << "getCurrentLoudMaxSettings: LoudMax parameter:"
+        //          << a->getName(15).toStdString()
+        //          << a->getCurrentValueAsText().toStdString()
+        //          << a->getValue();
+        persistParameters.append(QString::fromStdString(a->getName(15).toStdString()) + "=" + QString::number(a->getValue()));
+        // for (auto b : a->getAllValueStrings()) {
+        //     qDebug() << "   possible value:" << b.toStdString();
+        // }
+    }
+
+    QString persistParameterString = QString("LoudMax:") + persistParameters.join(",");
+    // qDebug() << "getCurrentLoudMaxSettings:" << persistParameterString;
+
+    return(persistParameterString);  // e.g. "LoudMax:Thresh=0.9,Output=1.0, ... "
+}
+
+void MainWindow::setLoudMaxFromPersistedSettings(QString persistParameterString) {
+    // qDebug() << "setLoudMaxFromPersistedSettings:" << persistParameterString;
+
+    if (loudMaxPlugin == nullptr) {
+        return; // no LoudMax plugin loaded
+    }
+
+    // Parse the settings string to extract parameter values
+    if (!persistParameterString.startsWith("LoudMax:")) {
+        return; // not a LoudMax settings string
+    }
+
+    QString paramString = persistParameterString.mid(8); // remove "LoudMax:" prefix
+    QStringList params = paramString.split(",");
+    
+    // Parse all parameters
+    QMap<QString, float> paramValues;
+    for (const QString& param : params) {
+        QStringList keyVal = param.split("=");
+        if (keyVal.size() == 2) {
+            QString key = keyVal[0].trimmed();
+            float value = keyVal[1].toFloat();
+            paramValues[key] = value;
+            
+            // // Convert threshold to dB for logging
+            // if (key == "Thresh") {
+            //     float thresholdDB = -30.0f + (value * 30.0f); // 0.0→-30dB, 1.0→0dB
+            //     qDebug() << "Setting LoudMax" << key << "to" << thresholdDB << "dB (parameter value:" << value << ")";
+            // } else {
+            //     qDebug() << "Setting LoudMax" << key << "to" << value;
+            // }
+        }
+    }
+
+    // Apply parameters to the plugin
+    auto parameters = loudMaxPlugin->getParameters();
+    for (int i = 0; i < parameters.size(); ++i) {
+        auto* param = loudMaxPlugin->getHostedParameter(i);
+        QString paramName = QString::fromStdString(param->getName(15).toStdString());
+        
+        if (paramValues.contains(paramName)) {
+            float value = paramValues[paramName];
+            param->setValue(value);
+            param->sendValueChangedMessageToListeners(value);
+        }
+    }
+
+    // qDebug() << "LoudMax parameters applied successfully.";
+}
+
