@@ -515,7 +515,7 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
     beforeNewBeatProcessing = mp3Name;
     mp3Name.replace(NewBeatAndNumber, "NB \\1");
 
-    if (debugOut != nullptr && beforeNewBeatProcessing != cuesheetName) {
+    if (debugOut != nullptr && beforeNewBeatProcessing != mp3Name) {
         debugOut->append(QString("Audio filename after New Beat processing: '%1' -> '%2'").arg(beforeNewBeatProcessing, mp3Name));
     }
 
