@@ -1,5 +1,5 @@
 #! /bin/zsh
-# set -v
+
 set -e	# exit if error encountered
 
 # Obtain from from https://github.com/mpogue2/SquareDesk/issues/1372#issuecomment-2853201956
@@ -10,7 +10,9 @@ set -e	# exit if error encountered
 #	libJUCE_splitab.zip
 # 
 
-test -d temp || mkdir temp
+# cd to an empty temp directory
+test -d temp && rm -fr temp
+mkdir temp
 cd temp
 
 if [ -d /Applications/JUCE ]; then
@@ -35,7 +37,7 @@ else
 fi
 
 cd ..
-rm -I -r temp
+rm -fr temp
 
 
 
