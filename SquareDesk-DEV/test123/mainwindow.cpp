@@ -8568,20 +8568,20 @@ void MainWindow::on_actionSD_Help_triggered()
         it.next();
         QString s1 = it.fileName();
         // if 123.SD.pdf or SD.pdf, then do NOT copy one in as 195.SD.pdf
-        static QRegularExpression re10("^[0-9]+\\.SD.pdf");
-        static QRegularExpression re11("^SD.pdf");
-        if (s1.contains(re10) || s1.contains(re11)) {
-           hasSDpdf = true;
-           pathToSDdoc = QString("file://") + referenceDir + "/" + s1;
-           break;
+        static QRegularExpression re10("^[0-9]+\\.SD_V[0-9]+\\.[0-9]+.pdf$"); // new hotness
+        // static QRegularExpression re11("^[0-9]+\\.SD.pdf$"); // old
+        // static QRegularExpression re12("^SD.pdf$");  // oldest
+        if (s1.contains(re10)) {
+            hasSDpdf = true;
+            pathToSDdoc = QString("file://") + referenceDir + "/" + s1;
+            break;
         }
     }
 
     if (hasSDpdf) {
-//        qDebug() << "FOUND SD DOC:" << pathToSDdoc;
+        // qDebug() << "FOUND SD DOC:" << pathToSDdoc;
         QDesktopServices::openUrl(QUrl(pathToSDdoc, QUrl::TolerantMode));
     }
-
 }
 
 void MainWindow::on_actionReport_a_Bug_triggered()
