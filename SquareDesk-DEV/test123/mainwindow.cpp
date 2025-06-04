@@ -8641,6 +8641,11 @@ void MainWindow::on_darkStopButton_clicked()
     cBass->Stop();                 // Stop playback, rewind to the beginning
     cBass->StopAllSoundEffects();  // and, it also stops ALL sound effects
 
+    if (loudMaxPlugin != nullptr) {
+        // qDebug() << "Clearing LoudMax's buffers...";
+        loudMaxPlugin->reset();  // clear out the LoudMax audio buffers
+    }
+
     setNowPlayingLabelWithColor(currentSongTitle);
     
     // Update Now Playing info for remote control  
