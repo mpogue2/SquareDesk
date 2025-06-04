@@ -1543,7 +1543,7 @@ void MainWindow::cuesheetListDownloadEnd() {
 
 void MainWindow::downloadCuesheetFileIfNeeded(QString cuesheetFilename) {
 
-//    qDebug() << "Maybe fetching: " << cuesheetFilename;
+    // qDebug() << "Maybe fetching: " << cuesheetFilename;
 //    cout << ".";
 
     QString musicDirPath = prefsManager.GetmusicPath();
@@ -1553,7 +1553,10 @@ void MainWindow::downloadCuesheetFileIfNeeded(QString cuesheetFilename) {
     // QDir dir(musicDirPath);
     // dir.mkpath("lyrics/downloaded");    // make sure that the destination path exists (including intermediates)
 
-    QFile file(destinationFolder + cuesheetFilename);
+    QString destFileName(destinationFolder + cuesheetFilename);
+    destFileName.replace("%c2%b4", "'"); // %c2%b4 is the UTF-8 acute accent. Replace with single quote.
+
+    QFile file(destFileName); // copy file TO HERE
     QFileInfo fileinfo(file);
 
     // if we don't already have it...
