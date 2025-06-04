@@ -478,7 +478,7 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
         debugOut->append(QString("  Cuesheet: '%1' -> '%2'").arg(cn, cuesheetName));
     }
     
-    // Trim and simplify (collapse multiple spaces)
+    // Step 1b. Trim and simplify (collapse multiple spaces)
     mp3Name = mp3Name.simplified();
     cuesheetName = cuesheetName.simplified();
 
@@ -489,7 +489,7 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
         debugOut->append(QString("  Cuesheet: '%1'").arg(cuesheetName));
     }
 
-    // I like to use cuesheet filenames like "Blue.2.html"
+    // Step 1c. I like to use cuesheet filenames like "Blue.2.html"
     //   this removes the .2 part, for matching purposes
     QString beforeDotRemoval = cuesheetName;
     QRegularExpression dotNumAtEnd("\\.[0-9]?$");
@@ -498,13 +498,33 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
     if (debugOut != nullptr && beforeDotRemoval != cuesheetName) {
         debugOut->append(QString("After removing dot-number: '%1' -> '%2'").arg(beforeDotRemoval, cuesheetName));
     }
-    
+
+    // Step 1d. Special processing for New Beat's use of double dashes.
+    //   e.g. "Only You - NB-303"
+    QString beforeNewBeatProcessing = cuesheetName;
+    QRegularExpression NewBeatAndNumber("NB-([0-9]?)");
+
+    // do cuesheet
+    cuesheetName.replace(NewBeatAndNumber, "NB \\1");
+
+    if (debugOut != nullptr && beforeNewBeatProcessing != cuesheetName) {
+        debugOut->append(QString("Cuesheet after New Beat processing: '%1' -> '%2'").arg(beforeNewBeatProcessing, cuesheetName));
+    }
+
+    // do mp3 filename
+    beforeNewBeatProcessing = mp3Name;
+    mp3Name.replace(NewBeatAndNumber, "NB \\1");
+
+    if (debugOut != nullptr && beforeNewBeatProcessing != cuesheetName) {
+        debugOut->append(QString("Audio filename after New Beat processing: '%1' -> '%2'").arg(beforeNewBeatProcessing, mp3Name));
+    }
+
+    // Step 2: Check for exact match after preprocessing
     if (debugOut != nullptr) {
         debugOut->append("");
         debugOut->append("Step 2: Check for exact match after preprocessing");
     }
 
-    // Step 2: Check for exact match after preprocessing
     if (mp3Name.compare(cuesheetName, Qt::CaseInsensitive) == 0) {
         if (debugOut != nullptr) {
             debugOut->append("✓ EXACT MATCH after preprocessing -> SCORE: 100");
