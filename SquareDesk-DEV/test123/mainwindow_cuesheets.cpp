@@ -718,7 +718,8 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
 
     // Check if labels match (use fuzzy matching)
     if (!mp3Parsed.label.isEmpty() && !cuesheetParsed.label.isEmpty()) {
-        if (fuzzyWordEqual(mp3Parsed.label, cuesheetParsed.label)) {
+        if (false && fuzzyWordEqual(mp3Parsed.label, cuesheetParsed.label)) {
+            // disabled with false &&, because too many false positives, e.g. AEGO/EGO, RR/BR, etc.
             labelMatch = true;
             if (debugOut != nullptr) {
                 debugOut->append("  ✓ Labels match (fuzzy)");
