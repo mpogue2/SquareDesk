@@ -637,8 +637,8 @@ macx {
 
     # TAMINATIONS ----------------
     #  unzip the web.zip file into the Resources/Taminations/web folder
-    copydata1tam.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations/web || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations/web
-    copydata2tam.commands = sleep 2;unzip -o -q $$PWD/../Taminations/web.zip -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations/web
+    copydata1tam.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations
+    copydata2tam.commands = sleep 2;unzip -o -q $$PWD/../Taminations/web.zip -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations
 
     first.depends += copydata1tam copydata2tam
 
