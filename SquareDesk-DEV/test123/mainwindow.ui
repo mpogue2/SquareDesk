@@ -4466,54 +4466,6 @@
     <addaction name="separator"/>
     <addaction name="actionMove_on_to_Next_Song"/>
    </widget>
-   <widget class="QMenu" name="menuPlaylist">
-    <property name="title">
-     <string>Playlist</string>
-    </property>
-    <widget class="QMenu" name="menuAdd_to_Playlist">
-     <property name="title">
-      <string>Add to Playlist</string>
-     </property>
-     <addaction name="actionAt_TOP"/>
-     <addaction name="actionAt_BOTTOM"/>
-    </widget>
-    <widget class="QMenu" name="menuMove_song">
-     <property name="title">
-      <string>Move song</string>
-     </property>
-     <addaction name="actionUP_in_Playlist"/>
-     <addaction name="actionDOWN_in_Playlist"/>
-    </widget>
-    <widget class="QMenu" name="menuLoad_Recent_Playlist">
-     <property name="title">
-      <string>Load Recent Playlist</string>
-     </property>
-     <addaction name="actionRecent1"/>
-     <addaction name="actionRecent2"/>
-     <addaction name="actionRecent3"/>
-     <addaction name="actionRecent4"/>
-     <addaction name="actionRecent5"/>
-     <addaction name="actionRecent6"/>
-     <addaction name="separator"/>
-     <addaction name="actionClear_Recent_List"/>
-    </widget>
-    <addaction name="actionLoad_Playlist"/>
-    <addaction name="menuLoad_Recent_Playlist"/>
-    <addaction name="actionSave_Playlist_2"/>
-    <addaction name="actionSave_Playlist"/>
-    <addaction name="actionPrint_Playlist"/>
-    <addaction name="separator"/>
-    <addaction name="actionClear_Playlist"/>
-    <addaction name="separator"/>
-    <addaction name="menuAdd_to_Playlist"/>
-    <addaction name="menuMove_song"/>
-    <addaction name="actionRemove_from_Playlist"/>
-    <addaction name="separator"/>
-    <addaction name="actionNext_Playlist_Item"/>
-    <addaction name="actionPrevious_Playlist_Item"/>
-    <addaction name="separator"/>
-    <addaction name="actionContinuous_Play"/>
-   </widget>
    <widget class="QMenu" name="menuSequence">
     <property name="title">
      <string>SD</string>
@@ -4723,7 +4675,6 @@
     <addaction name="actionReport_a_Bug"/>
    </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuPlaylist"/>
    <addaction name="menuMusic"/>
    <addaction name="menuLyrics"/>
    <addaction name="menuSequence"/>
@@ -5034,45 +4985,12 @@
     <string>Preferences...</string>
    </property>
   </action>
-  <action name="actionOpen_Playlist">
-   <property name="text">
-    <string>Open Playlist...</string>
-   </property>
-  </action>
-  <action name="actionSave_Playlist">
-   <property name="text">
-    <string>Save Playlist As...</string>
-   </property>
-  </action>
-  <action name="actionLoad_Playlist">
-   <property name="text">
-    <string>Load Playlist...</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+E</string>
-   </property>
-  </action>
-  <action name="actionNext_Playlist_Item">
-   <property name="text">
-    <string>Next Song</string>
-   </property>
-  </action>
-  <action name="actionPrevious_Playlist_Item">
-   <property name="text">
-    <string>Previous Song</string>
-   </property>
-  </action>
   <action name="actionContinuous_Play">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
     <string>Continuous Play</string>
-   </property>
-  </action>
-  <action name="actionClear_Playlist">
-   <property name="text">
-    <string>Clear Playlist</string>
    </property>
   </action>
   <action name="actionEnable_voice_input">
@@ -5108,30 +5026,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Right</string>
-   </property>
-  </action>
-  <action name="actionRemove_from_Playlist">
-   <property name="text">
-    <string>Remove from Playlist</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+Backspace</string>
-   </property>
-  </action>
-  <action name="actionUP_in_Playlist">
-   <property name="text">
-    <string>UP in Playlist</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+Up</string>
-   </property>
-  </action>
-  <action name="actionDOWN_in_Playlist">
-   <property name="text">
-    <string>DOWN in Playlist</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+Down</string>
    </property>
   </action>
   <action name="actionStartup_Wizard">
@@ -6163,11 +6057,6 @@
     <string>Nearest Measure</string>
    </property>
   </action>
-  <action name="actionSave_Playlist_2">
-   <property name="text">
-    <string>Save Playlist</string>
-   </property>
-  </action>
   <action name="actionSave_Cuesheet">
    <property name="text">
     <string>Save Cuesheet</string>
@@ -6186,11 +6075,6 @@
   <action name="actionSave_Sequence">
    <property name="text">
     <string>Save Sequence</string>
-   </property>
-  </action>
-  <action name="actionPrint_Playlist">
-   <property name="text">
-    <string>Print Playlist...</string>
    </property>
   </action>
   <action name="actionPrint_Cuesheet">
