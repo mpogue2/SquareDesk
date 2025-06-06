@@ -4579,54 +4579,6 @@ bool MainWindow::maybeSavePlaylist(int whichSlot) {
 }
 
 // --------------
-// follows this example: https://doc.qt.io/qt-6/qtwidgets-mainwindows-application-example.html
-// bool MainWindow::maybeSave() {
-//     QString current = ui->statusBar->currentMessage();
-//     bool isModified = current.endsWith('*');
-
-//     if (!isModified) {
-// //        qDebug() << "maybeSave() returning, because playlist has not been modified";
-//         return true; // user wants application to close
-//     }
-
-//     QString playlistName = getShortPlaylistName();
-
-//     QMessageBox msgBox;
-//     msgBox.setText(QString("The playlist '") + playlistName + "' has been modified.");
-//     msgBox.setIcon(QMessageBox::Warning);
-//     msgBox.setInformativeText("Do you want to save your changes?");
-//     msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-//     msgBox.setDefaultButton(QMessageBox::Save);
-//     int ret = msgBox.exec();
-
-//     switch (ret) {
-
-//         case QMessageBox::Save:
-// //            qDebug() << "User clicked SAVE";
-//             if (playlistName == "Untitled") {
-//                 // qDebug() << "No known filename, so asking for new filename now (Save As)";
-//                 on_actionSave_Playlist_triggered(); // File > Save As...
-//             } else {
-// //                qDebug() << "Saving as: " << current;
-//                 savePlaylistAgain(); // File > Save
-//             }
-// //            qDebug() << "Playlist SAVED (even if user clicked CANCEL on the Save As).";
-//             return true; // all is well
-
-//         case QMessageBox::Cancel:
-// //            qDebug() << "User clicked CANCEL, returning FALSE";
-//             return false;
-
-//         default:
-// //            qDebug() << "DEFAULT";
-//             break;
-//     }
-
-// //    qDebug() << "RETURNING TRUE, ALL IS WELL.";
-//     return true;
-// }
-
-// --------------
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     // Work around bug: https://codereview.qt-project.org/#/c/125589/
@@ -4634,12 +4586,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->accept();
         return;
     }
-
-//     if (!maybeSave()) {
-// //        qDebug() << "closeEvent ignored, because user cancelled.";
-//         event->ignore();
-//         return;
-//     }
 
     // check for unsaved playlists that have been modified, and ask to Save As... each one in turn
     for (int i = 0; i < 3; i++) {
