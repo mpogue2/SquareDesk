@@ -25,12 +25,12 @@ else
     mv -v JUCE /Applications/
 fi
 
-if [ -d ~/JUCEProjects ] ; then
-    echo >&2 ~/JUCEProjects already exists
+if [ -e ~/JUCEProjects/libJUCEstatic ] ; then
+    echo >&2 ~/JUCEProjects/libJUCEstatic already exists
 else
-    curl -fsSL -o libJUCE_splitaaa https://github.com/user-attachments/files/20052724/libJUCE_splitaaa.zip
-    curl -fsSL -o libJUCE_splitaab https://github.com/user-attachments/files/20052723/libJUCE_splitaab.zip
-    cat libJUCE_splitaaa libJUCE_splitaab > libJUCE.zip
+    curl -fsSL -o libJUCE_splitaa https://github.com/user-attachments/files/20052724/libJUCE_splitaa.zip
+    curl -fsSL -o libJUCE_splitab https://github.com/user-attachments/files/20052723/libJUCE_splitab.zip
+    cat libJUCE_splitaa libJUCE_splitab > libJUCE.zip
     unzip libJUCE.zip
     mkdir -p ~/JUCEProjects
     mv -v libJUCEstatic ~/JUCEProjects/
