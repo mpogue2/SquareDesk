@@ -92,7 +92,7 @@
 #endif
 #endif
 
-extern bool comparePlaylistExportRecord(const PlaylistExportRecord &a, const PlaylistExportRecord &b);
+// extern bool comparePlaylistExportRecord(const PlaylistExportRecord &a, const PlaylistExportRecord &b);
 
 // experimental removal of silence at the beginning of the song
 // disabled right now, because it's not reliable enough.
@@ -478,8 +478,8 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     keybindingActionToMenuAction[keyActionName_VolumeMinus] = ui->actionVolume_Down;
     keybindingActionToMenuAction[keyActionName_TempoPlus] = ui->actionSpeed_Up;
     keybindingActionToMenuAction[keyActionName_TempoMinus] = ui->actionSlow_Down;
-    keybindingActionToMenuAction[keyActionName_PlayPrevious] = ui->actionPrevious_Playlist_Item;
-    keybindingActionToMenuAction[keyActionName_PlayNext] = ui->actionNext_Playlist_Item;
+    // keybindingActionToMenuAction[keyActionName_PlayPrevious] = ui->actionPrevious_Playlist_Item;
+    // keybindingActionToMenuAction[keyActionName_PlayNext] = ui->actionNext_Playlist_Item;
     keybindingActionToMenuAction[keyActionName_Mute] = ui->actionMute;
     keybindingActionToMenuAction[keyActionName_PitchPlus] = ui->actionPitch_Up;
     keybindingActionToMenuAction[keyActionName_PitchMinus] = ui->actionPitch_Down;
@@ -592,7 +592,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
 
-    updateRecentPlaylistMenu();
+    // updateRecentPlaylistMenu();  // OLD LIGHT MODE
 
     t.elapsed(__LINE__);
 
@@ -1375,28 +1375,28 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
             this, SLOT(LyricsCopyAvailable(bool)));
 
-    if (!darkmode) {
-        ui->actionSave_Playlist_2->setEnabled(false); // Playlist > Save Playlist...
-        ui->actionSave_Playlist->setEnabled(false); // Playlist > Save Playlist As...
-        ui->actionPrint_Playlist->setEnabled(false);  // Playlist > Print Playlist...
+    // if (!darkmode) {  // OLD LIGHT MODE
+    //     ui->actionSave_Playlist_2->setEnabled(false); // Playlist > Save Playlist...
+    //     ui->actionSave_Playlist->setEnabled(false); // Playlist > Save Playlist As...
+    //     ui->actionPrint_Playlist->setEnabled(false);  // Playlist > Print Playlist...
 
-        // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
-        QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
+    //     // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
+    //     QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
 
-    //    qDebug() << "CONSTRUCTOR: " << loadThisPlaylist;
+    // //    qDebug() << "CONSTRUCTOR: " << loadThisPlaylist;
 
-        if (loadThisPlaylist != "") {
+    //     if (loadThisPlaylist != "") {
 
-    //        QString fullPlaylistPath = musicRootPath + "/playlists/" + loadThisPlaylist + ".csv";
-            if (!loadThisPlaylist.startsWith("playlists/")) {
-                loadThisPlaylist = QString("playlists/") + loadThisPlaylist; // for compatibility with older versions of SquareDesk
-            }
+    // //        QString fullPlaylistPath = musicRootPath + "/playlists/" + loadThisPlaylist + ".csv";
+    //         if (!loadThisPlaylist.startsWith("playlists/")) {
+    //             loadThisPlaylist = QString("playlists/") + loadThisPlaylist; // for compatibility with older versions of SquareDesk
+    //         }
 
-            QString fullPlaylistPath = musicRootPath + "/" + loadThisPlaylist + ".csv";
-    //        qDebug() << "CONSTRUCTOR: " << fullPlaylistPath;
-            finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print
-        }
-    }
+    //         QString fullPlaylistPath = musicRootPath + "/" + loadThisPlaylist + ".csv";
+    // //        qDebug() << "CONSTRUCTOR: " << fullPlaylistPath;
+    //         finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print
+    //     }
+    // }
 
 //    stopLongSongTableOperation("MainWindow");
 
@@ -2330,9 +2330,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
         // light mode already loaded the playlist above
 
         // PLAYLIST LOADING HERE, SO THAT PLAYLIST1 IS INITIALIZED BY NOW
-        ui->actionSave_Playlist_2->setEnabled(false); // Playlist > Save Playlist...
-        ui->actionSave_Playlist->setEnabled(false); // Playlist > Save Playlist As...
-        ui->actionPrint_Playlist->setEnabled(false);  // Playlist > Print Playlist...
+        // ui->actionSave_Playlist_2->setEnabled(false); // Playlist > Save Playlist...
+        // ui->actionSave_Playlist->setEnabled(false); // Playlist > Save Playlist As...
+        // ui->actionPrint_Playlist->setEnabled(false);  // Playlist > Print Playlist...
 
         reloadPaletteSlots();  // reload all the palette slots, based on the last time we ran SquareDesk
 
@@ -2345,10 +2345,10 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     if (darkmode) {
         ui->seekBarCuesheet->setFusionMode(true); // allow click-to-move-there
-#define NOPLAYLISTMENU
-#ifdef NOPLAYLISTMENU
-        ui->menuPlaylist->menuAction()->setVisible(false); // Menu Bar > Playlist not relevant in Dark Mode
-#endif
+// #define NOPLAYLISTMENU
+// #ifdef NOPLAYLISTMENU
+//         ui->menuPlaylist->menuAction()->setVisible(false); // Menu Bar > Playlist not relevant in Dark Mode
+// #endif
         updateSongTableColumnView();
     }
 
@@ -3574,12 +3574,12 @@ void MainWindow::on_darkPitchSlider_valueChanged(int value)
     }
 
     // special checking for playlist ------
-    if (targetNumber != "" && !loadingSong) {
-        // THIS IS FOR THE LIGHT MODE SONGTABLE ONLY
-        // current song is on a playlist, AND we're not doing the initial load
-        // qDebug() << "current song is on playlist, and PITCH changed!" << targetNumber << loadingSong;
-        markPlaylistModified(true); // turn ON the * in the status bar, because a playlist entry changed its tempo
-    }
+    // if (targetNumber != "" && !loadingSong) {
+    //     // THIS IS FOR THE LIGHT MODE SONGTABLE ONLY
+    //     // current song is on a playlist, AND we're not doing the initial load
+    //     // qDebug() << "current song is on playlist, and PITCH changed!" << targetNumber << loadingSong;
+    //     markPlaylistModified(true); // turn ON the * in the status bar, because a playlist entry changed its tempo
+    // }
 
     // update the label, too
     QString s = QString::number(value);
@@ -4579,65 +4579,11 @@ bool MainWindow::maybeSavePlaylist(int whichSlot) {
 }
 
 // --------------
-// follows this example: https://doc.qt.io/qt-6/qtwidgets-mainwindows-application-example.html
-bool MainWindow::maybeSave() {
-    QString current = ui->statusBar->currentMessage();
-    bool isModified = current.endsWith('*');
-
-    if (!isModified) {
-//        qDebug() << "maybeSave() returning, because playlist has not been modified";
-        return true; // user wants application to close
-    }
-
-    QString playlistName = getShortPlaylistName();
-
-    QMessageBox msgBox;
-    msgBox.setText(QString("The playlist '") + playlistName + "' has been modified.");
-    msgBox.setIcon(QMessageBox::Warning);
-    msgBox.setInformativeText("Do you want to save your changes?");
-    msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-    msgBox.setDefaultButton(QMessageBox::Save);
-    int ret = msgBox.exec();
-
-    switch (ret) {
-
-        case QMessageBox::Save:
-//            qDebug() << "User clicked SAVE";
-            if (playlistName == "Untitled") {
-                // qDebug() << "No known filename, so asking for new filename now (Save As)";
-                on_actionSave_Playlist_triggered(); // File > Save As...
-            } else {
-//                qDebug() << "Saving as: " << current;
-                savePlaylistAgain(); // File > Save
-            }
-//            qDebug() << "Playlist SAVED (even if user clicked CANCEL on the Save As).";
-            return true; // all is well
-
-        case QMessageBox::Cancel:
-//            qDebug() << "User clicked CANCEL, returning FALSE";
-            return false;
-
-        default:
-//            qDebug() << "DEFAULT";
-            break;
-    }
-
-//    qDebug() << "RETURNING TRUE, ALL IS WELL.";
-    return true;
-}
-
-// --------------
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     // Work around bug: https://codereview.qt-project.org/#/c/125589/
     if (closeEventHappened) {
         event->accept();
-        return;
-    }
-
-    if (!maybeSave()) {
-//        qDebug() << "closeEvent ignored, because user cancelled.";
-        event->ignore();
         return;
     }
 
@@ -6910,6 +6856,14 @@ void MainWindow::saveCurrentSongSettings()
 
 //        setting.setReplayGain();  // TODO:
 
+        // only update the LoudMax setting if the LoudMax plugin is present.
+        //  otherwise, leave it alone.  This prevents SquareDesk from erasing previous
+        //  LoudMax settings, if transferring to a laptop that temporarily does not
+        //  have LoudMax installed.
+        if (loudMaxPlugin != nullptr) {
+            setting.setVSTsettings(getCurrentLoudMaxSettings()); // get parameters from LoudMax plugin, and persist them
+        }
+
         if (ui->actionLoop->isChecked()) {
             setting.setLoop( 1 );
         } else {
@@ -7186,6 +7140,11 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         ui->darkMidKnob->setValue(SliderToKnob(0));
         // ui->mixSlider->setValue(0);
     }
+
+    // LoudMax settings for this song -----------------
+    if (settings.isSetVSTsettings()) {
+        // qDebug() << "Calling setLoudMaxFromPersistedSettings from loadSettingsFor Song...";
+        setLoudMaxFromPersistedSettings(settings.getVSTsettings()); } // ADDED *****
 }
 
 void MainWindow::loadGlobalSettingsForSong(QString songTitle) {
@@ -7211,9 +7170,9 @@ void MainWindow::on_darkWarningLabel_clicked() {
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
     // disable all dynamic menu items
-    ui->actionSave_Playlist_2->setEnabled(false);       // PLAYLIST > SAVE PLAYLIST
-    ui->actionSave_Playlist->setEnabled(false);         // PLAYLIST > SAVE PLAYLIST AS...
-    ui->actionPrint_Playlist->setEnabled(false);        // PLAYLIST > PRINT PLAYLIST...
+    // ui->actionSave_Playlist_2->setEnabled(false);       // PLAYLIST > SAVE PLAYLIST
+    // ui->actionSave_Playlist->setEnabled(false);         // PLAYLIST > SAVE PLAYLIST AS...
+    // ui->actionPrint_Playlist->setEnabled(false);        // PLAYLIST > PRINT PLAYLIST...
 
     ui->actionSave_Cuesheet->setEnabled(false);         // CUESHEET > SAVE CUESHEET
     ui->actionSave_Cuesheet_As->setEnabled(false);      // CUESHEET > SAVE CUESHEET AS...
@@ -7224,8 +7183,8 @@ void MainWindow::on_tabWidget_currentChanged(int index)
     ui->actionPrint_Sequence->setEnabled(false);        // SD > PRINT SEQUENCE...
 
     // clear shortcuts from all dynamic menu items (Print menu items don't get shortcuts, so don't bother with those)
-    ui->actionSave_Playlist_2->setShortcut(QKeySequence());     // PLAYLIST > SAVE PLAYLIST
-    ui->actionSave_Playlist->setShortcut(QKeySequence());       // PLAYLIST > SAVE PLAYLIST AS...
+    // ui->actionSave_Playlist_2->setShortcut(QKeySequence());     // PLAYLIST > SAVE PLAYLIST
+    // ui->actionSave_Playlist->setShortcut(QKeySequence());       // PLAYLIST > SAVE PLAYLIST AS...
 
     ui->actionSave_Cuesheet->setShortcut(QKeySequence());       // CUESHEET > SAVE CUESHEET
     ui->actionSave_Cuesheet_As->setShortcut(QKeySequence());    // CUESHEET > SAVE CUESHEET AS...
@@ -7240,13 +7199,13 @@ void MainWindow::on_tabWidget_currentChanged(int index)
     if (currentTabName == "Music") {
         // MUSIC PLAYER TAB -------------
 //        qDebug() << "linesInCurrentPlaylist: " << linesInCurrentPlaylist << playlistHasBeenModified;
-        ui->actionSave_Playlist_2->setEnabled(linesInCurrentPlaylist != 0);  // playlist can be saved if there are >0 lines (this is SAVE PLAYLIST)
-        ui->actionSave_Playlist_2->setShortcut(QKeyCombination(Qt::ControlModifier, Qt::Key_S));  // Cmd-S
+        // ui->actionSave_Playlist_2->setEnabled(linesInCurrentPlaylist != 0);  // playlist can be saved if there are >0 lines (this is SAVE PLAYLIST)
+        // ui->actionSave_Playlist_2->setShortcut(QKeyCombination(Qt::ControlModifier, Qt::Key_S));  // Cmd-S
 
-        ui->actionSave_Playlist->setEnabled(playlistHasBeenModified); // this is SAVE PLAYLIST AS
-        ui->actionSave_Playlist->setShortcut(QKeyCombination(Qt::ShiftModifier|Qt::ControlModifier, Qt::Key_S)); // SHIFT-Cmd-S
+        // ui->actionSave_Playlist->setEnabled(playlistHasBeenModified); // this is SAVE PLAYLIST AS
+        // ui->actionSave_Playlist->setShortcut(QKeyCombination(Qt::ShiftModifier|Qt::ControlModifier, Qt::Key_S)); // SHIFT-Cmd-S
 
-        ui->actionPrint_Playlist->setEnabled(true);
+        // ui->actionPrint_Playlist->setEnabled(true);
 
         if (cBass->isPaused()) {
             // if (!darkmode) {
@@ -8555,20 +8514,20 @@ void MainWindow::on_actionSD_Help_triggered()
         it.next();
         QString s1 = it.fileName();
         // if 123.SD.pdf or SD.pdf, then do NOT copy one in as 195.SD.pdf
-        static QRegularExpression re10("^[0-9]+\\.SD.pdf");
-        static QRegularExpression re11("^SD.pdf");
-        if (s1.contains(re10) || s1.contains(re11)) {
-           hasSDpdf = true;
-           pathToSDdoc = QString("file://") + referenceDir + "/" + s1;
-           break;
+        static QRegularExpression re10("^[0-9]+\\.SD_V[0-9]+\\.[0-9]+.pdf$"); // new hotness
+        // static QRegularExpression re11("^[0-9]+\\.SD.pdf$"); // old
+        // static QRegularExpression re12("^SD.pdf$");  // oldest
+        if (s1.contains(re10)) {
+            hasSDpdf = true;
+            pathToSDdoc = QString("file://") + referenceDir + "/" + s1;
+            break;
         }
     }
 
     if (hasSDpdf) {
-//        qDebug() << "FOUND SD DOC:" << pathToSDdoc;
+        // qDebug() << "FOUND SD DOC:" << pathToSDdoc;
         QDesktopServices::openUrl(QUrl(pathToSDdoc, QUrl::TolerantMode));
     }
-
 }
 
 void MainWindow::on_actionReport_a_Bug_triggered()
@@ -8627,6 +8586,11 @@ void MainWindow::on_darkStopButton_clicked()
 
     cBass->Stop();                 // Stop playback, rewind to the beginning
     cBass->StopAllSoundEffects();  // and, it also stops ALL sound effects
+
+    if (loudMaxPlugin != nullptr) {
+        // qDebug() << "Clearing LoudMax's buffers...";
+        loudMaxPlugin->reset();  // clear out the LoudMax audio buffers
+    }
 
     setNowPlayingLabelWithColor(currentSongTitle);
     
@@ -10144,10 +10108,10 @@ void MainWindow::setCurrentSongMetadata(QString type) {
     // qDebug() << "setCurrentSongMetadata(): " << currentSongTypeName  << currentSongCategoryName << currentSongIsPatter << currentSongIsSinger << currentSongIsVocal << currentSongIsExtra << currentSongIsUndefined;
 }
 
-void MainWindow::on_actionMove_on_to_Next_Song_triggered()
-{
-    on_actionNext_Playlist_Item_triggered();
-}
+// void MainWindow::on_actionMove_on_to_Next_Song_triggered()
+// {
+//     on_actionNext_Playlist_Item_triggered();
+// }
 
 void MainWindow::auditionByKeyPress(void) {
     // qDebug() << "***** auditionByKeyPress";

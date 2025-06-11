@@ -50,3 +50,6 @@ SONGSETTING_ELEMENT(int, Loop)
 SONGSETTING_ELEMENT(QString, Tags)
 
 //SONGSETTING_ELEMENT(double, ReplayGain)
+
+// Adding a new per-song setting?  This is location 1 out of 6 to change.
+SONGSETTING_ELEMENT(QString, VSTsettings)

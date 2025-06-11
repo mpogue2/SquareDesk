@@ -37,14 +37,14 @@ macx {
   contains(QMAKE_HOST.arch, x86_64) {
     message("X86_64 BUILD MACHINE DETECTED!")
     ARCHDIR = "x86_64"
-    QMAKE_MAC_SDK = macosx15.4
+    QMAKE_MAC_SDK = macosx15.5
     set(CMAKE_C_STANDARD 99)
     set(CMAKE_CXX_FLAGS "-std=c++17 -stdlib=libc++")
   }
   contains(QMAKE_HOST.arch, arm64) {
     message("ARM64 BUILD MACHINE DETECTED!")
     ARCHDIR = "arm64"
-    QMAKE_MAC_SDK = macosx15.4
+    QMAKE_MAC_SDK = macosx15.5
   }
   message("ARCHDIR = " $${ARCHDIR} ", QMAKE_MAC_SDK = " $${QMAKE_MAC_SDK})
 }
@@ -649,8 +649,8 @@ macx {
 
     # TAMINATIONS ----------------
     #  unzip the web.zip file into the Resources/Taminations/web folder
-    copydata1tam.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations/web || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations/web
-    copydata2tam.commands = sleep 2;unzip -o -q $$PWD/../Taminations/web.zip -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations/web
+    copydata1tam.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations
+    copydata2tam.commands = sleep 2;unzip -o -q $$PWD/../Taminations/web.zip -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations
 
     first.depends += copydata1tam copydata2tam
 
@@ -1022,6 +1022,7 @@ OBJECTIVE_SOURCES += \
 
 DISTFILES += \
     ../../README.md \
+    ../juce-install \
     CurrentKeyAssignments.txt \
     Info.plist \
     LICENSE.GPL3 \

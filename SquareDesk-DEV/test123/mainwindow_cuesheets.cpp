@@ -478,7 +478,7 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
         debugOut->append(QString("  Cuesheet: '%1' -> '%2'").arg(cn, cuesheetName));
     }
     
-    // Trim and simplify (collapse multiple spaces)
+    // Step 1b. Trim and simplify (collapse multiple spaces)
     mp3Name = mp3Name.simplified();
     cuesheetName = cuesheetName.simplified();
 
@@ -489,7 +489,7 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
         debugOut->append(QString("  Cuesheet: '%1'").arg(cuesheetName));
     }
 
-    // I like to use cuesheet filenames like "Blue.2.html"
+    // Step 1c. I like to use cuesheet filenames like "Blue.2.html"
     //   this removes the .2 part, for matching purposes
     QString beforeDotRemoval = cuesheetName;
     QRegularExpression dotNumAtEnd("\\.[0-9]?$");
@@ -498,13 +498,33 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
     if (debugOut != nullptr && beforeDotRemoval != cuesheetName) {
         debugOut->append(QString("After removing dot-number: '%1' -> '%2'").arg(beforeDotRemoval, cuesheetName));
     }
-    
+
+    // Step 1d. Special processing for New Beat's use of double dashes.
+    //   e.g. "Only You - NB-303"
+    QString beforeNewBeatProcessing = cuesheetName;
+    QRegularExpression NewBeatAndNumber("NB-([0-9]?)");
+
+    // do cuesheet
+    cuesheetName.replace(NewBeatAndNumber, "NB \\1");
+
+    if (debugOut != nullptr && beforeNewBeatProcessing != cuesheetName) {
+        debugOut->append(QString("Cuesheet after New Beat processing: '%1' -> '%2'").arg(beforeNewBeatProcessing, cuesheetName));
+    }
+
+    // do mp3 filename
+    beforeNewBeatProcessing = mp3Name;
+    mp3Name.replace(NewBeatAndNumber, "NB \\1");
+
+    if (debugOut != nullptr && beforeNewBeatProcessing != mp3Name) {
+        debugOut->append(QString("Audio filename after New Beat processing: '%1' -> '%2'").arg(beforeNewBeatProcessing, mp3Name));
+    }
+
+    // Step 2: Check for exact match after preprocessing
     if (debugOut != nullptr) {
         debugOut->append("");
         debugOut->append("Step 2: Check for exact match after preprocessing");
     }
 
-    // Step 2: Check for exact match after preprocessing
     if (mp3Name.compare(cuesheetName, Qt::CaseInsensitive) == 0) {
         if (debugOut != nullptr) {
             debugOut->append("✓ EXACT MATCH after preprocessing -> SCORE: 100");
@@ -698,7 +718,8 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
 
     // Check if labels match (use fuzzy matching)
     if (!mp3Parsed.label.isEmpty() && !cuesheetParsed.label.isEmpty()) {
-        if (fuzzyWordEqual(mp3Parsed.label, cuesheetParsed.label)) {
+        if (false && fuzzyWordEqual(mp3Parsed.label, cuesheetParsed.label)) {
+            // disabled with false &&, because too many false positives, e.g. AEGO/EGO, RR/BR, etc.
             labelMatch = true;
             if (debugOut != nullptr) {
                 debugOut->append("  ✓ Labels match (fuzzy)");
@@ -1523,7 +1544,7 @@ void MainWindow::cuesheetListDownloadEnd() {
 
 void MainWindow::downloadCuesheetFileIfNeeded(QString cuesheetFilename) {
 
-//    qDebug() << "Maybe fetching: " << cuesheetFilename;
+    // qDebug() << "Maybe fetching: " << cuesheetFilename;
 //    cout << ".";
 
     QString musicDirPath = prefsManager.GetmusicPath();
@@ -1533,7 +1554,10 @@ void MainWindow::downloadCuesheetFileIfNeeded(QString cuesheetFilename) {
     // QDir dir(musicDirPath);
     // dir.mkpath("lyrics/downloaded");    // make sure that the destination path exists (including intermediates)
 
-    QFile file(destinationFolder + cuesheetFilename);
+    QString destFileName(destinationFolder + cuesheetFilename);
+    destFileName.replace("%c2%b4", "'"); // %c2%b4 is the UTF-8 acute accent. Replace with single quote.
+
+    QFile file(destFileName); // copy file TO HERE
     QFileInfo fileinfo(file);
 
     // if we don't already have it...
@@ -1851,7 +1875,7 @@ QString MainWindow::maybeCuesheetLevel(QString relativeFilePath) {
         // Look for "L:<level string>" with proper spacing and termination
         // Spacing: either preceded by at least one space OR at start of line
         // Termination: followed by a letter and colon, comma, semicolon, <BR, or end of line
-        QRegularExpression levelRegex("(^|\\s+)(L|LEVEL):(.*?)([a-zA-Z]:|,|;|<BR|$)",
+        QRegularExpression levelRegex("(^|\\s+|>)(L|LEVEL):(.*?)([a-zA-Z]:|,|;|<BR|$)",
                                       QRegularExpression::CaseInsensitiveOption);
         
         QRegularExpressionMatch match = levelRegex.match(line);
