@@ -165,10 +165,10 @@ QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings(int revisionNu
     keyMappings[QKeySequence(Qt::Key_Plus).toString()] = &keyaction_KeyActionTempoPlus;
     keyMappings[QKeySequence(Qt::Key_Minus).toString()] = &keyaction_KeyActionTempoMinus;
     keyMappings[QKeySequence(Qt::Key_D).toString()] = &keyaction_KeyActionPitchMinus;
-    keyMappings[QKeySequence(Qt::Key_F17).toString()] = &keyaction_KeyActionPlayPrevious;
-    keyMappings[QKeySequence(Qt::Key_J).toString()] = &keyaction_KeyActionPlayPrevious;
-    keyMappings[QKeySequence(Qt::Key_F18).toString()] = &keyaction_KeyActionPlayNext;
-    keyMappings[QKeySequence(Qt::Key_K).toString()] = &keyaction_KeyActionPlayNext;
+    // keyMappings[QKeySequence(Qt::Key_F17).toString()] = &keyaction_KeyActionPlayPrevious;
+    // keyMappings[QKeySequence(Qt::Key_J).toString()] = &keyaction_KeyActionPlayPrevious;
+    // keyMappings[QKeySequence(Qt::Key_F18).toString()] = &keyaction_KeyActionPlayNext;
+    // keyMappings[QKeySequence(Qt::Key_K).toString()] = &keyaction_KeyActionPlayNext;
     keyMappings[QKeySequence(Qt::Key_L).toString()] = &keyaction_KeyActionLoopToggle;
     keyMappings[QKeySequence(Qt::Key_M).toString()] = &keyaction_KeyActionMute;
     keyMappings[QKeySequence(Qt::Key_F16).toString()] = &keyaction_KeyActionPlaySong;

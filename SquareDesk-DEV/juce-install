@@ -6,8 +6,8 @@ set -e	# exit if error encountered
 # these 4 files:
 #	JUCE_splitaa.zip
 #	JUCE_splitab.zip
-#	libJUCE_splitaa.zip
-#	libJUCE_splitab.zip
+#	libJUCE_splitaaa.zip = latest libJUCEstatic, that contains VST2/3 support, and projucer file to make the lib
+#	libJUCE_splitaab.zip
 # 
 
 test -d temp || mkdir temp
@@ -26,9 +26,9 @@ fi
 if [ -d ~/JUCEProjects ] ; then
     echo >&2 ~/JUCEProjects already exists
 else
-    curl -fsSL -o libJUCE_splitaa https://github.com/user-attachments/files/20052724/libJUCE_splitaa.zip
-    curl -fsSL -o libJUCE_splitab https://github.com/user-attachments/files/20052723/libJUCE_splitab.zip
-    cat libJUCE_splitaa libJUCE_splitab > libJUCE.zip
+    curl -fsSL -o libJUCE_splitaaa https://github.com/user-attachments/files/20052724/libJUCE_splitaaa.zip
+    curl -fsSL -o libJUCE_splitaab https://github.com/user-attachments/files/20052723/libJUCE_splitaab.zip
+    cat libJUCE_splitaaa libJUCE_splitaab > libJUCE.zip
     unzip libJUCE.zip
     mkdir -p ~/JUCEProjects
     mv -v libJUCEstatic ~/JUCEProjects/
@@ -36,6 +36,3 @@ fi
 
 cd ..
 rm -I -r temp
-
-
-

@@ -252,8 +252,6 @@ public:
     friend class updateID3TagsDialog; // it can access private members of MainWindow
     friend class CuesheetMatchingDebugDialog; // it can access private members of MainWindow
 
-//    double songLoadedReplayGain_dB;
-
     QString makeCanonicalRelativePath(QString s);
 
     EmbeddedServer *taminationsServer;
@@ -325,7 +323,6 @@ public:
     void clearLockFile(QString path);
 
     QStringList parseCSV(const QString &string);
-//    QString tidyHTML(QString s);  // return the tidied HTML
     QString postProcessHTMLtoSemanticHTML(QString cuesheet);
 
     void selectUserFlashFile();
@@ -369,7 +366,6 @@ public slots:
     void customTreeWidgetMenuRequested(QPoint pos);
 
 protected:
-    bool maybeSave();
     bool maybeSavePlaylist(int whichSlot);
     bool maybeSaveCuesheet(int optionCount);
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
@@ -451,13 +447,6 @@ private slots:
     void on_actionExport_Current_Song_List_triggered();
 
     void on_pushButtonClearTaughtCalls_clicked();
-//    void on_pushButtonCountDownTimerStartStop_clicked();
-//    void on_pushButtonCountDownTimerReset_clicked();
-//    void on_pushButtonCountUpTimerStartStop_clicked();
-//    void on_pushButtonCountUpTimerReset_clicked();
-
-//    void on_checkBoxPlayOnEnd_clicked();
-//    void on_checkBoxStartOnPlay_clicked();
 
     void getCurrentPointInStream(double *pos, double *len);
     void on_pushButtonSetIntroTime_clicked();
@@ -484,23 +473,12 @@ private slots:
     void setCueSheetAdditionalControlsVisible(bool visible);
     bool cueSheetAdditionalControlsVisible();
     void setInOutButtonState();
-//    // TODO: change to use the auto-wiring naming convention, when manual slot/signal wiring is removed...
-//    void timerCountUp_update();
-//    void timerCountDown_update();
-
-    void on_actionLoad_Playlist_triggered();
-    void on_actionSave_Playlist_triggered();
 
     void reloadPaletteSlots(); // called twice, once at constructor time, once after changing preferences colors
 
     void saveSlotAsPlaylist(int whichSlot); // SAVE AS a playlist in a slot to a CSV file
 
     void clearSlot(int whichSlot);  // clears out the slot, both table and label
-
-    void on_actionNext_Playlist_Item_triggered();
-    void on_actionPrevious_Playlist_Item_triggered();
-
-    void on_actionClear_Playlist_triggered();
 
     void showInFinderOrExplorer(QString s);
 
@@ -522,19 +500,11 @@ private slots:
     void columnHeaderResized(int logicalIndex, int oldSize, int newSize);
     void columnHeaderSorted(int logicalIndex, Qt::SortOrder order);
 
-    void tableItemChanged(QTableWidgetItem* item);
-
     void on_warningLabelCuesheet_clicked();
     void on_darkWarningLabel_clicked();
 
     void on_tabWidget_currentChanged(int index);
 
-//    void readPSData();
-//    void readPSStdErr();
-//    void pocketSphinx_errorOccurred(QProcess::ProcessError error);
-//    void pocketSphinx_started();
-
-//    void on_actionEnable_voice_input_toggled(bool arg1);
     void microphoneStatusUpdate();
 
     void on_actionShow_All_Ages_triggered(bool checked);
@@ -545,14 +515,6 @@ private slots:
     void on_menuLyrics_aboutToShow();
     void on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/);
     void on_actionExplore_Cuesheet_Matching_triggered();
-
-    // THE FOLLOWING FUNCTIONS ARE USED IN LIGHT MODE ONLY =========
-    void on_actionAt_TOP_triggered();
-    void on_actionAt_BOTTOM_triggered();
-    void on_actionUP_in_Playlist_triggered();
-    void on_actionDOWN_in_Playlist_triggered();
-    void on_actionRemove_from_Playlist_triggered();
-    // =============================================================
 
     void on_actionStartup_Wizard_triggered();
     void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);
@@ -594,22 +556,15 @@ private slots:
 
     // END SLOTS -----------
 
+    // These are SFX sounds --------
     void on_action_1_triggered();
     void on_action_2_triggered();
     void on_action_3_triggered();
-
-    void on_actionRecent1_triggered();
-    void on_actionRecent2_triggered();
-    void on_actionRecent3_triggered();
-    void on_actionRecent4_triggered();
-    void on_actionRecent5_triggered();
-    void on_actionRecent6_triggered();
-    void on_actionClear_Recent_List_triggered();
-    void on_actionCheck_for_Updates_triggered();
-
     void on_action_4_triggered();
     void on_action_5_triggered();
     void on_action_6_triggered();
+
+    void on_actionCheck_for_Updates_triggered();
 
     void on_actionStop_Sound_FX_triggered();
 
@@ -698,8 +653,6 @@ private slots:
     void on_actionFlashCallFilechooser_triggered();
     void on_actionFlashCallUserFile_triggered();
 
-//    void on_actionDownload_matching_lyrics_triggered();
-
     void on_actionTest_Loop_triggered();
     void on_dateTimeEditIntroTime_timeChanged(const QTime &time);
     void on_dateTimeEditOutroTime_timeChanged(const QTime &time);
@@ -771,8 +724,6 @@ private slots:
 
     void on_actionNearest_Measure_triggered();
 
-    void on_actionSave_Playlist_2_triggered();
-
     void on_actionSave_Cuesheet_triggered();
 
     void on_actionSave_Cuesheet_As_triggered();
@@ -780,8 +731,6 @@ private slots:
     void on_actionOpen_Audio_File_triggered();
 
     void on_actionSave_Sequence_triggered();
-
-    void on_actionPrint_Playlist_triggered();
 
     void on_actionPrint_Cuesheet_triggered();
 
@@ -860,8 +809,6 @@ private slots:
     void on_action2paletteSlots_triggered();
 
     void on_action3paletteSlots_triggered();
-
-    void on_actionMove_on_to_Next_Song_triggered();
 
     void on_actionNew_Dance_triggered();
 
@@ -1126,8 +1073,6 @@ private:
     void filterChoreography();
     QStringList getUncheckedItemsFromCurrentCallList();
 
-    void markPlaylistModified(bool isModified); // used to put * or not on the Playlist in statusBar
-
     int pointSizeToIndex(int pointSize);
     int indexToPointSize(int index);
 
@@ -1144,21 +1089,10 @@ private:
     void sortByDefaultSortOrder();  // sort songTable by default order (not including # column)
 
     // Playlist stuff ----------
-    void savePlaylistAgain();  // saves with the same name we used last time (if there was a last time)
-    QString loadPlaylistFromFile(QString PlaylistFileName, int &songCount); // returns error song string and songCount
     QString loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount); // returns error song string and songCount
     void loadPlaylistFromFileToSlot(int whichSlot);   // ask user which file, load file into slot
     void printPlaylistFromSlot(int whichSlot);        // show print dialog to user, print this playlist (not tracks)
     void updateRecentPlaylistsList(const QString &playlistPath); // update the recent playlists list
-
-    void finishLoadingPlaylist(QString PlaylistFileName);
-
-    void saveCurrentPlaylistToFile(QString PlaylistFileName);
-
-    void loadRecentPlaylist(int num);
-    void updateRecentPlaylistMenu();
-    void addFilenameToRecentPlaylist(QString filename);
-    QString getShortPlaylistName();
 
     void refreshAllPlaylists();  // used when View > TAGS changes
 
@@ -1188,19 +1122,12 @@ private:
     QString currentTreePath; // e.g. "Track/patter", "Playlists/CPSD/" "Apple Music/CuriousBlend"
     bool forceFilter;
 
-    // Experimental Timer stuff ----------
-//    QTimer *timerCountUp;
-//    qint64 timeCountUpZeroMs;
-//    QTimer *timerCountDown;
-//    qint64 timeCountDownZeroMs;
     bool trapKeypresses;
     QString reverseLabelTitle;
 
     void saveCheckBoxState(const char *key_string, QCheckBox *checkBox);
     void restoreCheckBoxState(const char *key_string, QCheckBox *checkBox,
                               bool checkedDefault);
-//    bool timerStopStartClick(QTimer *&timer, QPushButton *button);
-//    int updateTimer(qint64 timeZero, QLabel *label);
 
     QString removePrefix(QString prefix, QString s);
 
@@ -1211,11 +1138,12 @@ private:
     int nextVisibleSongRow();       // return next visible row or -1
     int darkPreviousVisibleSongRow();   // previous visible row or -1
     int darkNextVisibleSongRow();       // return next visible row or -1
-    int PlaylistItemCount(); // returns the number of items in the currently loaded playlist
+    // int PlaylistItemCount(); // returns the number of items in the currently loaded playlist
     int getSelectionRowForFilename(const QString &filePath);
 
     int darkGetSelectionRowForFilename(const QString &filePath);
     int darkSelectedSongRow();  // returns -1 if none selected
+
     // Song types
     QStringList songTypeNamesForPatter;
     QStringList songTypeNamesForSinging;
@@ -1223,6 +1151,7 @@ private:
     QStringList songTypeNamesForExtras;
 
     QStringList songTypeToggleList;
+
     // VU Meter support
     QTimer *UIUpdateTimer;
     QTimer *vuMeterTimer;
@@ -1233,8 +1162,6 @@ private:
     QTimer *playlistSlotWatcherTimer;   // after all changes are made, THEN auto-save the playlist slot.
 
     LevelMeter *vuMeter;
-
-    // AnalogClock *analogClock;
 
     QString patterColorString, singingColorString, calledColorString, extrasColorString;  // current values
 
@@ -1266,10 +1193,7 @@ private:
     QString currentSDVUILevel;
     QString currentSDKeyboardLevel;
 
-//    QProcess *ps;       // pocketsphinx process
-
     Highlighter *highlighter;
-//    RenderArea *renderArea;
     QString uneditedData;
     QString editedData;
     QString copyrightText;  // sd copyright string (shown once at start)
@@ -1305,13 +1229,6 @@ private:
 
     Qt::ApplicationState currentApplicationState;  // if app state is inactive, mics are disabled.
 
-//    // get/set microphone volume
-//    int currentInputVolume;
-//    int getInputVolume();                   // returns the current input volume, or -1 if it doesn't know.
-//    void setInputVolume(int newVolume);     // set the input volume, ignores -1
-//    void muteInputVolume();         // call this one
-//    void unmuteInputVolume();      //   and this one (generally avoid calling setInputVolume() directly)
-
     // sound fx
     QMap<int, QString> soundFXfilenames;    // e.g. "9.foo.mp3" --> [9,"9.foo.mp3"]
     QMap<int, QString> soundFXname;         // e.g. "9.foo.mp3" --> [9,"foo"]
@@ -1324,9 +1241,6 @@ private:
 
     int totalZoom;  // total zoom for Lyrics pane, so it can be undone with a Reset Zoom
 
-    // QElapsedTimer loadTimer;
-
-//    QElapsedTimer t1; //, t2;  // used for simple timing operations
     void startLongSongTableOperation(QString s);
     void stopLongSongTableOperation(QString s);  // use the same string each time
 
@@ -1429,8 +1343,6 @@ private: // SD
     void SetAnimationSpeed(AnimationSpeed speed);
     void set_sd_last_formation_name(const QString&);
     void set_sd_last_groupness(); // update groupness strings
-
-//    bool replayGain_dB(QString filepath); // async call
 
     bool compareRelative(QString s1, QString s2);  // compare pathnames relative to MusicDir
 
@@ -1545,6 +1457,9 @@ public:
     // juce::DocumentWindow *loudMaxWin;
     std::unique_ptr<juce::DocumentWindow> loudMaxWin;
     void scanForPlugins();
+
+    QString getCurrentLoudMaxSettings();
+    void setLoudMaxFromPersistedSettings(QString s);
 #endif
 };
 
@@ -1552,10 +1467,6 @@ public:
 #define SMALLESTZOOM (11)
 #define BIGGESTZOOM (25)
 #define ZOOMINCREMENT (2)
-
-//#define SMALLESTZOOM (0)
-//#define RESETZOOM (1)
-//#define BIGGESTZOOM (6)
 
 // song table column info moved over to songlistmodel.h in preparation
 // for switching to a model/view treatment of the song table.
