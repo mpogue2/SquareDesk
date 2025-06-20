@@ -5516,11 +5516,11 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
    // qDebug() << "tryToSetInitialBPM: " << tryToSetInitialBPM << initialBPM;
 
     if (tryToSetInitialBPM && tempoIsBPM) {
-//        qDebug() << "tryToSetInitialBPM overrides to: " << initialBPM;
+       // qDebug() << "tryToSetInitialBPM overrides darkTempoSlider to: " << initialBPM;
         // if the user wants us to try to hit a particular BPM target, use that value
         //  iff the tempo is actually measured in BPM for this song
-        // ui->tempoSlider->setValue(initialBPM);
-        // emit ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+        ui->darkTempoSlider->setValue(initialBPM);
+        emit ui->darkTempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
     } else {
         // qDebug() << "using targetTempo" << targetTempo;
         if (targetTempo != "0" && targetTempo != "0%") {
