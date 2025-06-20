@@ -361,8 +361,7 @@ public slots:
     void darkAddPlaylistItemAt(int whichSlot, const QString &trackName, const QString &pitch, const QString &tempo, const QString &path, const QString &extra, int insertRow);
 
     void darkRevealInFinder();
-    void darkRevealAttachedLyricsFileInFinder();
-
+    
     void customPlaylistMenuRequested(QPoint pos);
     void customTreeWidgetMenuRequested(QPoint pos);
 
@@ -984,7 +983,9 @@ private:
     bool songLoaded;
     bool fileModified;
     bool lyricsForDifferentSong;
-
+    QString override_filename;
+    QString override_cuesheet;  // cuesheet selected when in "Load Cuesheets" menu item
+    
     // SEARCH --------------
     QString typeSearch, labelSearch, titleSearch;
     bool searchAllFields;
@@ -1016,6 +1017,7 @@ private:
 
     void writeCuesheet(QString filename);
     void saveCurrentSongSettings();
+    void saveCuesheet(const QString songFilename, const QString cuesheetFilename);
     void loadSettingsForSong(QString songTitle);
     bool compareCuesheetPathNamesRelative(QString str1, QString str2);
     QString convertCuesheetPathNameToCurrentRoot(QString str1);
@@ -1041,6 +1043,7 @@ private:
     void secondHalfOfLoad(QString songTitle);  // after we have duration and BPM, execute this
 
     void maybeLoadCSSfileIntoTextBrowser(bool useSquareDeskCSS);
+    void maybeLoadCuesheets(const QString &MP3FileName, const QString cuesheetFilename);    
     void loadCuesheet(const QString cuesheetFilename);
     bool loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet = QString(), QString nextFilename="");
 

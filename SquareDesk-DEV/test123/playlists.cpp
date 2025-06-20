@@ -498,6 +498,11 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
                                                   showInFinderOrExplorer(cuesheetPath);
                                               }
                                               );
+                            plMenu->addAction(QString("Load Cuesheets"),
+                                              [this, fullMP3Path, cuesheetPath]() {
+                                                  maybeLoadCuesheets(fullMP3Path, cuesheetPath);
+                                              }
+                                              );
                         }
                     }
                 } // if there's just one row in the selection

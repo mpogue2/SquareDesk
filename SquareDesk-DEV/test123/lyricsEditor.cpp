@@ -1041,6 +1041,8 @@ QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
 }
 
 // LOAD A CUESHEET INTO THE EDITOR -------------------------------------------
+
+
 void MainWindow::loadCuesheet(const QString cuesheetFilename)
 {
     // qDebug() << "loadCuesheet: " << cuesheetFilename;

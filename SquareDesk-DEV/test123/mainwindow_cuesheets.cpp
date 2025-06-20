@@ -1109,6 +1109,12 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
     // }
 }
 
+void MainWindow::maybeLoadCuesheets(const QString &MP3FileName, const QString cuesheetFilename) {
+    loadCuesheets(MP3FileName, cuesheetFilename);
+    override_filename = MP3FileName;
+    override_cuesheet = cuesheetFilename;
+    actionSwitchToTab("Cuesheet");
+}
 
 bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCuesheet, QString nextFilename)
 {

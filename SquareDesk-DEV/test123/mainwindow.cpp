@@ -315,7 +315,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     lyricsTabNumber = 1;
     lyricsForDifferentSong = false;
     cueSheetLoaded = false;
-
+    override_filename = "";
+    override_cuesheet = "";
+    
     lastSavedPlaylist = "";  // no playlists saved yet in this session
     playlistHasBeenModified = false; // playlist hasn't been modified yet
 
@@ -1939,6 +1941,11 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                                                         showInFinderOrExplorer(cuesheetPath);
                                                   }
                                                   );
+                                plMenu->addAction(QString("Load Cuesheets"),
+                                                  [this, fullMP3Path, cuesheetPath]() {
+                                                      maybeLoadCuesheets(fullMP3Path, cuesheetPath);
+                                                  }
+                                                  );
                             }
                         }
 
@@ -2077,6 +2084,11 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                                                         showInFinderOrExplorer(cuesheetPath);
                                                   }
                                                   );
+                                plMenu->addAction(QString("Load Cuesheets"),
+                                                  [this, fullMP3Path, cuesheetPath]() {
+                                                      maybeLoadCuesheets(fullMP3Path, cuesheetPath);
+                                                  }
+                                                  );
                             }
                         }
 
@@ -2195,7 +2207,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                                               });
 
                             // if the current song has a cuesheet, offer to show it to the user -----
-                            QString fullMP3Path = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
+                            QString fullMP3Path = this->ui->playlist3Table->item(this->ui->playlist3Table->itemAt(q)->row(), 4)->text();
                             QString cuesheetPath;
 
                             SongSetting settings1;
@@ -2215,6 +2227,12 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                                                         showInFinderOrExplorer(cuesheetPath);
                                                   }
                                                   );
+                                plMenu->addAction(QString("Load Cuesheets"),
+                                                  [this, fullMP3Path, cuesheetPath]() {
+                                                      maybeLoadCuesheets(fullMP3Path, cuesheetPath);
+                                                  }
+                                                  );
+                                
                             }
                         }
 
@@ -3171,6 +3189,7 @@ void MainWindow::on_comboBoxCallListProgram_currentIndexChanged(int currentIndex
 }
 
 
+
 void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex)
 {
 //    qDebug() << "on_comboBoxCuesheetSelector_currentIndexChanged currentIndex = " << currentIndex;
@@ -3185,6 +3204,9 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
 
         QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(currentIndex).toString();
 //        qDebug() << "on_comboBoxCuesheetSelector_currentIndexChanged is about to load: " << cuesheetFilename;
+        if (override_filename != "") {
+            saveCuesheet(override_filename, cuesheetFilename);
+        }
         loadCuesheet(cuesheetFilename);
     }
 }
@@ -6887,6 +6909,28 @@ void MainWindow::saveCurrentSongSettings()
 
 }
 
+// Save just the cuesheet.  This is called when "Load Cuesheets" has been called and
+// using the dropdown menu a different cuesheet has been selected.
+// We need to do it here because this song (songFilename) is different
+// from the current song playing (currentMP3filenameWithPath).
+void MainWindow::saveCuesheet(const QString songFilename, const QString cuesheetFilename) {
+//    SongSetting oldSettings;
+//    QString prevcuesheetName = "";
+//    if (songSettings.loadSettings(songFilename, oldSettings)) {
+//        if (oldSettings.isSetCuesheetName()) {
+//            prevcuesheetName = oldSettings.getCuesheetName();
+//            qDebug() << "Cuesheet for " << songFilename
+//                     << " was " << prevcuesheetName;
+//        }
+//    }
+    SongSetting setting;
+    setting.setCuesheetName(cuesheetFilename);
+    songSettings.saveSettings(songFilename, setting);
+//    qDebug() << "Cuesheet for " << songFilename
+//             << " changed to " << cuesheetFilename;
+}
+
+
 QString MainWindow::convertCuesheetPathNameToCurrentRoot(QString str1) {
     // attempts to converts any pathname (even one from an old musicRoot) to a full absolute pathname
     //   in the CURRENT musicRoot.  The file is guaranteed to exist, and is (presumably)
@@ -6895,6 +6939,9 @@ QString MainWindow::convertCuesheetPathNameToCurrentRoot(QString str1) {
     // returns the ABSOLUTE pathname, if everything was OK
     //   or "", if the pathname couldn't be mapped to an existing file in the current musicRoot.
 
+    if (str1 == "") {
+        return str1;
+    }
     QFileInfo fi1(str1);
 
     if (str1.startsWith(musicRootPath) && fi1.exists()) {
@@ -9579,8 +9626,25 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
             // can only reveal a single file or cuesheet in Finder
             menu.addSeparator();
             menu.addAction( "Reveal Audio File in Finder",       this, SLOT (darkRevealInFinder()) );
-            menu.addAction( "Reveal Current Cuesheet in Finder", this, SLOT (darkRevealAttachedLyricsFileInFinder()) );
 
+            QString cuesheetPath;
+            SongSetting settings1;
+            if (songSettings.loadSettings(pathToMP3, settings1)) {
+                // qDebug() << "here are the settings: " << settings1;
+                cuesheetPath = settings1.getCuesheetName();
+                if (cuesheetPath != "")  {
+                    menu.addAction( "Reveal Current Cuesheet in Finder",
+                                    [this, cuesheetPath]() {
+                                        showInFinderOrExplorer(cuesheetPath);
+                                    }
+                                    );
+                    menu.addAction( "Load Cuesheets",
+                                    [this, pathToMP3, cuesheetPath]() {
+                                        maybeLoadCuesheets(pathToMP3, cuesheetPath);
+                                    }
+                                    );
+                }
+            }
             // SECTIONS STUFF ============
             // just do ONE
             menu.addSeparator();
@@ -9932,30 +9996,7 @@ void MainWindow::darkRevealInFinder()
 }
 
 // --------------
-// invoked from context menu on darkSongTable entry
-void MainWindow::darkRevealAttachedLyricsFileInFinder() {
 
-    int selectedRow = darkSelectedSongRow();  // get current row or -1
-    if (selectedRow == -1) {
-            // qDebug() << "Tried to revealAttachedLyricsFile, but no selected row."; // if nothing selected, give up
-            return;
-    }
-
-    QString currentMP3filenameWithPath = ui->darkSongTable->item(selectedRow, kPathCol)->data(Qt::UserRole).toString();
-
-    SongSetting settings1;
-    if (songSettings.loadSettings(currentMP3filenameWithPath, settings1)) {
-            QString cuesheetPath = settings1.getCuesheetName();
-
-            // qDebug() << "convertCuesheetPathNameToCurrentRoot BEFORE:" << cuesheetPath;
-            cuesheetPath = convertCuesheetPathNameToCurrentRoot(cuesheetPath);
-            // qDebug() << "convertCuesheetPathNameToCurrentRoot AFTER:" << cuesheetPath;
-
-            showInFinderOrExplorer(cuesheetPath);
-    } else {
-            // qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
-    }
-}
 
 void MainWindow::on_actionSwitch_to_Light_Mode_triggered()
 {
