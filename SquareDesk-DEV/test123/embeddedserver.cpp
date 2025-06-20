@@ -39,6 +39,23 @@ bool EmbeddedServer::isRunning() const
     return m_tcpServer && m_tcpServer->isListening();
 }
 
+bool isPortAvailable(quint16 port) {
+    // Test IPv4
+    QTcpSocket testSocketV4;
+    testSocketV4.connectToHost(QHostAddress::LocalHost, port);  // IPv4
+    bool ipv4Available = !testSocketV4.waitForConnected(100);
+    testSocketV4.disconnectFromHost();
+
+    // Test IPv6
+    QTcpSocket testSocketV6;
+    testSocketV6.connectToHost(QHostAddress::LocalHostIPv6, port);  // IPv6
+    bool ipv6Available = !testSocketV6.waitForConnected(100);
+    testSocketV6.disconnectFromHost();
+
+    // Port is only available if both are free
+    return ipv4Available && ipv6Available;
+}
+
 bool EmbeddedServer::start()
 {
     if (m_server && m_tcpServer) {
@@ -64,21 +81,25 @@ bool EmbeddedServer::start()
     
     setupRoutes();
     
-    // Try to find an available port
+    // In your server startup code:
     for (quint16 port = MIN_PORT; port <= MAX_PORT; ++port) {
-        // Only bind to localhost for security
+        // First check if port is actually available
+        if (!isPortAvailable(port)) {
+            // qInfo() << "Port" << port << "is already in use, skipping";
+            continue;
+        }
+
         if (m_tcpServer->listen(QHostAddress::LocalHost, port)) {
             if (m_server->bind(m_tcpServer)) {
                 m_port = port;
                 // qInfo() << "Server started on http://localhost:" << m_port;
-                // qInfo() << "Secret token:" << m_secretToken;
                 return true;
             } else {
                 m_tcpServer->close();
             }
         }
     }
-    
+
     qCritical() << "Failed to start server on any port between" << MIN_PORT << "and" << MAX_PORT;
     delete m_server;
     delete m_tcpServer;

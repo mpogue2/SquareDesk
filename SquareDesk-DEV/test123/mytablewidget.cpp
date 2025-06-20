@@ -676,6 +676,10 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
         }
         // qDebug() << "playlist sourceInfo: " << sourceInfo;  // this has info on ALL the selected items
 
+        if (sourceInfo == "") {
+            return;  // we tried to drag "nothing"
+        }
+
         mimeData->setText(sourceInfo);
         drag->setMimeData(mimeData);
 
@@ -723,6 +727,10 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
 
         // qDebug() << "sourceInfo: " << sourceInfo;  // this has info on ALL the selected items
 
+        if (sourceInfo == "") {
+            return; // we tried to drag "nothing"
+        }
+
         mimeData->setText(sourceInfo); // send all the info!
         drag->setMimeData(mimeData);
 
@@ -742,6 +750,12 @@ void MyTableWidget::dragEnterEvent(QDragEnterEvent *event)
             event->ignore();
         }
     } else {
+        event->ignore();
+    }
+
+    // qDebug() << "dragEnterEvent: event->mimeData()->text()" << event->mimeData()->text();
+    if (event->mimeData()->text() == "") {
+        // guard against moving nothing, which causes crash in the dropEvent
         event->ignore();
     }
 }
