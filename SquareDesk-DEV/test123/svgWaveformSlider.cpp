@@ -396,6 +396,8 @@ void svgWaveformSlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, double es
     double loopStart_frac;
     double loopEnd_frac;
 
+    // qDebug() << "svgWaveformSlider::SetDefaultIntroOutroPositions" << songIsSingerType;
+
     if (!tempoIsBPM) {
         // if we don't have an estimatedBPM at all, we have to guess
         if (songIsSingerType) {
@@ -540,14 +542,10 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
 
         setLoop(drawLoopPoints);  // turn drawing of [ and ] etc ON/OFF
 
-        // if (leftLoopMarker != nullptr) leftLoopMarker->setVisible(true);
-        // if (rightLoopMarker != nullptr) rightLoopMarker->setVisible(true);
-        // if (leftLoopCover != nullptr) leftLoopCover->setVisible(true);
-        // if (rightLoopCover != nullptr) rightLoopCover->setVisible(true);
-
         if (loadingMessage != nullptr) loadingMessage->setVisible(false);
 
         if (singingCall) {
+            // qDebug() << "IT IS A SINGING CALL";
             // Singing call ---------------------
             int whichColor = 0;
             int currentWidth = width();
@@ -583,11 +581,13 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
 
                paint->drawLine(i,30.0 + h,i,30.0 - h);
             }
+
+            // qDebug() << "TURNING OFF THE MARKERS";  // NOTE: THIS IS WRONG. DO NOT TURN OFF THE MARKERS FOR SINGERS, IT COULD HAPPEN.
             // singing calls don't show the loop markers, because intro/outro in a singing call are not loop start/end
-            if (leftLoopMarker != nullptr) leftLoopMarker->setVisible(false);
-            if (rightLoopMarker != nullptr) rightLoopMarker->setVisible(false);
-            if (leftLoopCover != nullptr) leftLoopCover->setVisible(false);
-            if (rightLoopCover != nullptr) rightLoopCover->setVisible(false);
+            // if (leftLoopMarker != nullptr) leftLoopMarker->setVisible(false);
+            // if (rightLoopMarker != nullptr) rightLoopMarker->setVisible(false);
+            // if (leftLoopCover != nullptr) leftLoopCover->setVisible(false);
+            // if (rightLoopCover != nullptr) rightLoopCover->setVisible(false);
         } else {
             // Patter, etc. ----------------------
 //            qDebug() << "updateBgPixmap 9" << WAVEFORMSAMPLES << width() << normalizationScaleFactor << fullScaleInPixels << f;
@@ -763,7 +763,7 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
 
 // ----------------------
 void svgWaveformSlider::setSingingCall(bool b) {
-    //        qDebug() << "*** setSingingCall:" << b;
+    // qDebug() << "*** svgWaveformSlider::setSingingCall:" << b;
     singingCall = b;
 }
 
@@ -773,16 +773,23 @@ void svgWaveformSlider::setOrigin(int i) {
 
 // LOOPS -------
 void svgWaveformSlider::setLoop(bool b) {
+    // qDebug() << "svgWaveformSlider::setLoop" << b << (leftLoopCover != nullptr) << (leftLoopMarker != nullptr)
+    //          << (rightLoopCover != nullptr) << (rightLoopMarker != nullptr);
+
     drawLoopPoints = b;
 
-    if (leftLoopMarker != nullptr && leftLoopMarker != nullptr) {
-        // qDebug() << "setLoop: " << drawLoopPoints;
-        leftLoopCover->setVisible(drawLoopPoints);
-        leftLoopMarker->setVisible(drawLoopPoints);
-        rightLoopCover->setVisible(drawLoopPoints);
-        rightLoopMarker->setVisible(drawLoopPoints);
-    }
+    // if (leftLoopMarker != nullptr && leftLoopMarker != nullptr) { // BUG BUG BUG: Marker twice?? TYPO!
+    //     // qDebug() << "svgWaveformSlider::setLoop setting visibility =" << drawLoopPoints;
+    //     leftLoopCover->setVisible(drawLoopPoints);
+    //     leftLoopMarker->setVisible(drawLoopPoints);
+    //     rightLoopCover->setVisible(drawLoopPoints);
+    //     rightLoopMarker->setVisible(drawLoopPoints);
+    // }
 
+    if (leftLoopCover   != nullptr) leftLoopCover->setVisible(drawLoopPoints);
+    if (leftLoopMarker  != nullptr) leftLoopMarker->setVisible(drawLoopPoints);
+    if (rightLoopCover  != nullptr) rightLoopCover->setVisible(drawLoopPoints);
+    if (rightLoopMarker != nullptr) rightLoopMarker->setVisible(drawLoopPoints);
 }
 
 void svgWaveformSlider::setIntro(double frac) {
@@ -790,7 +797,7 @@ void svgWaveformSlider::setIntro(double frac) {
     introPosition = frac * width();
     introFrac = frac;
 
-    //        qDebug() << "*** setIntro:" << introPosition;
+    // qDebug() << "*** svgWaveformSlider::setIntro:" << introPosition << (leftLoopMarker != nullptr) << (leftLoopCover != nullptr);
     if (leftLoopMarker != nullptr && leftLoopCover != nullptr) {
         leftLoopMarker->setX(introPosition);
         // Iterate over the items in the group, set their pen to the new color
@@ -817,7 +824,7 @@ void svgWaveformSlider::setOutro(double frac) {
     outroPosition = frac * width();
     outroFrac = frac;
 
-    //        qDebug() << "*** setOutro:" << outroPosition;
+    // qDebug() << "*** svgWaveformSlider::setOutro:" << outroPosition;
     if (rightLoopMarker != nullptr && rightLoopCover != nullptr) {
         rightLoopMarker->setX(outroPosition - 3); // 3 is to compensate for the width of the green bracket
 
