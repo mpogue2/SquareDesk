@@ -909,7 +909,7 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     if (settings.isSetBass()) { fields.append("bass"); }
     if (settings.isSetMidrange()) { fields.append("midrange"); }
     if (settings.isSetMix()) { fields.append("mix"); }
-    if (settings.isSetMix()) { fields.append("loop"); }
+    if (settings.isSetLoop()) { fields.append("loop"); }
     if (settings.isSetTags()) { fields.append("tags"); }
 //    if (settings.isSetReplayGain()) { fields.append("replayGain"); }
 

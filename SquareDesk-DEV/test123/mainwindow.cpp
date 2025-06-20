@@ -3416,22 +3416,17 @@ void MainWindow::on_loopButton_toggled(bool checked)
     Q_UNUSED(checked)
     if (checked) {
         ui->actionLoop->setChecked(true);
-
-        // ui->seekBar->SetLoop(true);
         ui->seekBarCuesheet->SetLoop(true);
-
         ui->darkSeekBar->setLoop(true);
-        double songLength = cBass->FileLength;
-//        qDebug() << "songLength: " << songLength << ", Intro: " << ui->seekBar->GetIntro();
 
-//        cBass->SetLoop(songLength * 0.9, songLength * 0.1); // FIX: use parameters in the MP3 file
+        double songLength = cBass->FileLength;
         cBass->SetLoop(songLength * static_cast<double>(ui->darkSeekBar->getOutroFrac()),
                       songLength * static_cast<double>(ui->darkSeekBar->getIntroFrac()));
+
+        //        qDebug() << "songLength: " << songLength << ", Intro: " << ui->seekBar->GetIntro();
     }
     else {
         ui->actionLoop->setChecked(false);
-
-        // ui->seekBar->SetLoop(false);
         ui->seekBarCuesheet->SetLoop(false);
         ui->darkSeekBar->setLoop(false);
 
@@ -7129,7 +7124,10 @@ void MainWindow::loadSettingsForSong(QString songTitle)
                 on_loopButton_toggled(true);
             } else {
                 // DO NOTHING
+                qDebug() << "ERROR 103: isSetLoop was true, but getLoop was not -1 or 1.";
             }
+        } else {
+            qDebug() << "NOTE: isSetLoop was false, so using default loop setting for this song type.";
         }
 
     }

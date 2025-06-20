@@ -50,7 +50,7 @@ class SongSetting
     // Attributes are set in songsetting_attributes.h
 #define SONGSETTING_ELEMENT(type, name) private:                \
     type m_##name;                                              \
-    bool set_##name;                                            \
+    bool set_##name = false;                                    \
     public:                                                     \
     type get##name() const { return m_##name; }                 \
     void set##name(type p) { m_##name = p; set_##name = true; } \
