@@ -429,6 +429,18 @@ macx {
     LIBS += -L$$KFR_LIB -lkfr_dsp_neon64 -lkfr_io
 }
 
+macx {
+    QMAKE_EXTRA_TARGETS += libJUCE JUCE
+    libJUCE.target = $$(HOME)/JUCEProjects/libJUCEstatic
+    libJUCE.depends =
+    libJUCE.commands = zsh $$PWD/../juce-install
+    JUCE.target = /Applications/JUCE
+    JUCE.depends =
+    JUCE.commands = zsh $$PWD/../juce-install
+    PRE_TARGETDEPS += $$libJUCE.target
+}
+
+
 # MiniBPM for BPM detection -----------------------------------
 INCLUDEPATH += $$PWD/miniBPM
 

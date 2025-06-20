@@ -1,5 +1,5 @@
 #! /bin/zsh
-# set -v
+
 set -e	# exit if error encountered
 
 # Obtain from from https://github.com/mpogue2/SquareDesk/issues/1372#issuecomment-2853201956
@@ -10,7 +10,9 @@ set -e	# exit if error encountered
 #	libJUCE_splitaab.zip
 # 
 
-test -d temp || mkdir temp
+# cd to an empty temp directory
+test -d temp && rm -fr temp
+mkdir temp
 cd temp
 
 if [ -d /Applications/JUCE ]; then
@@ -23,8 +25,8 @@ else
     mv -v JUCE /Applications/
 fi
 
-if [ -d ~/JUCEProjects ] ; then
-    echo >&2 ~/JUCEProjects already exists
+if [ -e ~/JUCEProjects/libJUCEstatic ] ; then
+    echo >&2 ~/JUCEProjects/libJUCEstatic already exists
 else
     curl -fsSL -o libJUCE_splitaa https://github.com/user-attachments/files/20052724/libJUCE_splitaa.zip
     curl -fsSL -o libJUCE_splitab https://github.com/user-attachments/files/20052723/libJUCE_splitab.zip
@@ -35,4 +37,4 @@ else
 fi
 
 cd ..
-rm -I -r temp
+rm -fr temp

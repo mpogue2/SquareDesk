@@ -268,7 +268,7 @@ if [ $CODE_SIGN_RESULT -ne 0 ]; then
     
     if [ $CODE_SIGN_RESULT -ne 0 ]; then
         echo "Error signing app bundle with alternative method."
-        exit 1
+	codesign --deep -f -s - "$APP_PATH"
     fi
 fi
 
