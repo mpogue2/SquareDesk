@@ -4500,7 +4500,8 @@ void MainWindow::on_UIUpdateTimerTick(void)
             // qDebug() << "currentSongSecondsPlayed:" << currentSongSecondsPlayed;
     }
 
-    if (!currentSongSecondsPlayedRecorded && (currentSongSecondsPlayed >= 15)) { // GEMA compliance is 15 seconds
+    if (!currentSongSecondsPlayedRecorded && (currentSongSecondsPlayed >= 1)) { // GEMA compliance is 15 seconds
+        // using 1 second here so that the Recent column is always saved, if playback was >= 1 second
         if (!ui->actionDon_t_Save_Plays->isChecked())
         {
             // qDebug() << "actionDon_t_Save_Plays was NOT checked.";
