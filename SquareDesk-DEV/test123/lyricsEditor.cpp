@@ -1045,7 +1045,7 @@ QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
 
 void MainWindow::loadCuesheet(const QString cuesheetFilename)
 {
-    qDebug() << "loadCuesheet: " << cuesheetFilename;
+    // qDebug() << "loadCuesheet: " << cuesheetFilename;
     //loadedCuesheetNameWithPath = ""; // nothing loaded yet
 
     // QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));

@@ -3192,12 +3192,7 @@ void MainWindow::on_comboBoxCallListProgram_currentIndexChanged(int currentIndex
 
 void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex)
 {
-    qDebug() << "on_comboBoxCuesheetSelector_currentIndexChanged currentIndex = " << currentIndex;
-    QString currentTabName = ui->tabWidget->tabText(ui->tabWidget->currentIndex());
-    if (currentTabName != "Cuesheet") {
-        qDebug() << "??? bogus cuesheet selector change?";
-        return;
-    }
+//    qDebug() << "on_comboBoxCuesheetSelector_currentIndexChanged currentIndex = " << currentIndex;
     if (currentIndex != -1 && !cuesheetEditorReactingToCursorMovement) {
         if (currentIndex < 100) {
             // revert adds 100 to the currentIndex to force a reload
@@ -3210,12 +3205,10 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
         QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(currentIndex).toString();
 //        qDebug() << "on_comboBoxCuesheetSelector_currentIndexChanged is about to load: " << cuesheetFilename;
         if (override_filename != "") {
-            qDebug() << "### Saving " << cuesheetFilename << " for " << override_filename;
-            qDebug() << "[override] Saving " << cuesheetFilename << " for " << override_filename;
+            // qDebug() << "[load-cuesheets] Saving " << cuesheetFilename << " for " << override_filename;
             saveCuesheet(override_filename, cuesheetFilename);
         } else if (lyricsForDifferentSong) {
-            qDebug() << "### Saving " << cuesheetFilename << " for " << mp3ForDifferentCuesheet;
-            qDebug() << "[different song] Saving " << cuesheetFilename << " for " << mp3ForDifferentCuesheet;
+            // qDebug() << "[different-song] Saving " << cuesheetFilename << " for " << mp3ForDifferentCuesheet;
             saveCuesheet(mp3ForDifferentCuesheet, cuesheetFilename);
         }
         loadCuesheet(cuesheetFilename);
@@ -6855,7 +6848,8 @@ void MainWindow::saveCurrentSongSettings()
         QString cuesheetFilename = !lyricsForDifferentSong && cuesheetIndex >= 0 ?
             ui->comboBoxCuesheetSelector->itemData(cuesheetIndex).toString()
             : "";
-        qDebug() << "saveCurrentSongSettings: " << currentMP3filename << " | " << cuesheetFilename;
+
+        // qDebug() << "saveCurrentSongSettings: " << currentMP3filename << " | " << cuesheetFilename;
         SongSetting setting;
         setting.setFilename(currentMP3filename);
         setting.setFilenameWithPath(currentMP3filenameWithPath);
@@ -6937,8 +6931,8 @@ void MainWindow::saveCuesheet(const QString songFilename, const QString cuesheet
     SongSetting setting;
     setting.setCuesheetName(cuesheetFilename);
     songSettings.saveSettings(songFilename, setting);
-    qDebug() << "Cuesheet for " << songFilename
-           << " changed to " << cuesheetFilename;
+//    qDebug() << "Cuesheet for " << songFilename
+//             << " changed to " << cuesheetFilename;
 }
 
 
@@ -7125,7 +7119,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
 
        
         if (lyricsForDifferentSong) {
-            qDebug() << "loadSettingsForSong: ignoring cuesheet for " << songTitle << " because lyricsForDifferentSong";
+            // qDebug() << "loadSettingsForSong: ignoring cuesheet for " << songTitle << " because lyricsForDifferentSong";
         } else {
         
             // qDebug() << "***** loadSettingsForSong cuesheetName: " << cuesheetName;
