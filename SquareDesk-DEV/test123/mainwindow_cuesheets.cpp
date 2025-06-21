@@ -1157,6 +1157,8 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
                 if (cuesheetName.length() > 0) {
                     preferredCuesheet = cuesheetName;
                     lyricsForDifferentSong = true;
+                    mp3ForDifferentCuesheet = filenameToCheck;
+                    qDebug() << "*** lyricsForDifferentSong " << mp3ForDifferentCuesheet << ": " << preferredCuesheet;
                 }
             }
         }
@@ -1168,12 +1170,12 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
 
         foreach (const QString &cuesheet, possibleCuesheets) {
                 RecursionGuard guard(cuesheetEditorReactingToCursorMovement);
-            // qDebug() << "checking: " << cuesheet << preferredCuesheet;
+             qDebug() << "checking: " << cuesheet << preferredCuesheet;
                 if ((!preferredCuesheet.isNull()) && preferredCuesheet.length() >= 0
                     && cuesheet == preferredCuesheet)
                     {
                         defaultCuesheetIndex = ui->comboBoxCuesheetSelector->count();
-                        // qDebug() << "defaultCuesheetIndex: " << defaultCuesheetIndex;
+                         qDebug() << "defaultCuesheetIndex: " << defaultCuesheetIndex;
                     }
 
                 QString displayName = cuesheet;
@@ -1198,6 +1200,7 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
             if (0 == defaultCuesheetIndex)
                 on_comboBoxCuesheetSelector_currentIndexChanged(0);
             hasLyrics = true;
+            loadCuesheet(preferredCuesheet);
         }
 
         // only allow editing (and show the Unlock button), or creating a New cuesheet from template,

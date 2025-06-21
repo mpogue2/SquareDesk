@@ -982,7 +982,8 @@ private:
 
     bool songLoaded;
     bool fileModified;
-    bool lyricsForDifferentSong;
+    bool lyricsForDifferentSong;        // if peeking, this is true, and
+    QString mp3ForDifferentCuesheet;   // this is the "peeked" mp3 file
     QString override_filename;
     QString override_cuesheet;  // cuesheet selected when in "Load Cuesheets" menu item
     
