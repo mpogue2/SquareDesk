@@ -1157,6 +1157,8 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
                 if (cuesheetName.length() > 0) {
                     preferredCuesheet = cuesheetName;
                     lyricsForDifferentSong = true;
+                    mp3ForDifferentCuesheet = filenameToCheck;
+                    // qDebug() << "*** lyricsForDifferentSong " << mp3ForDifferentCuesheet << ": " << preferredCuesheet;
                 }
             }
         }

@@ -3205,7 +3205,11 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
         QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(currentIndex).toString();
 //        qDebug() << "on_comboBoxCuesheetSelector_currentIndexChanged is about to load: " << cuesheetFilename;
         if (override_filename != "") {
+            // qDebug() << "[load-cuesheets] Saving " << cuesheetFilename << " for " << override_filename;
             saveCuesheet(override_filename, cuesheetFilename);
+        } else if (lyricsForDifferentSong) {
+            // qDebug() << "[different-song] Saving " << cuesheetFilename << " for " << mp3ForDifferentCuesheet;
+            saveCuesheet(mp3ForDifferentCuesheet, cuesheetFilename);
         }
         loadCuesheet(cuesheetFilename);
     }
@@ -6846,6 +6850,7 @@ void MainWindow::saveCurrentSongSettings()
             ui->comboBoxCuesheetSelector->itemData(cuesheetIndex).toString()
             : "";
 
+        // qDebug() << "saveCurrentSongSettings: " << currentMP3filename << " | " << cuesheetFilename;
         SongSetting setting;
         setting.setFilename(currentMP3filename);
         setting.setFilenameWithPath(currentMP3filenameWithPath);
@@ -7112,23 +7117,30 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         ui->darkStartLoopTime->setTime(iTime); // milliseconds
         ui->darkEndLoopTime->setTime(oTime); // milliseconds
 #endif
-        // qDebug() << "***** loadSettingsForSong cuesheetName: " << cuesheetName;
-        if (cuesheetName.length() > 0)
-        {
-            for (int i = 0; i < ui->comboBoxCuesheetSelector->count(); ++i)
-            {
-                QString itemName = ui->comboBoxCuesheetSelector->itemData(i).toString();
-                // qDebug() << "***** loadSettingsForSong itemName:" << itemName;
-                bool relativeEqual = compareCuesheetPathNamesRelative(itemName, cuesheetName); // ignore the musicRootPath parts
 
-                // if (itemName == cuesheetName)
-                if (relativeEqual)
+       
+        if (lyricsForDifferentSong) {
+            // qDebug() << "loadSettingsForSong: ignoring cuesheet for " << songTitle << " because lyricsForDifferentSong";
+        } else {
+        
+            // qDebug() << "***** loadSettingsForSong cuesheetName: " << cuesheetName;
+            if (cuesheetName.length() > 0)
                 {
-                    // qDebug() << "RELATIVE EQUAL --------";
-                    ui->comboBoxCuesheetSelector->setCurrentIndex(i);  // This will always select a cuesheet in the CURRENT MusicRootPath
-                    break;
+                    for (int i = 0; i < ui->comboBoxCuesheetSelector->count(); ++i)
+                        {
+                            QString itemName = ui->comboBoxCuesheetSelector->itemData(i).toString();
+                            // qDebug() << "***** loadSettingsForSong itemName:" << itemName;
+                            bool relativeEqual = compareCuesheetPathNamesRelative(itemName, cuesheetName); // ignore the musicRootPath parts
+
+                            // if (itemName == cuesheetName)
+                            if (relativeEqual)
+                                {
+                                    // qDebug() << "RELATIVE EQUAL --------";
+                                    ui->comboBoxCuesheetSelector->setCurrentIndex(i);  // This will always select a cuesheet in the CURRENT MusicRootPath
+                                    break;
+                                }
+                        }
                 }
-            }
         }
         // qDebug() << "***** loadSettingsForSong:" << currentMP3filename;
         // qDebug() << "loadSettingsForSong:" << settings.isSetTreble() << settings.getTreble();
