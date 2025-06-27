@@ -44,6 +44,8 @@
 #pragma clang diagnostic pop
 #include "ui_mainwindow.h"
 
+#include "tablenumberitem.h"
+
 MyTableWidget::MyTableWidget(QWidget *parent)
     : QTableWidget(parent)
 {
@@ -907,19 +909,13 @@ void MyTableWidget::dropEvent(QDropEvent *event)
             copiedItems.append(items);
             QWidget* w = cellWidget(r, 1);
             if (w) {
-                // QLabel* oldLabel = qobject_cast<QLabel*>(w);
-                // if (oldLabel) {
-                //     copiedWidgets.append(new QLabel(oldLabel->text()));
-                // } else {
-                //     copiedWidgets.append(nullptr);
-                // }
                 darkPaletteSongTitleLabel* oldLabel = dynamic_cast<darkPaletteSongTitleLabel*>(w);
                 if (oldLabel) {
                     // clone the fancy palette label
                     darkPaletteSongTitleLabel* newLabel = new darkPaletteSongTitleLabel((MainWindow *)mw);
                     newLabel->setTextFormat(Qt::RichText);
                     newLabel->setText(oldLabel->text());
-                    copiedWidgets.append(newLabel);
+                    copiedWidgets.append(newLabel); // copy fancy label
                 } else {
                     copiedWidgets.append(nullptr);
                 }
@@ -930,25 +926,27 @@ void MyTableWidget::dropEvent(QDropEvent *event)
 
         // Remove from bottom up
         for (int i = selRows.size()-1; i >= 0; --i) {
-            // qDebug() << "removing row" << selRows[i];
             removeRow(selRows[i]);
         }
 
         // Insert at new location
         for (int i = 0; i < copiedItems.size(); ++i) {
             insertRow(targetRow + i);
-            for (int c = 0; c < columnCount(); ++c) {
+            for (int c = 0; c < columnCount(); ++c) { // not pasting # item in col 0
                 setItem(targetRow + i, c, copiedItems[i][c]);
             }
-            if (copiedWidgets[i])
-                setCellWidget(targetRow + i, 1, copiedWidgets[i]);
+            if (copiedWidgets[i]) {
+                setCellWidget(targetRow + i, 1, copiedWidgets[i]); // paste fancy label
+            }
         }
 
         // internal playlist, must renumber them
         // qDebug() << "INTERNAL RENUMBER:";
 
         for (int i = 0; i < this->rowCount(); i++) {
-            this->item(i,0)->setText(QString::number(i+1));
+            // this->item(i,0)->setText(QString::number(i+1)); // this is wrong, need to recreate the TableNumberItems
+            QTableWidgetItem *num = new TableNumberItem(QString::number(i+1)); // use TableNumberItem so that it sorts numerically
+            setItem(i, 0, num);
         }
 
         // --- Fix: Reset dropIndicatorRow and force viewport update to restore drag state ---
