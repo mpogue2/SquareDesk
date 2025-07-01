@@ -780,9 +780,7 @@ private slots:
 
     void on_playlist1Table_itemSelectionChanged();
 
-    void on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item);
-    void on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item);
-    void on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item);
+    void handlePlaylistDoubleClick(QTableWidgetItem *item);
 
     void on_treeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column);
 

@@ -119,26 +119,16 @@ QStringList MainWindow::parseCSV(const QString &string)
 // ----------------------------------------------------------------------
 void MainWindow::PlaylistItemsToTop() {
     if (darkmode) {
-        if (!relPathInSlot[0].startsWith("/tracks/")) {
-            slotModified[0] = ui->playlist1Table->moveSelectedItemsToTop() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
-            if (slotModified[0]) {
-                saveSlotNow(0);
-            }
-        }
-        if (!relPathInSlot[1].startsWith("/tracks/")) {
-            slotModified[1] = ui->playlist2Table->moveSelectedItemsToTop() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
-            if (slotModified[1]) {
-                saveSlotNow(1);
-            }
-        }
-        if (!relPathInSlot[2].startsWith("/tracks/")) {
-            slotModified[2] = ui->playlist3Table->moveSelectedItemsToTop() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
-            if (slotModified[2]) {
-                saveSlotNow(2);
+        MyTableWidget* tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+        for (int i = 0; i < 3; ++i) {
+            if (!relPathInSlot[i].startsWith("/tracks/")) {
+                slotModified[i] = tables[i]->moveSelectedItemsToTop() || slotModified[i];
+                if (slotModified[i]) {
+                    saveSlotNow(i);
+                }
             }
         }
         if (slotModified[0] || slotModified[1] || slotModified[2]) {
-//            playlistSlotWatcherTimer->start(std::chrono::seconds(10));  // no need for this, because these changes are immediate now
             return; // we changed something, no need to check songTable
         }
     }
@@ -147,57 +137,35 @@ void MainWindow::PlaylistItemsToTop() {
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemsToBottom() {
     if (darkmode) {
-        if (!relPathInSlot[0].startsWith("/tracks/")) {
-            slotModified[0] = ui->playlist1Table->moveSelectedItemsToBottom() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
-            if (slotModified[0]) {
-                saveSlotNow(0);
-            }
-        }
-        if (!relPathInSlot[1].startsWith("/tracks/")) {
-            slotModified[1] = ui->playlist2Table->moveSelectedItemsToBottom() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
-            if (slotModified[1]) {
-                saveSlotNow(1);
-            }
-        }
-        if (!relPathInSlot[2].startsWith("/tracks/")) {
-            slotModified[2] = ui->playlist3Table->moveSelectedItemsToBottom() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
-            if (slotModified[2]) {
-                saveSlotNow(2);
+        MyTableWidget* tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+        for (int i = 0; i < 3; ++i) {
+            if (!relPathInSlot[i].startsWith("/tracks/")) {
+                slotModified[i] = tables[i]->moveSelectedItemsToBottom() || slotModified[i];
+                if (slotModified[i]) {
+                    saveSlotNow(i);
+                }
             }
         }
         if (slotModified[0] || slotModified[1] || slotModified[2]) {
-            // playlistSlotWatcherTimer->start(std::chrono::seconds(10));  // not needed now
-            return; // we changed something, no need to check songTable
+            return;
         }
     }
 }
 
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemsMoveUp() {
-
     if (darkmode) {
-        // qDebug() << "relPathInSlot: " << relPathInSlot[0] << relPathInSlot[1] << relPathInSlot[2];
-        if (!relPathInSlot[0].startsWith("/tracks/")) {
-            slotModified[0] = ui->playlist1Table->moveSelectedItemsUp() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
-            if (slotModified[0]) {
-                saveSlotNow(0);
-            }
-        }
-        if (!relPathInSlot[1].startsWith("/tracks/")) {
-            slotModified[1] = ui->playlist2Table->moveSelectedItemsUp() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
-            if (slotModified[1]) {
-                saveSlotNow(1);
-            }
-        }
-        if (!relPathInSlot[2].startsWith("/tracks/")) {
-            slotModified[2] = ui->playlist3Table->moveSelectedItemsUp() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
-            if (slotModified[2]) {
-                saveSlotNow(2);
+        MyTableWidget* tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+        for (int i = 0; i < 3; ++i) {
+            if (!relPathInSlot[i].startsWith("/tracks/")) {
+                slotModified[i] = tables[i]->moveSelectedItemsUp() || slotModified[i];
+                if (slotModified[i]) {
+                    saveSlotNow(i);
+                }
             }
         }
         if (slotModified[0] || slotModified[1] || slotModified[2]) {
-            // playlistSlotWatcherTimer->start(std::chrono::seconds(10));  // not needed now
-            return; // we changed something, no need to check songTable
+            return;
         }
     }
 }
@@ -205,60 +173,36 @@ void MainWindow::PlaylistItemsMoveUp() {
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemsMoveDown() {
     if (darkmode) {
-        if (!relPathInSlot[0].startsWith("/tracks/")) {
-            slotModified[0] = ui->playlist1Table->moveSelectedItemsDown() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
-            if (slotModified[0]) {
-                saveSlotNow(0);
-            }
-        }
-        if (!relPathInSlot[1].startsWith("/tracks/")) {
-            slotModified[1] = ui->playlist2Table->moveSelectedItemsDown() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
-            if (slotModified[1]) {
-                saveSlotNow(1);
-            }
-        }
-        if (!relPathInSlot[2].startsWith("/tracks/")) {
-            slotModified[2] = ui->playlist3Table->moveSelectedItemsDown() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
-            if (slotModified[2]) {
-                saveSlotNow(2);
+        MyTableWidget* tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+        for (int i = 0; i < 3; ++i) {
+            if (!relPathInSlot[i].startsWith("/tracks/")) {
+                slotModified[i] = tables[i]->moveSelectedItemsDown() || slotModified[i];
+                if (slotModified[i]) {
+                    saveSlotNow(i);
+                }
             }
         }
         if (slotModified[0] || slotModified[1] || slotModified[2]) {
-            // playlistSlotWatcherTimer->start(std::chrono::seconds(10));  // not needed now
-            return; // we changed something, no need to check songTable
+            return;
         }
     }
 }
 
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemsRemove() {
-
     if (darkmode) {
-        if (!relPathInSlot[0].startsWith("/tracks/")) {
-            slotModified[0] = ui->playlist1Table->removeSelectedItems() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
-            if (slotModified[0]) {
-                saveSlotNow(0);
+        MyTableWidget* tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+        for (int i = 0; i < 3; ++i) {
+            if (!relPathInSlot[i].startsWith("/tracks/")) {
+                slotModified[i] = tables[i]->removeSelectedItems() || slotModified[i];
+                if (slotModified[i]) {
+                    saveSlotNow(i);
+                }
             }
         }
-        if (!relPathInSlot[1].startsWith("/tracks/")) {
-            slotModified[1] = ui->playlist2Table->removeSelectedItems() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
-            if (slotModified[1]) {
-                saveSlotNow(1);
-            }
-        }
-        if (!relPathInSlot[2].startsWith("/tracks/")) {
-            slotModified[2] = ui->playlist3Table->removeSelectedItems() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
-            if (slotModified[2]) {
-                saveSlotNow(2);
-            }
-        }
-
         if (slotModified[0] || slotModified[1] || slotModified[2]) {
-            // playlistSlotWatcherTimer->start(std::chrono::seconds(10));  // not needed now
-            return; // we changed something, no need to check songTable
-        }
-
             return;
+        }
     }
 }
 
@@ -999,19 +943,25 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
     return(firstBadSongLine);  // return error song (if any)
 }
 
-// -------------
-// TODO: FACTOR THESE (DUPLICATED CODE), use pointer to a PlaylistTable
-void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
+void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
 {
-    PerfTimer t("on_playlist1Table_itemDoubleClicked", __LINE__);
+    if (!item) return;
+    auto tableWidget = item->tableWidget();
 
-    // playlist format -------
-    // col 0: number
-    // col 1: short title
-    // col 2: pitch
-    // col 3: tempo
-    // col 4: full path to MP3
-    // col 5:
+    int slotNumber = -1;
+    if (tableWidget == ui->playlist1Table) {
+        slotNumber = 0;
+    } else if (tableWidget == ui->playlist2Table) {
+        slotNumber = 1;
+    } else if (tableWidget == ui->playlist3Table) {
+        slotNumber = 2;
+    }
+
+    if (slotNumber == -1) {
+        return;
+    }
+
+    PerfTimer t("on_playlistTable_itemDoubleClicked", __LINE__);
 
     on_darkStopButton_clicked();  // if we're loading a new MP3 file, stop current playback
     saveCurrentSongSettings();
@@ -1019,9 +969,7 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
     t.elapsed(__LINE__);
 
     int row = item->row();
-    QString pathToMP3 = ui->playlist1Table->item(row,4)->text();
-
-    // qDebug() << "Playlist #1 double clicked: " << row << pathToMP3;
+    QString pathToMP3 = tableWidget->item(row,4)->text();
 
     QFileInfo fi(pathToMP3);
     if (!fi.exists()) {
@@ -1030,11 +978,8 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
     }
 
     QString nextFile = "";
-    if (row+1 < ui->playlist1Table->rowCount()) {
-        nextFile = ui->playlist1Table->item(row+1,4)->text();
-        // qDebug() << "on_playlist1Table_itemDoubleClicked:  nextFile = " << nextFile;
-        // } else {
-        // qDebug() << "on_playlist1Table_itemDoubleClicked: no nextFile";
+    if (row+1 < tableWidget->rowCount()) {
+        nextFile = tableWidget->item(row+1,4)->text();
     }
     static QRegularExpression dotMusicSuffix("\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption); // match with music extensions
     QString songTitle = pathToMP3.split('/').last().replace(dotMusicSuffix,"");
@@ -1054,18 +999,12 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
     QString songType = (fi.path().replace(musicRootPath + "/","").split("/"))[0]; // e.g. "hoedown" or "patter"
     QString songLabel = "RIV 123";
 
-    // qDebug() << "***** on_playlist1Table_itemDoubleClicked(): songType = " << songType << songLabel;
-
     // these must be up here to get the correct values...
-    QString pitch  = ui->playlist1Table->item(row, 2)->text();
-    QString tempo  = ui->playlist1Table->item(row, 3)->text();
-//    QString number = ui->playlist1Table->item(row, 0)->text();
+    QString pitch  = tableWidget->item(row, 2)->text();
+    QString tempo  = tableWidget->item(row, 3)->text();
 
     targetPitch = pitch;  // save this string, and set pitch slider AFTER base BPM has been figured out
     targetTempo = tempo;  // save this string, and set tempo slider AFTER base BPM has been figured out
-//    targetNumber = number; // save this, because tempo changes when this is set are playlist modifications, too
-
-//    qDebug() << "on_playlist1Table_itemDoubleClicked: " << songTitle << songType << songLabel << pitch << tempo << pathToMP3;
 
     t.elapsed(__LINE__);
 
@@ -1074,41 +1013,30 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
     t.elapsed(__LINE__);
 
     // clear all the "1"s and arrows from palette slots (IF and only IF one of the palette slots is being currently edited
-    for (int slot = 0; slot < 3; slot++) {
-        MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-        MyTableWidget *table = tables[slot];
-        for (int i = 0; i < table->rowCount(); i++) {
-            if (table->item(i, 5)->text() == "1") {
-                // // clear the arrows out of the other tables
-                // QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrowStart, "");
-                // table->item(i, 1)->setText(currentTitleTextWithoutArrow);
-
-                QFont currentFont = table->item(i, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
+    MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+    for (int i = 0; i < 3; i++) {
+        MyTableWidget *table = tables[i];
+        for (int j = 0; j < table->rowCount(); j++) {
+            if (table->item(j, 5)->text() == "1") {
+                QFont currentFont = table->item(j, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
                 currentFont.setBold(false);
                 currentFont.setItalic(false);
-//                    currentFont.setPointSize(currentFont.pointSize() - 2);
-                table->item(i, 0)->setFont(currentFont);
-                table->item(i, 1)->setFont(currentFont);
-                table->item(i, 2)->setFont(currentFont);
-                table->item(i, 3)->setFont(currentFont);
+                table->item(j, 0)->setFont(currentFont);
+                table->item(j, 1)->setFont(currentFont);
+                table->item(j, 2)->setFont(currentFont);
+                table->item(j, 3)->setFont(currentFont);
             }
-            table->item(i, 5)->setText(""); // clear out the old table
+            table->item(j, 5)->setText(""); // clear out the old table
         }
     }
 
-    sourceForLoadedSong = ui->playlist1Table; // THIS is where we got the currently loaded song (this is the NEW table)
+    sourceForLoadedSong = qobject_cast<MyTableWidget*>(tableWidget); // THIS is where we got the currently loaded song (this is the NEW table)
 
     for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
         if (i == row) {
-            // // put arrow on the new one
-            // QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrowStart, "");
-            // QString newTitleText = editingArrowStart + currentTitleText;
-            // sourceForLoadedSong->item(row, 1)->setText(newTitleText);
-
             QFont currentFont = sourceForLoadedSong->item(i, 1)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
             currentFont.setBold(true);
             currentFont.setItalic(true);
-//            currentFont.setPointSize(currentFont.pointSize() + 2);
             sourceForLoadedSong->item(i, 0)->setFont(currentFont);
             sourceForLoadedSong->item(i, 1)->setFont(currentFont);
             sourceForLoadedSong->item(i, 2)->setFont(currentFont);
@@ -1128,264 +1056,12 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
         on_darkPlayButton_clicked();
     }
 
-    ui->playlist1Table->setFocus();
-    ui->playlist1Table->resizeColumnToContents(0); // number column needs to be resized, if bolded
+    tableWidget->setFocus();
+    tableWidget->resizeColumnToContents(0); // number column needs to be resized, if bolded
 
     t.elapsed(__LINE__);
 }
 
-// -------------
-void MainWindow::on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item)
-{
-    PerfTimer t("on_playlist2Table_itemDoubleClicked", __LINE__);
-
-    on_darkStopButton_clicked();  // if we're loading a new MP3 file, stop current playback
-    saveCurrentSongSettings();
-
-    t.elapsed(__LINE__);
-
-    int row = item->row();
-    QString pathToMP3 = ui->playlist2Table->item(row,4)->text();
-
-//    qDebug() << "on_playlist2Table_itemDoubleClicked ROW:" << row << pathToMP3;
-
-    QFileInfo fi(pathToMP3);
-    if (!fi.exists()) {
-        qDebug() << "ERROR: File does not exist " << pathToMP3;
-        return;  // can't load a file that doesn't exist
-    }
-
-    QString nextFile = "";
-    if (row+1 < ui->playlist2Table->rowCount()) {
-        nextFile = ui->playlist2Table->item(row+1,4)->text();
-        // qDebug() << "on_playlist2Table_itemDoubleClicked:  nextFile = " << nextFile;
-        // } else {
-        // qDebug() << "on_playlist2Table_itemDoubleClicked: no nextFile";
-    }
-
-    static QRegularExpression dotMusicSuffix("\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption); // match with music extensions
-    QString songTitle = pathToMP3.split('/').last().replace(dotMusicSuffix,"");
-
-    // parse the filename into parts, so we can use the shortTitle -----
-    QString label;
-    QString labelNumber;
-    QString labelExtra;
-    QString realTitle;
-    QString realShortTitle;
-
-    bool success = breakFilenameIntoParts(songTitle, label, labelNumber, labelExtra, realTitle, realShortTitle);
-    if (success) {
-        songTitle = realShortTitle;
-    }
-
-    QString songType = (fi.path().replace(musicRootPath + "/","").split("/"))[0]; // e.g. "hoedown" or "patter"
-    QString songLabel = "RIV 123";
-
-    // qDebug() << "***** on_playlist2Table_itemDoubleClicked(): songType = " << songType << songLabel;
-
-    // these must be up here to get the correct values...
-    QString pitch  = ui->playlist2Table->item(row, 2)->text();
-    QString tempo  = ui->playlist2Table->item(row, 3)->text();
-//    QString number = ui->playlist2Table->item(row, 0)->text();
-
-    targetPitch = pitch;  // save this string, and set pitch slider AFTER base BPM has been figured out
-    targetTempo = tempo;  // save this string, and set tempo slider AFTER base BPM has been figured out
-//    targetNumber = number; // save this, because tempo changes when this is set are playlist modifications, too
-
-//    qDebug() << "on_playlist2Table_itemDoubleClicked: " << songTitle << songType << songLabel << pitch << tempo << pathToMP3;
-
-    t.elapsed(__LINE__);
-
-    loadMP3File(pathToMP3, songTitle, songType, songLabel, nextFile);
-
-    t.elapsed(__LINE__);
-
-    // clear all the "1"s and arrows from palette slots, IF and only IF one of the playlist slots is being edited
-    for (int slot = 0; slot < 3; slot++) {
-        MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-        MyTableWidget *table = tables[slot];
-        for (int i = 0; i < table->rowCount(); i++) {
-            if (table->item(i, 5)->text() == "1") {
-                // // clear the arrows out of the other tables
-                // QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrowStart, "");
-                // table->item(i, 1)->setText(currentTitleTextWithoutArrow);
-
-                QFont currentFont = table->item(i, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
-                currentFont.setBold(false);
-                currentFont.setItalic(false);
-//                    currentFont.setPointSize(currentFont.pointSize() - 2);
-                table->item(i, 0)->setFont(currentFont);
-                table->item(i, 1)->setFont(currentFont);
-                table->item(i, 2)->setFont(currentFont);
-                table->item(i, 3)->setFont(currentFont);
-            }
-            table->item(i, 5)->setText(""); // clear out the old table
-        }
-    }
-
-    sourceForLoadedSong = ui->playlist2Table; // THIS is where we got the currently loaded song (this is the NEW table)
-
-    for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
-        if (i == row) {
-            // // put arrow on the new one
-            // QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrowStart, "");
-            // QString newTitleText = editingArrowStart + currentTitleText;
-            // sourceForLoadedSong->item(row, 1)->setText(newTitleText);
-
-            QFont currentFont = sourceForLoadedSong->item(i, 1)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
-            currentFont.setBold(true);
-            currentFont.setItalic(true);
-//            currentFont.setPointSize(currentFont.pointSize() + 2);
-            sourceForLoadedSong->item(i, 0)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 1)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 2)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 3)->setFont(currentFont);
-        }
-        sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
-    }
-
-    // these must be down here, to set the correct values...
-    int pitchInt = pitch.toInt();
-
-    ui->darkPitchSlider->setValue(pitchInt);
-
-    on_darkPitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
-        //   exactly the same as the previous value.  This will ensure that cBass->setPitch() gets called (right now) on the new stream.
-
-    if (ui->actionAutostart_playback->isChecked()) {
-        on_darkPlayButton_clicked();
-    }
-
-    ui->playlist2Table->setFocus();
-    ui->playlist2Table->resizeColumnToContents(0); // number column needs to be resized, if bolded
-
-    t.elapsed(__LINE__);
-}
-
-// -------------
-void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
-{
-    PerfTimer t("on_playlist3Table_itemDoubleClicked", __LINE__);
-
-    on_darkStopButton_clicked();  // if we're loading a new MP3 file, stop current playback
-    saveCurrentSongSettings();
-
-    t.elapsed(__LINE__);
-
-    int row = item->row();
-    QString pathToMP3 = ui->playlist3Table->item(row,4)->text();
-
-    QFileInfo fi(pathToMP3);
-    if (!fi.exists()) {
-        qDebug() << "ERROR: File does not exist " << pathToMP3;
-        return;  // can't load a file that doesn't exist
-    }
-
-    QString nextFile = "";
-    if (row+1 < ui->playlist3Table->rowCount()) {
-        nextFile = ui->playlist3Table->item(row+1,4)->text();
-        // qDebug() << "on_playlist3Table_itemDoubleClicked:  nextFile = " << nextFile;
-        // } else {
-        // qDebug() << "on_playlist3Table_itemDoubleClicked: no nextFile";
-    }
-    static QRegularExpression dotMusicSuffix("\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption); // match with music extensions
-    QString songTitle = pathToMP3.split('/').last().replace(dotMusicSuffix,"");
-
-    // parse the filename into parts, so we can use the shortTitle -----
-    QString label;
-    QString labelNumber;
-    QString labelExtra;
-    QString realTitle;
-    QString realShortTitle;
-
-    bool success = breakFilenameIntoParts(songTitle, label, labelNumber, labelExtra, realTitle, realShortTitle);
-    if (success) {
-        songTitle = realShortTitle;
-    }
-
-    QString songType = (fi.path().replace(musicRootPath + "/","").split("/"))[0]; // e.g. "hoedown" or "patter"
-    QString songLabel = "RIV 123";
-
-    // qDebug() << "***** on_playlist3Table_itemDoubleClicked(): songType = " << songType << songLabel;
-
-    // these must be up here to get the correct values...
-    QString pitch  = ui->playlist3Table->item(row, 2)->text();
-    QString tempo  = ui->playlist3Table->item(row, 3)->text();
-//    QString number = ui->playlist3Table->item(row, 0)->text();
-
-    targetPitch = pitch;  // save this string, and set pitch slider AFTER base BPM has been figured out
-    targetTempo = tempo;  // save this string, and set tempo slider AFTER base BPM has been figured out
-//    targetNumber = number; // save this, because tempo changes when this is set are playlist modifications, too
-
-//    qDebug() << "on_playlist3Table_itemDoubleClicked: " << songTitle << songType << songLabel << pitch << tempo << pathToMP3;
-
-    t.elapsed(__LINE__);
-
-    loadMP3File(pathToMP3, songTitle, songType, songLabel, nextFile);
-
-    t.elapsed(__LINE__);
-
-//     // clear all the "1"s and arrows from palette slots
-    for (int slot = 0; slot < 3; slot++) {
-        MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-        MyTableWidget *table = tables[slot];
-        for (int i = 0; i < table->rowCount(); i++) {
-            if (table->item(i, 5)->text() == "1") {
-                // // clear the arrows out of the other tables
-                // QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrowStart, "");
-                // table->item(i, 1)->setText(currentTitleTextWithoutArrow);
-
-                QFont currentFont = table->item(i, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
-                currentFont.setBold(false);
-                currentFont.setItalic(false);
-//                    currentFont.setPointSize(currentFont.pointSize() - 1);
-                table->item(i, 0)->setFont(currentFont);
-                table->item(i, 1)->setFont(currentFont);
-                table->item(i, 2)->setFont(currentFont);
-                table->item(i, 3)->setFont(currentFont);
-            }
-            table->item(i, 5)->setText(""); // clear out the old table
-        }
-    }
-
-    sourceForLoadedSong = ui->playlist3Table; // THIS is where we got the currently loaded song (this is the NEW table)
-
-    for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
-        if (i == row) {
-            // // put arrow on the new one
-            // QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrowStart, "");
-            // QString newTitleText = editingArrowStart + currentTitleText;
-            // sourceForLoadedSong->item(row, 1)->setText(newTitleText);
-
-            QFont currentFont = sourceForLoadedSong->item(i, 1)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
-            currentFont.setBold(true);
-            currentFont.setItalic(true);
-//            currentFont.setPointSize(currentFont.pointSize() + 1);
-            sourceForLoadedSong->item(i, 0)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 1)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 2)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 3)->setFont(currentFont);
-        }
-        sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
-    }
-
-    // these must be down here, to set the correct values...
-    int pitchInt = pitch.toInt();
-
-    ui->darkPitchSlider->setValue(pitchInt);
-
-    on_darkPitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
-        //   exactly the same as the previous value.  This will ensure that cBass->setPitch() gets called (right now) on the new stream.
-
-    if (ui->actionAutostart_playback->isChecked()) {
-        on_darkPlayButton_clicked();
-    }
-
-    ui->playlist3Table->setFocus();
-    ui->playlist3Table->resizeColumnToContents(0); // number column needs to be resized, if bolded
-
-    t.elapsed(__LINE__);
-}
 
 
 // ========================
@@ -1846,11 +1522,7 @@ void MainWindow::darkPaletteTitleLabelDoubleClicked(QMouseEvent * e)
             // qDebug() << "Path: " << path;
 
             // pretend we clicked on the tempo label of that row, and let the existing functions do the work...
-            switch (i) {
-                case 0: on_playlist1Table_itemDoubleClicked(theTable->item(row, 3)); break;
-                case 1: on_playlist2Table_itemDoubleClicked(theTable->item(row, 3)); break;
-                case 2: on_playlist3Table_itemDoubleClicked(theTable->item(row, 3)); break;
-            }
+            handlePlaylistDoubleClick(theTable->item(row, 3));
 
             break; // break out of the for loop, because we found what was clicked on
         } // else more than 1 row or no rows, just return -1

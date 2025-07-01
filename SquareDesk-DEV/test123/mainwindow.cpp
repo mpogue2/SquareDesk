@@ -378,6 +378,10 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     t.elapsed(__LINE__);
     ui->setupUi(this);
 
+    connect(ui->playlist1Table, &QTableWidget::itemDoubleClicked, this, &MainWindow::handlePlaylistDoubleClick);
+    connect(ui->playlist2Table, &QTableWidget::itemDoubleClicked, this, &MainWindow::handlePlaylistDoubleClick);
+    connect(ui->playlist3Table, &QTableWidget::itemDoubleClicked, this, &MainWindow::handlePlaylistDoubleClick);
+
     startLongSongTableOperation("MainWindow");
 
     t.elapsed(__LINE__);
@@ -5243,20 +5247,10 @@ bool MainWindow::handleKeypress(int key, QString text)
                 //                lastWidget->setFocus(); // restore focus to widget that had it before
                 ui->darkSongTable->setFocus(); // THIS IS BETTER
             } else if (ui->playlist1Table->hasFocus() || ui->playlist2Table->hasFocus() || ui->playlist3Table->hasFocus()) {
-//                qDebug() << "ENTER pressed for Playlist slot!  Time to load a song!";
-//                QString songToLoad = ui->playlist1Table->fullPathOfSelectedSong() +
-//                                     ui->playlist2Table->fullPathOfSelectedSong() +
-//                                     ui->playlist3Table->fullPathOfSelectedSong();  // only one of these is not the null string
-//                qDebug() << "songToLoad: " << songToLoad;
-
-                if (ui->playlist1Table->hasFocus()) {
-                    on_playlist1Table_itemDoubleClicked(ui->playlist1Table->selectedItems().at(0));
-                } else if (ui->playlist2Table->hasFocus()) {
-                    on_playlist2Table_itemDoubleClicked(ui->playlist2Table->selectedItems().at(0));
-                } else if (ui->playlist3Table->hasFocus()) {
-                    on_playlist3Table_itemDoubleClicked(ui->playlist3Table->selectedItems().at(0));
+                auto playlistTable = qobject_cast<QTableWidget*>(QApplication::focusWidget());
+                if (playlistTable && playlistTable->selectedItems().count() > 0) {
+                    handlePlaylistDoubleClick(playlistTable->selectedItems().at(0));
                 }
-
             }
             break;
 
