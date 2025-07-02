@@ -461,8 +461,8 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
 }
 
 // ============================================================================================================
-// returns first song error, and also updates the songCount as it goes (2 return values)
-QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount) {
+// updates the songCount as it goes (1 return value via reference)
+void MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount) {
 
     // qDebug() << "===== loadPlaylistFromFileToPaletteSlot: " << PlaylistFileName << slotNumber << songCount;
 
@@ -487,19 +487,19 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 
     // Dispatcher logic
     if (relativePath.startsWith("/Tracks") || relativePath.startsWith("Tracks")) {
-        return loadTrackFilterToSlot(PlaylistFileName, relativePath, slotNumber, songCount);
+        loadTrackFilterToSlot(PlaylistFileName, relativePath, slotNumber, songCount);
     }
     else if (relativePath.startsWith("/Apple Music/")) {
-        return loadAppleMusicPlaylistToSlot(PlaylistFileName, relativePath, slotNumber, songCount);
+        loadAppleMusicPlaylistToSlot(PlaylistFileName, relativePath, slotNumber, songCount);
     }
     else {
-        return loadRegularPlaylistToSlot(PlaylistFileName, relativePath, slotNumber, songCount);
+        loadRegularPlaylistToSlot(PlaylistFileName, relativePath, slotNumber, songCount);
     }
 }
 
 // ============================================================================================================
 // Handler for Track filters (e.g., from /Tracks directory)
-QString MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativePath, int slotNumber, int &songCount) {
+void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativePath, int slotNumber, int &songCount) {
     relativePath.replace("/Tracks/", "").replace("Tracks/", "").replace(".csv", "");
 
     QString rPath = QString("/tracks/") + relativePath;
@@ -619,12 +619,12 @@ QString MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString rela
 
     slotModified[slotNumber] = false;
 
-    return ""; // no errors
+    return; // no errors
 }
 
 // ============================================================================================================
 // Handler for Apple Music playlists
-QString MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString relativePath, int slotNumber, int &songCount) {
+void MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString relativePath, int slotNumber, int &songCount) {
     QString relPath = relativePath;     // e.g. /Apple Music/foo.csv
     relPath.replace(".csv", "");          // e.g. /Apple Music/foo
 
@@ -703,19 +703,17 @@ QString MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QStri
     theTableWidget->setCurrentItem(theTableWidget->item(0, COLUMN_NUMBER)); // select first item
     theTableWidget->setFocus();
 
-    return ""; // no errors
+    return; // no errors
 }
 
 // ============================================================================================================
 // Handler for regular CSV playlists
-QString MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString relativePath, int slotNumber, int &songCount) {
+void MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString relativePath, int slotNumber, int &songCount) {
     QString relPath = relativePath; // this is the name of a playlist
     relPath.replace("/playlists/", "").replace(".csv", ""); // relPath is e.g. "5thWed/5thWed_2021.12.29" same as relPathInSlot now
 
     // ALLOW ONLY ONE COPY OF A PLAYLIST LOADED IN THE SLOT PALETTE AT A TIME ------
     clearDuplicateSlots(relPath);
-
-    QString firstBadSongLine = "";
     QFile inputFile(PlaylistFileName);
     if (inputFile.open(QIODevice::ReadOnly)) { // defaults to Text mode
 
@@ -830,10 +828,8 @@ QString MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString 
     }
     else {
         // file didn't open...
-        return("");
+        return;
     }
-
-    return(firstBadSongLine);  // return error song (if any)
 }
 
 void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)

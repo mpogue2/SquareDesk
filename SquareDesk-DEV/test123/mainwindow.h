@@ -1093,10 +1093,10 @@ private:
     void sortByDefaultSortOrder();  // sort songTable by default order (not including # column)
 
     // Playlist stuff ----------
-    QString loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount); // returns error song string and songCount
-    QString loadTrackFilterToSlot(QString PlaylistFileName, QString relativePath, int slotNumber, int &songCount); // Handler for Track filters
-    QString loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString relativePath, int slotNumber, int &songCount); // Handler for Apple Music playlists
-    QString loadRegularPlaylistToSlot(QString PlaylistFileName, QString relativePath, int slotNumber, int &songCount); // Handler for regular CSV playlists
+    void loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount); // updates songCount via reference
+    void loadTrackFilterToSlot(QString PlaylistFileName, QString relativePath, int slotNumber, int &songCount); // Handler for Track filters
+    void loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString relativePath, int slotNumber, int &songCount); // Handler for Apple Music playlists
+    void loadRegularPlaylistToSlot(QString PlaylistFileName, QString relativePath, int slotNumber, int &songCount); // Handler for regular CSV playlists
     void loadPlaylistFromFileToSlot(int whichSlot);   // ask user which file, load file into slot
     void printPlaylistFromSlot(int whichSlot);        // show print dialog to user, print this playlist (not tracks)
     void updateRecentPlaylistsList(const QString &playlistPath); // update the recent playlists list
