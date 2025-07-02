@@ -93,4 +93,23 @@ constexpr int SLOT_1 = 0;
 constexpr int SLOT_2 = 1;
 constexpr int SLOT_3 = 2;
 
+// Playlist management constants
+constexpr int MAX_RECENT_PLAYLISTS = 5;
+constexpr int APPLE_SYMBOL_UNICODE = 0xF8FF;
+
+// Icon dimensions
+constexpr int TRACK_ICON_WIDTH = 15;
+constexpr int TRACK_ICON_HEIGHT = 15;
+constexpr int APPLE_MUSIC_ICON_WIDTH = 12;
+constexpr int APPLE_MUSIC_ICON_HEIGHT = 12;
+constexpr int PLAYLIST_ICON_WIDTH = 10;
+constexpr int PLAYLIST_ICON_HEIGHT = 9;
+
+// Note: QString constants moved to playlist_constants.h to avoid Qt header dependency issues
+
+// Filename parsing constraints
+constexpr int MAX_LABEL_LENGTH = 20;
+constexpr int MAX_LABEL_NUMBER_LENGTH = 5;
+constexpr int MAX_LABEL_EXTRA_LENGTH = 4;
+
 #endif // ifndef COMMON_ENUMS_H

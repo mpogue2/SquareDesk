@@ -328,6 +328,7 @@ public:
     std::pair<QTableWidget*, QLabel*> getSlotWidgets(int slotNumber); // Helper to get table widget and label for slot
     void clearDuplicateSlots(const QString& relPath); // Helper to clear existing slots with same playlist
     void setPaletteSlotVisibility(int numSlots); // Helper to set palette slot visibility
+    void setLastPlaylistLoaded(int slotNumber, const QString& playlistPath); // Helper to set last playlist loaded preference
     QString postProcessHTMLtoSemanticHTML(QString cuesheet);
 
     void selectUserFlashFile();

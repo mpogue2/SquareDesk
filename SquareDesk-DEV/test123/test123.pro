@@ -169,6 +169,7 @@ HEADERS  += mainwindow.h \
     embeddedserver.h \
     flexible_audio.h \
     globaldefines.h \
+    playlist_constants.h \
     miniBPM/MiniBpm.h \
     minimp3.h \
     minimp3_ex.h \
