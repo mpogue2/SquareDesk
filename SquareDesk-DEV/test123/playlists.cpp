@@ -647,7 +647,7 @@ void MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString 
     linesInCurrentPlaylist = 0;
     songCount = 0;
     
-    foreach (const QStringList& sl, allAppleMusicPlaylists) {
+    for (const auto& sl : qAsConst(allAppleMusicPlaylists)) {
         bool isPlayableAppleMusicItem = sl[2].endsWith(".wav", Qt::CaseInsensitive) ||
                           sl[2].endsWith(".mp3", Qt::CaseInsensitive) ||
                           sl[2].endsWith(".m4a", Qt::CaseInsensitive);
@@ -1323,7 +1323,7 @@ void MainWindow::printPlaylistFromSlot(int whichSlot)
     extrasColorString = prefsManager.GetextrasColorString();
 
     char buf[256];
-    foreach (const PlaylistExportRecord &rec, exports)
+    for (const auto& rec : exports)
     {
         QString baseName = rec.title;
         baseName.replace(QRegularExpression("^" + musicRootPath),"");  // delete musicRootPath at beginning of string
