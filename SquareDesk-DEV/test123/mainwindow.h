@@ -846,6 +846,12 @@ private:
     
     // Helper methods
     void initializePlaylistTable(MyTableWidget* table, QLabel* label);
+    void setupSDSplitters();
+    void setupSDDancerFields();
+    void restoreSDSchemes();
+    void setupSDMenuActions();
+    void setupSDFramesAndMenus();
+    void setupSDDanceMenu();
 
     // ============================================================================
     // CORE APPLICATION STATE

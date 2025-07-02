@@ -624,10 +624,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     currentSongTitle = "";
     currentSongLabel = "";
 
-    // -----------------------------
-    sdViewActionGroup = new QActionGroup(this);
-    sdViewActionGroup->setExclusive(true);  // exclusivity is set up below here...
-    connect(sdViewActionGroup, SIGNAL(triggered(QAction*)), this, SLOT(sdViewActionTriggered(QAction*)));
+    // SD action groups moved to initializeSDTab()
 
     // -----------------------------
     sessionActionGroup = new QActionGroup(this);
@@ -636,22 +633,6 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     // -----------------------
 
     t.elapsed(__LINE__);
-
-    sdActionGroup1 = new QActionGroup(this);  // checker styles
-    sdActionGroup1->setExclusive(true);
-    connect(sdActionGroup1, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggered(QAction*)));
-
-    sdActionGroupColors = new QActionGroup(this);  // checker styles: colors
-    sdActionGroupColors->setExclusive(true);
-    connect(sdActionGroupColors, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredColors(QAction*)));
-
-    sdActionGroupNumbers = new QActionGroup(this);  // checker styles: numbers
-    sdActionGroupNumbers->setExclusive(true);
-    connect(sdActionGroupNumbers, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredNumbers(QAction*)));
-
-    sdActionGroupGenders = new QActionGroup(this);  // checker styles: genders
-    sdActionGroupGenders->setExclusive(true);
-    connect(sdActionGroupGenders, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredGenders(QAction*)));
 
 #ifdef DEBUG_LIGHT_MODE
     themesActionGroup = new QActionGroup(this);  // themes: light, dark, etc.
@@ -664,56 +645,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    // let's look through the items in the SD menu (this method is less fragile now)
-    QStringList ag1;
-    ag1 << "Normal" << "Color only" << "Mental image" << "Sight" << "Random" << "Tam" << "Random Color only"; // OK to have one be prefix of another
-
-    QStringList ag2;
-    ag2 << "Sequence Designer" << "Dance Arranger";
-
-    // ITERATE THRU MENU SETTING UP EXCLUSIVITY -------
-    QString submenuName;
-    for (const auto &action : ui->menuSequence->actions()) {
-        if (action->isSeparator()) {  // top level separator
-//            qDebug() << "separator";
-        } else if (action->menu()) {  // top level menu
-//            qDebug() << "item with submenu: " << action->text();
-            submenuName = action->text();  // remember which submenu we're in
-            // iterating just one level down
-            for (const auto &action2 : action->menu()->actions()) {
-                if (action2->isSeparator()) {  // one level down separator
-//                    qDebug() << "     separator";
-                } else if (action2->menu()) {  // one level down sub-menu
-//                    qDebug() << "     item with second-level submenu: " << action2->text();
-                } else {
-//                    qDebug() << "     item: " << action2->text() << "in submenu: " << submenuName;  // one level down item
-                    if (submenuName == "Colors") {
-                        sdActionGroupColors->addAction(action2);
-                    } else if (submenuName == "Labels") {
-//                        qDebug() << "init labels into actionGroupNumbers " << action2;
-                        sdActionGroupNumbers->addAction(action2);  // set up the mutual exclusivity
-                        ui->actionNormal_3->setChecked(true); // KLUDGE: because sdViewActionTriggered happens before the actionGroupNumbers is set up, this does the init to "NUMBERS"
-                    } else if (submenuName == "Genders") {
-                        sdActionGroupGenders->addAction(action2);
-                    }
-                }
-            }
-        } else {
-            if (ag1.contains(action->text()) ) {
-                sdActionGroup1->addAction(action); // ag1 items are all mutually exclusive, and are all at top level
-                // qDebug() << "ag1 item: " << action->text(); // top level item
-            } else if (ag2.contains(action->text())) {
-                sdViewActionGroup->addAction(action); // ag2 items are all mutually exclusive, and are all at top level
-//                qDebug() << "ag2 item: " << action->text(); // top level item
-//                if (action->text() == "Sequence Designer") {
-                if (action->text() == "Dance Arranger") {
-//                    qDebug() << "sdViewActionTriggered";
-                    sdViewActionTriggered(action); // make sure this gets run at startup time
-                }
-            }
-        }
-    }
-    // END ITERATION -------
+    // SD menu action setup moved to initializeSDTab()
 
     t.elapsed(__LINE__);
 
@@ -727,7 +659,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    initialize_internal_sd_tab();
+    // Internal SD tab initialization moved to initializeSDTab()
 
     t.elapsed(__LINE__);
 
@@ -784,14 +716,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    currentSDVUILevel      = "Plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a} // DEPRECATED
-    currentSDKeyboardLevel = "UNK"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
-    //    ui->tabWidget_2->setTabText(1, QString("Current Sequence: ") + currentSDKeyboardLevel); // Current {Level} Sequence
-//    ui->tabWidget_2->setTabText(1, QString("F4 Workshop [3/14]"));
+    // SD thread and level initialization moved to initializeSDTab()
 
     t.elapsed(__LINE__);
-
-    startSDThread(get_current_sd_dance_program());
 
     t.elapsed(__LINE__);
 
@@ -971,76 +898,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     cBass->SetPanEQVolumeCompensation(static_cast<float>(prefsManager.GetpanEQGain_dB()/2.0)); // expressed as signed half-dB's
 
-    on_actionShow_group_station_toggled(prefsManager.Getenablegroupstation());
-    on_actionShow_order_sequence_toggled(prefsManager.Getenableordersequence());
+    // SD UI toggle calls moved to initializeSDTab()
 
-    {
-        // SD TAB VERTICAL SPLITTER IS PERSISTENT ---------
-        QString sizesStr = prefsManager.GetSDTabVerticalSplitterPosition();
-        // sizesStr = "";  // DEBUG ONLY
-        // qDebug() << "Vertical sizes: " << sizesStr;
-        QList<int> sizes;
-        if (!sizesStr.isEmpty())
-        {
-            // override the current sizes with the previously saved sizes
-            for (const QString &sizeStr : sizesStr.split(","))
-            {
-                sizes.append(sizeStr.toInt());
-            }
-        } else {
-            sizes.append(300);
-            sizes.append(140);
-        }
-        // NOTE: assumes two widgets
-        if (sizes[0] == 0) {
-            sizes[0] += 300;
-            sizes[1] -= 300;  // please, oh Layout Manager, pay attention to the minheight of the checkers widget
-                              //   so that user is not confused when the checkers widget disappears by dragging upward
-                              //   and they don't notice the tiny little splitter handle.
-        }
-        if (sizes[1] == 0) {
-            sizes[0] -= 300;
-            sizes[1] += 300;  // please, oh Layout Manager, pay attention to the minheight of the menu options widget
-                              //   so that user is not confused when the menu options widget disappears by dragging downward
-                              //   and they don't notice the tiny little splitter handle.
-        }
-        // qDebug() << "    Vertical using: " << sizes;
-        ui->splitterSDTabVertical->setSizes(sizes);
-    }
-
-    {
-        // SD TAB HORIZONTAL SPLITTER IS PERSISTENT ---------
-        QString sizesStr = prefsManager.GetSDTabHorizontalSplitterPosition();
-        // sizesStr = "";  // DEBUG ONLY
-        // qDebug() << "Horizontal sizes: " << sizesStr;
-        QList<int> sizes;
-        if (!sizesStr.isEmpty())
-        {
-            // override the current sizes with the previously saved sizes
-            for (const QString &sizeStr : sizesStr.split(","))
-            {
-                sizes.append(sizeStr.toInt());
-            }
-        } else {
-            sizes.append(400);
-            sizes.append(440);
-        }
-        // NOTE: assumes two widgets
-        if (sizes[0] == 0) {
-            sizes[0] += 300;
-            sizes[1] -= 300;  // please, oh Layout Manager, pay attention to the minwidth of the current sequence widget
-                              //   so that user is not confused when the current sequence widget disappears by dragging leftward
-                              //   and they don't notice the tiny little splitter handle.
-        }
-        if (sizes[1] == 0) {
-            sizes[0] -= 300;
-            sizes[1] += 300;  // please, oh Layout Manager, pay attention to the minwidth of the checkers widget
-                              //   so that user is not confused when the menu options widget disappears by dragging rightward
-                              //   and they don't notice the tiny little splitter handle.
-        }
-        // qDebug() << "    Horizontal using: " << sizes;
-        ui->splitterSDTabHorizontal->setSizes(sizes);
-    }
+    // SD splitter configuration moved to initializeSDTab()
 
     {
         // MUSIC TAB VERTICAL SPLITTER IS PERSISTENT ---------
@@ -1084,13 +944,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
         ui->splitterMusicTabHorizontal->setSizes(sizes);
     }
 
-    sdSliderSidesAreSwapped = false;  // start out NOT swapped
-    if (prefsManager.GetSwapSDTabInputAndAvailableCallsSides())
-    {
-        // if we SHOULD be swapped, swap them...
-        sdSliderSidesAreSwapped = true;
-        ui->splitterSDTabHorizontal->addWidget(ui->splitterSDTabHorizontal->widget(0));
-    }
+    // SD slider sides swapping moved to initializeSDTab()
 
     t.elapsed(__LINE__);
 
@@ -1126,116 +980,11 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     // on_songTable_itemSelectionChanged(); // call this to update the colors
 
 
-    on_actionSD_Output_triggered(); // initialize visibility of SD Output tab in SD tab
-    on_actionShow_Frames_triggered(); // show or hide frames
-//    ui->actionSequence_Designer->setChecked(true);
-    ui->actionDance_Arranger->setChecked(true);  // this sets the default view
+    // SD output/UI initialization and dancer fields moved to initializeSDTab()
 
     t.elapsed(__LINE__);
 
-    // hide both menu items for now
-    ui->actionSequence_Designer->setVisible(false);
-    ui->actionDance_Arranger->setVisible(false);
-
-    connect(ui->boy1,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
-    connect(ui->girl1, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
-    connect(ui->boy2,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
-    connect(ui->girl2, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
-    connect(ui->boy3,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
-    connect(ui->girl3, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
-    connect(ui->boy4,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
-    connect(ui->girl4, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
-
-    ui->boy1->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE1COLOR.name() + "; color: #000000;}");
-    ui->girl1->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE1COLOR.name() + "; color: #000000;}");
-    ui->boy2->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE2COLOR.name() + "; color: #000000;}");
-    ui->girl2->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE2COLOR.name() + "; color: #000000;}");
-    ui->boy3->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE3COLOR.name() + "; color: #000000;}");
-    ui->girl3->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE3COLOR.name() + "; color: #000000;}");
-    ui->boy4->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE4COLOR.name() + "; color: #000000;}");
-    ui->girl4->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE4COLOR.name() + "; color: #000000;}");
-
-    t.elapsed(__LINE__);
-
-    // restore SD's Coloring, Numbering, and Gendering schemes from saved -------
-
-    QString sdColorTheme = prefsManager.GetSDColoringScheme();
-    QString sdNumberTheme = prefsManager.GetSDNumberingScheme();
-    QString sdGenderTheme = prefsManager.GetSDGenderingScheme();
-
-    if (sdColorTheme == "Normal") {
-        ui->actionNormal_2->setChecked(true);
-    } else if (sdColorTheme == "Mental Image") {
-        ui->actionMental_Image->setChecked(true);
-    } else if (sdColorTheme == "Sight") {
-        ui->actionSight_2->setChecked(true);
-    } else if (sdColorTheme == "Randomize") {
-        ui->actionRandomize->setChecked(true);
-    } else if (sdColorTheme == "Tam") {
-        ui->actionTam->setChecked(true);
-    } else {
-        qDebug() << "unknown color theme: " << sdColorTheme;
-    }
-
-    setSDCoupleColoringScheme(sdColorTheme);
-
-    if (sdNumberTheme == "None") {
-        ui->actionInvisible->setChecked(true);
-    } else if (sdNumberTheme == "Numbers") {
-        ui->actionNormal_3->setChecked(true);
-    } else if (sdNumberTheme == "Names") {
-        ui->actionNames->setChecked(true);
-    } else {
-        qDebug() << "unknown numbering theme: " << sdNumberTheme;
-    }
-
-    setSDCoupleNumberingScheme(sdNumberTheme);
-
-    if (sdGenderTheme == "Normal") {
-        ui->actionNormal_4->setChecked(true);
-    } else if (sdGenderTheme == "Arky (reversed)") {
-        ui->actionArky_reversed->setChecked(true);
-    } else if (sdGenderTheme == "Randomize") {
-        ui->actionRandomize_3->setChecked(true);
-    } else if (sdGenderTheme == "None (hex)") {
-        ui->actionNone_hex->setChecked(true);
-    } else {
-        qDebug() << "unknown gendering theme: " << sdGenderTheme;
-    }
-
-    setSDCoupleGenderingScheme(sdGenderTheme);
-
-    // restore SD level from saved
-    QString sdLevel = prefsManager.GetSDLevel();
-//    qDebug() << "RESTORING SD LEVEL TO: " << sdLevel;
-    if (sdLevel == "Mainstream") {
-        ui->actionSDDanceProgramMainstream->setChecked(true);
-    } else if (sdLevel == "Plus") {
-        ui->actionSDDanceProgramPlus->setChecked(true);
-    } else if (sdLevel == "A1") {
-        ui->actionSDDanceProgramA1->setChecked(true);
-    } else if (sdLevel == "A2") {
-        ui->actionSDDanceProgramA2->setChecked(true);
-    } else if (sdLevel == "C1") {
-        ui->actionSDDanceProgramC1->setChecked(true);
-    } else if (sdLevel == "C2") {
-        ui->actionSDDanceProgramC2->setChecked(true);
-    } else if (sdLevel == "C3a") {
-        ui->actionSDDanceProgramC3A->setChecked(true);
-    } else if (sdLevel == "C3") {
-        ui->actionSDDanceProgramC3->setChecked(true);
-    } else if (sdLevel == "C3x") {
-        ui->actionSDDanceProgramC3x->setChecked(true);
-    } else if (sdLevel == "C4") {
-        ui->actionSDDanceProgramC4->setChecked(true);
-    } else if (sdLevel == "C4x") {
-        ui->actionSDDanceProgramC4x->setChecked(true);
-    } else {
-        qDebug() << "ERROR: Can't restore SD to level: " << sdLevel;
-    }
-
-    dance_level currentLevel = get_current_sd_dance_program(); // quick way to translate from string("Plus") to dance_level l_plus
-    setCurrentSDDanceProgram(currentLevel);
+    // SD scheme restoration moved to initializeSDTab()
 
 //    // INIT SD FRAMES ----------------
 //    frameName = "hoedown1";
@@ -1258,115 +1007,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 //    SDScanFramesForMax(); // update the framMaxSeq's with real numbers (MUST BE DONE AFTER GETCURRENTSEQS)
 //    SDReadSequencesUsed();  // update the local cache with the status that was persisted in this sequencesUsed.csv
 
-    SDtestmode = false;
-//    refreshSDframes();
-
-    // ------------------
-    // set up Dances menu, items are mutually exclusive
-    sdActionGroupDances = new QActionGroup(this);  // Dances are mutually exclusive
-    sdActionGroupDances->setExclusive(true);
-    connect(sdActionGroupDances, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredDances(QAction*)));
-
-    t.elapsed(__LINE__);
-
-    QString parentFolder = musicRootPath + "/sd/dances";
-    QStringList allDances;
-//    QStringList allDancesShortnames;
-    QDirIterator directories(parentFolder, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
-
-    while(directories.hasNext()){
-        directories.next();
-        QString thePath = directories.filePath();
-        QString shortName = thePath.split('/').takeLast();
-        allDances << shortName;
-    }
-
-    auto dances = allDances;
-
-    t.elapsed(__LINE__);
-
-    QCollator collator;
-    collator.setNumericMode(true);
-    collator.setCaseSensitivity(Qt::CaseInsensitive);
-
-    std::sort(dances.begin(), dances.end(), collator); // sort by natural alphanumeric order
-
-//    qDebug() << "allDances, dances: " << allDances << dances;
-
-    QMenu *dancesSubmenu = new QMenu("Load Dance");
-    QString lastDance = prefsManager.GetlastDance();
-    QAction *matchAction = NULL;	// which item to be made selected
-    int whichItem = 0;
-    frameName = "";
-    for (const auto& shortName : dances) {
-//        qDebug() << "shortName: " << shortName;
-        QAction *actionOne = dancesSubmenu->addAction(shortName);
-        actionOne->setActionGroup(sdActionGroupDances);
-        actionOne->setCheckable(true);
-        actionOne->setChecked(false);	// one will be checked below
-        if (whichItem == 0 || lastDance == shortName) {
-            frameName = shortName;
-            matchAction = actionOne;
-        }
-        whichItem++;
-    }
-    if (matchAction != NULL) {
-        sdActionTriggeredDances(matchAction); // call the init function for the last dance if found else the first one
-        matchAction->setChecked(true);        // make it selected
-    } // else there were not dances found at all (should be caught by test below)
-
-    if (frameName == "") {
-        // if ZERO dances found, make one
-        sdLoadDance("SampleDance"); // TODO: is there a better name for this?
-        // NOTE: if there was SOME frame (dance) found, then don't load it until later, when we make the menu
-    }
-
-    t.elapsed(__LINE__);
-
-    ui->menuSequence->insertMenu(ui->actionDance, dancesSubmenu);
-    ui->actionDance->setVisible(false);  // TODO: This is a kludge, because it's just a placeholder, so I could stick the Dances item at the top
-    // ------------------
-
-
-    // TODO: if any frameVisible = {central, sidebar} file is not found, disable all the edit buttons for now
-    if (SDtestmode) {
-        ui->pushButtonSDSave->setVisible(false);
-        ui->actionSave_Sequence->setEnabled(false);
-        ui->pushButtonSDUnlock->setVisible(false);
-        ui->pushButtonSDNew->setVisible(false);
-    }
-
-    QMenu *saveSDMenu = new QMenu(this);
-
-    // TODO: passing parameters in the SLOT portion?  THIS IS THE IDIOMATIC WAY TO DO IT **********
-    //   from: https://stackoverflow.com/questions/5153157/passing-an-argument-to-a-slot
-
-    t.elapsed(__LINE__);
-
-    // TODO: These strings must be dynamically created, based on current selections for F1-F7 frame files
-    QMenu* submenuMove = saveSDMenu->addMenu("Move Sequence to");
-    submenuMove->addAction(QString("F1 ") + frameFiles[0] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDMoveCurrentSequenceToFrame(0); });
-    submenuMove->addAction(QString("F2 ") + frameFiles[1] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F2), this, [this]{ SDMoveCurrentSequenceToFrame(1); });
-    submenuMove->addAction(QString("F3 ") + frameFiles[2] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F3), this, [this]{ SDMoveCurrentSequenceToFrame(2); });
-    submenuMove->addAction(QString("F4 ") + frameFiles[3] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F4), this, [this]{ SDMoveCurrentSequenceToFrame(3); });
-
-    QMenu* submenuCopy = saveSDMenu->addMenu("Append Sequence to");
-    submenuCopy->addAction(QString("F1 ") + frameFiles[0] + " ", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDAppendCurrentSequenceToFrame(0); });
-    submenuCopy->addAction(QString("F2 ") + frameFiles[1] + " ", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F2), this, [this]{ SDAppendCurrentSequenceToFrame(1); });
-    submenuCopy->addAction(QString("F3 ") + frameFiles[2] + " ", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F3), this, [this]{ SDAppendCurrentSequenceToFrame(2); });
-    submenuCopy->addAction(QString("F4 ") + frameFiles[3] + " ", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F4), this, [this]{ SDAppendCurrentSequenceToFrame(3); });
-
-    for (const auto &action : submenuCopy->actions()){ // enable shortcuts for all Copy actions
-        action->setShortcutVisibleInContextMenu(true);
-    }
-    for (const auto &action : submenuMove->actions()){ // enable shortcuts for all Move actions
-        action->setShortcutVisibleInContextMenu(true);
-    }
-
-    ui->pushButtonSDMove->setMenu(saveSDMenu);
-    ui->pushButtonSDMove->setVisible(false);
-
-    SDExitEditMode(); // make sure buttons are visible/invisible
+    // All SD frame and menu initialization moved to initializeSDTab()
 
     selectFirstItemOnLoad = true; // TEST
 
@@ -2665,7 +2306,369 @@ void MainWindow::initializeCuesheetTab()
 
 void MainWindow::initializeSDTab()
 {
-    // TODO: Move SD tab initialization here
+    // SD Action Groups Setup
+    sdViewActionGroup = new QActionGroup(this);
+    sdViewActionGroup->setExclusive(true);
+    connect(sdViewActionGroup, SIGNAL(triggered(QAction*)), this, SLOT(sdViewActionTriggered(QAction*)));
+
+    sdActionGroup1 = new QActionGroup(this);  // checker styles
+    sdActionGroup1->setExclusive(true);
+    connect(sdActionGroup1, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggered(QAction*)));
+
+    sdActionGroupColors = new QActionGroup(this);  // checker styles: colors
+    sdActionGroupColors->setExclusive(true);
+    connect(sdActionGroupColors, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredColors(QAction*)));
+
+    sdActionGroupNumbers = new QActionGroup(this);  // checker styles: numbers
+    sdActionGroupNumbers->setExclusive(true);
+    connect(sdActionGroupNumbers, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredNumbers(QAction*)));
+
+    sdActionGroupGenders = new QActionGroup(this);  // checker styles: genders
+    sdActionGroupGenders->setExclusive(true);
+    connect(sdActionGroupGenders, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredGenders(QAction*)));
+
+    // Setup SD menu actions (must be done BEFORE other SD initialization)
+    setupSDMenuActions();
+    
+    // Setup SD dance menu (must be done AFTER setupSDMenuActions but BEFORE startSDThread)
+    setupSDDanceMenu();
+
+    // Initialize internal SD tab (shortcuts, lineEditSDInput setup)
+    initialize_internal_sd_tab();
+
+    // SD Thread and Level Initialization
+    currentSDVUILevel      = "Plus"; // DEPRECATED
+    currentSDKeyboardLevel = "UNK";
+    startSDThread(get_current_sd_dance_program());
+
+    // SD Tab Splitter Configuration
+    setupSDSplitters();
+    
+    // SD Output and UI Initialization
+    on_actionSD_Output_triggered(); // initialize visibility of SD Output tab in SD tab
+    on_actionShow_Frames_triggered(); // show or hide frames
+    ui->actionDance_Arranger->setChecked(true);  // this sets the default view
+
+    // SD Dancer Name Field Setup
+    setupSDDancerFields();
+    
+    // Restore SD schemes from preferences
+    restoreSDSchemes();
+    
+    // Initialize SD UI toggle states
+    on_actionShow_group_station_toggled(prefsManager.Getenablegroupstation());
+    on_actionShow_order_sequence_toggled(prefsManager.Getenableordersequence());
+    
+    // Setup SD frames and menus (after other initialization is complete)
+    setupSDFramesAndMenus();
+}
+
+void MainWindow::setupSDSplitters()
+{
+    // SD TAB VERTICAL SPLITTER IS PERSISTENT
+    QString sizesStr = prefsManager.GetSDTabVerticalSplitterPosition();
+    QList<int> sizes;
+    if (!sizesStr.isEmpty()) {
+        for (const QString &sizeStr : sizesStr.split(",")) {
+            sizes.append(sizeStr.toInt());
+        }
+    } else {
+        sizes.append(300);
+        sizes.append(140);
+    }
+    
+    // Handle zero sizes and constraints
+    if (sizes.size() < 2) {
+        sizes.clear();
+        sizes.append(300);
+        sizes.append(140);
+    }
+    if (sizes[0] <= 0) sizes[0] = 300;
+    if (sizes[1] <= 0) sizes[1] = 140;
+    
+    ui->splitterSDTabVertical->setSizes(sizes);
+
+    // SD TAB HORIZONTAL SPLITTER IS PERSISTENT
+    sizesStr = prefsManager.GetSDTabHorizontalSplitterPosition();
+    sizes.clear();
+    if (!sizesStr.isEmpty()) {
+        for (const QString &sizeStr : sizesStr.split(",")) {
+            sizes.append(sizeStr.toInt());
+        }
+    } else {
+        sizes.append(200);
+        sizes.append(200);
+    }
+    
+    if (sizes.size() < 2) {
+        sizes.clear();
+        sizes.append(200);
+        sizes.append(200);
+    }
+    if (sizes[0] <= 0) sizes[0] = 200;
+    if (sizes[1] <= 0) sizes[1] = 200;
+    
+    ui->splitterSDTabHorizontal->setSizes(sizes);
+
+    // SD Slider sides swapping
+    sdSliderSidesAreSwapped = false;
+    if (prefsManager.GetSwapSDTabInputAndAvailableCallsSides()) {
+        sdSliderSidesAreSwapped = true;
+        ui->splitterSDTabHorizontal->addWidget(ui->splitterSDTabHorizontal->widget(0));
+    }
+}
+
+void MainWindow::setupSDDancerFields()
+{
+    // Connect dancer name change signals
+    connect(ui->boy1,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->girl1, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->boy2,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->girl2, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->boy3,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->girl3, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->boy4,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->girl4, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+
+    // Set dancer field colors
+    ui->boy1->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE1COLOR.name() + "; color: #000000;}");
+    ui->girl1->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE1COLOR.name() + "; color: #000000;}");
+    ui->boy2->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE2COLOR.name() + "; color: #000000;}");
+    ui->girl2->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE2COLOR.name() + "; color: #000000;}");
+    ui->boy3->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE3COLOR.name() + "; color: #000000;}");
+    ui->girl3->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE3COLOR.name() + "; color: #000000;}");
+    ui->boy4->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE4COLOR.name() + "; color: #000000;}");
+    ui->girl4->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE4COLOR.name() + "; color: #000000;}");
+}
+
+void MainWindow::restoreSDSchemes()
+{
+    // Restore SD's Coloring, Numbering, and Gendering schemes from saved preferences
+    QString sdColorTheme = prefsManager.GetSDColoringScheme();
+    QString sdNumberTheme = prefsManager.GetSDNumberingScheme();
+    QString sdGenderTheme = prefsManager.GetSDGenderingScheme();
+
+    if (sdColorTheme == "Normal") {
+        ui->actionNormal_2->setChecked(true);
+    } else if (sdColorTheme == "Mental Image") {
+        ui->actionMental_Image->setChecked(true);
+    } else if (sdColorTheme == "Sight") {
+        ui->actionSight_2->setChecked(true);
+    } else if (sdColorTheme == "Randomize") {
+        ui->actionRandomize->setChecked(true);
+    } else if (sdColorTheme == "Tam") {
+        ui->actionTam->setChecked(true);
+    } else {
+        qDebug() << "unknown color theme: " << sdColorTheme;
+    }
+
+    setSDCoupleColoringScheme(sdColorTheme);
+
+    if (sdNumberTheme == "None") {
+        ui->actionInvisible->setChecked(true);
+    } else if (sdNumberTheme == "Numbers") {
+        ui->actionNormal_3->setChecked(true);
+    } else if (sdNumberTheme == "Names") {
+        ui->actionNames->setChecked(true);
+    } else {
+        qDebug() << "unknown numbering theme: " << sdNumberTheme;
+    }
+
+    setSDCoupleNumberingScheme(sdNumberTheme);
+
+    if (sdGenderTheme == "Normal") {
+        ui->actionNormal_4->setChecked(true);
+    } else if (sdGenderTheme == "Arky (reversed)") {
+        ui->actionArky_reversed->setChecked(true);
+    } else if (sdGenderTheme == "Randomize") {
+        ui->actionRandomize_3->setChecked(true);
+    } else if (sdGenderTheme == "None (hex)") {
+        ui->actionNone_hex->setChecked(true);
+    } else {
+        qDebug() << "unknown gendering theme: " << sdGenderTheme;
+    }
+
+    setSDCoupleGenderingScheme(sdGenderTheme);
+
+    // Restore SD level from saved preferences
+    QString sdLevel = prefsManager.GetSDLevel();
+    if (sdLevel == "Mainstream") {
+        ui->actionSDDanceProgramMainstream->setChecked(true);
+    } else if (sdLevel == "Plus") {
+        ui->actionSDDanceProgramPlus->setChecked(true);
+    } else if (sdLevel == "A1") {
+        ui->actionSDDanceProgramA1->setChecked(true);
+    } else if (sdLevel == "A2") {
+        ui->actionSDDanceProgramA2->setChecked(true);
+    } else if (sdLevel == "C1") {
+        ui->actionSDDanceProgramC1->setChecked(true);
+    } else if (sdLevel == "C2") {
+        ui->actionSDDanceProgramC2->setChecked(true);
+    } else if (sdLevel == "C3a") {
+        ui->actionSDDanceProgramC3A->setChecked(true);
+    } else if (sdLevel == "C3") {
+        ui->actionSDDanceProgramC3->setChecked(true);
+    } else if (sdLevel == "C3x") {
+        ui->actionSDDanceProgramC3x->setChecked(true);
+    } else if (sdLevel == "C4") {
+        ui->actionSDDanceProgramC4->setChecked(true);
+    } else if (sdLevel == "C4x") {
+        ui->actionSDDanceProgramC4x->setChecked(true);
+    } else {
+        qDebug() << "ERROR: Can't restore SD to level: " << sdLevel;
+    }
+
+    dance_level currentLevel = get_current_sd_dance_program();
+    setCurrentSDDanceProgram(currentLevel);
+}
+
+void MainWindow::setupSDMenuActions()
+{
+    // Setup SD menu action groups by iterating through the menu
+    QStringList ag1;
+    ag1 << "Normal" << "Color only" << "Mental image" << "Sight" << "Random" << "Tam" << "Random Color only";
+
+    QStringList ag2;
+    ag2 << "Sequence Designer" << "Dance Arranger";
+
+    // ITERATE THRU MENU SETTING UP EXCLUSIVITY
+    QString submenuName;
+    for (const auto &action : ui->menuSequence->actions()) {
+        if (action->isSeparator()) {  // top level separator
+            // Skip separators
+        } else if (action->menu()) {  // top level menu
+            submenuName = action->text();  // remember which submenu we're in
+            // iterating just one level down
+            for (const auto &action2 : action->menu()->actions()) {
+                if (action2->isSeparator()) {  // one level down separator
+                    // Skip separators
+                } else if (action2->menu()) {  // one level down sub-menu
+                    // Skip sub-sub-menus
+                } else {
+                    // one level down item
+                    if (submenuName == "Colors") {
+                        sdActionGroupColors->addAction(action2);
+                    } else if (submenuName == "Labels") {
+                        sdActionGroupNumbers->addAction(action2);  // set up the mutual exclusivity
+                        ui->actionNormal_3->setChecked(true); // KLUDGE: because sdViewActionTriggered happens before the actionGroupNumbers is set up, this does the init to "NUMBERS"
+                    } else if (submenuName == "Genders") {
+                        sdActionGroupGenders->addAction(action2);
+                    }
+                }
+            }
+        } else {
+            if (ag1.contains(action->text()) ) {
+                sdActionGroup1->addAction(action); // ag1 items are all mutually exclusive, and are all at top level
+            } else if (ag2.contains(action->text())) {
+                sdViewActionGroup->addAction(action); // ag2 items are all mutually exclusive, and are all at top level
+                if (action->text() == "Dance Arranger") {
+                    sdViewActionTriggered(action); // make sure this gets run at startup time
+                }
+            }
+        }
+    }
+}
+
+void MainWindow::setupSDDanceMenu()
+{
+    // Set up Dances menu, items are mutually exclusive
+    sdActionGroupDances = new QActionGroup(this);  // Dances are mutually exclusive
+    sdActionGroupDances->setExclusive(true);
+    connect(sdActionGroupDances, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredDances(QAction*)));
+
+    QString parentFolder = musicRootPath + "/sd/dances";
+    QStringList allDances;
+    QDirIterator directories(parentFolder, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+
+    while(directories.hasNext()){
+        directories.next();
+        QString thePath = directories.filePath();
+        QString shortName = thePath.split('/').takeLast();
+        allDances << shortName;
+    }
+
+    auto dances = allDances;
+
+    QCollator collator;
+    collator.setNumericMode(true);
+    collator.setCaseSensitivity(Qt::CaseInsensitive);
+
+    std::sort(dances.begin(), dances.end(), collator); // sort by natural alphanumeric order
+
+    QMenu *dancesSubmenu = new QMenu("Load Dance");
+    QString lastDance = prefsManager.GetlastDance();
+    QAction *matchAction = NULL;	// which item to be made selected
+    int whichItem = 0;
+    frameName = "";
+    for (const auto& shortName : dances) {
+        QAction *actionOne = dancesSubmenu->addAction(shortName);
+        actionOne->setActionGroup(sdActionGroupDances);
+        actionOne->setCheckable(true);
+        actionOne->setChecked(false);	// one will be checked below
+        if (whichItem == 0 || lastDance == shortName) {
+            frameName = shortName;
+            matchAction = actionOne;
+        }
+        whichItem++;
+    }
+    if (matchAction != NULL) {
+        // NOTE: Don't call sdActionTriggeredDances here during initialization
+        // This will be called later when SD system is fully ready
+        matchAction->setChecked(true);        // make it selected
+    }
+
+    if (frameName == "") {
+        frameName = "SampleDance"; // Set default, but don't load it yet
+    }
+
+    ui->menuSequence->insertMenu(ui->actionDance, dancesSubmenu);
+    ui->actionDance->setVisible(false);  // This is a kludge, because it's just a placeholder
+}
+
+void MainWindow::setupSDFramesAndMenus()
+{
+    SDtestmode = false;
+    
+    // Initialize frame files if not already done
+    if (frameFiles.isEmpty()) {
+        frameFiles << "biggie" << "easy" << "medium" << "hard";
+    }
+    
+    // TODO: if any frameVisible = {central, sidebar} file is not found, disable all the edit buttons for now
+    if (SDtestmode) {
+        ui->pushButtonSDSave->setVisible(false);
+        ui->actionSave_Sequence->setEnabled(false);
+        ui->pushButtonSDUnlock->setVisible(false);
+        ui->pushButtonSDNew->setVisible(false);
+    }
+
+    QMenu *saveSDMenu = new QMenu(this);
+
+    // TODO: These strings must be dynamically created, based on current selections for F1-F7 frame files
+    QMenu* submenuMove = saveSDMenu->addMenu("Move Sequence to");
+    submenuMove->addAction(QString("F1 ") + frameFiles[0] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDMoveCurrentSequenceToFrame(0); });
+    submenuMove->addAction(QString("F2 ") + frameFiles[1] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F2), this, [this]{ SDMoveCurrentSequenceToFrame(1); });
+    submenuMove->addAction(QString("F3 ") + frameFiles[2] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F3), this, [this]{ SDMoveCurrentSequenceToFrame(2); });
+    submenuMove->addAction(QString("F4 ") + frameFiles[3] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F4), this, [this]{ SDMoveCurrentSequenceToFrame(3); });
+
+    QMenu* submenuCopy = saveSDMenu->addMenu("Append Sequence to");
+    submenuCopy->addAction(QString("F1 ") + frameFiles[0] + " ", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDAppendCurrentSequenceToFrame(0); });
+    submenuCopy->addAction(QString("F2 ") + frameFiles[1] + " ", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F2), this, [this]{ SDAppendCurrentSequenceToFrame(1); });
+    submenuCopy->addAction(QString("F3 ") + frameFiles[2] + " ", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F3), this, [this]{ SDAppendCurrentSequenceToFrame(2); });
+    submenuCopy->addAction(QString("F4 ") + frameFiles[3] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F4), this, [this]{ SDAppendCurrentSequenceToFrame(3); });
+
+    for (const auto &action : submenuCopy->actions()){ // enable shortcuts for all Copy actions
+        action->setShortcutVisibleInContextMenu(true);
+    }
+    for (const auto &action : submenuMove->actions()){ // enable shortcuts for all Move actions
+        action->setShortcutVisibleInContextMenu(true);
+    }
+
+    ui->pushButtonSDMove->setMenu(saveSDMenu);
+    ui->pushButtonSDMove->setVisible(false);
+
+    // NOTE: SDExitEditMode() calls refreshSDframes() which requires SD scene to be fully initialized
+    // This will be called later when SD system is ready
 }
 
 void MainWindow::initializeTaminationsTab()
@@ -3432,7 +3435,10 @@ MainWindow::~MainWindow()
         playlistSlotWatcherTriggered(); // auto-save anything that hasn't been saved yet
     }
 
-    SDSetCurrentSeqs(0);  // this doesn't take very long
+    // Only save SD state if SD system was properly initialized
+    if (!frameName.isEmpty() && !frameFiles.isEmpty() && !musicRootPath.isEmpty()) {
+        SDSetCurrentSeqs(0);  // this doesn't take very long
+    }
 
     // bug workaround: https://bugreports.qt.io/browse/QTBUG-56448
     QColorDialog colorDlg(nullptr);
