@@ -257,100 +257,42 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     ui(new Ui::MainWindow),
     sd_redo_stack(new SDRedoStack())
 {
-    // Initialize member variables explicitly to avoid ordering issues
-    oldFocusWidget = nullptr;
-    lastWidgetBeforePlaybackWasSongTable = false;
-    lastCuesheetSavePath = "";
-    trapKeypresses = true;
-    firstTimeSongIsPlayed = false;
-    loadingSong = false;
-    cuesheetEditorReactingToCursorMovement = false;
-    totalZoom = 0;
-    sd_animation_running = false;
-    sdLastLine = -1;
-    sdWasNotDrawingPicture = true;
-    sdHasSubsidiaryCallContinuation = false;
-    sdLastLineWasResolve = false;
-    sdOutputtingAvailableCalls = false;
-    sdLineEditSDInputLengthWhenAvailableCallsWasBuilt = -1;
-    shortcutSDTabUndo = nullptr;
-    shortcutSDTabRedo = nullptr;
-    shortcutSDCurrentSequenceSelectAll = nullptr;
-    shortcutSDCurrentSequenceCopy = nullptr;
-#ifdef TESTRESTARTINGSQUAREDESK
-    testRestartingSquareDesk = true;  // set to false for NORMAL operation, TRUE to test restarting
-#endif
-
+    // Initialize all member variables
+    initializeMemberVariables();
+    
+    // Set values from constructor parameters
+    darkmode = dark; // true if we're using the new dark UX
+    theSplash = splash;
+    
     PerfTimer t("MainWindow::MainWindow", __LINE__);
     t.start(__LINE__);
 
     splash->setProgress(0, "Finding all your songs and lyrics...");
 
-    doNotCallDarkLoadMusicList = false;
-
-    currentTreePath = "Tracks/";
-
     QString darkTextColor = "black";
-    lastMinuteInHour = -1;
-    lastSessionID = -2; // initial startup
+    
+    // Set up music root path early (needed for database operations)
+    musicRootPath = prefsManager.GetmusicPath();
+    
+    // Initialize path stacks early (needed for findMusic)
+    pathStack = new QList<QString>();
+    pathStackCuesheets = new QList<QString>();
+    pathStackPlaylists = new QList<QString>();
+    pathStackApplePlaylists = new QList<QString>();
+    currentlyShowingPathStack = nullptr;
 
-    pathsOfCalledSongs.clear(); // no songs (that we know of) have been used recently
+    t.elapsed(__LINE__);
 
-    darkmode = dark; // true if we're using the new dark UX
+    checkLockFile(); // warn, if some other copy of SquareDesk has database open
+
+    t.elapsed(__LINE__);
 
 //    sdtest();
-    cuesheetIsUnlockedForEditing = false;
 
     cBass = new flexible_audio();
     //Q_UNUSED(splash)
-    longSongTableOperationCount = 0;  // initialize counter to zero (unblocked)
 
     connect(cBass, SIGNAL(haveDuration()), this, SLOT(haveDuration2()));  // when decode complete, we know MP3 duration
-    lastAudioDeviceName = "";
-
-    lyricsCopyIsAvailable = false;
-    lyricsTabNumber = 1;
-    lyricsForDifferentSong = false;
-    cueSheetLoaded = false;
-    override_filename = "";
-    override_cuesheet = "";
-    
-    lastSavedPlaylist = "";  // no playlists saved yet in this session
-    playlistHasBeenModified = false; // playlist hasn't been modified yet
-
-    // Recall any previous flashcards file
-    lastFlashcardsUserFile = prefsManager.Getlastflashcalluserfile();
-    lastFlashcardsUserDirectory = prefsManager.Getlastflashcalluserdirectory();
-    
-    filewatcherShouldIgnoreOneFileSave = false;
-    filewatcherIsTemporarilyDisabled = false;
-
-    t.elapsed(__LINE__);
-
-    theSplash = splash;
-    checkLockFile(); // warn, if some other copy of SquareDesk has database open
-
-    flashCallsVisible = false;
-
-    // Reference tab ---
-    webViews.clear();
-    
-    linesInCurrentPlaylist = 0;
-
-    loadedCuesheetNameWithPath = "";
-    justWentActive = false;
-
-    soundFXfilenames.clear();
-    soundFXname.clear();
-
-    t.elapsed(__LINE__);
-
-//    qDebug() << "preferences recentFenceDateTime: " << prefsManager.GetrecentFenceDateTime();
-    recentFenceDateTime = QDateTime::fromString(prefsManager.GetrecentFenceDateTime(),
-                                                          "yyyy-MM-dd'T'hh:mm:ss'Z'");
-    // recentFenceDateTime.setTimeSpec(Qt::UTC);  // set timezone (all times are UTC) <-- deprecated soon
-    recentFenceDateTime.setTimeZone(QTimeZone::UTC);  // set timezone (all times are UTC)
-    // qDebug() << "recent fence time (definition of 'recent'): " << recentFenceDateTime;
 
     t.elapsed(__LINE__);
 
@@ -369,9 +311,6 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    prefDialog = nullptr;      // no preferences dialog created yet
-    songLoaded = false;     // no song is loaded, so don't update the currentLocLabel
-
     t.elapsed(__LINE__);
     ui->setupUi(this);
 
@@ -380,23 +319,13 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     connect(ui->playlist3Table, &QTableWidget::itemDoubleClicked, this, &MainWindow::handlePlaylistDoubleClick);
 
     startLongSongTableOperation("MainWindow");
-
-    t.elapsed(__LINE__);
+    
+    // Initialize status bar early (needed for microphoneStatusUpdate)
     ui->statusBar->showMessage("");
-
-    t.elapsed(__LINE__);
     micStatusLabel = new QLabel("MICS OFF");
     ui->statusBar->addPermanentWidget(micStatusLabel);
 
-    // Initialize debug dialog
-    cuesheetDebugDialog = nullptr;
-
-    // NEW INIT ORDER *******
     t.elapsed(__LINE__);
-    // setFontSizes();
-
-    t.elapsed(__LINE__);
-    usePersistentFontSize(); // sets the font of the songTable, which is used by adjustFontSizes to scale other font sizes
 
     //on_actionReset_triggered();  // set initial layout
 
@@ -417,6 +346,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkSongTable->setColumnWidth(kPitchCol,60);
     ui->darkSongTable->setColumnWidth(kTempoCol,60);
 
+    usePersistentFontSize(); // sets the font of the songTable, which is used by adjustFontSizes to scale other font sizes
     zoomInOut(0);  // trigger reloading of all fonts, including horizontalHeader of songTable()
 
     t.elapsed(__LINE__);
@@ -425,83 +355,6 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    this->setWindowTitle(QString("SquareDesk Music Player/Sequence Editor"));
-
-    // ui->playButton->setEnabled(false);
-    ui->darkPlayButton->setEnabled(false);
-    ui->darkStopButton->setEnabled(false);
-
-    t.elapsed(__LINE__);
-
-    // ============
-    ui->menuFile->addSeparator();
-
-    // ------------
-    // NOTE: MAC OS X & Linux ONLY
-#if !defined(Q_OS_WIN)
-    QAction *aboutAct = new QAction(QIcon(), tr("&About SquareDesk..."), this);
-    aboutAct->setStatusTip(tr("SquareDesk Information"));
-    connect(aboutAct, SIGNAL(triggered()), this, SLOT(aboutBox()));
-    ui->menuFile->addAction(aboutAct);
-#endif
-
-    // ==============
-    // HELP MENU IS WINDOWS ONLY
-#if defined(Q_OS_WIN)
-    QMenu *helpMenu = new QMenu("&Help");
-
-    // ------------
-    QAction *aboutAct2 = new QAction(QIcon(), tr("About &SquareDesk..."), this);
-    aboutAct2->setStatusTip(tr("SquareDesk Information"));
-    connect(aboutAct2, SIGNAL(triggered()), this, SLOT(aboutBox()));
-    helpMenu->addAction(aboutAct2);
-    menuBar()->addAction(helpMenu->menuAction());
-#endif
-
-#if defined(Q_OS_WIN)
-    delete ui->mainToolBar; // remove toolbar on WINDOWS (toolbar is not present on Mac)
-#endif
-
-    // ------------
-#if defined(Q_OS_WIN)
-    // NOTE: WINDOWS ONLY
-    closeAct = new QAction(QIcon(), tr("&Exit"), this);
-    closeAct->setShortcuts(QKeySequence::Close);
-    closeAct->setStatusTip(tr("Exit the program"));
-    connect(closeAct, SIGNAL(triggered()), this, SLOT(close()));
-    ui->menuFile->addAction(closeAct);
-#endif
-
-
-    keybindingActionToMenuAction[keyActionName_StopSong] = ui->actionStop;
- //   keybindingActionToMenuAction[keyActionName_RestartSong] = ;
-    keybindingActionToMenuAction[keyActionName_Forward15Seconds] = ui->actionSkip_Forward;
-    keybindingActionToMenuAction[keyActionName_Backward15Seconds] = ui->actionSkip_Backward;
-    keybindingActionToMenuAction[keyActionName_VolumePlus] = ui->actionVolume_Up;
-    keybindingActionToMenuAction[keyActionName_VolumeMinus] = ui->actionVolume_Down;
-    keybindingActionToMenuAction[keyActionName_TempoPlus] = ui->actionSpeed_Up;
-    keybindingActionToMenuAction[keyActionName_TempoMinus] = ui->actionSlow_Down;
-    // keybindingActionToMenuAction[keyActionName_PlayPrevious] = ui->actionPrevious_Playlist_Item;
-    // keybindingActionToMenuAction[keyActionName_PlayNext] = ui->actionNext_Playlist_Item;
-    keybindingActionToMenuAction[keyActionName_Mute] = ui->actionMute;
-    keybindingActionToMenuAction[keyActionName_PitchPlus] = ui->actionPitch_Up;
-    keybindingActionToMenuAction[keyActionName_PitchMinus] = ui->actionPitch_Down;
-    keybindingActionToMenuAction[keyActionName_FadeOut ] = ui->actionFade_Out;
-    keybindingActionToMenuAction[keyActionName_LoopToggle] = ui->actionLoop;
-    keybindingActionToMenuAction[keyActionName_TestLoop] = ui->actionTest_Loop;
-    keybindingActionToMenuAction[keyActionName_PlaySong] = ui->actionPlay;
-
-    keybindingActionToMenuAction[keyActionName_SDSquareYourSets] = ui->actionSDSquareYourSets;
-    keybindingActionToMenuAction[keyActionName_SDHeadsStart] = ui->actionSDHeadsStart;
-    keybindingActionToMenuAction[keyActionName_SDHeadsSquareThru] = ui->actionSDHeadsSquareThru;
-    keybindingActionToMenuAction[keyActionName_SDHeads1p2p] = ui->actionSDHeads1p2p;
-        
-    keybindingActionToMenuAction[keyActionName_PlaySong] = ui->actionPlay;
-
-    // This lets us set default hotkeys in the menus so that the default button in the dialog box works.
-    QHash<QString, KeyAction*> menuHotkeyMappings;
-    AddHotkeyMappingsFromMenus(menuHotkeyMappings);
-    KeyAction::setKeybindingsFromMenuObjects(menuHotkeyMappings);
     
     QHash<QString, KeyAction *> hotkeyMappings = prefsManager.GetHotkeyMappings();
     AddHotkeyMappingsFromMenus(hotkeyMappings);
@@ -538,62 +391,12 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     tempoIsBPM = false;
     switchToLyricsOnPlay = false;
 
-    Info_Seekbar(false);
-
-    // setup playback timer
-    UIUpdateTimer = new QTimer(this);
-    connect(UIUpdateTimer, SIGNAL(timeout()), this, SLOT(on_UIUpdateTimerTick()));
-    UIUpdateTimer->start(1000);           //adjust from GUI with timer->setInterval(newValue)
-
     closeEventHappened = false;
 
-    //Create Bass audio system
-    cBass->Init();
-
-    //Set UI update
-    cBass->SetVolume(100);
-    currentVolume = 100;
-    previousVolume = 100;
-    Info_Volume();
-
-    // VU Meter -----
-    vuMeterTimer = new QTimer(this);
-    connect(vuMeterTimer, SIGNAL(timeout()), this, SLOT(on_vuMeterTimerTick()));
-    vuMeterTimer->start(100);           // adjust from GUI with timer->setInterval(newValue)
-
     t.elapsed(__LINE__);
-
-    connect(ui->theSVGClock, SIGNAL(newState(QString)), this, SLOT(svgClockStateChanged(QString)));
 
     ui->textBrowserCueSheet->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->textBrowserCueSheet, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customLyricsMenuRequested(QPoint)));
-
-    // where is the root directory where all the music is stored?
-    pathStack = new QList<QString>();
-    pathStackCuesheets = new QList<QString>();
-    pathStackPlaylists = new QList<QString>();
-    pathStackApplePlaylists = new QList<QString>();
-    currentlyShowingPathStack = nullptr; // nothing is showing yet
-
-    musicRootPath = prefsManager.GetmusicPath();      // defaults to ~/squareDeskMusic at very first startup
-
-    t.elapsed(__LINE__);
-
-    // make required folders in the MusicDir, if and only if they are not there already --------
-    maybeMakeAllRequiredFolders();
-    maybeInstallSoundFX();
-    maybeInstallReferencefiles();
-    maybeInstallTemplates();
-
-    t.elapsed(__LINE__);
-
-    // SD ------
-    readAbbreviations();
-
-    // ERROR LOGGING ------
-    logFilePath = musicRootPath + "/.squaredesk/debug.log";
-
-    switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
 
     // updateRecentPlaylistMenu();  // OLD LIGHT MODE
 
@@ -663,56 +466,37 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
 #endif
 
-    // set initial colors for text in songTable, also used for shading the clock
+
+    t.elapsed(__LINE__);
+
+    // Load color preferences for song table/clock (needed before loading music)
     patterColorString = prefsManager.GetpatterColorString();
     singingColorString = prefsManager.GetsingingColorString();
     calledColorString = prefsManager.GetcalledColorString();
     extrasColorString = prefsManager.GetextrasColorString();
-
-    // Tell the clock what colors to use for session segments
+    
     ui->theSVGClock->setColorForType(NONE, QColor(Qt::red));
     ui->theSVGClock->setColorForType(PATTER, QColor(patterColorString));
     ui->theSVGClock->setColorForType(SINGING, QColor(singingColorString));
     ui->theSVGClock->setColorForType(SINGING_CALLED, QColor(calledColorString));
     ui->theSVGClock->setColorForType(XTRAS, QColor(extrasColorString));
-    // ----------------------------------------------
-    // Save the new settings for experimental break and patter timers --------
-    tipLengthTimerEnabled = prefsManager.GettipLengthTimerEnabled();
-    tipLength30secEnabled = prefsManager.GettipLength30secEnabled();
-    // int tipLengthTimerLength = prefsManager.GettipLengthTimerLength();
-    tipLengthAlarmAction = prefsManager.GettipLengthAlarmAction();
-
-    breakLengthTimerEnabled = prefsManager.GetbreakLengthTimerEnabled();
-    breakLengthTimerLength = prefsManager.GetbreakLengthTimerLength();
-    breakLengthAlarmAction = prefsManager.GetbreakLengthAlarmAction();
-
-    ui->theSVGClock->tipLengthTimerEnabled = tipLengthTimerEnabled;      // tell the clock whether the patter alarm is enabled
-    ui->theSVGClock->tipLength30secEnabled = tipLength30secEnabled;      // tell the clock whether the patter 30 sec warning is enabled
-    ui->theSVGClock->breakLengthTimerEnabled = breakLengthTimerEnabled;  // tell the clock whether the break alarm is enabled
-
-    // ----------------------------------------------
-    songFilenameFormat = static_cast<SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
-
-    SetAnimationSpeed(static_cast<AnimationSpeed>(prefsManager.GetAnimationSpeed()));
     
-    // define type names (before reading in the music filenames!) ------------------
+    // Define song type names (before reading music filenames)
     QString value;
     value = prefsManager.GetMusicTypeSinging();
     songTypeNamesForSinging = value.toLower().split(";", Qt::KeepEmptyParts);
-
+    
     value = prefsManager.GetMusicTypePatter();
     songTypeNamesForPatter = value.toLower().split(";", Qt::KeepEmptyParts);
-
+    
     value = prefsManager.GetMusicTypeExtras();
     songTypeNamesForExtras = value.toLower().split(';', Qt::KeepEmptyParts);
-
+    
     value = prefsManager.GetMusicTypeCalled();
     songTypeNamesForCalled = value.toLower().split(';', Qt::KeepEmptyParts);
-
+    
     value = prefsManager.GetToggleSingingPatterSequence();
     songTypeToggleList = value.toLower().split(';', Qt::KeepEmptyParts);
-
-    t.elapsed(__LINE__);
 
     findMusic(musicRootPath, true);  // get the filenames from the user's directories
 
@@ -768,34 +552,6 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     on_actionAuto_scroll_during_playback_toggled(prefsManager.Getenableautoscrolllyrics());
     autoScrollLyricsEnabled = prefsManager.Getenableautoscrolllyrics();
-
-#ifndef Q_OS_MAC
-    ui->seekBar->setStyle(new MySliderClickToMoveStyle());
-    ui->tempoSlider->setStyle(new MySliderClickToMoveStyle());
-    ui->pitchSlider->setStyle(new MySliderClickToMoveStyle());
-    ui->volumeSlider->setStyle(new MySliderClickToMoveStyle());
-    ui->mixSlider->setStyle(new MySliderClickToMoveStyle());
-    ui->bassSlider->setStyle(new MySliderClickToMoveStyle());
-    ui->midrangeSlider->setStyle(new MySliderClickToMoveStyle());
-    ui->trebleSlider->setStyle(new MySliderClickToMoveStyle());
-    ui->seekBarCuesheet->setStyle(new MySliderClickToMoveStyle());
-#endif /* ifndef Q_OS_MAC */
-
-    t.elapsed(__LINE__);
-
-    // // in the Designer, these have values, making it easy to visualize there
-    // //   must clear those out, because a song is not loaded yet.
-    ui->currentLocLabel3->setText("");
-    ui->timeSlash->setVisible(false);
-    ui->songLengthLabel2->setText("");
-    // ui->songLengthLabel2->setText("");
-
-    inPreferencesDialog = false;
-
-    t.elapsed(__LINE__);
-
-    ui->tabWidget->setCurrentIndex(0); // DARK MODE tab is primary, regardless of last setting in Qt Designer
-    on_tabWidget_currentChanged(0);    // update the menu item names
 
     QSize availableSize = QGuiApplication::screens()[0]->geometry().size();
     QSize newSize = QSize(availableSize.width()*0.7, availableSize.height()*0.7);
@@ -2577,8 +2333,303 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     
     // Initialize Now Playing integration for iOS/watchOS remote control
     setupNowPlaying();
+    
+    // TEMPORARY: Call all initialization methods
+    // TODO: Move code from constructor into these methods
+    initializeAudioSystem();
+    setupUIFoundation();
+    
+    // Music Tab initialization
+    initializeMusicPlaybackControls();
+    initializeMusicPlaylists();
+    initializeMusicSearch();
+    initializeMusicSongTable(splash);
+    
+    // Other tabs initialization
+    initializeCuesheetTab();
+    initializeSDTab();
+    initializeTaminationsTab();
+    initializeDanceProgramsTab();
+    initializeReferenceTab();
+    
+    // Final initialization
+    finalizeInitialization();
 }
 // END CONSTRUCTOR ---------
+
+// ============================================================================
+// INITIALIZATION METHODS (REFACTORED FROM CONSTRUCTOR)
+// ============================================================================
+
+void MainWindow::initializeMemberVariables()
+{
+    // Initialize member variables explicitly to avoid ordering issues
+    oldFocusWidget = nullptr;
+    lastWidgetBeforePlaybackWasSongTable = false;
+    lastCuesheetSavePath = "";
+    trapKeypresses = true;
+    firstTimeSongIsPlayed = false;
+    loadingSong = false;
+    cuesheetEditorReactingToCursorMovement = false;
+    totalZoom = 0;
+    sd_animation_running = false;
+    sdLastLine = -1;
+    sdWasNotDrawingPicture = true;
+    sdHasSubsidiaryCallContinuation = false;
+    sdLastLineWasResolve = false;
+    sdOutputtingAvailableCalls = false;
+    sdLineEditSDInputLengthWhenAvailableCallsWasBuilt = -1;
+    shortcutSDTabUndo = nullptr;
+    shortcutSDTabRedo = nullptr;
+    shortcutSDCurrentSequenceSelectAll = nullptr;
+    shortcutSDCurrentSequenceCopy = nullptr;
+#ifdef TESTRESTARTINGSQUAREDESK
+    testRestartingSquareDesk = true;  // set to false for NORMAL operation, TRUE to test restarting
+#endif
+
+    doNotCallDarkLoadMusicList = false;
+    currentTreePath = "Tracks/";
+    lastMinuteInHour = -1;
+    lastSessionID = -2; // initial startup
+    pathsOfCalledSongs.clear(); // no songs (that we know of) have been used recently
+    cuesheetIsUnlockedForEditing = false;
+    longSongTableOperationCount = 0;  // initialize counter to zero (unblocked)
+    lastAudioDeviceName = "";
+    lyricsCopyIsAvailable = false;
+    lyricsTabNumber = 1;
+    lyricsForDifferentSong = false;
+    cueSheetLoaded = false;
+    override_filename = "";
+    override_cuesheet = "";
+    lastSavedPlaylist = "";  // no playlists saved yet in this session
+    playlistHasBeenModified = false; // playlist hasn't been modified yet
+    
+    // Recall any previous flashcards file
+    lastFlashcardsUserFile = prefsManager.Getlastflashcalluserfile();
+    lastFlashcardsUserDirectory = prefsManager.Getlastflashcalluserdirectory();
+    
+    filewatcherShouldIgnoreOneFileSave = false;
+    filewatcherIsTemporarilyDisabled = false;
+    flashCallsVisible = false;
+    
+    // Reference tab
+    webViews.clear();
+    
+    linesInCurrentPlaylist = 0;
+    loadedCuesheetNameWithPath = "";
+    justWentActive = false;
+    soundFXfilenames.clear();
+    soundFXname.clear();
+    
+    // Recent fence date/time
+    recentFenceDateTime = QDateTime::fromString(prefsManager.GetrecentFenceDateTime(),
+                                                          "yyyy-MM-dd'T'hh:mm:ss'Z'");
+    recentFenceDateTime.setTimeZone(QTimeZone::UTC);  // set timezone (all times are UTC)
+    
+    prefDialog = nullptr;      // no preferences dialog created yet
+    songLoaded = false;     // no song is loaded, so don't update the currentLocLabel
+}
+
+void MainWindow::initializeAudioSystem()
+{
+    // Create Bass audio system
+    cBass->Init();
+    
+    // Set initial volume
+    cBass->SetVolume(100);
+    currentVolume = 100;
+    previousVolume = 100;
+    Info_Volume();
+    
+    // Setup playback timer (updates UI during playback)
+    UIUpdateTimer = new QTimer(this);
+    connect(UIUpdateTimer, SIGNAL(timeout()), this, SLOT(on_UIUpdateTimerTick()));
+    UIUpdateTimer->start(1000);           // Update every second
+    
+    // VU Meter setup
+    vuMeterTimer = new QTimer(this);
+    connect(vuMeterTimer, SIGNAL(timeout()), this, SLOT(on_vuMeterTimerTick()));
+    vuMeterTimer->start(100);            // Update every 100ms
+    
+    // Initialize seekbar
+    Info_Seekbar(false);
+}
+
+void MainWindow::setupUIFoundation()
+{
+    // Set window title
+    this->setWindowTitle(QString("SquareDesk Music Player/Sequence Editor"));
+    
+    // Setup menu system
+    ui->menuFile->addSeparator();
+    
+    // Platform-specific menu setup
+#if !defined(Q_OS_WIN)
+    QAction *aboutAct = new QAction(QIcon(), tr("&About SquareDesk..."), this);
+    aboutAct->setStatusTip(tr("SquareDesk Information"));
+    connect(aboutAct, SIGNAL(triggered()), this, SLOT(aboutBox()));
+    ui->menuFile->addAction(aboutAct);
+#endif
+
+#if defined(Q_OS_WIN)
+    QMenu *helpMenu = new QMenu("&Help");
+    QAction *aboutAct2 = new QAction(QIcon(), tr("About &SquareDesk..."), this);
+    aboutAct2->setStatusTip(tr("SquareDesk Information"));
+    connect(aboutAct2, SIGNAL(triggered()), this, SLOT(aboutBox()));
+    helpMenu->addAction(aboutAct2);
+    menuBar()->addAction(helpMenu->menuAction());
+    
+    delete ui->mainToolBar; // remove toolbar on WINDOWS
+    
+    closeAct = new QAction(QIcon(), tr("&Exit"), this);
+    closeAct->setShortcuts(QKeySequence::Close);
+    closeAct->setStatusTip(tr("Exit the program"));
+    connect(closeAct, SIGNAL(triggered()), this, SLOT(close()));
+    ui->menuFile->addAction(closeAct);
+#endif
+
+    // Setup key bindings mapping
+    keybindingActionToMenuAction[keyActionName_StopSong] = ui->actionStop;
+    keybindingActionToMenuAction[keyActionName_Forward15Seconds] = ui->actionSkip_Forward;
+    keybindingActionToMenuAction[keyActionName_Backward15Seconds] = ui->actionSkip_Backward;
+    keybindingActionToMenuAction[keyActionName_VolumePlus] = ui->actionVolume_Up;
+    keybindingActionToMenuAction[keyActionName_VolumeMinus] = ui->actionVolume_Down;
+    keybindingActionToMenuAction[keyActionName_TempoPlus] = ui->actionSpeed_Up;
+    keybindingActionToMenuAction[keyActionName_TempoMinus] = ui->actionSlow_Down;
+    keybindingActionToMenuAction[keyActionName_Mute] = ui->actionMute;
+    keybindingActionToMenuAction[keyActionName_PitchPlus] = ui->actionPitch_Up;
+    keybindingActionToMenuAction[keyActionName_PitchMinus] = ui->actionPitch_Down;
+    keybindingActionToMenuAction[keyActionName_FadeOut ] = ui->actionFade_Out;
+    keybindingActionToMenuAction[keyActionName_LoopToggle] = ui->actionLoop;
+    keybindingActionToMenuAction[keyActionName_TestLoop] = ui->actionTest_Loop;
+    keybindingActionToMenuAction[keyActionName_PlaySong] = ui->actionPlay;
+    keybindingActionToMenuAction[keyActionName_SDSquareYourSets] = ui->actionSDSquareYourSets;
+    keybindingActionToMenuAction[keyActionName_SDHeadsStart] = ui->actionSDHeadsStart;
+    keybindingActionToMenuAction[keyActionName_SDHeadsSquareThru] = ui->actionSDHeadsSquareThru;
+    keybindingActionToMenuAction[keyActionName_SDHeads1p2p] = ui->actionSDHeads1p2p;
+    
+    // Setup default hotkeys from menus
+    QHash<QString, KeyAction*> menuHotkeyMappings;
+    AddHotkeyMappingsFromMenus(menuHotkeyMappings);
+    KeyAction::setKeybindingsFromMenuObjects(menuHotkeyMappings);
+    
+    // Initialize buttons
+    ui->darkPlayButton->setEnabled(false);
+    ui->darkStopButton->setEnabled(false);
+    
+    // Clock state connection
+    connect(ui->theSVGClock, SIGNAL(newState(QString)), this, SLOT(svgClockStateChanged(QString)));
+    
+    // Make required folders and install files
+    maybeMakeAllRequiredFolders();
+    maybeInstallSoundFX();
+    maybeInstallReferencefiles();
+    maybeInstallTemplates();
+    
+    // SD abbreviations
+    readAbbreviations();
+    
+    // Error logging
+    logFilePath = musicRootPath + "/.squaredesk/debug.log";
+    
+    // Preferences
+    switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
+    
+    // Timer preferences
+    tipLengthTimerEnabled = prefsManager.GettipLengthTimerEnabled();
+    tipLength30secEnabled = prefsManager.GettipLength30secEnabled();
+    tipLengthAlarmAction = prefsManager.GettipLengthAlarmAction();
+    breakLengthTimerEnabled = prefsManager.GetbreakLengthTimerEnabled();
+    breakLengthTimerLength = prefsManager.GetbreakLengthTimerLength();
+    breakLengthAlarmAction = prefsManager.GetbreakLengthAlarmAction();
+    
+    ui->theSVGClock->tipLengthTimerEnabled = tipLengthTimerEnabled;
+    ui->theSVGClock->tipLength30secEnabled = tipLength30secEnabled;
+    ui->theSVGClock->breakLengthTimerEnabled = breakLengthTimerEnabled;
+    
+    // Song filename format
+    songFilenameFormat = static_cast<SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
+    SetAnimationSpeed(static_cast<AnimationSpeed>(prefsManager.GetAnimationSpeed()));
+    
+    // Initialize debug dialog
+    cuesheetDebugDialog = nullptr;
+    
+    // Platform-specific slider styles
+#ifndef Q_OS_MAC
+    ui->seekBar->setStyle(new MySliderClickToMoveStyle());
+    ui->tempoSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->pitchSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->volumeSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->mixSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->bassSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->midrangeSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->trebleSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->seekBarCuesheet->setStyle(new MySliderClickToMoveStyle());
+#endif
+    
+    // Clear location labels (no song loaded yet)
+    ui->currentLocLabel3->setText("");
+    ui->timeSlash->setVisible(false);
+    ui->songLengthLabel2->setText("");
+    
+    inPreferencesDialog = false;
+    
+    // Set primary tab and update menu
+    ui->tabWidget->setCurrentIndex(0);
+    on_tabWidget_currentChanged(0);
+}
+
+void MainWindow::initializeMusicPlaybackControls()
+{
+    // TODO: Move music playback controls initialization here
+}
+
+void MainWindow::initializeMusicPlaylists()
+{
+    // TODO: Move music playlists initialization here
+}
+
+void MainWindow::initializeMusicSearch()
+{
+    // TODO: Move music search initialization here
+}
+
+void MainWindow::initializeMusicSongTable(SplashScreen *splash)
+{
+    // TODO: Move music song table initialization here
+}
+
+void MainWindow::initializeCuesheetTab()
+{
+    // TODO: Move cuesheet tab initialization here
+}
+
+void MainWindow::initializeSDTab()
+{
+    // TODO: Move SD tab initialization here
+}
+
+void MainWindow::initializeTaminationsTab()
+{
+    // TODO: Move Taminations tab initialization here
+}
+
+void MainWindow::initializeDanceProgramsTab()
+{
+    // TODO: Move dance programs tab initialization here
+}
+
+void MainWindow::initializeReferenceTab()
+{
+    // TODO: Move reference tab initialization here
+}
+
+void MainWindow::finalizeInitialization()
+{
+    // Reapply fonts after all UI components are fully initialized
+    // This ensures that components created during initialization get proper fonts
+    zoomInOut(0);  // trigger font reloading for all components after full initialization
+}
 
 void MainWindow::newFromTemplate() {
     QString templateName = sender()->property("name").toString();
