@@ -79,4 +79,18 @@ enum Order
     UnknownOrder
 };
 
+// Table column indices for playlist tables
+constexpr int COLUMN_NUMBER = 0;
+constexpr int COLUMN_TITLE = 1;
+constexpr int COLUMN_PITCH = 2;
+constexpr int COLUMN_TEMPO = 3;
+constexpr int COLUMN_PATH = 4;
+constexpr int COLUMN_LOADED = 5;
+
+// Playlist slot numbers
+constexpr int MAX_PLAYLIST_SLOTS = 3;
+constexpr int SLOT_1 = 0;
+constexpr int SLOT_2 = 1;
+constexpr int SLOT_3 = 2;
+
 #endif // ifndef COMMON_ENUMS_H

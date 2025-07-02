@@ -1825,7 +1825,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     connect(ui->playlist1Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
 
     ui->playlist1Table->setMainWindow(this);
-    ui->playlist1Table->resizeColumnToContents(0); // number
+    ui->playlist1Table->resizeColumnToContents(COLUMN_NUMBER); // number
     ui->playlist1Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
     ui->playlist1Table->setColumnWidth(2,20); // pitch
     ui->playlist1Table->setColumnWidth(3,45); // tempo
@@ -1970,7 +1970,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     connect(ui->playlist2Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
 
     ui->playlist2Table->setMainWindow(this);
-    ui->playlist2Table->resizeColumnToContents(0); // number
+    ui->playlist2Table->resizeColumnToContents(COLUMN_NUMBER); // number
     ui->playlist2Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
     ui->playlist2Table->setColumnWidth(2,20); // pitch
     ui->playlist2Table->setColumnWidth(3,45); // tempo
@@ -2113,7 +2113,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist3Label->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist3Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
 
-    ui->playlist3Table->resizeColumnToContents(0); // number
+    ui->playlist3Table->resizeColumnToContents(COLUMN_NUMBER); // number
     ui->playlist3Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
     ui->playlist3Table->setColumnWidth(2,20); // pitch
     ui->playlist3Table->setColumnWidth(3,45); // tempo
@@ -9882,9 +9882,9 @@ void MainWindow::darkAddPlaylistItemsToBottom(int whichSlot) { // slot is 0 - 2
         QTableWidgetItem *loaded = new QTableWidgetItem("");
         theTableWidget->setItem(songCount-1, 5, loaded);
 
-        theTableWidget->resizeColumnToContents(0); // FIX: perhaps only if this is the first row?
-    //    theTableWidget->resizeColumnToContents(2);
-    //    theTableWidget->resizeColumnToContents(3);
+        theTableWidget->resizeColumnToContents(COLUMN_NUMBER); // FIX: perhaps only if this is the first row?
+    //    theTableWidget->resizeColumnToContents(COLUMN_PITCH);
+    //    theTableWidget->resizeColumnToContents(COLUMN_TEMPO);
     }
 
     QTimer::singleShot(250, [theTableWidget]{
@@ -9953,9 +9953,9 @@ void MainWindow::darkAddPlaylistItemToBottom(int whichSlot, QString title, QStri
     QTableWidgetItem *loaded = new QTableWidgetItem("");
     theTableWidget->setItem(songCount-1, 5, loaded);
 
-    theTableWidget->resizeColumnToContents(0); // FIX: perhaps only if this is the first row?
-//    theTableWidget->resizeColumnToContents(2);
-//    theTableWidget->resizeColumnToContents(3);
+    theTableWidget->resizeColumnToContents(COLUMN_NUMBER); // FIX: perhaps only if this is the first row?
+//    theTableWidget->resizeColumnToContents(COLUMN_PITCH);
+//    theTableWidget->resizeColumnToContents(COLUMN_TEMPO);
 
     QTimer::singleShot(250, [theTableWidget]{
         // NOTE: We have to do it this way with a single-shot timer, because you can't scroll immediately to a new item, until it's been processed

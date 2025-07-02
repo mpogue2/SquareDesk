@@ -47,22 +47,7 @@
     // already defined on Mac OS X
 #endif
 
-// CONSTANTS for magic numbers
-namespace {
-    constexpr int MAX_PLAYLIST_SLOTS = 3;
-    
-    // Table column indices
-    constexpr int COLUMN_NUMBER = 0;
-    constexpr int COLUMN_PITCH = 2;
-    constexpr int COLUMN_TEMPO = 3;
-    constexpr int COLUMN_PATH = 4;
-    constexpr int COLUMN_LOADED = 5;
-    
-    // Slot numbers
-    constexpr int SLOT_1 = 0;
-    constexpr int SLOT_2 = 1;
-    constexpr int SLOT_3 = 2;
-}
+// CONSTANTS moved to common_enums.h for global access
 
 // FORWARD DECLS ---------
 extern QString getTitleColTitle(MyTableWidget *songTable, int row);
@@ -293,7 +278,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     title->setText(titlePlusTags);
 
     QTableWidgetItem *blankItem = new QTableWidgetItem;
-    whichTable->setItem(whichRow, 1, blankItem); // null item so I can get the row() later
+    whichTable->setItem(whichRow, COLUMN_TITLE, blankItem); // null item so I can get the row() later
 
     whichTable->setCellWidget(whichRow, 1, title);
 
@@ -925,16 +910,16 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
     for (int i = 0; i < 3; i++) {
         MyTableWidget *table = tables[i];
         for (int j = 0; j < table->rowCount(); j++) {
-            if (table->item(j, 5)->text() == "1") {
-                QFont currentFont = table->item(j, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
+            if (table->item(j, COLUMN_LOADED)->text() == "1") {
+                QFont currentFont = table->item(j, COLUMN_TITLE)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
                 currentFont.setBold(false);
                 currentFont.setItalic(false);
-                table->item(j, 0)->setFont(currentFont);
-                table->item(j, 1)->setFont(currentFont);
-                table->item(j, 2)->setFont(currentFont);
-                table->item(j, 3)->setFont(currentFont);
+                table->item(j, COLUMN_NUMBER)->setFont(currentFont);
+                table->item(j, COLUMN_TITLE)->setFont(currentFont);
+                table->item(j, COLUMN_PITCH)->setFont(currentFont);
+                table->item(j, COLUMN_TEMPO)->setFont(currentFont);
             }
-            table->item(j, 5)->setText(""); // clear out the old table
+            table->item(j, COLUMN_LOADED)->setText(""); // clear out the old table
         }
     }
 
@@ -942,15 +927,15 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
 
     for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
         if (i == row) {
-            QFont currentFont = sourceForLoadedSong->item(i, 1)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
+            QFont currentFont = sourceForLoadedSong->item(i, COLUMN_TITLE)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
             currentFont.setBold(true);
             currentFont.setItalic(true);
-            sourceForLoadedSong->item(i, 0)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 1)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 2)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 3)->setFont(currentFont);
+            sourceForLoadedSong->item(i, COLUMN_NUMBER)->setFont(currentFont);
+            sourceForLoadedSong->item(i, COLUMN_TITLE)->setFont(currentFont);
+            sourceForLoadedSong->item(i, COLUMN_PITCH)->setFont(currentFont);
+            sourceForLoadedSong->item(i, COLUMN_TEMPO)->setFont(currentFont);
         }
-        sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
+        sourceForLoadedSong->item(i, COLUMN_LOADED)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
     }
 
     // these must be down here, to set the correct values...
@@ -965,7 +950,7 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
     }
 
     tableWidget->setFocus();
-    tableWidget->resizeColumnToContents(0); // number column needs to be resized, if bolded
+    tableWidget->resizeColumnToContents(COLUMN_NUMBER); // number column needs to be resized, if bolded
 
     t.elapsed(__LINE__);
 }
@@ -1039,7 +1024,7 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
         stream << "relpath,pitch,tempo" << ENDL;  // NOTE: This is now a RELATIVE PATH, and "relpath" is used to detect that.
 
         for (int i = 0; i < theTableWidget->rowCount(); i++) {
-            QString path = theTableWidget->item(i, 4)->text();
+            QString path = theTableWidget->item(i, COLUMN_PATH)->text();
             path = path.replace(musicRootPath,"").replace("\"","\"\""); // if path contains a QUOTE, it needs to be changed to DOUBLE QUOTE in CSV
 
             QString pitch = theTableWidget->item(i, COLUMN_PITCH)->text();
@@ -1139,7 +1124,7 @@ void MainWindow::saveSlotNow(int whichSlot) {
         stream << "relpath,pitch,tempo" << ENDL;  // NOTE: This is a RELATIVE PATH, and "relpath" is used to detect that.
 
         for (int i = 0; i < theTableWidget->rowCount(); i++) {
-            QString path = theTableWidget->item(i, 4)->text();
+            QString path = theTableWidget->item(i, COLUMN_PATH)->text();
             path = path.replace(musicRootPath,"").replace("\"","\"\""); // if path contains a QUOTE, it needs to be changed to DOUBLE QUOTE in CSV
 
             QString pitch = theTableWidget->item(i, COLUMN_PITCH)->text();
@@ -1192,9 +1177,9 @@ void MainWindow::saveSlotNow(int whichSlot) {
                 if (itemNumber.length() < 2) {
                     itemNumber = "0" + itemNumber; // 9 --> 09
                 }
-                QString path = theTableWidget->item(i, 4)->text();
-                QString pitch = theTableWidget->item(i, 2)->text();
-                QString tempo = theTableWidget->item(i, 3)->text();
+                QString path = theTableWidget->item(i, COLUMN_PATH)->text();
+                QString pitch = theTableWidget->item(i, COLUMN_PITCH)->text();
+                QString tempo = theTableWidget->item(i, COLUMN_TEMPO)->text();
 
                 QString newItem = headerTitle + "%!%" + pitch + "," + tempo + "," + itemNumber + "#!#" + path;
                 // qDebug() << "newItem:" << newItem;
@@ -1406,11 +1391,11 @@ void MainWindow::darkPaletteTitleLabelDoubleClicked(QMouseEvent * e)
 
             // qDebug() << "Table:" << i << ", Row:" << row << " DOUBLE CLICKED";
 
-            QString path = theTable->item(row, 4)->text();
+            QString path = theTable->item(row, COLUMN_PATH)->text();
             // qDebug() << "Path: " << path;
 
             // pretend we clicked on the tempo label of that row, and let the existing functions do the work...
-            handlePlaylistDoubleClick(theTable->item(row, 3));
+            handlePlaylistDoubleClick(theTable->item(row, COLUMN_TEMPO));
 
             break; // break out of the for loop, because we found what was clicked on
         } // else more than 1 row or no rows, just return -1
@@ -1434,7 +1419,7 @@ void MainWindow::refreshAllPlaylists() {
             QString PlaylistFileName;
             if (dynamic_cast<QLabel*>(theTable->cellWidget(j, 1)) != nullptr) {
                 // QString title = dynamic_cast<QLabel*>(theTable->cellWidget(j, 1))->text(); // don't need this right now...
-                relativePath = theTable->item(j,4)->text();
+                relativePath = theTable->item(j, COLUMN_PATH)->text();
                 relativePath.replace(musicRootPath, "");
 
                 PlaylistFileName = musicRootPath + "/playlists/" + relPathInSlot[i] + ".csv";
@@ -1636,13 +1621,13 @@ void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, 
 
     // # column
     QTableWidgetItem *num = new TableNumberItem(QString::number(insertRowNum+1)); // use TableNumberItem so that it sorts numerically
-    destTableWidget->setItem(insertRowNum, 0, num);
+    destTableWidget->setItem(insertRowNum, COLUMN_NUMBER, num);
 
     // Now we have to renumber all the rows BELOW insertRowNum, to add 1 to them
     for (int i = insertRowNum+1; i < songCount; i++) {
-        int currentNum = destTableWidget->item(i,0)->text().toInt();
+        int currentNum = destTableWidget->item(i, COLUMN_NUMBER)->text().toInt();
         // qDebug() << "currentNum:" << currentNum;
-        destTableWidget->item(i,0)->setText(QString::number(currentNum+1));
+        destTableWidget->item(i, COLUMN_NUMBER)->setText(QString::number(currentNum+1));
     }
 
     // TITLE column
@@ -1658,23 +1643,23 @@ void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, 
 
     // PITCH column
     QTableWidgetItem *pit = new QTableWidgetItem(thePitch);
-    destTableWidget->setItem(insertRowNum, 2, pit);
+    destTableWidget->setItem(insertRowNum, COLUMN_PITCH, pit);
 
     // TEMPO column
     QTableWidgetItem *tem = new QTableWidgetItem(theTempo);
-    destTableWidget->setItem(insertRowNum, 3, tem);
+    destTableWidget->setItem(insertRowNum, COLUMN_TEMPO, tem);
 
     // PATH column
     QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
-    destTableWidget->setItem(insertRowNum, 4, fullPath);
+    destTableWidget->setItem(insertRowNum, COLUMN_PATH, fullPath);
 
     // LOADED column
     QTableWidgetItem *loaded = new QTableWidgetItem("");
-    destTableWidget->setItem(insertRowNum, 5, loaded);
+    destTableWidget->setItem(insertRowNum, COLUMN_LOADED, loaded);
 
-    destTableWidget->resizeColumnToContents(0); // FIX: perhaps only if this is the first row?
-    //    theTableWidget->resizeColumnToContents(2);
-    //    theTableWidget->resizeColumnToContents(3);
+    destTableWidget->resizeColumnToContents(COLUMN_NUMBER); // FIX: perhaps only if this is the first row?
+    //    theTableWidget->resizeColumnToContents(COLUMN_PITCH);
+    //    theTableWidget->resizeColumnToContents(COLUMN_TEMPO);
 
     // QTimer::singleShot(250, [destTableWidget]{
     //     // NOTE: We have to do it this way with a single-shot timer, because you can't scroll immediately to a new item, until it's been processed
