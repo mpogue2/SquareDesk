@@ -843,6 +843,9 @@ private:
     
     // Final initialization
     void finalizeInitialization();
+    
+    // Helper methods
+    void initializePlaylistTable(MyTableWidget* table, QLabel* label);
 
     // ============================================================================
     // CORE APPLICATION STATE

@@ -387,10 +387,6 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     ui->actionMake_Flash_Drive_Wizard->setVisible(false);
 #endif
 
-    currentPitch = 0;
-    tempoIsBPM = false;
-    switchToLyricsOnPlay = false;
-
     closeEventHappened = false;
 
     t.elapsed(__LINE__);
@@ -444,9 +440,6 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
 #endif
 
-    playlistSlotWatcherTimer = new QTimer();            // Retriggerable timer for slot watcher events
-    QObject::connect(playlistSlotWatcherTimer, SIGNAL(timeout()),
-                     this, SLOT(playlistSlotWatcherTriggered()));
 
     // make sure that the "downloaded" directory exists, so that when we sync up with the Cloud,
     //   it will cause a rescan of the songTable and dropdown
@@ -1569,30 +1562,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    // PLAYLISTS:
-#ifndef DEBUG_LIGHT_MODE
-    ui->playlist1Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
-#endif
-    ui->playlist1Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers_2023.09.20");
-    ui->playlist1Label->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->playlist1Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
-
-    ui->playlist1Table->setMainWindow(this);
-    ui->playlist1Table->resizeColumnToContents(COLUMN_NUMBER); // number
-    ui->playlist1Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
-    ui->playlist1Table->setColumnWidth(2,20); // pitch
-    ui->playlist1Table->setColumnWidth(3,45); // tempo
-    ui->playlist1Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
-    ui->playlist1Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter);
-    ui->playlist1Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter);
-    ui->playlist1Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter);
-    ui->playlist1Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    ui->playlist1Table->verticalHeader()->setMaximumSectionSize(28);
-
-    ui->playlist1Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
-    ui->playlist1Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
-    ui->playlist1Table->horizontalHeader()->setSectionHidden(2, false); // hide pitch
-    ui->playlist1Table->horizontalHeader()->setSectionHidden(3, false); // hide tempo
+    // PLAYLISTS: (setup moved to initializeMusicPlaylists)
 
     // WARNING: THIS CODE IS ONLY FOR THE NUMBERS COLUMN OF PLAYLIST TABLES.
     //  THE NORMAL CONTEXT MENU IS IN PLAYLISTS.CPP SOURCE FILE.
@@ -2106,7 +2076,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
         // ui->actionSave_Playlist->setEnabled(false); // Playlist > Save Playlist As...
         // ui->actionPrint_Playlist->setEnabled(false);  // Playlist > Print Playlist...
 
-        reloadPaletteSlots();  // reload all the palette slots, based on the last time we ran SquareDesk
+        // reloadPaletteSlots moved to initializeMusicPlaylists()
 
         for (int i = 0; i < 3; i++) {
             slotModified[i] = false;
@@ -2116,7 +2086,6 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     t.elapsed(__LINE__);
 
     if (darkmode) {
-        ui->seekBarCuesheet->setFusionMode(true); // allow click-to-move-there
 // #define NOPLAYLISTMENU
 // #ifdef NOPLAYLISTMENU
 //         ui->menuPlaylist->menuAction()->setVisible(false); // Menu Bar > Playlist not relevant in Dark Mode
@@ -2234,17 +2203,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     typeSearch = labelSearch = titleSearch = ""; // no filters at startup
     searchAllFields = true; // search is OR, not AND
 
-    // remember what we had set last time the app ran -----
-    QString numPaletteSlots = prefsManager.Getnumpaletteslots();
-    if (numPaletteSlots == "0") {
-        on_action0paletteSlots_triggered();
-    } else if (numPaletteSlots == "1") {
-        on_action1paletteSlots_triggered();
-    } else if (numPaletteSlots == "2") {
-        on_action2paletteSlots_triggered();
-    } else {
-        on_action3paletteSlots_triggered();
-    }
+    // remember what we had set last time the app ran ----- (moved to initializeMusicPlaylists)
 
     // NOTE: This MUST be down here at the end of the constructor now.
     //   The startup sequence takes longer now, and we don't want the
@@ -2554,19 +2513,6 @@ void MainWindow::setupUIFoundation()
     // Initialize debug dialog
     cuesheetDebugDialog = nullptr;
     
-    // Platform-specific slider styles
-#ifndef Q_OS_MAC
-    ui->seekBar->setStyle(new MySliderClickToMoveStyle());
-    ui->tempoSlider->setStyle(new MySliderClickToMoveStyle());
-    ui->pitchSlider->setStyle(new MySliderClickToMoveStyle());
-    ui->volumeSlider->setStyle(new MySliderClickToMoveStyle());
-    ui->mixSlider->setStyle(new MySliderClickToMoveStyle());
-    ui->bassSlider->setStyle(new MySliderClickToMoveStyle());
-    ui->midrangeSlider->setStyle(new MySliderClickToMoveStyle());
-    ui->trebleSlider->setStyle(new MySliderClickToMoveStyle());
-    ui->seekBarCuesheet->setStyle(new MySliderClickToMoveStyle());
-#endif
-    
     // Clear location labels (no song loaded yet)
     ui->currentLocLabel3->setText("");
     ui->timeSlash->setVisible(false);
@@ -2581,12 +2527,88 @@ void MainWindow::setupUIFoundation()
 
 void MainWindow::initializeMusicPlaybackControls()
 {
-    // TODO: Move music playback controls initialization here
+    // Initialize playback state variables
+    currentPitch = 0;
+    tempoIsBPM = false;
+    switchToLyricsOnPlay = false;
+    
+    // Platform-specific slider styles (allows click-to-move)
+#ifndef Q_OS_MAC
+    ui->seekBar->setStyle(new MySliderClickToMoveStyle());
+    ui->tempoSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->pitchSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->volumeSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->mixSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->bassSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->midrangeSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->trebleSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->seekBarCuesheet->setStyle(new MySliderClickToMoveStyle());
+#endif
+    
+    // Initialize seekbars
+    InitializeSeekBar(ui->seekBarCuesheet);
+    
+    // Set fusion mode for cuesheet seekbar (allows click-to-move)
+    ui->seekBarCuesheet->setFusionMode(true);
 }
 
 void MainWindow::initializeMusicPlaylists()
 {
-    // TODO: Move music playlists initialization here
+    // Setup playlist slot watcher timer
+    playlistSlotWatcherTimer = new QTimer();
+    QObject::connect(playlistSlotWatcherTimer, SIGNAL(timeout()),
+                     this, SLOT(playlistSlotWatcherTriggered()));
+    
+    // Initialize all three playlist tables and labels
+    initializePlaylistTable(ui->playlist1Table, ui->playlist1Label);
+    initializePlaylistTable(ui->playlist2Table, ui->playlist2Label);
+    initializePlaylistTable(ui->playlist3Table, ui->playlist3Label);
+    
+    // Set up number of palette slots based on preferences
+    QString numPaletteSlots = prefsManager.Getnumpaletteslots();
+    if (numPaletteSlots == "0") {
+        on_action0paletteSlots_triggered();
+    } else if (numPaletteSlots == "1") {
+        on_action1paletteSlots_triggered();
+    } else if (numPaletteSlots == "2") {
+        on_action2paletteSlots_triggered();
+    } else {
+        on_action3paletteSlots_triggered();
+    }
+    
+    // Reload palette slots from previous session
+    reloadPaletteSlots();
+}
+
+// Helper method to reduce duplication in playlist table setup
+void MainWindow::initializePlaylistTable(MyTableWidget* table, QLabel* label)
+{
+    // Setup label styling and context menu
+#ifndef DEBUG_LIGHT_MODE
+    label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
+#endif
+    label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers_2023.09.20");
+    label->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
+    
+    // Setup table properties
+    table->setMainWindow(this);
+    table->resizeColumnToContents(COLUMN_NUMBER); // number
+    table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
+    table->setColumnWidth(2, 20); // pitch
+    table->setColumnWidth(3, 45); // tempo
+    table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
+    table->horizontalHeaderItem(0)->setTextAlignment(Qt::AlignCenter);
+    table->horizontalHeaderItem(2)->setTextAlignment(Qt::AlignCenter);
+    table->horizontalHeaderItem(3)->setTextAlignment(Qt::AlignCenter);
+    table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    table->verticalHeader()->setMaximumSectionSize(28);
+    
+    // Hide/show columns as needed
+    table->horizontalHeader()->setSectionHidden(4, true);  // hide fullpath
+    table->horizontalHeader()->setSectionHidden(5, true);  // hide loaded
+    table->horizontalHeader()->setSectionHidden(2, false); // show pitch
+    table->horizontalHeader()->setSectionHidden(3, false); // show tempo
 }
 
 void MainWindow::initializeMusicSearch()
