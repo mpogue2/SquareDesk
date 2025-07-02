@@ -137,6 +137,17 @@ void MainWindow::movePlaylistItems(std::function<bool(MyTableWidget*)> moveOpera
 }
 
 // ----------------------------------------------------------------------
+// Helper function to get table widget and label for a given slot number
+std::pair<QTableWidget*, QLabel*> MainWindow::getSlotWidgets(int slotNumber) {
+    switch (slotNumber) {
+        case 0: return {ui->playlist1Table, ui->playlist1Label};
+        case 1: return {ui->playlist2Table, ui->playlist2Label};
+        case 2: return {ui->playlist3Table, ui->playlist3Label};
+        default: return {ui->playlist1Table, ui->playlist1Label};
+    }
+}
+
+// ----------------------------------------------------------------------
 void MainWindow::PlaylistItemsToTop() {
     movePlaylistItems([](MyTableWidget* table) { return table->moveSelectedItemsToTop(); });
 }
@@ -456,13 +467,12 @@ QString MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString rela
     relativePath.replace("/Tracks/", "").replace("Tracks/", "").replace(".csv", "");
 
     // Set up table widget and label based on slot number
-    QTableWidget *theTableWidget;
-    QLabel *theLabel;
-
+    auto [theTableWidget, theLabel] = getSlotWidgets(slotNumber);
+    
     switch (slotNumber) {
-        case 0: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; prefsManager.SetlastPlaylistLoaded("tracks/" + relativePath); break;
-        case 1: theTableWidget = ui->playlist2Table; theLabel = ui->playlist2Label; prefsManager.SetlastPlaylistLoaded2("tracks/" + relativePath); break;
-        case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; prefsManager.SetlastPlaylistLoaded3("tracks/" + relativePath); break;
+        case 0: prefsManager.SetlastPlaylistLoaded("tracks/" + relativePath); break;
+        case 1: prefsManager.SetlastPlaylistLoaded2("tracks/" + relativePath); break;
+        case 2: prefsManager.SetlastPlaylistLoaded3("tracks/" + relativePath); break;
     }
 
     theTableWidget->hide();
@@ -594,13 +604,12 @@ QString MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QStri
         prefsManager.SetlastPlaylistLoaded3("");
     }
 
-    QTableWidget *theTableWidget;
-    QLabel *theLabel;
-
+    auto [theTableWidget, theLabel] = getSlotWidgets(slotNumber);
+    
     switch (slotNumber) {
-        case 0: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; prefsManager.SetlastPlaylistLoaded("Apple Music/" + relPath); break;
-        case 1: theTableWidget = ui->playlist2Table; theLabel = ui->playlist2Label; prefsManager.SetlastPlaylistLoaded2("Apple Music/" + relPath); break;
-        case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; prefsManager.SetlastPlaylistLoaded3("Apple Music/" + relPath); break;
+        case 0: prefsManager.SetlastPlaylistLoaded("Apple Music/" + relPath); break;
+        case 1: prefsManager.SetlastPlaylistLoaded2("Apple Music/" + relPath); break;
+        case 2: prefsManager.SetlastPlaylistLoaded3("Apple Music/" + relPath); break;
     }
 
     theTableWidget->setRowCount(0); // delete all the rows
@@ -690,13 +699,12 @@ QString MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString 
     QFile inputFile(PlaylistFileName);
     if (inputFile.open(QIODevice::ReadOnly)) { // defaults to Text mode
 
-        QTableWidget *theTableWidget;
-        QLabel *theLabel;
-
+        auto [theTableWidget, theLabel] = getSlotWidgets(slotNumber);
+        
         switch (slotNumber) {
-            case 0: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; prefsManager.SetlastPlaylistLoaded("playlists/" + relPath); break;
-            case 1: theTableWidget = ui->playlist2Table; theLabel = ui->playlist2Label; prefsManager.SetlastPlaylistLoaded2("playlists/" + relPath); break;
-            case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; prefsManager.SetlastPlaylistLoaded3("playlists/" + relPath); break;
+            case 0: prefsManager.SetlastPlaylistLoaded("playlists/" + relPath); break;
+            case 1: prefsManager.SetlastPlaylistLoaded2("playlists/" + relPath); break;
+            case 2: prefsManager.SetlastPlaylistLoaded3("playlists/" + relPath); break;
         }
 
         theTableWidget->setRowCount(0); // delete all the rows
@@ -935,14 +943,7 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
 //   so this should be factored.
 void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
 {
-    MyTableWidget *theTableWidget;
-    QLabel *theLabel;
-    switch (whichSlot) {
-        case 1: theTableWidget = ui->playlist2Table; theLabel = ui->playlist2Label; break;
-        case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; break;
-        case 0:
-        default: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; break;
-    }
+    auto [theTableWidget, theLabel] = getSlotWidgets(whichSlot);
 
     // // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
     // const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
@@ -1078,21 +1079,8 @@ void MainWindow::saveSlotNow(int whichSlot) {
 //    return; // TEST TEST TEST
 
     // which tableWidget are we dealing with?
-    MyTableWidget *theTableWidget;
-    QString theTableLabelText = "";
-    switch (whichSlot) {
-        case 1: theTableWidget = ui->playlist2Table;
-                theTableLabelText = ui->playlist2Label->text();
-                break;
-        case 2: theTableWidget = ui->playlist3Table;
-                theTableLabelText = ui->playlist3Label->text();
-                break;
-        case 0:
-        default: theTableWidget = ui->playlist1Table;
-                theTableLabelText = ui->playlist1Label->text();
-                break;
-
-    }
+    auto [theTableWidget, theLabel] = getSlotWidgets(whichSlot);
+    QString theTableLabelText = theLabel->text();
 
     QString playlistShortName = PlaylistFileName;
     playlistShortName = playlistShortName.replace(musicRootPath,"").split('/').last().replace(".csv",""); // PlaylistFileName is now altered
@@ -1672,15 +1660,7 @@ void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, 
 // Functions moved from mainwindow.cpp
 
 void MainWindow::clearSlot(int slotNumber) {
-    QTableWidget *theTableWidget;
-    QLabel *theLabel;
-
-    switch (slotNumber) {
-        case 0: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; break;
-        case 1: theTableWidget = ui->playlist2Table; theLabel = ui->playlist2Label; break;
-        case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; break;
-        default: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; break; // make the compiler warning go away
-    }
+    auto [theTableWidget, theLabel] = getSlotWidgets(slotNumber);
 
     theTableWidget->setRowCount(0); // delete all the rows in the slot
     theLabel->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist"); // clear out the label
