@@ -105,7 +105,7 @@ void VolumeMakeFlashDrivePage::initializePage()
 {
     combobox->clear();
 
-    foreach (const QStorageInfo &storage, QStorageInfo::mountedVolumes()) {
+    for (const auto &storage : QStorageInfo::mountedVolumes()) {
             if (storage.isValid() && storage.isReady()) {
                 if (!storage.isReadOnly() && !storage.isRoot()) {
 //                    qDebug() << "Storage:" << storage.name();

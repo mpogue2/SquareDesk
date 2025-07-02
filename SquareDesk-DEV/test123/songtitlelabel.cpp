@@ -82,7 +82,7 @@ void darkSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
     // the source is the darkSongTable --------
     int sourceRow;
     int rowNum = 0;
-    foreach (const QModelIndex &mi, theTable->selectionModel()->selectedRows()) {
+    for (const auto &mi : theTable->selectionModel()->selectedRows()) {
         sourceRow = mi.row();  // this is the actual row number of each selected row, overriding the cursor-located row (just pick all selected rows)
         // qDebug() << "***** darkSongTitleLabel: DRAGGING THIS ROW NUMBER:" << sourceRow;
 
@@ -175,7 +175,7 @@ void darkPaletteSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
     // the source is the darkSongTable --------
     int sourceRow;
     int rowNum = 0;
-    foreach (const QModelIndex &mi, theTable->selectionModel()->selectedRows()) {
+    for (const auto &mi : theTable->selectionModel()->selectedRows()) {
         sourceRow = mi.row();  // this is the actual row number of each selected row, overriding the cursor-located row (just pick all selected rows)
         // qDebug() << "***** darkSongTitleLabel: DRAGGING THIS ROW NUMBER:" << sourceRow;
 

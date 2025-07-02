@@ -30,6 +30,7 @@
 #include <QMenu>
 #include <QAction>
 #include <QDebug>
+#include <utility>
 
 // ------------------------------------------------------------------
 #define SYSTEMSOUNDDEVICENAME "System Sound Device"
@@ -38,7 +39,7 @@ void MainWindow::populatePlaybackDeviceMenu()
 {
     // Find the "Preview Playback Device" menu item
     QAction *previewPlaybackAction = nullptr;
-    foreach (QAction *action, ui->menuMusic->actions()) {
+    for (const auto &action : ui->menuMusic->actions()) {
         if (action->text() == "Preview Playback Device") {
             previewPlaybackAction = action;
             break;
@@ -87,7 +88,7 @@ void MainWindow::populatePlaybackDeviceMenu()
     QList<QAudioDevice> audioOutputList = QMediaDevices::audioOutputs();
 
     // Add each device as a menu item
-    foreach (const QAudioDevice &device, audioOutputList) {
+    for (const auto &device : std::as_const(audioOutputList)) {
         QString deviceName = device.description();
         QAction *deviceAction = deviceMenu->addAction(deviceName);
         deviceAction->setCheckable(true);
@@ -105,7 +106,7 @@ void MainWindow::populatePlaybackDeviceMenu()
     }
     
     // Make device selections mutually exclusive
-    foreach (QAction *action, deviceMenu->actions()) {
+    for (const auto &action : deviceMenu->actions()) {
         deviceActionGroup->addAction(action);
     }
     deviceActionGroup->setExclusive(true);
@@ -133,7 +134,7 @@ QAudioDevice MainWindow::getAudioDeviceByName(const QString &deviceName)
     QList<QAudioDevice> audioOutputList = QMediaDevices::audioOutputs();
     
     // First, try to find the device by exact name match
-    foreach (const QAudioDevice &device, audioOutputList) {
+    for (const auto &device : std::as_const(audioOutputList)) {
         if (device.description() == deviceName) {
             return device;
         }

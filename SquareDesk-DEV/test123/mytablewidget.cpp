@@ -33,6 +33,7 @@
 #include "mytablewidget.h"
 #include <QDebug>
 #include <QDrag>
+#include <utility>
 #include <QPainter>
 #include <QStyleOptionViewItem>
 #include "songtitlelabel.h"
@@ -68,7 +69,7 @@ bool MyTableWidget::moveSelectedItemsUp() {
     QModelIndexList list = selectionModel()->selectedRows();
 
     QList<int> rows;
-    foreach (const QModelIndex &m, list) {
+    for (const auto &m : std::as_const(list)) {
         rows.append(m.row());
     }
 
@@ -102,7 +103,7 @@ bool MyTableWidget::moveSelectedItemsUp() {
         // MULTI ROW CASE
         // if we need to move 2,3, we move 2 up, so we get 2,1,3,4
         //  then we move 3 up to get 2,3,1,4
-        foreach (const int & row, rows) {
+        for (const auto &row : std::as_const(rows)) {
 
             // qDebug() << "moving up: " << row;
             if (row == 0) {
@@ -140,7 +141,7 @@ bool MyTableWidget::moveSelectedItemsDown() {
     QModelIndexList list = selectionModel()->selectedRows();
 
     QList<int> rows;
-    foreach (const QModelIndex &m, list) {
+    for (const auto &m : std::as_const(list)) {
         rows.append(m.row());
     }
 
@@ -174,7 +175,7 @@ bool MyTableWidget::moveSelectedItemsDown() {
         // if we need to move 1,2,3, we move 3 down, so we get 1,2,4,3
         //  then we move 2 down to get 1,4,2,3
         //  then we move 1 down to get 4,1,2,3, q.e.d.
-        foreach (const int & row, rows) {
+        for (const auto &row : std::as_const(rows)) {
 
             // qDebug() << "moving down: " << row;
             if (row == rowCount()-1) {
@@ -213,7 +214,7 @@ bool MyTableWidget::moveSelectedItemsToTop() {
 QModelIndexList list = selectionModel()->selectedRows();
 
 QList<int> rows;
-foreach (const QModelIndex &m, list) {
+for (const auto &m : std::as_const(list)) {
     rows.append(m.row());
 }
 
@@ -268,7 +269,7 @@ if (rows.count() == 0) {
     // if we need to move 2,3,4 we move 4 to the top, then we have 4,1,2,3 and numMoved = 1
     //  then we move 3 + numMoved = 4 (because it's now in the fourth row)
     //  etc.
-    foreach (const int & row, rows) {
+    for (const auto &row : std::as_const(rows)) {
 
         int rowToMove = row + numMoved;
         // qDebug() << "moving to top: " << rowToMove;
@@ -319,7 +320,7 @@ bool MyTableWidget::moveSelectedItemsToBottom(bool scrollWhenDone) { // defaults
     QModelIndexList list = selectionModel()->selectedRows();
 
     QList<int> rows;
-    foreach (const QModelIndex &m, list) {
+    for (const auto &m : std::as_const(list)) {
         rows.append(m.row());
     }
 
@@ -376,7 +377,7 @@ bool MyTableWidget::moveSelectedItemsToBottom(bool scrollWhenDone) { // defaults
         // if we need to move 1,2,3, we move 1, then numMoved = 1
         //  then we move 2 - numMoved = 1 (because it's now in the first row)
         //  etc.
-        foreach (const int & row, rows) {
+        for (const auto &row : std::as_const(rows)) {
 
             int rowToMove = row - numMoved;
             // qDebug() << "moving to bottom: " << rowToMove;
@@ -428,7 +429,7 @@ bool MyTableWidget::removeSelectedItems() {
     QModelIndexList list = selectionModel()->selectedRows();
 
     QList<int> rows;
-    foreach (const QModelIndex &m, list) {
+    for (const auto &m : std::as_const(list)) {
         rows.append(m.row());
     }
 
@@ -468,7 +469,7 @@ bool MyTableWidget::removeSelectedItems() {
     } else {
         // MULTI ROW CASE
         // now delete, starting with the lowest down row in the list, going UP
-        foreach (const int &row, rows) {
+        for (const auto &row : std::as_const(rows)) {
             // qDebug() << "REMOVING ROW:" << row;
 
             // what's the number of THIS item?
@@ -650,7 +651,7 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
     if (objectName().startsWith("playlist")) {
         // the source is a playlist or track filter --------
 
-        foreach (const QModelIndex &mi, selectionModel()->selectedRows()) {
+        for (const auto &mi : selectionModel()->selectedRows()) {
             sourceRow = mi.row();  // this is the actual row number of each selected row, overriding the cursor-located row (just pick all selected rows)
             // qDebug() << "DRAGGING THIS PLAYLIST ROW NUMBER:" << sourceRow;
 
@@ -690,7 +691,7 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
     } else {
         // the source is the darkSongTable --------
 
-        foreach (const QModelIndex &mi, selectionModel()->selectedRows()) {
+        for (const auto &mi : selectionModel()->selectedRows()) {
             sourceRow = mi.row();  // this is the actual row number of each selected row, overriding the cursor-located row (just pick all selected rows)
             // qDebug() << "DRAGGING THIS ROW NUMBER:" << sourceRow;
 
@@ -887,7 +888,7 @@ void MyTableWidget::dropEvent(QDropEvent *event)
         // qDebug() << "INTERNAL MOVE/REORDER";
 
         QList<int> selRows;
-        foreach (const QModelIndex &mi, selectionModel()->selectedRows()) {
+        for (const auto &mi : selectionModel()->selectedRows()) {
             selRows.append(mi.row());
         }
         std::sort(selRows.begin(), selRows.end());
@@ -977,7 +978,7 @@ void MyTableWidget::dropEvent(QDropEvent *event)
 
     // ...existing code for drag from darkSongTable or other playlist...
     int itemNumber = 0;
-    foreach (const QString &r, rows) {
+    for (const auto &r : std::as_const(rows)) {
         // ...existing code...
         // Use targetRow instead of always appending to bottom
         QStringList fields = r.split("!#!"); // split the row into fields
@@ -1103,7 +1104,7 @@ void MyTableWidget::dropEvent(QDropEvent *event)
         }
 
 
-    } // foreach selected row in the source table
+    } // for each selected row in the source table
 
 
 }

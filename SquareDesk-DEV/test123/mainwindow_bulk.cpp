@@ -42,6 +42,7 @@
 #include <QApplication>
 #include <QDebug>
 
+#include <utility>
 #include <QtConcurrent>
 #include <QtMultimedia>
 
@@ -491,13 +492,13 @@ void MainWindow::on_actionRemove_for_all_songs_triggered()
 
     // remove files at top level
     dir.setFilter( QDir::NoDotAndDotDot | QDir::Files );
-    foreach( QString dirItem, dir.entryList() ) {
+    for (const auto &dirItem : dir.entryList() ) {
         dir.remove( dirItem );
     }
 
     // remove subdirectories recursively
     dir.setFilter( QDir::NoDotAndDotDot | QDir::Dirs );
-    foreach( QString dirItem, dir.entryList() )
+    for (const auto &dirItem : dir.entryList() )
     {
         QDir subDir( dir.absoluteFilePath( dirItem ) );
         subDir.removeRecursively();
@@ -527,7 +528,7 @@ void MainWindow::EstimateSectionsForTheseSongs(QList<int> rows) {
     mp3Results.clear();
     mp3ResultsLock.unlock();
 
-    foreach (const int &r, rows) {
+    for (const auto &r : std::as_const(rows)) {
         mp3FilenamesToProcess.append(ui->darkSongTable->item(r, kPathCol)->data(Qt::UserRole).toString());
     }
 
@@ -548,7 +549,7 @@ void MainWindow::RemoveSectionsForTheseSongs(QList<int> rows) {
         return;
     }
 
-    foreach (const int &r, rows) {
+    for (const auto &r : std::as_const(rows)) {
         QString filenameToRemove = ui->darkSongTable->item(r, kPathCol)->data(Qt::UserRole).toString();
 
         if (filenameToRemove.endsWith(".mp3", Qt::CaseInsensitive)) {

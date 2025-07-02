@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <QDebug>
 #include <QTimer>
+#include <utility>
 //#include "perftimer.h"
 // GLOBALS =========
 
@@ -53,7 +54,7 @@ flexible_audio::flexible_audio(void)
 
 //    qDebug() << "AUDIO OUTPUT DEVICES:";
 //    QAudioDevice ad;
-//    foreach( ad, audioOutputList ) {
+//    for (const auto &ad : std::as_const(audioOutputList)) {
 //      qDebug() << ad.description();
 //    }
     Q_UNUSED(audioOutputList)
@@ -95,7 +96,7 @@ void flexible_audio::systemAudioOutputsChanged()
 
 //    qDebug() << "AUDIO OUTPUT DEVICES:";
 //    QAudioDevice ad;
-//    foreach( ad, audioOutputList ) {
+//    for (const auto &ad : std::as_const(audioOutputList)) {
 //      qDebug() << ad.description() << ad.isDefault();
 //    }
 

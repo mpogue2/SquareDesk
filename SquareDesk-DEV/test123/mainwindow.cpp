@@ -47,6 +47,7 @@
 #include <QTextDocumentFragment>
 #include <QThread>
 #include <QStandardItemModel>
+#include <utility>
 #include <QStandardItem>
 #include <QWidget>
 #include <QInputDialog>
@@ -67,7 +68,7 @@
 #include "tablenumberitem.h"
 #include "tablelabelitem.h"
 #include "importdialog.h"
-#include "embeddedserver.h"
+//#include "embeddedserver.h"
 #include "exportdialog.h"
 #include "songhistoryexportdialog.h"
 #include "calllistcheckbox.h"
@@ -957,14 +958,14 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     // ITERATE THRU MENU SETTING UP EXCLUSIVITY -------
     QString submenuName;
-    foreach (QAction *action, ui->menuSequence->actions()) {
+    for (const auto &action : ui->menuSequence->actions()) {
         if (action->isSeparator()) {  // top level separator
 //            qDebug() << "separator";
         } else if (action->menu()) {  // top level menu
 //            qDebug() << "item with submenu: " << action->text();
             submenuName = action->text();  // remember which submenu we're in
             // iterating just one level down
-            foreach (QAction *action2, action->menu()->actions()) {
+            for (const auto &action2 : action->menu()->actions()) {
                 if (action2->isSeparator()) {  // one level down separator
 //                    qDebug() << "     separator";
                 } else if (action2->menu()) {  // one level down sub-menu
@@ -1118,7 +1119,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
         QList<SessionInfo> sessions = songSettings.getSessionInfo();
         t.elapsed(__LINE__);
 
-        foreach (const SessionInfo &s, sessions) {
+        for (const auto &s : std::as_const(sessions)) {
             // qDebug() << s.day_of_week << s.id << s.name << s.order_number << s.start_minutes;
             if (s.order_number == 0) { // 0 is the first non-deleted row where order_number == 0
                 // qDebug() << "Found it: " << s.name << "row:" << s.id;
@@ -1641,10 +1642,10 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     submenuCopy->addAction(QString("F3 ") + frameFiles[2] + " ", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F3), this, [this]{ SDAppendCurrentSequenceToFrame(2); });
     submenuCopy->addAction(QString("F4 ") + frameFiles[3] + " ", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F4), this, [this]{ SDAppendCurrentSequenceToFrame(3); });
 
-    foreach(QAction *action, submenuCopy->actions()){ // enable shortcuts for all Copy actions
+    for (const auto &action : submenuCopy->actions()){ // enable shortcuts for all Copy actions
         action->setShortcutVisibleInContextMenu(true);
     }
-    foreach(QAction *action, submenuMove->actions()){ // enable shortcuts for all Move actions
+    for (const auto &action : submenuMove->actions()){ // enable shortcuts for all Move actions
         action->setShortcutVisibleInContextMenu(true);
     }
 
@@ -2405,7 +2406,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     QString templatePattern = "*template*html";
     QDir currentDir(templatesDir);
     // const QString prefix = templatesDir + "/";
-    foreach (const QString &match, currentDir.entryList(QStringList(templatePattern), QDir::Files | QDir::NoSymLinks)) {
+    for (const auto &match : currentDir.entryList(QStringList(templatePattern), QDir::Files | QDir::NoSymLinks)) {
         // qDebug() << "FOUND ONE: " << match;
         QString s = match;
         s.replace(".html", "");
@@ -4012,7 +4013,7 @@ bool isChildWidgetOfAnyLayout(QLayout *layout, QWidget *widget)
    if (layout->indexOf(widget) >= 0)
       return true;
 
-   foreach(QObject *o, layout->children())
+   for (const auto &o : layout->children())
    {
       if (isChildWidgetOfAnyLayout(dynamic_cast<QLayout*>(o),widget))
          return true;
@@ -4030,7 +4031,7 @@ void setVisibleWidgetsInLayout(QLayout *layout, bool visible)
    if (pw == nullptr)
       return;
 
-   foreach(QWidget *w, pw->findChildren<QWidget*>())
+   for (const auto &w : pw->findChildren<QWidget*>())
    {
       if (isChildWidgetOfAnyLayout(layout,w))
           w->setVisible(visible);
@@ -4046,7 +4047,7 @@ bool isVisibleWidgetsInLayout(QLayout *layout)
    if (pw == nullptr)
       return false;
 
-   foreach(QWidget *w, pw->findChildren<QWidget*>())
+   for (const auto &w : pw->findChildren<QWidget*>())
    {
       if (isChildWidgetOfAnyLayout(layout,w))
           return w->isVisible();
@@ -5775,7 +5776,7 @@ void MainWindow::updateTreeWidget() {
 
     // insert filenames
     QTreeWidgetItem *topLevelItem = playlistsItem;
-    foreach (const QString &fileName, playlists)
+    for (const auto &fileName : std::as_const(playlists))
     {
         QStringList splitFileName = (QString("Playlists/") + fileName).split("/"); // tack on "Playlists/" so they will populate under the icon item
 
@@ -5821,7 +5822,7 @@ void MainWindow::updateTreeWidget() {
 
     // and replace them with:
     // Now, find all of the playlist entries, and stick the songs into the pathStack without Greek Xi
-    foreach (const QString &fileName, playlists) {
+    for (const auto &fileName : std::as_const(playlists)) {
 
         QString fullPathName = musicRootPath + "/playlists/" + fileName + ".csv";
         QFile file(fullPathName);
@@ -5880,7 +5881,7 @@ void MainWindow::updateTreeWidget() {
     appleMusicItem->setText(0, "Apple Music");
     appleMusicItem->setIcon(0, QIcon(":/graphics/icons8-apple-48.png"));
 
-    foreach (const QString &playlistName, allAppleMusicPlaylistNames) {
+    for (const auto &playlistName : std::as_const(allAppleMusicPlaylistNames)) {
                 // qDebug() << "playlistName: " << playlistName;
                 QTreeWidgetItem *childItem2 = new QTreeWidgetItem(appleMusicItem);
                 childItem2->setText(0, playlistName);
@@ -9524,7 +9525,7 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
     // we already know that we have at LEAST one row selected (because it's a context menu)
     //  let's find the row numbers
     QList<int> selectedRows;
-    foreach (const QModelIndex &mi, ui->darkSongTable->selectionModel()->selectedRows()) {
+    for (const auto &mi : ui->darkSongTable->selectionModel()->selectedRows()) {
         if (!ui->darkSongTable->isRowHidden(mi.row())) {
             selectedRows.append(mi.row());
         }
@@ -9832,7 +9833,7 @@ void MainWindow::darkAddPlaylistItemsToBottom(int whichSlot) { // slot is 0 - 2
     }
 
     // ------------------------------------------------------------------------------------
-    foreach (const QModelIndex &mi, ui->darkSongTable->selectionModel()->selectedRows()) {
+    for (const auto &mi : ui->darkSongTable->selectionModel()->selectedRows()) {
         int row = mi.row();  // this is the actual row number of each selected row
         // qDebug() << "ROW ADD TO BOTTOM:" << row;
 
@@ -10108,7 +10109,7 @@ void MainWindow::maybeInstallTemplates() {
 
         QStringList templateNames = {"lyrics.template.html", "lyrics.template.2col.html", "patter.template.html"};
 
-        foreach (const QString &templateName, templateNames)
+        for (const auto &templateName : std::as_const(templateNames))
         {
             QString theName = templateName;
             QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToResources + "/" + theName;
@@ -10161,25 +10162,25 @@ void MainWindow::auditionByKeyPress(void) {
 
     QModelIndexList list1 = ui->playlist1Table->selectionModel()->selectedRows();
     QList<int> rowsPaletteSlot1;
-    foreach (const QModelIndex &m, list1) {
+    for (const auto &m : std::as_const(list1)) {
         rowsPaletteSlot1.append(m.row());
     }
 
     QModelIndexList list2 = ui->playlist2Table->selectionModel()->selectedRows();
     QList<int> rowsPaletteSlot2;
-    foreach (const QModelIndex &m, list2) {
+    for (const auto &m : std::as_const(list2)) {
         rowsPaletteSlot2.append(m.row());
     }
 
     QModelIndexList list3 = ui->playlist3Table->selectionModel()->selectedRows();
     QList<int> rowsPaletteSlot3;
-    foreach (const QModelIndex &m, list3) {
+    for (const auto &m : std::as_const(list3)) {
         rowsPaletteSlot3.append(m.row());
     }
 
     QModelIndexList list4 = ui->darkSongTable->selectionModel()->selectedRows();
     QList<int> rowsDarkSongTable;
-    foreach (const QModelIndex &m, list4) {
+    for (const auto &m : std::as_const(list4)) {
         rowsDarkSongTable.append(m.row());
     }
 

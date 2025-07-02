@@ -29,6 +29,7 @@
 #include <QStyle>
 #include <QMouseEvent>
 #include <QStyleOptionSlider>
+#include <utility>
 
 // ==========================================================================================
 MySlider::MySlider(QWidget *parent) : QSlider(parent)
@@ -384,7 +385,7 @@ void MySlider::paintEvent(QPaintEvent *e)
         painter.setPen(pen);
         painter.setRenderHint( QPainter::Antialiasing );  // be nice now!
 
-        foreach (const double &markerPos, markers) {
+        for (const auto &markerPos : std::as_const(markers)) {
 //            qDebug() << "Drawing: " << markerPos;
             int triangleWidth = 3;
 //            QLineF lineM1(markerPos * width + 6, 0, markerPos * width + 6 - triangleWidth, height-16); // left

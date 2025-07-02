@@ -41,6 +41,7 @@
 #include <QClipboard>
 #include <QtSvg/QSvgGenerator>
 #include <algorithm>  // for random_shuffle
+#include <utility>
 
 #include <taglib/toolkit/tlist.h>
 #include <taglib/fileref.h>
@@ -1168,7 +1169,7 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
 
 //    QString firstCuesheet(preferredCuesheet);
 
-        foreach (const QString &cuesheet, possibleCuesheets) {
+        for (const auto &cuesheet : std::as_const(possibleCuesheets)) {
                 RecursionGuard guard(cuesheetEditorReactingToCursorMovement);
             // qDebug() << "checking: " << cuesheet << preferredCuesheet;
                 if ((!preferredCuesheet.isNull()) && preferredCuesheet.length() >= 0
