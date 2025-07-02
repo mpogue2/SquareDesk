@@ -29,6 +29,7 @@
 #include <QDebug>
 #include <vector>
 #include <map>
+#include <utility>
 
 #include "songsettings.h"
 #include "sessioninfo.h"
@@ -187,11 +188,9 @@ void SongSettings::ensureSchema(TableDefinition *table_definition)
 
         alter_statements.insert(alter_statements.begin(), alter);
     }
-    for (vector<QString>::iterator alter = alter_statements.begin();
-         alter != alter_statements.end();
-         ++alter)
+    for (const auto& alter : alter_statements)
     {
-        exec("ensureSchema", q, *alter);
+        exec("ensureSchema", q, alter);
     }
 }
 
@@ -924,11 +923,9 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
         fields.append("filename");
         QString sql("INSERT INTO songs(");
         {
-            QListIterator<QString> iter(fields);
             bool first = true;
-            while (iter.hasNext())
+            for (const auto& s : fields)
             {
-                QString s = iter.next();
                 if (!first) { sql += ","; }
                 first = false;
                 sql += s;
@@ -936,11 +933,9 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
         }
         sql += ") VALUES (";
         {
-            QListIterator<QString> iter(fields);
             bool first = true;
-            while (iter.hasNext())
+            for (const auto& s : fields)
             {
-                QString s = iter.next();
                 if (!first) { sql += ","; }
                 first = false;
                 sql += ":" + s;
@@ -953,11 +948,9 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     {
         QString sql("UPDATE songs SET ");
         {
-            QListIterator<QString> iter(fields);
             bool first = true;
-            while (iter.hasNext())
+            for (const auto& s : fields)
             {
-                QString s = iter.next();
                 if (!first) { sql += ","; }
                 first = false;
                 sql += s + " = :" + s;
