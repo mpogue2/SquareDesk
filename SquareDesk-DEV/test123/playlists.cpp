@@ -122,7 +122,7 @@ void MainWindow::movePlaylistItems(std::function<bool(MyTableWidget*)> moveOpera
     if (!darkmode) return;
     
     MyTableWidget* tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-    bool anyModified = false;
+    // bool anyModified = false;
     
     for (int i = 0; i < 3; ++i) {
         if (!relPathInSlot[i].startsWith("/tracks/")) {
@@ -130,7 +130,7 @@ void MainWindow::movePlaylistItems(std::function<bool(MyTableWidget*)> moveOpera
             slotModified[i] = modified || slotModified[i];
             if (slotModified[i]) {
                 saveSlotNow(i);
-                anyModified = true;
+                // anyModified = true;
             }
         }
     }
@@ -144,6 +144,22 @@ std::pair<QTableWidget*, QLabel*> MainWindow::getSlotWidgets(int slotNumber) {
         case 1: return {ui->playlist2Table, ui->playlist2Label};
         case 2: return {ui->playlist3Table, ui->playlist3Label};
         default: return {ui->playlist1Table, ui->playlist1Label};
+    }
+}
+
+// ----------------------------------------------------------------------
+// Helper function to clear any existing slots that contain the same playlist
+void MainWindow::clearDuplicateSlots(const QString& relPath) {
+    for (int i = 0; i < 3; i++) {
+        if (relPath == relPathInSlot[i]) {
+            saveSlotNow(i);
+            clearSlot(i);
+            switch(i) {
+                case 0: prefsManager.SetlastPlaylistLoaded(""); break;
+                case 1: prefsManager.SetlastPlaylistLoaded2(""); break;
+                case 2: prefsManager.SetlastPlaylistLoaded3(""); break;
+            }
+        }
     }
 }
 
@@ -466,6 +482,11 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 QString MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativePath, int slotNumber, int &songCount) {
     relativePath.replace("/Tracks/", "").replace("Tracks/", "").replace(".csv", "");
 
+    QString rPath = QString("/tracks/") + relativePath;
+
+    // ALLOW ONLY ONE COPY OF A TRACK FILTER LOADED IN THE SLOT PALETTE AT A TIME ------
+    clearDuplicateSlots(rPath);
+
     // Set up table widget and label based on slot number
     auto [theTableWidget, theLabel] = getSlotWidgets(slotNumber);
     
@@ -584,25 +605,16 @@ QString MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString rela
 // ============================================================================================================
 // Handler for Apple Music playlists
 QString MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString relativePath, int slotNumber, int &songCount) {
-    QString relPath = relativePath; // e.g. /Apple Music/foo.csv
-    relPath.replace("/Apple Music/", "").replace(".csv", ""); // relPath is e.g. "Second playlist"
+    QString relPath = relativePath;     // e.g. /Apple Music/foo.csv
+    relPath.replace(".csv", "");          // e.g. /Apple Music/foo
+
+    // ALLOW ONLY ONE COPY OF A PLAYLIST LOADED IN THE SLOT PALETTE AT A TIME ------
+    clearDuplicateSlots(relPath);
+
+    relPath.replace("/Apple Music/", ""); // relPath is e.g. "foo"
 
     QString applePlaylistName = relPath;
 
-    // ALLOW ONLY ONE COPY OF A PLAYLIST LOADED IN THE SLOT PALETTE AT A TIME ------
-    if (relPath == relPathInSlot[0]) {
-        saveSlotNow(0);  // save it, if it has something in there
-        clearSlot(0);    // clear the table and the label
-        prefsManager.SetlastPlaylistLoaded("");
-    } else if (relPath == relPathInSlot[1]) {
-        saveSlotNow(1);  // save it, if it has something in there
-        clearSlot(1);    // clear the table and the label
-        prefsManager.SetlastPlaylistLoaded2("");
-    } else if (relPath == relPathInSlot[2]) {
-        saveSlotNow(2);  // save it, if it has something in there
-        clearSlot(2);    // clear the table and the label
-        prefsManager.SetlastPlaylistLoaded3("");
-    }
 
     auto [theTableWidget, theLabel] = getSlotWidgets(slotNumber);
     
@@ -681,19 +693,7 @@ QString MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString 
     relPath.replace("/playlists/", "").replace(".csv", ""); // relPath is e.g. "5thWed/5thWed_2021.12.29" same as relPathInSlot now
 
     // ALLOW ONLY ONE COPY OF A PLAYLIST LOADED IN THE SLOT PALETTE AT A TIME ------
-    if (relPath == relPathInSlot[0]) {
-        saveSlotNow(0);  // save it, if it has something in there
-        clearSlot(0);    // clear the table and the label
-        prefsManager.SetlastPlaylistLoaded("");
-    } else if (relPath == relPathInSlot[1]) {
-        saveSlotNow(1);  // save it, if it has something in there
-        clearSlot(1);    // clear the table and the label
-        prefsManager.SetlastPlaylistLoaded2("");
-    } else if (relPath == relPathInSlot[2]) {
-        saveSlotNow(2);  // save it, if it has something in there
-        clearSlot(2);    // clear the table and the label
-        prefsManager.SetlastPlaylistLoaded3("");
-    }
+    clearDuplicateSlots(relPath);
 
     QString firstBadSongLine = "";
     QFile inputFile(PlaylistFileName);

@@ -326,6 +326,7 @@ public:
     QStringList parseCSV(const QString &string);
     void movePlaylistItems(std::function<bool(MyTableWidget*)> moveOperation); // Helper for playlist movement operations
     std::pair<QTableWidget*, QLabel*> getSlotWidgets(int slotNumber); // Helper to get table widget and label for slot
+    void clearDuplicateSlots(const QString& relPath); // Helper to clear existing slots with same playlist
     QString postProcessHTMLtoSemanticHTML(QString cuesheet);
 
     void selectUserFlashFile();
