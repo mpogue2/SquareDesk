@@ -47,6 +47,23 @@
     // already defined on Mac OS X
 #endif
 
+// CONSTANTS for magic numbers
+namespace {
+    constexpr int MAX_PLAYLIST_SLOTS = 3;
+    
+    // Table column indices
+    constexpr int COLUMN_NUMBER = 0;
+    constexpr int COLUMN_PITCH = 2;
+    constexpr int COLUMN_TEMPO = 3;
+    constexpr int COLUMN_PATH = 4;
+    constexpr int COLUMN_LOADED = 5;
+    
+    // Slot numbers
+    constexpr int SLOT_1 = 0;
+    constexpr int SLOT_2 = 1;
+    constexpr int SLOT_3 = 2;
+}
+
 // FORWARD DECLS ---------
 extern QString getTitleColTitle(MyTableWidget *songTable, int row);
 
@@ -124,7 +141,7 @@ void MainWindow::movePlaylistItems(std::function<bool(MyTableWidget*)> moveOpera
     MyTableWidget* tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
     // bool anyModified = false;
     
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < MAX_PLAYLIST_SLOTS; ++i) {
         if (!relPathInSlot[i].startsWith("/tracks/")) {
             bool modified = moveOperation(tables[i]);
             slotModified[i] = modified || slotModified[i];
@@ -140,9 +157,9 @@ void MainWindow::movePlaylistItems(std::function<bool(MyTableWidget*)> moveOpera
 // Helper function to get table widget and label for a given slot number
 std::pair<QTableWidget*, QLabel*> MainWindow::getSlotWidgets(int slotNumber) {
     switch (slotNumber) {
-        case 0: return {ui->playlist1Table, ui->playlist1Label};
-        case 1: return {ui->playlist2Table, ui->playlist2Label};
-        case 2: return {ui->playlist3Table, ui->playlist3Label};
+        case SLOT_1: return {ui->playlist1Table, ui->playlist1Label};
+        case SLOT_2: return {ui->playlist2Table, ui->playlist2Label};
+        case SLOT_3: return {ui->playlist3Table, ui->playlist3Label};
         default: return {ui->playlist1Table, ui->playlist1Label};
     }
 }
@@ -150,14 +167,14 @@ std::pair<QTableWidget*, QLabel*> MainWindow::getSlotWidgets(int slotNumber) {
 // ----------------------------------------------------------------------
 // Helper function to clear any existing slots that contain the same playlist
 void MainWindow::clearDuplicateSlots(const QString& relPath) {
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < MAX_PLAYLIST_SLOTS; i++) {
         if (relPath == relPathInSlot[i]) {
             saveSlotNow(i);
             clearSlot(i);
             switch(i) {
-                case 0: prefsManager.SetlastPlaylistLoaded(""); break;
-                case 1: prefsManager.SetlastPlaylistLoaded2(""); break;
-                case 2: prefsManager.SetlastPlaylistLoaded3(""); break;
+                case SLOT_1: prefsManager.SetlastPlaylistLoaded(""); break;
+                case SLOT_2: prefsManager.SetlastPlaylistLoaded2(""); break;
+                case SLOT_3: prefsManager.SetlastPlaylistLoaded3(""); break;
             }
         }
     }
@@ -372,7 +389,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
                         // qDebug() << "the row was: " << theRow;
                     }
 
-                    QString fullPath = whichTable->item(theRow,4)->text();
+                    QString fullPath = whichTable->item(theRow, COLUMN_PATH)->text();
                     QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
 
                     // qDebug() << "customContextMenu: " << theRow << fullPath << enclosingFolderName;
@@ -571,7 +588,7 @@ QString MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString rela
 
             // # column
             QTableWidgetItem *num = new TableNumberItem(QString::number(songCount)); // use TableNumberItem so that it sorts numerically
-            theTableWidget->setItem(songCount-1, 0, num);
+            theTableWidget->setItem(songCount-1, COLUMN_NUMBER, num);
 
             // TITLE column ================================
             QString s12 = QString("/") + p1;
@@ -588,23 +605,23 @@ QString MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString rela
 
             // PITCH column
             QTableWidgetItem *pit = new QTableWidgetItem(pitch);
-            theTableWidget->setItem(songCount-1, 2, pit);
+            theTableWidget->setItem(songCount-1, COLUMN_PITCH, pit);
 
             // TEMPO column
             QTableWidgetItem *tem = new QTableWidgetItem(tempo);
-            theTableWidget->setItem(songCount-1, 3, tem);
+            theTableWidget->setItem(songCount-1, COLUMN_TEMPO, tem);
 
             // PATH column
             QTableWidgetItem *fullPath = new QTableWidgetItem(pathToMP3); // full ABSOLUTE path
-            theTableWidget->setItem(songCount-1, 4, fullPath);
+            theTableWidget->setItem(songCount-1, COLUMN_PATH, fullPath);
 
             // LOADED column
             QTableWidgetItem *loaded = new QTableWidgetItem("");
-            theTableWidget->setItem(songCount-1, 5, loaded);
+            theTableWidget->setItem(songCount-1, COLUMN_LOADED, loaded);
         }
     }
 
-    theTableWidget->resizeColumnToContents(0);
+    theTableWidget->resizeColumnToContents(COLUMN_NUMBER);
 
     theTableWidget->setSortingEnabled(true);
     theTableWidget->show();
@@ -663,7 +680,7 @@ QString MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QStri
 
             // # column
             QTableWidgetItem *num = new TableNumberItem(QString::number(songCount)); // use TableNumberItem so that it sorts numerically
-            theTableWidget->setItem(songCount-1, 0, num);
+            theTableWidget->setItem(songCount-1, COLUMN_NUMBER, num);
 
             // TITLE column
             QString appleSymbol = QChar(0xF8FF); // TODO: factor into global?
@@ -673,23 +690,23 @@ QString MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QStri
 
             // PITCH column
             QTableWidgetItem *pit = new QTableWidgetItem("0"); // defaults to no pitch change
-            theTableWidget->setItem(songCount-1, 2, pit);
+            theTableWidget->setItem(songCount-1, COLUMN_PITCH, pit);
 
             // TEMPO column
             QTableWidgetItem *tem = new QTableWidgetItem("0"); // defaults to tempo 0 = "unknown".  Set to midpoint on load.
-            theTableWidget->setItem(songCount-1, 3, tem);
+            theTableWidget->setItem(songCount-1, COLUMN_TEMPO, tem);
 
             // PATH column
             QTableWidgetItem *fullPath = new QTableWidgetItem(sl[2]); // full ABSOLUTE path
-            theTableWidget->setItem(songCount-1, 4, fullPath);
+            theTableWidget->setItem(songCount-1, COLUMN_PATH, fullPath);
 
             // LOADED column
             QTableWidgetItem *loaded = new QTableWidgetItem("");  // NOT LOADED
-            theTableWidget->setItem(songCount-1, 5, loaded);
+            theTableWidget->setItem(songCount-1, COLUMN_LOADED, loaded);
         }
     }
 
-    theTableWidget->resizeColumnToContents(0);
+    theTableWidget->resizeColumnToContents(COLUMN_NUMBER);
 
     QString theRelativePath = relativePath.replace("/Apple Music/","").replace(".csv","");
     theLabel->setText(QString("<img src=\":/graphics/icons8-apple-48.png\" width=\"12\" height=\"12\">") + theRelativePath);
@@ -698,7 +715,7 @@ QString MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QStri
     relPathInSlot[slotNumber].replace(musicRootPath, "").replace(".csv",""); // e.g. /Apple Music/Second Playlist
     slotModified[slotNumber] = false; // this is a filter so nothing to save here
 
-    theTableWidget->setCurrentItem(theTableWidget->item(0,0)); // select first item
+    theTableWidget->setCurrentItem(theTableWidget->item(0, COLUMN_NUMBER)); // select first item
     theTableWidget->setFocus();
 
     return ""; // no errors
@@ -761,7 +778,7 @@ QString MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString 
 
                     // # column
                     QTableWidgetItem *num = new TableNumberItem(QString::number(songCount)); // use TableNumberItem so that it sorts numerically
-                    theTableWidget->setItem(songCount-1, 0, num);
+                    theTableWidget->setItem(songCount-1, COLUMN_NUMBER, num);
 
                     // TITLE column
                     QString absPath = musicRootPath + list1[0];
@@ -796,26 +813,26 @@ QString MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString 
 
                     // PITCH column
                     QTableWidgetItem *pit = new QTableWidgetItem(list1[1]);
-                    theTableWidget->setItem(songCount-1, 2, pit);
+                    theTableWidget->setItem(songCount-1, COLUMN_PITCH, pit);
 
                     // TEMPO column
                     QTableWidgetItem *tem = new QTableWidgetItem(list1[2]);
-                    theTableWidget->setItem(songCount-1, 3, tem);
+                    theTableWidget->setItem(songCount-1, COLUMN_TEMPO, tem);
 
                     // PATH column
                     QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
-                    theTableWidget->setItem(songCount-1, 4, fullPath);
+                    theTableWidget->setItem(songCount-1, COLUMN_PATH, fullPath);
 
                     // LOADED column
                     QTableWidgetItem *loaded = new QTableWidgetItem("");
-                    theTableWidget->setItem(songCount-1, 5, loaded);
+                    theTableWidget->setItem(songCount-1, COLUMN_LOADED, loaded);
                 }
             } // while
         }
 
         inputFile.close();
 
-        theTableWidget->resizeColumnToContents(0);
+        theTableWidget->resizeColumnToContents(COLUMN_NUMBER);
 
         QString theRelativePath = relativePath.replace("/playlists/","").replace(".csv","");
         theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">") + theRelativePath);
@@ -823,7 +840,7 @@ QString MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString 
         relPathInSlot[slotNumber] = PlaylistFileName;
         relPathInSlot[slotNumber] = relPathInSlot[slotNumber].replace(musicRootPath + "/playlists/", "").replace(".csv","");
 
-        theTableWidget->setCurrentItem(theTableWidget->item(0,0)); // select first item
+        theTableWidget->setCurrentItem(theTableWidget->item(0, COLUMN_NUMBER)); // select first item
         theTableWidget->setFocus();
     }
     else {
@@ -860,7 +877,7 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
     t.elapsed(__LINE__);
 
     int row = item->row();
-    QString pathToMP3 = tableWidget->item(row,4)->text();
+    QString pathToMP3 = tableWidget->item(row, COLUMN_PATH)->text();
 
     QFileInfo fi(pathToMP3);
     if (!fi.exists()) {
@@ -870,7 +887,7 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
 
     QString nextFile = "";
     if (row+1 < tableWidget->rowCount()) {
-        nextFile = tableWidget->item(row+1,4)->text();
+        nextFile = tableWidget->item(row+1, COLUMN_PATH)->text();
     }
     static QRegularExpression dotMusicSuffix("\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption); // match with music extensions
     QString songTitle = pathToMP3.split('/').last().replace(dotMusicSuffix,"");
@@ -891,8 +908,8 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
     QString songLabel = "RIV 123";
 
     // these must be up here to get the correct values...
-    QString pitch  = tableWidget->item(row, 2)->text();
-    QString tempo  = tableWidget->item(row, 3)->text();
+    QString pitch  = tableWidget->item(row, COLUMN_PITCH)->text();
+    QString tempo  = tableWidget->item(row, COLUMN_TEMPO)->text();
 
     targetPitch = pitch;  // save this string, and set pitch slider AFTER base BPM has been figured out
     targetTempo = tempo;  // save this string, and set tempo slider AFTER base BPM has been figured out
@@ -1025,8 +1042,8 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
             QString path = theTableWidget->item(i, 4)->text();
             path = path.replace(musicRootPath,"").replace("\"","\"\""); // if path contains a QUOTE, it needs to be changed to DOUBLE QUOTE in CSV
 
-            QString pitch = theTableWidget->item(i, 2)->text();
-            QString tempo = theTableWidget->item(i, 3)->text();
+            QString pitch = theTableWidget->item(i, COLUMN_PITCH)->text();
+            QString tempo = theTableWidget->item(i, COLUMN_TEMPO)->text();
             // qDebug() << path + "," + pitch + "," + tempo;
             stream << "\"" + path + "\"," + pitch + "," + tempo << ENDL; // relative path with quotes, then pitch then tempo (% or bpm)
         }
@@ -1125,8 +1142,8 @@ void MainWindow::saveSlotNow(int whichSlot) {
             QString path = theTableWidget->item(i, 4)->text();
             path = path.replace(musicRootPath,"").replace("\"","\"\""); // if path contains a QUOTE, it needs to be changed to DOUBLE QUOTE in CSV
 
-            QString pitch = theTableWidget->item(i, 2)->text();
-            QString tempo = theTableWidget->item(i, 3)->text();
+            QString pitch = theTableWidget->item(i, COLUMN_PITCH)->text();
+            QString tempo = theTableWidget->item(i, COLUMN_TEMPO)->text();
             // qDebug() << path + "," + pitch + "," + tempo;
             stream << "\"" + path + "\"," + pitch + "," + tempo << ENDL; // relative path with quotes, then pitch then tempo (% or bpm)
         }
@@ -1313,9 +1330,9 @@ void MainWindow::printPlaylistFromSlot(int whichSlot)
 
         PlaylistExportRecord rec;
         rec.index = i+1;
-        rec.title = table->item(i,4)->text(); // fullPath
-        rec.pitch = table->item(i,2)->text();
-        rec.tempo = table->item(i,3)->text();
+        rec.title = table->item(i, COLUMN_PATH)->text(); // fullPath
+        rec.pitch = table->item(i, COLUMN_PITCH)->text();
+        rec.tempo = table->item(i, COLUMN_TEMPO)->text();
 
         exports.append(rec);
     }
