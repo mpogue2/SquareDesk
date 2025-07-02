@@ -1360,11 +1360,11 @@ void MainWindow::darkPaletteTitleLabelDoubleClicked(QMouseEvent * e)
     // qDebug() << "SOME PALETTE TITLE FIELD HAS BEEN DOUBLE-CLICKED.";
 
     // Let's figure out which palette slot has a selected item. THAT is the double-clicked one.
-    QTableWidget *theTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+    QTableWidget *playlistTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
 
     for (int i = 0; i < 3; i++) {
         // qDebug() << "LOOK AT SLOT:" << i;
-        QTableWidget *theTable = theTables[i];
+        QTableWidget *theTable = playlistTables[i];
 
         QItemSelectionModel *selectionModel = theTable->selectionModel();
         QModelIndexList selected = selectionModel->selectedRows();
@@ -1393,11 +1393,11 @@ void MainWindow::refreshAllPlaylists() {
     // qDebug() << "Refreshing playlist views, because TAGS visibility changed.";
     // bool tagsAreVisible = ui->actionViewTags->isChecked();
 
-    QTableWidget *theTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+    QTableWidget *playlistTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
 
     for (int i = 0; i < 3; i++) {
         // qDebug() << "LOOK AT SLOT:" << i;
-        QTableWidget *theTable = theTables[i];
+        QTableWidget *theTable = playlistTables[i];
 
         for (int j = 0; j < theTable->rowCount(); j++) {
             // for each title in the table
