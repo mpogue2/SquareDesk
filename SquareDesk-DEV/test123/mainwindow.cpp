@@ -2398,7 +2398,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 #endif
 
     // set up Template menu ---------
-    templateMenu = new QMenu();
+    templateMenu = new QMenu(this);
 
     // find all template HTML files, and add to the menu
     QString templatesDir = musicRootPath + "/lyrics/templates";
@@ -2555,14 +2555,14 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkSongTable->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->darkSongTable->horizontalHeader(), &QTableWidget::customContextMenuRequested,
             this, [this]() {
-                        QMenu *hdrMenu = new QMenu();
+                        QMenu *hdrMenu = new QMenu(this);
                         hdrMenu->setProperty("theme", currentThemeString);
                         hdrMenu->addAction(QString("Reset Sort Order"),
                                            [this]() {   // qDebug() << "Resetting sort order...";
                                                         sortByDefaultSortOrder(); } );
                         hdrMenu->popup(QCursor::pos());
                         hdrMenu->exec();
-                        delete hdrMenu; // done with it
+                        // delete hdrMenu; // done with it
 
     });
 
@@ -9089,7 +9089,7 @@ void MainWindow::on_darkSongTable_itemSelectionChanged()
 void MainWindow::customPlaylistMenuRequested(QPoint pos) {
     Q_UNUSED(pos)
 
-    QMenu *plMenu = new QMenu();
+    QMenu *plMenu = new QMenu(this);
 
     plMenu->setProperty("theme", currentThemeString);
 
@@ -9116,7 +9116,7 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
     if (!recentPlaylistsString.isEmpty()) {
         QStringList recentPlaylists = recentPlaylistsString.split(";", Qt::SkipEmptyParts);
         if (!recentPlaylists.isEmpty()) {
-            QMenu *recentMenu = new QMenu("Load Recent Playlist");
+            QMenu *recentMenu = new QMenu("Load Recent Playlist", this);
             recentMenu->setProperty("theme", currentThemeString);
             
             for (const QString &relativePath : recentPlaylists) {
@@ -9327,7 +9327,7 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
     plMenu->popup(QCursor::pos());
     plMenu->exec();
 
-    delete(plMenu);
+    // delete(plMenu);
 }
 
 void MainWindow::on_playlist1Table_itemSelectionChanged()
@@ -9455,7 +9455,7 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
         return; // if you didn't click on an item, fuggedabout it
     }
 
-    QMenu *twMenu = new QMenu();
+    QMenu *twMenu = new QMenu(this);
     twMenu->setProperty("theme", currentThemeString);
 
     QString fullPathToLeaf = treeItem->text(0);
@@ -9502,7 +9502,7 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
     twMenu->popup(QCursor::pos());
     twMenu->exec();
 
-    delete(twMenu);
+    // delete(twMenu);
 }
 
 
@@ -9716,7 +9716,7 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
         }
 
         // and the PULLDOWN MENU WITH CHECKBOXES for editing tags
-        QMenu *tagsMenu(new QMenu("Tags"));
+        QMenu *tagsMenu(new QMenu("Tags", this));
         QHash<QString,QPair<QString,QString>> tagColors(songSettings.getTagColors()); // we don't use the colors
         QStringList tags(tagColors.keys()); // we use these keys (the names of the tags)
         tags.sort(Qt::CaseInsensitive);

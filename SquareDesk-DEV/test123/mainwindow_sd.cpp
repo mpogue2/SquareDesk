@@ -3158,7 +3158,7 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
 
     contextMenu.addSeparator(); // ---------------
 
-    QMenu menuCopySettings("Copy Options");
+    QMenu menuCopySettings("Copy Options", this);
     QActionGroup actionGroupCopyOptions(this);
     actionGroupCopyOptions.setExclusive(true);
 
