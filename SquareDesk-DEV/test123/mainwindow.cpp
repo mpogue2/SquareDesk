@@ -378,8 +378,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    ui->textBrowserCueSheet->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->textBrowserCueSheet, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customLyricsMenuRequested(QPoint)));
+    // Cuesheet context menu moved to initializeCuesheetTab()
 
     // updateRecentPlaylistMenu();  // OLD LIGHT MODE
 
@@ -586,25 +585,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    // LYRICS TAB ------------
-    ui->pushButtonSetIntroTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
-    ui->pushButtonSetOutroTime->setEnabled(false);
-
-    ui->darkStartLoopButton->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
-    ui->darkEndLoopButton->setEnabled(false);
-
-    ui->dateTimeEditIntroTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
-    ui->dateTimeEditOutroTime->setEnabled(false);
-
-    ui->darkStartLoopTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
-    ui->darkEndLoopTime->setEnabled(false);
+    // LYRICS TAB: (intro/outro controls moved to initializeCuesheetTab)
 
     t.elapsed(__LINE__);
-    ui->pushButtonTestLoop->setHidden(false); // ALWAYS VISIBLE NOW
-    ui->pushButtonTestLoop->setEnabled(false);
-
-//    ui->darkTestLoopButton->setHidden(true);
-    ui->darkTestLoopButton->setEnabled(false);
 
     ui->darkSegmentButton->setHidden(true);
     ui->darkSegmentButton->setEnabled(false);
@@ -812,7 +795,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    ui->textBrowserCueSheet->setFocusPolicy(Qt::NoFocus);  // lyrics editor can't get focus until unlocked
+    // Cuesheet focus policy moved to initializeCuesheetTab()
 
     t.elapsed(__LINE__);
 
@@ -1111,8 +1094,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
-            this, SLOT(LyricsCopyAvailable(bool)));
+    // Cuesheet copy signal moved to initializeCuesheetTab()
 
     // if (!darkmode) {  // OLD LIGHT MODE
     //     ui->actionSave_Playlist_2->setEnabled(false); // Playlist > Save Playlist...
@@ -2087,8 +2069,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     ui->pushButtonNewFromTemplate->setMenu(templateMenu);
 
-    ui->pushButtonEditLyrics->setVisible(false); // don't show this button until there are cuesheets available to edit
-    ui->pushButtonNewFromTemplate->setVisible(false); // don't show this button until there is a song loaded
+    // Cuesheet button visibility moved to initializeCuesheetTab()
 
 #ifdef DEBUG_LIGHT_MODE
     // THEME STUFF -------------
@@ -2471,14 +2452,12 @@ void MainWindow::initializeMusicPlaybackControls()
     ui->bassSlider->setStyle(new MySliderClickToMoveStyle());
     ui->midrangeSlider->setStyle(new MySliderClickToMoveStyle());
     ui->trebleSlider->setStyle(new MySliderClickToMoveStyle());
-    ui->seekBarCuesheet->setStyle(new MySliderClickToMoveStyle());
+    // Cuesheet seekbar style moved to initializeCuesheetTab()
 #endif
     
-    // Initialize seekbars
-    InitializeSeekBar(ui->seekBarCuesheet);
+    // Cuesheet seekbar init moved to initializeCuesheetTab()
     
-    // Set fusion mode for cuesheet seekbar (allows click-to-move)
-    ui->seekBarCuesheet->setFusionMode(true);
+    // Cuesheet seekbar fusion mode moved to initializeCuesheetTab()
 }
 
 void MainWindow::initializeMusicPlaylists()
@@ -2644,7 +2623,44 @@ void MainWindow::initializeMusicSongTable(SplashScreen *splash)
 
 void MainWindow::initializeCuesheetTab()
 {
-    // TODO: Move cuesheet tab initialization here
+    // Context menu setup for cuesheet text browser
+    ui->textBrowserCueSheet->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->textBrowserCueSheet, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customLyricsMenuRequested(QPoint)));
+
+    // Focus policy setup
+    ui->textBrowserCueSheet->setFocusPolicy(Qt::NoFocus);  // lyrics editor can't get focus until unlocked
+
+    // Copy signal connection
+    connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
+            this, SLOT(LyricsCopyAvailable(bool)));
+
+    // Button visibility setup
+    ui->pushButtonEditLyrics->setVisible(false); // don't show this button until there are cuesheets available to edit
+    ui->pushButtonNewFromTemplate->setVisible(false); // don't show this button until there is a song loaded
+
+    // Intro/Outro time controls setup
+    ui->pushButtonSetIntroTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
+    ui->pushButtonSetOutroTime->setEnabled(false);
+
+    ui->darkStartLoopButton->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
+    ui->darkEndLoopButton->setEnabled(false);
+
+    ui->dateTimeEditIntroTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
+    ui->dateTimeEditOutroTime->setEnabled(false);
+
+    ui->darkStartLoopTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
+    ui->darkEndLoopTime->setEnabled(false);
+
+    // Test loop button setup
+    ui->pushButtonTestLoop->setHidden(false); // ALWAYS VISIBLE NOW
+    ui->pushButtonTestLoop->setEnabled(false);
+
+    ui->darkTestLoopButton->setEnabled(false);
+
+    // Cuesheet seekbar setup
+    ui->seekBarCuesheet->setStyle(new MySliderClickToMoveStyle());
+    InitializeSeekBar(ui->seekBarCuesheet);
+    ui->seekBarCuesheet->setFusionMode(true);  // Set fusion mode for cuesheet seekbar (allows click-to-move)
 }
 
 void MainWindow::initializeSDTab()
