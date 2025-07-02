@@ -347,7 +347,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
 
                 // qDebug() << "QLABEL CONTEXT MENU: " << rowCount;
 
-                QMenu *plMenu = new QMenu();
+                QMenu *plMenu = new QMenu(this);
                 plMenu->setProperty("theme", currentThemeString);
 
                 // Move up/down/top/bottom in playlist
@@ -462,7 +462,6 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
 
                 plMenu->popup(QCursor::pos());
                 plMenu->exec();
-                delete plMenu; // done with it
             }
             );
 }

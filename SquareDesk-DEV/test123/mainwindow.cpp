@@ -1856,7 +1856,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                         if (rowCount < 1) {
                             return;  // if mouse clicked and nothing was selected (this should be impossible)
                         }
-                        QMenu *plMenu = new QMenu();
+                        QMenu *plMenu = new QMenu(this);
 
                         plMenu->setProperty("theme", currentThemeString);
 
@@ -1955,7 +1955,6 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
                         plMenu->popup(QCursor::pos());
                         plMenu->exec();
-                        delete plMenu; // done with it
                   }
             );
 
@@ -2008,7 +2007,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                             plural = QString::number(rowCount) + " items";
                         }
 
-                        QMenu *plMenu = new QMenu();
+                        QMenu *plMenu = new QMenu(this);
                         plMenu->setProperty("theme", currentThemeString);
 
                         // Move up/down/top/bottom in playlist
@@ -2098,7 +2097,6 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
                         plMenu->popup(QCursor::pos());
                         plMenu->exec();
-                        delete plMenu; // done with it
                   }
             );
 
@@ -2151,7 +2149,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                             plural = QString::number(rowCount) + " items";
                         }
 
-                        QMenu *plMenu = new QMenu();
+                        QMenu *plMenu = new QMenu(this);
                         plMenu->setProperty("theme", currentThemeString);
 
                         // Move up/down/top/bottom in playlist
@@ -2242,7 +2240,6 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
                         plMenu->popup(QCursor::pos());
                         plMenu->exec();
-                        delete plMenu; // done with it
                   }
             );
 
