@@ -327,6 +327,7 @@ public:
     void movePlaylistItems(std::function<bool(MyTableWidget*)> moveOperation); // Helper for playlist movement operations
     std::pair<QTableWidget*, QLabel*> getSlotWidgets(int slotNumber); // Helper to get table widget and label for slot
     void clearDuplicateSlots(const QString& relPath); // Helper to clear existing slots with same playlist
+    void setPaletteSlotVisibility(int numSlots); // Helper to set palette slot visibility
     QString postProcessHTMLtoSemanticHTML(QString cuesheet);
 
     void selectUserFlashFile();

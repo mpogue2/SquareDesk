@@ -164,6 +164,24 @@ void MainWindow::clearDuplicateSlots(const QString& relPath) {
 }
 
 // ----------------------------------------------------------------------
+// Helper function to set palette slot visibility
+void MainWindow::setPaletteSlotVisibility(int numSlots) {
+    ui->action0paletteSlots->setChecked(numSlots == 0);
+    ui->action1paletteSlots->setChecked(numSlots == 1);
+    ui->action2paletteSlots->setChecked(numSlots == 2);
+    ui->action3paletteSlots->setChecked(numSlots == 3);
+    
+    ui->playlist1Label->setVisible(numSlots >= 1);
+    ui->playlist1Table->setVisible(numSlots >= 1);
+    ui->playlist2Label->setVisible(numSlots >= 2);
+    ui->playlist2Table->setVisible(numSlots >= 2);
+    ui->playlist3Label->setVisible(numSlots >= 3);
+    ui->playlist3Table->setVisible(numSlots >= 3);
+    
+    prefsManager.Setnumpaletteslots(QString::number(numSlots));
+}
+
+// ----------------------------------------------------------------------
 void MainWindow::PlaylistItemsToTop() {
     movePlaylistItems([](MyTableWidget* table) { return table->moveSelectedItemsToTop(); });
 }
@@ -1671,60 +1689,20 @@ void MainWindow::clearSlot(int slotNumber) {
 
 void MainWindow::on_action0paletteSlots_triggered()
 {
-    ui->action0paletteSlots->setChecked(true);
-    ui->action1paletteSlots->setChecked(false);
-    ui->action2paletteSlots->setChecked(false);
-    ui->action3paletteSlots->setChecked(false);
-    ui->playlist1Label->setVisible(false);
-    ui->playlist1Table->setVisible(false);
-    ui->playlist2Label->setVisible(false);
-    ui->playlist2Table->setVisible(false);
-    ui->playlist3Label->setVisible(false);
-    ui->playlist3Table->setVisible(false);
-    prefsManager.Setnumpaletteslots("0");
+    setPaletteSlotVisibility(0);
 }
 
 void MainWindow::on_action1paletteSlots_triggered()
 {
-    ui->action0paletteSlots->setChecked(false);
-    ui->action1paletteSlots->setChecked(true);
-    ui->action2paletteSlots->setChecked(false);
-    ui->action3paletteSlots->setChecked(false);
-    ui->playlist1Label->setVisible(true);
-    ui->playlist1Table->setVisible(true);
-    ui->playlist2Label->setVisible(false);
-    ui->playlist2Table->setVisible(false);
-    ui->playlist3Label->setVisible(false);
-    ui->playlist3Table->setVisible(false);
-    prefsManager.Setnumpaletteslots("1");
+    setPaletteSlotVisibility(1);
 }
 
 void MainWindow::on_action2paletteSlots_triggered()
 {
-    ui->action0paletteSlots->setChecked(false);
-    ui->action1paletteSlots->setChecked(false);
-    ui->action2paletteSlots->setChecked(true);
-    ui->action3paletteSlots->setChecked(false);
-    ui->playlist1Label->setVisible(true);
-    ui->playlist1Table->setVisible(true);
-    ui->playlist2Label->setVisible(true);
-    ui->playlist2Table->setVisible(true);
-    ui->playlist3Label->setVisible(false);
-    ui->playlist3Table->setVisible(false);
-    prefsManager.Setnumpaletteslots("2");
+    setPaletteSlotVisibility(2);
 }
 
 void MainWindow::on_action3paletteSlots_triggered()
 {
-    ui->action0paletteSlots->setChecked(false);
-    ui->action1paletteSlots->setChecked(false);
-    ui->action2paletteSlots->setChecked(false);
-    ui->action3paletteSlots->setChecked(true);
-    ui->playlist1Label->setVisible(true);
-    ui->playlist1Table->setVisible(true);
-    ui->playlist2Label->setVisible(true);
-    ui->playlist2Table->setVisible(true);
-    ui->playlist3Label->setVisible(true);
-    ui->playlist3Table->setVisible(true);
-    prefsManager.Setnumpaletteslots("3");
+    setPaletteSlotVisibility(3);
 }
