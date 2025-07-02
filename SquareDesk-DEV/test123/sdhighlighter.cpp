@@ -24,6 +24,7 @@
 ****************************************************************************/
 
 #include "sdhighlighter.h"
+#include <utility>
 #include <QDebug>
 
 Highlighter::Highlighter(QTextDocument *parent)
@@ -75,7 +76,7 @@ Highlighter::Highlighter(QTextDocument *parent)
 
 void Highlighter::highlightBlock(const QString &text)
 {
-    foreach (const HighlightingRule &rule, highlightingRules) {
+    for (const auto &rule : std::as_const(highlightingRules)) {
         QRegularExpression expression(rule.pattern);
 //        int index = expression.indexIn(text);
 //        while (index >= 0) {

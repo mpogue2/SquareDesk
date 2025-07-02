@@ -318,7 +318,7 @@ int SongSettings::currentSessionIDByTime()
     // find the first non-deleted row where order_number == 0
     int practiceID = 1; // wrong, if there are deleted rows in Sessions table
     QList<SessionInfo> sessions = getSessionInfo();
-    foreach (const SessionInfo &s, sessions) {
+    for (const auto& s : sessions) {
         // qDebug() << s.day_of_week << s.id << s.name << s.order_number << s.start_minutes;
         if (s.order_number == 0) { // 0 is the first non-deleted row where order_number == 0
             // qDebug() << "Found it: " << s.name << "row:" << s.id;
@@ -512,7 +512,7 @@ void SongSettings::setTagColors( const QHash<QString,QPair<QString,QString>> &co
 void SongSettings::addTags(const QString &str)
 {
     QStringList tags = str.split(" ");
-    for (auto tag : tags)
+    for (const auto& tag : tags)
     {
         if (tagCounts.contains(tag))
         {
@@ -528,7 +528,7 @@ void SongSettings::addTags(const QString &str)
 void SongSettings::removeTags(const QString &str)
 {
     QStringList tags = str.split(" ");
-    for (auto tag : tags)
+    for (const auto& tag : tags)
     {
         if (tagCounts.contains(tag))
         {
@@ -587,9 +587,9 @@ QHash<QString,QPair<QString,QString>> SongSettings::getTagColors(bool loadCache)
         colors["halloween"] = QPair<QString,QString>("#ff8b00","#00ff00");
         colors["DUET"] = QPair<QString,QString>("#ae8eff","#781e19");
 
-        for (auto color = colors.cbegin(); color != colors.cend(); ++color)
+        for (const auto& color : colors)
         {
-            tagCounts[color.key()] = 1;
+            tagCounts[color.first] = 1;
         }
         setTagColors(colors);
     }
@@ -665,7 +665,7 @@ QString SongSettings::primaryRootDir()
 QString SongSettings::removeRootDirs(const QString &filenameWithPath)
 {
     QString filenameWithPathNormalized(filenameWithPath);
-    for (QString root_dir : root_directories)
+    for (const auto& root_dir : root_directories)
     {
         if (filenameWithPath.startsWith(root_dir))
         {
@@ -1172,7 +1172,7 @@ void SongSettings::setSessionInfo(const QList<SessionInfo> &sessions)
         q_update.prepare("UPDATE sessions SET deleted=0,name=:name,order_number=:order_number, "
                          " day_of_week=:day_of_week,start_minutes=:start_minutes"
                          " WHERE rowid=:id");
-        for (const SessionInfo &session : sessions)
+        for (const auto& session : sessions)
         {
             QSqlQuery *pq;
             if (session.id > 0)
@@ -1247,7 +1247,7 @@ void SongSettings::setSongMarkers(const QString &filename, const QMap<float,int>
         // insert new markers for this song --------
         QSqlQuery q(m_db);
         q.prepare("INSERT INTO markers(song_rowid, markerPos) VALUES (:song_rowid,:markerPos)");
-        for (auto markerPosition = markers.cbegin(); markerPosition != markers.cend(); ++markerPosition)
+        for (QMap<float, int>::const_iterator markerPosition = markers.cbegin(); markerPosition != markers.cend(); ++markerPosition)
         {
             if (markerPosition.key() >= 0.0 && markerPosition.key() <= 1.0) {  // a little bit of error checking, to prevent weird corruption
                 // only allow storing of valid markerPositions into DB
@@ -1278,7 +1278,7 @@ const float markerTolerance = 0.001;  // remember: this is a percentage of the s
 // what is the exact marker position of the nearest marker to markerPos (within tolerance)
 float SongSettings::getNearbyMarker(const float markerPos, QMap<float,int> &markers)
 {
-    for (QMap<float, int>::iterator markerPosition = markers.begin(); markerPosition != markers.end(); /* no increment here */)
+    for (QMap<float, int>::iterator markerPosition = markers.begin(); markerPosition != markers.end(); ++markerPosition)
     {
         if (abs(markerPos - markerPosition.key()) <= markerTolerance ) {
             return(markerPosition.key());

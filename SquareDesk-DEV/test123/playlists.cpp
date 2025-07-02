@@ -39,6 +39,7 @@
 #include "songtitlelabel.h"
 #include "playlist_constants.h"
 #include <functional>
+#include <utility>
 
 #if defined(Q_OS_LINUX)
 #define OS_FALLTHROUGH [[fallthrough]]
@@ -647,7 +648,7 @@ void MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString 
     linesInCurrentPlaylist = 0;
     songCount = 0;
     
-    for (const auto& sl : qAsConst(allAppleMusicPlaylists)) {
+    for (const auto& sl : std::as_const(allAppleMusicPlaylists)) {
         bool isPlayableAppleMusicItem = sl[2].endsWith(".wav", Qt::CaseInsensitive) ||
                           sl[2].endsWith(".mp3", Qt::CaseInsensitive) ||
                           sl[2].endsWith(".m4a", Qt::CaseInsensitive);
