@@ -35,6 +35,7 @@
 #define NO_TIMING_INFO 1
 
 #include <QObject>
+#include <functional>
 
 #include <QActionGroup>
 #include <QDebug>
@@ -323,6 +324,7 @@ public:
     void clearLockFile(QString path);
 
     QStringList parseCSV(const QString &string);
+    void movePlaylistItems(std::function<bool(MyTableWidget*)> moveOperation); // Helper for playlist movement operations
     QString postProcessHTMLtoSemanticHTML(QString cuesheet);
 
     void selectUserFlashFile();

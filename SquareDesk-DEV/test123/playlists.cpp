@@ -37,6 +37,7 @@
 #include "songlistmodel.h"
 #include "tablenumberitem.h"
 #include "songtitlelabel.h"
+#include <functional>
 
 #if defined(Q_OS_LINUX)
 #define OS_FALLTHROUGH [[fallthrough]]
@@ -115,95 +116,49 @@ QStringList MainWindow::parseCSV(const QString &string)
     return fields;
 }
 
+// ----------------------------------------------------------------------
+// Helper function to handle common playlist movement operations
+void MainWindow::movePlaylistItems(std::function<bool(MyTableWidget*)> moveOperation) {
+    if (!darkmode) return;
+    
+    MyTableWidget* tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+    bool anyModified = false;
+    
+    for (int i = 0; i < 3; ++i) {
+        if (!relPathInSlot[i].startsWith("/tracks/")) {
+            bool modified = moveOperation(tables[i]);
+            slotModified[i] = modified || slotModified[i];
+            if (slotModified[i]) {
+                saveSlotNow(i);
+                anyModified = true;
+            }
+        }
+    }
+}
 
 // ----------------------------------------------------------------------
 void MainWindow::PlaylistItemsToTop() {
-    if (darkmode) {
-        MyTableWidget* tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-        for (int i = 0; i < 3; ++i) {
-            if (!relPathInSlot[i].startsWith("/tracks/")) {
-                slotModified[i] = tables[i]->moveSelectedItemsToTop() || slotModified[i];
-                if (slotModified[i]) {
-                    saveSlotNow(i);
-                }
-            }
-        }
-        if (slotModified[0] || slotModified[1] || slotModified[2]) {
-            return; // we changed something, no need to check songTable
-        }
-    }
+    movePlaylistItems([](MyTableWidget* table) { return table->moveSelectedItemsToTop(); });
 }
 
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemsToBottom() {
-    if (darkmode) {
-        MyTableWidget* tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-        for (int i = 0; i < 3; ++i) {
-            if (!relPathInSlot[i].startsWith("/tracks/")) {
-                slotModified[i] = tables[i]->moveSelectedItemsToBottom() || slotModified[i];
-                if (slotModified[i]) {
-                    saveSlotNow(i);
-                }
-            }
-        }
-        if (slotModified[0] || slotModified[1] || slotModified[2]) {
-            return;
-        }
-    }
+    movePlaylistItems([](MyTableWidget* table) { return table->moveSelectedItemsToBottom(); });
 }
 
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemsMoveUp() {
-    if (darkmode) {
-        MyTableWidget* tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-        for (int i = 0; i < 3; ++i) {
-            if (!relPathInSlot[i].startsWith("/tracks/")) {
-                slotModified[i] = tables[i]->moveSelectedItemsUp() || slotModified[i];
-                if (slotModified[i]) {
-                    saveSlotNow(i);
-                }
-            }
-        }
-        if (slotModified[0] || slotModified[1] || slotModified[2]) {
-            return;
-        }
-    }
+    movePlaylistItems([](MyTableWidget* table) { return table->moveSelectedItemsUp(); });
 }
 
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemsMoveDown() {
-    if (darkmode) {
-        MyTableWidget* tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-        for (int i = 0; i < 3; ++i) {
-            if (!relPathInSlot[i].startsWith("/tracks/")) {
-                slotModified[i] = tables[i]->moveSelectedItemsDown() || slotModified[i];
-                if (slotModified[i]) {
-                    saveSlotNow(i);
-                }
-            }
-        }
-        if (slotModified[0] || slotModified[1] || slotModified[2]) {
-            return;
-        }
-    }
+    movePlaylistItems([](MyTableWidget* table) { return table->moveSelectedItemsDown(); });
 }
 
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemsRemove() {
-    if (darkmode) {
-        MyTableWidget* tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-        for (int i = 0; i < 3; ++i) {
-            if (!relPathInSlot[i].startsWith("/tracks/")) {
-                slotModified[i] = tables[i]->removeSelectedItems() || slotModified[i];
-                if (slotModified[i]) {
-                    saveSlotNow(i);
-                }
-            }
-        }
-        if (slotModified[0] || slotModified[1] || slotModified[2]) {
-            return;
-        }
-    }
+    movePlaylistItems([](MyTableWidget* table) { return table->removeSelectedItems(); });
 }
 
 // ============================================================================================================
