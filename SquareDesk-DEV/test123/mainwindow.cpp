@@ -331,20 +331,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    connect(ui->darkSongTable->horizontalHeader(), &QHeaderView::sortIndicatorChanged,
-            ui->darkSongTable, &MyTableWidget::onHeaderClicked);
-
-    ui->darkSongTable->setColumnWidth(kNumberCol,40);  // NOTE: This must remain a fixed width, due to a bug in Qt's tracking of its width.
-    ui->darkSongTable->setColumnWidth(kTypeCol,96);
-    ui->darkSongTable->setColumnWidth(kLabelCol,80);
-
-    ui->darkSongTable->setColumnWidth(kTitleCol,350);
-    //  TODO: kTitleCol should be always expandable, so don't set width here
-
-    ui->darkSongTable->setColumnWidth(kRecentCol, 70);
-    ui->darkSongTable->setColumnWidth(kAgeCol, 60);
-    ui->darkSongTable->setColumnWidth(kPitchCol,60);
-    ui->darkSongTable->setColumnWidth(kTempoCol,60);
+    // Song table column widths and header connections moved to initializeMusicSongTable()
 
     usePersistentFontSize(); // sets the font of the songTable, which is used by adjustFontSizes to scale other font sizes
     zoomInOut(0);  // trigger reloading of all fonts, including horizontalHeader of songTable()
@@ -560,7 +547,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     );
 
     // if (darkmode) {
-        ui->darkSearch->setFocus();  // this should be the intial focus
+        // darkSearch focus moved to initializeMusicSearch
     // } else {
     //     ui->titleSearch->setFocus();  // this should be the intial focus
     // }
@@ -1530,35 +1517,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    // SONGTABLE:
-    ui->darkSongTable->setAutoScroll(true); // Ensure that selection is always visible
-
-    QHeaderView *verticalHeader = ui->darkSongTable->verticalHeader();
-    verticalHeader->setSectionResizeMode(QHeaderView::ResizeToContents);
-
-    t.elapsed(__LINE__);
-
-    ui->darkSongTable->setAlternatingRowColors(true);
-
-    t.elapsed(__LINE__);
-
-#ifndef DEBUG_LIGHT_MODE
-    ui->darkSongTable->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
-#endif
-
-    t.elapsed(__LINE__);
-
-    splash->setProgress(45, "Adjusting the column layout...");
-
-    ui->darkSongTable->resizeColumnToContents(kNumberCol);  // and force resizing of column widths to match songs
-    ui->darkSongTable->resizeColumnToContents(kTypeCol);
-    ui->darkSongTable->resizeColumnToContents(kLabelCol);
-    ui->darkSongTable->resizeColumnToContents(kPitchCol);
-    ui->darkSongTable->resizeColumnToContents(kTempoCol);
-
-    t.elapsed(__LINE__);
-
-    ui->darkSongTable->setMainWindow(this);
+    // SONGTABLE: (basic properties and styling moved to initializeMusicSongTable)
 
     t.elapsed(__LINE__);
 
@@ -1972,15 +1931,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     // SONGTABLE:
 //    ui->darkSongTable->selectRow(2);
 
-    // TREEWIDGET:
-    QList<QTreeWidgetItem *> trackItem = ui->treeWidget->findItems("Tracks", Qt::MatchExactly);
-    doNotCallDarkLoadMusicList = true;
-    trackItem[0]->setSelected(true); // entire Tracks was already loaded by actionTags
-    doNotCallDarkLoadMusicList = false;
-
-    // enable context menus for TreeWidget
-    ui->treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customTreeWidgetMenuRequested(QPoint)));
+    // TREEWIDGET: (moved to initializeMusicSearch)
 
 
     t.elapsed(__LINE__);
@@ -2001,8 +1952,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     micStatusLabel->setStyleSheet("color: " + darkTextColor);
 #endif
 
-    // SEARCH BOX:
-    ui->darkSearch->setToolTip("Search\nFilter songs by specifying Type:Label:Title.\n\nExamples:\nlove = any song where type or label or title contains 'love'\nsing::heart = singing calls where title contains 'heart'\np:riv = patter from Riverboat\netc.");
+    // SEARCH BOX: (moved to initializeMusicSearch)
 
     // TITLE:
     // QLabel { color : #C2AC9E; }
@@ -2199,9 +2149,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
 #endif
 
-    // SEARCH -----------
-    typeSearch = labelSearch = titleSearch = ""; // no filters at startup
-    searchAllFields = true; // search is OR, not AND
+    // SEARCH ----------- (moved to initializeMusicSearch)
 
     // remember what we had set last time the app ran ----- (moved to initializeMusicPlaylists)
 
@@ -2214,10 +2162,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 //            qDebug("Starting up FileWatcher now (intentionally delayed from app startup, to avoid Box.net locks retriggering loadMusicList)");
             QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
             // if (darkmode) {
-            if (!ui->darkSearch->hasFocus()) {
-                               // qDebug() << "HACK: DARK SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
-                ui->darkSearch->setFocus();
-            }
+            // darkSearch focus handling moved to initializeMusicSearch
             // } else {
             //     if (!ui->titleSearch->hasFocus()) {
             //         //                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
@@ -2260,23 +2205,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     //  b) it will have a previous sort order, so it will set that up.
     // Now that it's initialized, this connect will allow FUTURE clicks on the darksongTable's header to
     //   persist the NEW sort order, based on any FUTURE changes to it.
-    connect(ui->darkSongTable, SIGNAL(newStableSort(QString)),
-            this, SLOT(handleNewSort(QString))); // for persisting stable sort of darkSongTable
-
-    // if the user wants to go back to the default sort order
-    ui->darkSongTable->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->darkSongTable->horizontalHeader(), &QTableWidget::customContextMenuRequested,
-            this, [this]() {
-                        QMenu *hdrMenu = new QMenu(this);
-                        hdrMenu->setProperty("theme", currentThemeString);
-                        hdrMenu->addAction(QString("Reset Sort Order"),
-                                           [this]() {   // qDebug() << "Resetting sort order...";
-                                                        sortByDefaultSortOrder(); } );
-                        hdrMenu->popup(QCursor::pos());
-                        hdrMenu->exec();
-                        // delete hdrMenu; // done with it
-
-    });
+    // Sort connections moved to initializeMusicSongTable()
 
     // Initialize Preview Playback Device menu
     populatePlaybackDeviceMenu();
@@ -2613,12 +2542,104 @@ void MainWindow::initializePlaylistTable(MyTableWidget* table, QLabel* label)
 
 void MainWindow::initializeMusicSearch()
 {
-    // TODO: Move music search initialization here
+    // Initialize search variables
+    typeSearch = labelSearch = titleSearch = ""; // no filters at startup
+    searchAllFields = true; // search is OR, not AND
+    
+    // Setup search box tooltip
+    ui->darkSearch->setToolTip("Search\nFilter songs by specifying Type:Label:Title.\n\nExamples:\nlove = any song where type or label or title contains 'love'\nsing::heart = singing calls where title contains 'heart'\np:riv = patter from Riverboat\netc.");
+    
+    // Setup TreeWidget for navigation
+    QList<QTreeWidgetItem *> trackItem = ui->treeWidget->findItems("Tracks", Qt::MatchExactly);
+    doNotCallDarkLoadMusicList = true;
+    trackItem[0]->setSelected(true); // entire Tracks was already loaded by actionTags
+    doNotCallDarkLoadMusicList = false;
+    
+    // Enable context menus for TreeWidget
+    ui->treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customTreeWidgetMenuRequested(QPoint)));
+    
+    // Set initial focus to search box
+    if (darkmode) {
+        ui->darkSearch->setFocus();  // this should be the initial focus
+    }
 }
 
 void MainWindow::initializeMusicSongTable(SplashScreen *splash)
 {
-    // TODO: Move music song table initialization here
+    Q_UNUSED(splash)
+    
+    // Connect header sort indicator to handling
+    connect(ui->darkSongTable->horizontalHeader(), &QHeaderView::sortIndicatorChanged,
+            ui->darkSongTable, &MyTableWidget::onHeaderClicked);
+
+    // Set initial column widths
+    ui->darkSongTable->setColumnWidth(kNumberCol,40);  // NOTE: This must remain a fixed width, due to a bug in Qt's tracking of its width.
+    ui->darkSongTable->setColumnWidth(kTypeCol,96);
+    ui->darkSongTable->setColumnWidth(kLabelCol,80);
+    ui->darkSongTable->setColumnWidth(kTitleCol,350);
+    ui->darkSongTable->setColumnWidth(kRecentCol, 70);
+    ui->darkSongTable->setColumnWidth(kAgeCol, 60);
+    ui->darkSongTable->setColumnWidth(kPitchCol,60);
+    ui->darkSongTable->setColumnWidth(kTempoCol,60);
+
+    // Basic table properties and styling
+    ui->darkSongTable->setAutoScroll(true); // Ensure that selection is always visible
+
+    QHeaderView *verticalHeader = ui->darkSongTable->verticalHeader();
+    verticalHeader->setSectionResizeMode(QHeaderView::ResizeToContents);
+
+    ui->darkSongTable->setAlternatingRowColors(true);
+
+#ifndef DEBUG_LIGHT_MODE
+    ui->darkSongTable->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
+#endif
+
+    // Resize columns to contents
+    ui->darkSongTable->resizeColumnToContents(kNumberCol);
+    ui->darkSongTable->resizeColumnToContents(kTypeCol);
+    ui->darkSongTable->resizeColumnToContents(kLabelCol);
+    ui->darkSongTable->resizeColumnToContents(kPitchCol);
+    ui->darkSongTable->resizeColumnToContents(kTempoCol);
+
+    ui->darkSongTable->setMainWindow(this);
+
+    // Configure column resize modes and header alignment
+    QHeaderView *darkHeaderView = ui->darkSongTable->horizontalHeader();
+    darkHeaderView->setSectionResizeMode(kNumberCol, QHeaderView::Fixed);
+    darkHeaderView->setSectionResizeMode(kTypeCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kLabelCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kTitleCol, QHeaderView::Stretch);
+
+    darkHeaderView->setSectionResizeMode(kRecentCol, QHeaderView::Fixed);
+    darkHeaderView->setSectionResizeMode(kAgeCol, QHeaderView::Fixed);
+    darkHeaderView->setSectionResizeMode(kPitchCol, QHeaderView::Fixed);
+    darkHeaderView->setSectionResizeMode(kTempoCol, QHeaderView::Fixed);
+    darkHeaderView->setStretchLastSection(false);
+
+    ui->darkSongTable->horizontalHeaderItem(kNumberCol)->setTextAlignment( Qt::AlignCenter );
+    ui->darkSongTable->horizontalHeaderItem(kRecentCol)->setTextAlignment( Qt::AlignCenter );
+    ui->darkSongTable->horizontalHeaderItem(kAgeCol)->setTextAlignment( Qt::AlignCenter );
+    ui->darkSongTable->horizontalHeaderItem(kPitchCol)->setTextAlignment( Qt::AlignCenter );
+    ui->darkSongTable->horizontalHeaderItem(kTempoCol)->setTextAlignment( Qt::AlignCenter );
+
+    // Set up sort connections
+    connect(ui->darkSongTable, SIGNAL(newStableSort(QString)),
+            this, SLOT(handleNewSort(QString))); // for persisting stable sort of darkSongTable
+
+    // Context menu for resetting sort order
+    ui->darkSongTable->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->darkSongTable->horizontalHeader(), &QTableWidget::customContextMenuRequested,
+            this, [this]() {
+                        QMenu *hdrMenu = new QMenu(this);
+                        hdrMenu->setProperty("theme", currentThemeString);
+                        hdrMenu->addAction(QString("Reset Sort Order"),
+                                           [this]() {   // qDebug() << "Resetting sort order...";
+                                                        sortByDefaultSortOrder(); } );
+                        hdrMenu->popup(QCursor::pos());
+                        hdrMenu->exec();
+                        // delete hdrMenu; // done with it
+    });
 }
 
 void MainWindow::initializeCuesheetTab()
