@@ -38,6 +38,7 @@
 #include "tablenumberitem.h"
 #include "songtitlelabel.h"
 #include "playlist_constants.h"
+#include "playlistexport.h"
 #include <functional>
 #include <utility>
 

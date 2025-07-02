@@ -255,32 +255,28 @@ void MainWindow::haveDuration2(void) {
 MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    oldFocusWidget(nullptr),
-    lastWidgetBeforePlaybackWasSongTable(false),
-    lastCuesheetSavePath(),
-//    timerCountUp(nullptr),
-//    timerCountDown(nullptr),
-    trapKeypresses(true),
-//    ps(nullptr),
-    firstTimeSongIsPlayed(false),
-    loadingSong(false),
-    cuesheetEditorReactingToCursorMovement(false),
-    totalZoom(0),
-    hotkeyShortcuts(),
-    sd_animation_running(false),
-    sdLastLine(-1),
-    sdWasNotDrawingPicture(true),
-    sdHasSubsidiaryCallContinuation(false),
-    sdLastLineWasResolve(false),
-    sdOutputtingAvailableCalls(false),
-    sdAvailableCalls(),
-    sdLineEditSDInputLengthWhenAvailableCallsWasBuilt(-1),
-    shortcutSDTabUndo(nullptr),
-    shortcutSDTabRedo(nullptr),
-    shortcutSDCurrentSequenceSelectAll(nullptr),
-    shortcutSDCurrentSequenceCopy(nullptr),
     sd_redo_stack(new SDRedoStack())
 {
+    // Initialize member variables explicitly to avoid ordering issues
+    oldFocusWidget = nullptr;
+    lastWidgetBeforePlaybackWasSongTable = false;
+    lastCuesheetSavePath = "";
+    trapKeypresses = true;
+    firstTimeSongIsPlayed = false;
+    loadingSong = false;
+    cuesheetEditorReactingToCursorMovement = false;
+    totalZoom = 0;
+    sd_animation_running = false;
+    sdLastLine = -1;
+    sdWasNotDrawingPicture = true;
+    sdHasSubsidiaryCallContinuation = false;
+    sdLastLineWasResolve = false;
+    sdOutputtingAvailableCalls = false;
+    sdLineEditSDInputLengthWhenAvailableCallsWasBuilt = -1;
+    shortcutSDTabUndo = nullptr;
+    shortcutSDTabRedo = nullptr;
+    shortcutSDCurrentSequenceSelectAll = nullptr;
+    shortcutSDCurrentSequenceCopy = nullptr;
 #ifdef TESTRESTARTINGSQUAREDESK
     testRestartingSquareDesk = true;  // set to false for NORMAL operation, TRUE to test restarting
 #endif
