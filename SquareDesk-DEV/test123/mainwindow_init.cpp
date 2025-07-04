@@ -143,6 +143,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     ui(new Ui::MainWindow),
     sd_redo_stack(new SDRedoStack())
 {
+    Q_UNUSED(dark)
     // NEW INITIALIZATION STUFF ==============
     PerfTimer t("MainWindow::MainWindow", __LINE__);
     t.start(__LINE__);
@@ -208,161 +209,10 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
 
 
-    t.elapsed(__LINE__);
 
-
-    if (ui->darkSongTable->rowCount() >= 1) {
-        // ui->darkSongTable->selectRow(0); // select row 1 after initial load of the songTable (if there are rows)
-        ui->darkSearch->setFocus();
-    }
-
-    // minVolume feature now deprecated!
-    // minimumVolume = prefsManager.GetlimitVolume(); // initialize the limiting of the volume control
-
-    // DARKMODE INIT ===============
-
-    // CHANGE TAB ORDERING (now different from that in QtCreator) =======
-    // ui->tabWidget->tabBar()->moveTab(5,0);
-    // ui->tabWidget->setTabText(0, DARKMUSICTABNAME);
-
-    // if (darkmode) {
-    //     ui->tabWidget->setTabVisible(1, false); // hide the MUSIC tab, leaving the DarkMusic tab visible
-    //     ui->tabWidget->setCurrentIndex(0);
-    // }
 
     t.elapsed(__LINE__);
 
-    // CLOCK COLORING =============
-    ui->theSVGClock->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->theSVGClock, SIGNAL(customContextMenuRequested(QPoint)), ui->theSVGClock, SLOT(customMenuRequested(QPoint)));
-
-    // ============= DARKMODE INIT ================
-    // QString darkTextColor = "#C0C0C0";
-    QString darkTextColor = "black";
-    if (darkmode) {
-        darkTextColor = "#C0C0C0";
-    }
-
-    // DARK MODE UI TESTING --------------------
-
-    ui->darkWarningLabel->setToolTip("Shows Time-in-Tip (Patter) in MM:SS, and Section-in-Tip (Singer).");
-    ui->currentLocLabel3->setToolTip("Shows Position-in-Song in MM:SS.");
-    ui->songLengthLabel2->setToolTip("Shows Length-of-Song in MM:SS.");
-
-    t.elapsed(__LINE__);
-
-    // LOOP CONTROLS =========
-#ifndef DEBUG_LIGHT_MODE
-    ui->darkStartLoopTime->setStyleSheet("color: " + darkTextColor);
-    ui->darkEndLoopTime->setStyleSheet("color: " + darkTextColor);
-    ui->darkStartLoopButton->setStyleSheet("color: " + darkTextColor);
-    ui->darkEndLoopButton->setStyleSheet("color: " + darkTextColor);
-    ui->darkTestLoopButton->setStyleSheet("color: " + darkTextColor);
-    ui->darkSegmentButton->setStyleSheet("color: " + darkTextColor);
-    ui->currentLocLabel3->setStyleSheet("color: " + darkTextColor);
-    ui->songLengthLabel2->setStyleSheet("color: " + darkTextColor);
-#endif
-    ui->darkStartLoopButton->setToolTip(QString("Sets start point of a loop (Patter) or Intro point (Singing Call)\n\nShortcuts: set Start [, set Start and End: %1[").arg(QChar(0x21e7)));
-    ui->darkEndLoopButton->setToolTip(QString("Sets end point of a loop (Patter) or Outro point (Singing Call)\n\nShortcuts: set End ]"));
-
-    // layout the QDials in QtDesigner, promote to svgDial's, and then make sure to init all 3 parameters (in this order)
-    ui->darkTrebleKnob->setKnobFile("knobs/knob_bg_regular.svg");
-    ui->darkTrebleKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
-    ui->darkTrebleKnob->setArcColor("#909090"); // no longer triggers finish of init
-    ui->darkTrebleKnob->setToolTip("Treble\nControls the amount of high frequencies in this song.");
-
-    ui->darkMidKnob->setKnobFile("knobs/knob_bg_regular.svg");
-    ui->darkMidKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
-    ui->darkMidKnob->setArcColor("#909090"); // no longer triggers finish of init
-    ui->darkMidKnob->setToolTip("Midrange\nControls the amount of midrange frequencies in this song.");
-
-    ui->darkBassKnob->setKnobFile("knobs/knob_bg_regular.svg");
-    ui->darkBassKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
-    ui->darkBassKnob->setArcColor("#909090"); // no longer triggers finish of init
-    ui->darkBassKnob->setToolTip("Bass\nControls the amount of low frequencies in this song.");
-
-#ifndef DEBUG_LIGHT_MODE
-    ui->label_T->setStyleSheet("color: " + darkTextColor);
-    ui->label_M->setStyleSheet("color: " + darkTextColor);
-    ui->label_B->setStyleSheet("color: " + darkTextColor);
-#endif
-
-    // sliders ==========
-
-    // VOLUME:
-    ui->darkVolumeSlider->setBgFile("sliders/slider_volume_deck.svg");
-    ui->darkVolumeSlider->setHandleFile("sliders/knob_volume_deck.svg");
-    ui->darkVolumeSlider->setVeinColor("#00797B");
-    ui->darkVolumeSlider->setDefaultValue(100.0);
-    ui->darkVolumeSlider->setIncrement(1.0);
-    ui->darkVolumeSlider->setCenterVeinType(false);
-    ui->darkVolumeSlider->setToolTip(QString("Volume (in %)\nControls the loudness of this song.\n\nShortcuts: volume up %1%2, volume down %1%3").arg(QChar(0x2318)).arg(QChar(0x2191)).arg(QChar(0x2193)));
-
-#ifndef DEBUG_LIGHT_MODE
-    ui->darkVolumeLabel->setStyleSheet("color: " + darkTextColor);
-#endif
-
-    t.elapsed(__LINE__);
-
-    // TEMPO:
-    ui->darkTempoSlider->setBgFile("sliders/slider_pitch_deck2.svg");
-    ui->darkTempoSlider->setHandleFile("sliders/knob_volume_deck.svg");
-    ui->darkTempoSlider->setVeinColor("#CA4E09");
-    ui->darkTempoSlider->setDefaultValue(0.0);
-    ui->darkTempoSlider->setIncrement(1.0);
-    ui->darkTempoSlider->setCenterVeinType(true);
-    ui->darkTempoSlider->setToolTip(QString("Tempo (in BPM)\nControls the tempo of this song (independent from Pitch).\n\nShortcuts: faster %1+, slower %1-").arg(QChar(0x2318)));
-
-#ifndef DEBUG_LIGHT_MODE
-    ui->darkTempoLabel->setStyleSheet("color: " + darkTextColor);
-#endif
-
-    // PITCH:
-    ui->darkPitchSlider->setBgFile("sliders/slider_pitch_deck2.svg");
-    ui->darkPitchSlider->setHandleFile("sliders/knob_volume_deck.svg");
-    ui->darkPitchSlider->setVeinColor("#177D0F");
-    ui->darkPitchSlider->setDefaultValue(0.0);
-    ui->darkPitchSlider->setIncrement(1.0);
-    ui->darkPitchSlider->setCenterVeinType(true);
-    ui->darkPitchSlider->setToolTip(QString("Pitch (in semitones)\nControls the pitch of this song (relative to song's original pitch).\n\nShortcuts: pitch up %1u, pitch down %1d").arg(QChar(0x2318)));
-
-#ifndef DEBUG_LIGHT_MODE
-    ui->darkPitchLabel->setStyleSheet("color: " + darkTextColor);
-#endif
-
-    t.elapsed(__LINE__);
-
-    // SONGTABLE:
-    ui->darkSongTable->setAutoScroll(true); // Ensure that selection is always visible
-
-    QHeaderView *verticalHeader = ui->darkSongTable->verticalHeader();
-    verticalHeader->setSectionResizeMode(QHeaderView::ResizeToContents);
-
-    t.elapsed(__LINE__);
-
-    ui->darkSongTable->setAlternatingRowColors(true);
-
-    t.elapsed(__LINE__);
-
-#ifndef DEBUG_LIGHT_MODE
-    ui->darkSongTable->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
-#endif
-
-    t.elapsed(__LINE__);
-
-    splash->setProgress(45, "Adjusting the column layout...");
-
-    ui->darkSongTable->resizeColumnToContents(kNumberCol);  // and force resizing of column widths to match songs
-    ui->darkSongTable->resizeColumnToContents(kTypeCol);
-    ui->darkSongTable->resizeColumnToContents(kLabelCol);
-    ui->darkSongTable->resizeColumnToContents(kPitchCol);
-    ui->darkSongTable->resizeColumnToContents(kTempoCol);
-
-    t.elapsed(__LINE__);
-
-    ui->darkSongTable->setMainWindow(this);
-
-    t.elapsed(__LINE__);
 
     // PLAYLISTS:
 #ifndef DEBUG_LIGHT_MODE
@@ -1265,6 +1115,10 @@ void MainWindow::initializeUI() {
 
     connect(ui->theSVGClock, SIGNAL(newState(QString)), this, SLOT(svgClockStateChanged(QString)));
 
+    // CLOCK COLORING =============
+    ui->theSVGClock->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->theSVGClock, SIGNAL(customContextMenuRequested(QPoint)), ui->theSVGClock, SLOT(customMenuRequested(QPoint)));
+
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
     pathStackCuesheets = new QList<QString>();
@@ -1696,6 +1550,86 @@ void MainWindow::initializeMusicPlaybackControls() {
         ui->actionNearest_Measure->setChecked(true);
     }
 
+    // ============= DARKMODE INIT ================
+    // QString darkTextColor = "#C0C0C0";
+    QString darkTextColor = "black";
+    if (darkmode) {
+        darkTextColor = "#C0C0C0";
+    }
+
+    // DARK MODE UI TESTING --------------------
+
+    ui->darkWarningLabel->setToolTip("Shows Time-in-Tip (Patter) in MM:SS, and Section-in-Tip (Singer).");
+    ui->currentLocLabel3->setToolTip("Shows Position-in-Song in MM:SS.");
+    ui->songLengthLabel2->setToolTip("Shows Length-of-Song in MM:SS.");
+
+    // LOOP CONTROLS =========
+    ui->darkStartLoopButton->setToolTip(QString("Sets start point of a loop (Patter) or Intro point (Singing Call)\n\nShortcuts: set Start [, set Start and End: %1[").arg(QChar(0x21e7)));
+    ui->darkEndLoopButton->setToolTip(QString("Sets end point of a loop (Patter) or Outro point (Singing Call)\n\nShortcuts: set End ]"));
+
+    // layout the QDials in QtDesigner, promote to svgDial's, and then make sure to init all 3 parameters (in this order)
+    ui->darkTrebleKnob->setKnobFile("knobs/knob_bg_regular.svg");
+    ui->darkTrebleKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
+    ui->darkTrebleKnob->setArcColor("#909090"); // no longer triggers finish of init
+    ui->darkTrebleKnob->setToolTip("Treble\nControls the amount of high frequencies in this song.");
+
+    ui->darkMidKnob->setKnobFile("knobs/knob_bg_regular.svg");
+    ui->darkMidKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
+    ui->darkMidKnob->setArcColor("#909090"); // no longer triggers finish of init
+    ui->darkMidKnob->setToolTip("Midrange\nControls the amount of midrange frequencies in this song.");
+
+    ui->darkBassKnob->setKnobFile("knobs/knob_bg_regular.svg");
+    ui->darkBassKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
+    ui->darkBassKnob->setArcColor("#909090"); // no longer triggers finish of init
+    ui->darkBassKnob->setToolTip("Bass\nControls the amount of low frequencies in this song.");
+
+#ifndef DEBUG_LIGHT_MODE
+    ui->label_T->setStyleSheet("color: " + darkTextColor);
+    ui->label_M->setStyleSheet("color: " + darkTextColor);
+    ui->label_B->setStyleSheet("color: " + darkTextColor);
+#endif
+
+    // sliders ==========
+
+    // VOLUME:
+    ui->darkVolumeSlider->setBgFile("sliders/slider_volume_deck.svg");
+    ui->darkVolumeSlider->setHandleFile("sliders/knob_volume_deck.svg");
+    ui->darkVolumeSlider->setVeinColor("#00797B");
+    ui->darkVolumeSlider->setDefaultValue(100.0);
+    ui->darkVolumeSlider->setIncrement(1.0);
+    ui->darkVolumeSlider->setCenterVeinType(false);
+    ui->darkVolumeSlider->setToolTip(QString("Volume (in %)\nControls the loudness of this song.\n\nShortcuts: volume up %1%2, volume down %1%3").arg(QChar(0x2318)).arg(QChar(0x2191)).arg(QChar(0x2193)));
+
+#ifndef DEBUG_LIGHT_MODE
+    ui->darkVolumeLabel->setStyleSheet("color: " + darkTextColor);
+#endif
+
+    // TEMPO:
+    ui->darkTempoSlider->setBgFile("sliders/slider_pitch_deck2.svg");
+    ui->darkTempoSlider->setHandleFile("sliders/knob_volume_deck.svg");
+    ui->darkTempoSlider->setVeinColor("#CA4E09");
+    ui->darkTempoSlider->setDefaultValue(0.0);
+    ui->darkTempoSlider->setIncrement(1.0);
+    ui->darkTempoSlider->setCenterVeinType(true);
+    ui->darkTempoSlider->setToolTip(QString("Tempo (in BPM)\nControls the tempo of this song (independent from Pitch).\n\nShortcuts: faster %1+, slower %1-").arg(QChar(0x2318)));
+
+#ifndef DEBUG_LIGHT_MODE
+    ui->darkTempoLabel->setStyleSheet("color: " + darkTextColor);
+#endif
+
+    // PITCH:
+    ui->darkPitchSlider->setBgFile("sliders/slider_pitch_deck2.svg");
+    ui->darkPitchSlider->setHandleFile("sliders/knob_volume_deck.svg");
+    ui->darkPitchSlider->setVeinColor("#177D0F");
+    ui->darkPitchSlider->setDefaultValue(0.0);
+    ui->darkPitchSlider->setIncrement(1.0);
+    ui->darkPitchSlider->setCenterVeinType(true);
+    ui->darkPitchSlider->setToolTip(QString("Pitch (in semitones)\nControls the pitch of this song (relative to song's original pitch).\n\nShortcuts: pitch up %1u, pitch down %1d").arg(QChar(0x2318)));
+
+#ifndef DEBUG_LIGHT_MODE
+    ui->darkPitchLabel->setStyleSheet("color: " + darkTextColor);
+#endif
+
 }
 
 // ====================================================
@@ -1790,6 +1724,34 @@ void MainWindow::initializeMusicSongTable() {
     }
 
     lastSongTableRowSelected = -1;  // meaning "no selection"
+
+    if (ui->darkSongTable->rowCount() >= 1) {
+        // ui->darkSongTable->selectRow(0); // select row 1 after initial load of the songTable (if there are rows)
+        ui->darkSearch->setFocus();
+    }
+
+    // SONGTABLE:
+    ui->darkSongTable->setAutoScroll(true); // Ensure that selection is always visible
+
+    QHeaderView *verticalHeader = ui->darkSongTable->verticalHeader();
+    verticalHeader->setSectionResizeMode(QHeaderView::ResizeToContents);
+
+    ui->darkSongTable->setAlternatingRowColors(true);
+
+#ifndef DEBUG_LIGHT_MODE
+    ui->darkSongTable->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
+#endif
+
+//    splash->setProgress(45, "Adjusting the column layout...");
+
+    ui->darkSongTable->resizeColumnToContents(kNumberCol);  // and force resizing of column widths to match songs
+    ui->darkSongTable->resizeColumnToContents(kTypeCol);
+    ui->darkSongTable->resizeColumnToContents(kLabelCol);
+    ui->darkSongTable->resizeColumnToContents(kPitchCol);
+    ui->darkSongTable->resizeColumnToContents(kTempoCol);
+
+    ui->darkSongTable->setMainWindow(this);
+
 
 
 }
