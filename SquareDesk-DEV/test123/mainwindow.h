@@ -822,6 +822,24 @@ private slots:
 
 private:
     // ============================================================================
+    // INITIALIZATION METHODS (REFACTORED FROM CONSTRUCTOR)
+    // ============================================================================
+    void initializeUI(); // general UI init
+
+    // Music tab initialization
+    void initializeMusicPlaybackControls();
+    void initializeMusicPlaylists();
+    void initializeMusicSearch();
+    void initializeMusicSongTable();
+
+    // Other tabs initialization
+    void initializeCuesheetTab();
+    void initializeSDTab();
+    void initializeTaminationsTab();
+    void initializeDanceProgramsTab();
+    void initializeReferenceTab();
+
+    // ============================================================================
     // CORE APPLICATION STATE
     // ============================================================================
     QString lastAudioDeviceName;
