@@ -148,7 +148,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     PerfTimer t("MainWindow::MainWindow", __LINE__);
     t.start(__LINE__);
 
-    splash->setProgress(0, "Finding all your songs and lyrics...");
+    splash->setProgress(5, "Initializing the playback engine...");
     theSplash = splash;
 
 #if defined(Q_OS_LINUX)
@@ -173,723 +173,36 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
 
     // General UI initialization ----------------------
+    splash->setProgress(10, "Initializing the application UI...");
     initializeUI();
 
     // Music tab initialization
+    splash->setProgress(15, "Initializing the Music tab...");
     initializeMusicPlaybackControls();
-    initializeMusicPlaylists();
+
+    splash->setProgress(20, "Finding your music...");
     initializeMusicSearch();
+
+    splash->setProgress(40, "Loading your music...");
     initializeMusicSongTable();
+
+    splash->setProgress(50, "Loading your playlists...");
+    initializeMusicPlaylists();
 
     // Other tabs initialization
     initializeCuesheetTab();
+
+    splash->setProgress(60, "Loading SD and Taminations...");
     initializeSDTab();
     initializeTaminationsTab();
+
+    splash->setProgress(65, "Initializing Dance Programs...");
     initializeDanceProgramsTab();
+
+    splash->setProgress(70, "Initializing Reference Tab...");
     initializeReferenceTab();
 
     // OLD INITIALIZATION STUFF ==============
-
-
-
-
-
-    // ----------------------------------------------
-
-
-    splash->setProgress(25, "Loading and sorting the song table...");
-
-
-
-
-
-
-
-
-
-
-
-
-
-    t.elapsed(__LINE__);
-
-
-    // PLAYLISTS:
-#ifndef DEBUG_LIGHT_MODE
-    ui->playlist1Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
-#endif
-    ui->playlist1Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers_2023.09.20");
-    ui->playlist1Label->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->playlist1Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
-
-    ui->playlist1Table->setMainWindow(this);
-    ui->playlist1Table->resizeColumnToContents(COLUMN_NUMBER); // number
-    ui->playlist1Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
-    ui->playlist1Table->setColumnWidth(2,20); // pitch
-    ui->playlist1Table->setColumnWidth(3,45); // tempo
-    ui->playlist1Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
-    ui->playlist1Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter);
-    ui->playlist1Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter);
-    ui->playlist1Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter);
-    ui->playlist1Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    ui->playlist1Table->verticalHeader()->setMaximumSectionSize(28);
-
-    ui->playlist1Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
-    ui->playlist1Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
-    ui->playlist1Table->horizontalHeader()->setSectionHidden(2, false); // hide pitch
-    ui->playlist1Table->horizontalHeader()->setSectionHidden(3, false); // hide tempo
-
-    // WARNING: THIS CODE IS ONLY FOR THE NUMBERS COLUMN OF PLAYLIST TABLES.
-    //  THE NORMAL CONTEXT MENU IS IN PLAYLISTS.CPP SOURCE FILE.
-    //
-    // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST1 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
-    ui->playlist1Table->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->playlist1Table, &QTableWidget::customContextMenuRequested,
-            this, [this](QPoint q) {
-
-                // qDebug() << "***** PLAYLIST 1 CONTEXT MENU REQUESTED";
-                // if (this->ui->playlist1Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
-
-                int rowCount = this->ui->playlist1Table->selectionModel()->selectedRows().count();
-                if (rowCount < 1) {
-                    return;  // if mouse clicked and nothing was selected (this should be impossible)
-                }
-                QMenu *plMenu = new QMenu(this);
-
-                plMenu->setProperty("theme", currentThemeString);
-
-                // can only move slot items if they are playlists, NOT tracks
-                QString plural;
-                if (rowCount == 1) {
-                    plural = "item";
-                } else {
-                    plural = QString::number(rowCount) + " items";
-                }
-
-                // Move up/down/top/bottom in playlist
-                if (!relPathInSlot[0].contains("/tracks/")) {
-                    plMenu->addAction(QString("Move " + plural + " to TOP of playlist"),    [this]() { this->PlaylistItemsToTop();    } );
-                    plMenu->addAction(QString("Move " + plural + " UP in playlist"),        [this]() { this->PlaylistItemsMoveUp();   } );
-                    plMenu->addAction(QString("Move " + plural + " DOWN in playlist"),      [this]() { this->PlaylistItemsMoveDown(); } );
-                    plMenu->addAction(QString("Move " + plural + " to BOTTOM of playlist"), [this]() { this->PlaylistItemsToBottom(); } );
-                    plMenu->addSeparator();
-                    plMenu->addAction(QString("Remove " + plural + " from playlist"),       [this]() { this->PlaylistItemsRemove(); } );
-                }
-
-                if (rowCount == 1) {
-                    // Reveal Audio File and Cuesheet in Finder
-                    plMenu->addSeparator();
-                    QString fullPath = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
-                    QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
-                    //                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
-
-                    QFileInfo fi(fullPath);
-                    QString menuString = "Reveal Audio File In Finder";
-                    QString thingToOpen = fullPath;
-
-                    if (!fi.exists()) {
-                        menuString = "Reveal Enclosing Folder In Finder";
-                        thingToOpen = enclosingFolderName;
-                    }
-
-                    plMenu->addAction(QString(menuString),
-                                      [thingToOpen]() {
-            // opens either the folder and highlights the file (if file exists), OR
-            // opens the folder where the file was SUPPOSED to exist.
-#if defined(Q_OS_MAC)
-                                          QStringList args;
-                                          args << "-e";
-                                          args << "tell application \"Finder\"";
-                                          args << "-e";
-                                          args << "activate";
-                                          args << "-e";
-                                          args << "select POSIX file \"" + thingToOpen + "\"";
-                                          args << "-e";
-                                          args << "end tell";
-
-                                          //    QProcess::startDetached("osascript", args);
-
-                                          // same as startDetached, but suppresses output from osascript to console
-                                          //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
-                                          QProcess process;
-                                          process.setProgram("osascript");
-                                          process.setArguments(args);
-                                          process.setStandardOutputFile(QProcess::nullDevice());
-                                          process.setStandardErrorFile(QProcess::nullDevice());
-                                          qint64 pid;
-                                          process.startDetached(&pid);
-#endif
-
-                                      });
-
-                    // if the current song has a cuesheet, offer to show it to the user -----
-                    QString fullMP3Path = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
-                    QString cuesheetPath;
-
-                    SongSetting settings1;
-                    if (songSettings.loadSettings(fullMP3Path, settings1)) {
-                        cuesheetPath = settings1.getCuesheetName();
-                    } else {
-                        // qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
-                    }
-
-                    // qDebug() << "convertCuesheetPathNameToCurrentRoot BEFORE:" << cuesheetPath;
-                    cuesheetPath = convertCuesheetPathNameToCurrentRoot(cuesheetPath);
-                    // qDebug() << "convertCuesheetPathNameToCurrentRoot AFTER:" << cuesheetPath;
-
-                    if (cuesheetPath != "") {
-                        plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
-                                          [this, cuesheetPath]() {
-                                              showInFinderOrExplorer(cuesheetPath);
-                                          }
-                                          );
-                        plMenu->addAction(QString("Load Cuesheets"),
-                                          [this, fullMP3Path, cuesheetPath]() {
-                                              maybeLoadCuesheets(fullMP3Path, cuesheetPath);
-                                          }
-                                          );
-                    }
-                }
-
-                plMenu->popup(QCursor::pos());
-                plMenu->exec();
-            }
-            );
-
-    // -----
-    t.elapsed(__LINE__);
-
-#ifndef DEBUG_LIGHT_MODE
-    ui->playlist2Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
-#endif
-    ui->playlist2Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers_2023.09.20");
-    ui->playlist2Label->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->playlist2Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
-
-    ui->playlist2Table->setMainWindow(this);
-    ui->playlist2Table->resizeColumnToContents(COLUMN_NUMBER); // number
-    ui->playlist2Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
-    ui->playlist2Table->setColumnWidth(2,20); // pitch
-    ui->playlist2Table->setColumnWidth(3,45); // tempo
-    ui->playlist2Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
-    ui->playlist2Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter );
-    ui->playlist2Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter );
-    ui->playlist2Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter );
-    ui->playlist2Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    ui->playlist2Table->verticalHeader()->setMaximumSectionSize(28);
-
-    ui->playlist2Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
-    ui->playlist2Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
-    ui->playlist2Table->horizontalHeader()->setSectionHidden(2, false); // hide pitch
-    ui->playlist2Table->horizontalHeader()->setSectionHidden(3, false); // hide tempo
-
-    // WARNING: THIS CODE IS ONLY FOR THE NUMBERS COLUMN OF PLAYLIST TABLES.
-    //  THE NORMAL CONTEXT MENU IS IN PLAYLISTS.CPP SOURCE FILE.
-    //
-    // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST2 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
-    ui->playlist2Table->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->playlist2Table, &QTableWidget::customContextMenuRequested,
-            this, [this](QPoint q) {
-
-                // qDebug() << "***** PLAYLIST 2 CONTEXT MENU REQUESTED";
-                // if (this->ui->playlist2Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
-
-                int rowCount = this->ui->playlist2Table->selectionModel()->selectedRows().count();
-                if (rowCount < 1) {
-                    return;  // if mouse clicked and nothing was selected (this should be impossible)
-                }
-                QString plural;
-                if (rowCount == 1) {
-                    plural = "item";
-                } else {
-                    plural = QString::number(rowCount) + " items";
-                }
-
-                QMenu *plMenu = new QMenu(this);
-                plMenu->setProperty("theme", currentThemeString);
-
-                // Move up/down/top/bottom in playlist
-                if (!relPathInSlot[1].contains("/tracks/")) {
-                    plMenu->addAction(QString("Move " + plural + " to TOP of playlist"),    [this]() { this->PlaylistItemsToTop();    } );
-                    plMenu->addAction(QString("Move " + plural + " UP in playlist"),        [this]() { this->PlaylistItemsMoveUp();   } );
-                    plMenu->addAction(QString("Move " + plural + " DOWN in playlist"),      [this]() { this->PlaylistItemsMoveDown(); } );
-                    plMenu->addAction(QString("Move " + plural + " to BOTTOM of playlist"), [this]() { this->PlaylistItemsToBottom(); } );
-                    plMenu->addSeparator();
-                    plMenu->addAction(QString("Remove " + plural + " from playlist"),       [this]() { this->PlaylistItemsRemove(); } );
-                }
-
-                if (rowCount == 1) {
-                    // Reveal Audio File and Cuesheet in Finder
-                    plMenu->addSeparator();
-                    QString fullPath = this->ui->playlist2Table->item(this->ui->playlist2Table->itemAt(q)->row(), 4)->text();
-                    QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
-                    //                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
-
-                    QFileInfo fi(fullPath);
-                    QString menuString = "Reveal Audio File In Finder";
-                    QString thingToOpen = fullPath;
-
-                    if (!fi.exists()) {
-                        menuString = "Reveal Enclosing Folder In Finder";
-                        thingToOpen = enclosingFolderName;
-                    }
-
-                    plMenu->addAction(QString(menuString),
-                                      [thingToOpen]() {
-            // opens either the folder and highlights the file (if file exists), OR
-            // opens the folder where the file was SUPPOSED to exist.
-#if defined(Q_OS_MAC)
-                                          QStringList args;
-                                          args << "-e";
-                                          args << "tell application \"Finder\"";
-                                          args << "-e";
-                                          args << "activate";
-                                          args << "-e";
-                                          args << "select POSIX file \"" + thingToOpen + "\"";
-                                          args << "-e";
-                                          args << "end tell";
-
-                                          //    QProcess::startDetached("osascript", args);
-
-                                          // same as startDetached, but suppresses output from osascript to console
-                                          //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
-                                          QProcess process;
-                                          process.setProgram("osascript");
-                                          process.setArguments(args);
-                                          process.setStandardOutputFile(QProcess::nullDevice());
-                                          process.setStandardErrorFile(QProcess::nullDevice());
-                                          qint64 pid;
-                                          process.startDetached(&pid);
-#endif
-
-                                      });
-
-                    // if the current song has a cuesheet, offer to show it to the user -----
-                    QString fullMP3Path = this->ui->playlist2Table->item(this->ui->playlist2Table->itemAt(q)->row(), 4)->text();
-                    QString cuesheetPath;
-
-                    SongSetting settings1;
-                    if (songSettings.loadSettings(fullMP3Path, settings1)) {
-                        cuesheetPath = settings1.getCuesheetName();
-                    } else {
-                        // qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
-                    }
-
-                    // qDebug() << "convertCuesheetPathNameToCurrentRoot BEFORE:" << cuesheetPath;
-                    cuesheetPath = convertCuesheetPathNameToCurrentRoot(cuesheetPath);
-                    // qDebug() << "convertCuesheetPathNameToCurrentRoot AFTER:" << cuesheetPath;
-
-                    if (cuesheetPath != "") {
-                        plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
-                                          [this, cuesheetPath]() {
-                                              showInFinderOrExplorer(cuesheetPath);
-                                          }
-                                          );
-                        plMenu->addAction(QString("Load Cuesheets"),
-                                          [this, fullMP3Path, cuesheetPath]() {
-                                              maybeLoadCuesheets(fullMP3Path, cuesheetPath);
-                                          }
-                                          );
-                    }
-                }
-
-                plMenu->popup(QCursor::pos());
-                plMenu->exec();
-            }
-            );
-
-    // -----
-    t.elapsed(__LINE__);
-
-    ui->playlist3Table->setMainWindow(this);
-#ifndef DEBUG_LIGHT_MODE
-    ui->playlist3Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
-#endif
-    ui->playlist3Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers_2023.09.20");
-    ui->playlist3Label->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->playlist3Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
-
-    ui->playlist3Table->resizeColumnToContents(COLUMN_NUMBER); // number
-    ui->playlist3Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
-    ui->playlist3Table->setColumnWidth(2,20); // pitch
-    ui->playlist3Table->setColumnWidth(3,45); // tempo
-    ui->playlist3Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
-    ui->playlist3Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter );
-    ui->playlist3Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter );
-    ui->playlist3Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter );
-    ui->playlist3Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    ui->playlist3Table->verticalHeader()->setMaximumSectionSize(28);
-
-    ui->playlist3Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
-    ui->playlist3Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
-    ui->playlist3Table->horizontalHeader()->setSectionHidden(2, false); // hide pitch
-    ui->playlist3Table->horizontalHeader()->setSectionHidden(3, false); // hide tempo
-
-    // WARNING: THIS CODE IS ONLY FOR THE NUMBERS COLUMN OF PLAYLIST TABLES.
-    //  THE NORMAL CONTEXT MENU IS IN PLAYLISTS.CPP SOURCE FILE.
-    //
-    // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST3 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
-    ui->playlist3Table->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->playlist3Table, &QTableWidget::customContextMenuRequested,
-            this, [this](QPoint q) {
-
-                // qDebug() << "***** PLAYLIST 3 CONTEXT MENU REQUESTED";
-                // if (this->ui->playlist3Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
-
-                int rowCount = this->ui->playlist3Table->selectionModel()->selectedRows().count();
-                if (rowCount < 1) {
-                    return;  // if mouse clicked and nothing was selected (this should be impossible)
-                }
-                QString plural;
-                if (rowCount == 1) {
-                    plural = "item";
-                } else {
-                    plural = QString::number(rowCount) + " items";
-                }
-
-                QMenu *plMenu = new QMenu(this);
-                plMenu->setProperty("theme", currentThemeString);
-
-                // Move up/down/top/bottom in playlist
-                if (!relPathInSlot[2].contains("/tracks/")) {
-                    plMenu->addAction(QString("Move " + plural + " to TOP of playlist"),    [this]() { this->PlaylistItemsToTop();    } );
-                    plMenu->addAction(QString("Move " + plural + " UP in playlist"),        [this]() { this->PlaylistItemsMoveUp();   } );
-                    plMenu->addAction(QString("Move " + plural + " DOWN in playlist"),      [this]() { this->PlaylistItemsMoveDown(); } );
-                    plMenu->addAction(QString("Move " + plural + " to BOTTOM of playlist"), [this]() { this->PlaylistItemsToBottom(); } );
-                    plMenu->addSeparator();
-                    plMenu->addAction(QString("Remove " + plural + " from playlist"),       [this]() { this->PlaylistItemsRemove(); } );
-                }
-
-                if (rowCount == 1) {
-                    // Reveal Audio File and Cuesheet in Finder
-                    plMenu->addSeparator();
-                    QString fullPath = this->ui->playlist3Table->item(this->ui->playlist3Table->itemAt(q)->row(), 4)->text();
-                    QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
-                    //                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
-
-                    QFileInfo fi(fullPath);
-                    QString menuString = "Reveal Audio File In Finder";
-                    QString thingToOpen = fullPath;
-
-                    if (!fi.exists()) {
-                        menuString = "Reveal Enclosing Folder In Finder";
-                        thingToOpen = enclosingFolderName;
-                    }
-
-                    plMenu->addAction(QString(menuString),
-                                      [thingToOpen]() {
-            // opens either the folder and highlights the file (if file exists), OR
-            // opens the folder where the file was SUPPOSED to exist.
-#if defined(Q_OS_MAC)
-                                          QStringList args;
-                                          args << "-e";
-                                          args << "tell application \"Finder\"";
-                                          args << "-e";
-                                          args << "activate";
-                                          args << "-e";
-                                          args << "select POSIX file \"" + thingToOpen + "\"";
-                                          args << "-e";
-                                          args << "end tell";
-
-                                          //    QProcess::startDetached("osascript", args);
-
-                                          // same as startDetached, but suppresses output from osascript to console
-                                          //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
-                                          QProcess process;
-                                          process.setProgram("osascript");
-                                          process.setArguments(args);
-                                          process.setStandardOutputFile(QProcess::nullDevice());
-                                          process.setStandardErrorFile(QProcess::nullDevice());
-                                          qint64 pid;
-                                          process.startDetached(&pid);
-#endif
-
-                                      });
-
-                    // if the current song has a cuesheet, offer to show it to the user -----
-                    QString fullMP3Path = this->ui->playlist3Table->item(this->ui->playlist3Table->itemAt(q)->row(), 4)->text();
-                    QString cuesheetPath;
-
-                    SongSetting settings1;
-                    if (songSettings.loadSettings(fullMP3Path, settings1)) {
-                        cuesheetPath = settings1.getCuesheetName();
-                    } else {
-                        // qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
-                    }
-
-                    // qDebug() << "convertCuesheetPathNameToCurrentRoot BEFORE:" << cuesheetPath;
-                    cuesheetPath = convertCuesheetPathNameToCurrentRoot(cuesheetPath);
-                    // qDebug() << "convertCuesheetPathNameToCurrentRoot AFTER:" << cuesheetPath;
-
-                    if (cuesheetPath != "") {
-                        plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
-                                          [this, cuesheetPath]() {
-                                              showInFinderOrExplorer(cuesheetPath);
-                                          }
-                                          );
-                        plMenu->addAction(QString("Load Cuesheets"),
-                                          [this, fullMP3Path, cuesheetPath]() {
-                                              maybeLoadCuesheets(fullMP3Path, cuesheetPath);
-                                          }
-                                          );
-
-                    }
-                }
-
-                plMenu->popup(QCursor::pos());
-                plMenu->exec();
-            }
-            );
-
-    // VUMETER:
-    ui->darkVUmeter->levelChanged(0, 0, false);  // initialize the VUmeter
-
-    // SONGTABLE:
-    //    ui->darkSongTable->selectRow(2);
-
-    // TREEWIDGET:
-    QList<QTreeWidgetItem *> trackItem = ui->treeWidget->findItems("Tracks", Qt::MatchExactly);
-    doNotCallDarkLoadMusicList = true;
-    trackItem[0]->setSelected(true); // entire Tracks was already loaded by actionTags
-    doNotCallDarkLoadMusicList = false;
-
-    // enable context menus for TreeWidget
-    ui->treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customTreeWidgetMenuRequested(QPoint)));
-
-
-    t.elapsed(__LINE__);
-
-    ui->toggleShowPaletteTables->setVisible(false);
-    ui->splitterMusicTabHorizontal->setCollapsible(1, false); // TEST TEST TEST
-
-    t.elapsed(__LINE__);
-
-
-#ifndef DEBUG_LIGHT_MODE
-    ui->statusBar->setStyleSheet("color: " + darkTextColor);
-#endif
-
-    // MICLABEL (right hand status):
-//    micStatusLabel->setStyleSheet("color: #AC8F7E");
-#ifndef DEBUG_LIGHT_MODE
-    micStatusLabel->setStyleSheet("color: " + darkTextColor);
-#endif
-
-    // SEARCH BOX:
-    ui->darkSearch->setToolTip("Search\nFilter songs by specifying Type:Label:Title.\n\nExamples:\nlove = any song where type or label or title contains 'love'\nsing::heart = singing calls where title contains 'heart'\np:riv = patter from Riverboat\netc.");
-
-    // TITLE:
-    // QLabel { color : #C2AC9E; }
-#ifndef DEBUG_LIGHT_MODE
-    ui->darkTitle->setStyleSheet("color: "+ darkTextColor); // default color
-#else
-    setProp(ui->darkTitle, "flashcall", false);
-#endif
-    ui->darkTitle->setText(""); // get rid of the placeholder text
-
-    // TOOLBUTTONS:
-    QString toolButtonIconColor = "#A0A0A0";
-
-    QStyle* style = QApplication::style();
-    QPixmap pixmap = style->standardPixmap(QStyle::SP_MediaPlay);
-    //#ifndef DEBUG_LIGHT_MODE
-    QBitmap mask = pixmap.createMaskFromColor(QColor("transparent"), Qt::MaskInColor);
-    pixmap.fill((QColor(toolButtonIconColor)));
-    pixmap.setMask(mask);
-    //#endif
-    //    pixmap.save("darkPlay.png");
-
-    darkPlayIcon = new QIcon(pixmap);
-
-    pixmap = style->standardPixmap(QStyle::SP_MediaPause);
-    //#ifndef DEBUG_LIGHT_MODE
-    mask = pixmap.createMaskFromColor(QColor("transparent"), Qt::MaskInColor);
-    pixmap.fill((QColor(toolButtonIconColor)));
-    pixmap.setMask(mask);
-    //#endif
-    //    pixmap.save("darkPause.png");
-
-    darkPauseIcon = new QIcon(pixmap);
-
-    pixmap = style->standardPixmap(QStyle::SP_MediaStop);
-    //#ifndef DEBUG_LIGHT_MODE
-    mask = pixmap.createMaskFromColor(QColor("transparent"), Qt::MaskInColor);
-    pixmap.fill((QColor(toolButtonIconColor)));
-    pixmap.setMask(mask);
-    //#endif
-
-    //    pixmap.save("darkStop.png");
-
-    darkStopIcon = new QIcon(pixmap);
-
-    ui->darkStopButton->setIcon(*darkStopIcon);  // SET THE INITIAL STOP BUTTON ICON
-    ui->darkPlayButton->setIcon(*darkPlayIcon);  // SET THE INITIAL PLAY BUTTON ICON
-
-    t.elapsed(__LINE__);
-
-    // Note: I don't do it this way below, because changing color then requires editing the resource files.
-    //  Instead, the above method allows me to change colors at any time by regenerating the cached icons from pixmaps.
-    //    QPixmap pixmap2(":/graphics/darkPlay.png");
-    //    QIcon darkPlayPixmap2(pixmap2);
-
-    //    QIcon dd(":/graphics/darkPlay.png"); // I can't stick this in the MainWindow object without getting errors either...
-
-    waveform = new float[WAVEFORMSAMPLES];
-
-    clearSlot(0);
-    clearSlot(1);
-    clearSlot(2);
-
-    t.elapsed(__LINE__);
-
-    if (darkmode) {
-        // light mode already loaded the playlist above
-
-        // PLAYLIST LOADING HERE, SO THAT PLAYLIST1 IS INITIALIZED BY NOW
-        // ui->actionSave_Playlist_2->setEnabled(false); // Playlist > Save Playlist...
-        // ui->actionSave_Playlist->setEnabled(false); // Playlist > Save Playlist As...
-        // ui->actionPrint_Playlist->setEnabled(false);  // Playlist > Print Playlist...
-
-        reloadPaletteSlots();  // reload all the palette slots, based on the last time we ran SquareDesk
-
-        for (int i = 0; i < 3; i++) {
-            slotModified[i] = false;
-        }
-    }
-
-    t.elapsed(__LINE__);
-
-    if (darkmode) {
-        ui->seekBarCuesheet->setFusionMode(true); // allow click-to-move-there
-        // #define NOPLAYLISTMENU
-        // #ifdef NOPLAYLISTMENU
-        //         ui->menuPlaylist->menuAction()->setVisible(false); // Menu Bar > Playlist not relevant in Dark Mode
-        // #endif
-        updateSongTableColumnView();
-    }
-
-    auditionInProgress = false;
-    auditionSingleShotTimer.setSingleShot(true);
-    connect(&auditionSingleShotTimer, &QTimer::timeout, this,
-            [this]() {
-                // if the timer ever times out, it will set auditionInProgress to false;
-                // qDebug() << "setting auditionInProgress to false";
-                auditionInProgress = false;
-            });
-
-    stopLongSongTableOperation("MainWindow");
-
-#ifdef TESTRESTARTINGSQUAREDESK
-    if (testRestartingSquareDesk) {
-        qDebug() << "test restarting of SquareDesk in 5 seconds...CMD-Q to stop this.";
-        testRestartingSquareDeskTimer.setSingleShot(true);
-        testRestartingSquareDeskTimer.start(5000);  // 5 seconds
-        connect(&testRestartingSquareDeskTimer, &QTimer::timeout, this,
-                [this]() {
-                    qDebug() << "TOGGLING...";
-                    on_actionSwitch_to_Light_Mode_triggered();  // this will toggle us indefinitely, until manually stopped
-                });
-    }
-
-    QMenu templateMenu;
-#endif
-
-    // set up Template menu ---------
-    templateMenu = new QMenu(this);
-
-    // find all template HTML files, and add to the menu
-    QString templatesDir = musicRootPath + "/lyrics/templates";
-    QString templatePattern = "*template*html";
-    QDir currentDir(templatesDir);
-    // const QString prefix = templatesDir + "/";
-    for (const auto &match : currentDir.entryList(QStringList(templatePattern), QDir::Files | QDir::NoSymLinks)) {
-        // qDebug() << "FOUND ONE: " << match;
-        QString s = match;
-        s.replace(".html", "");
-        QAction *a = templateMenu->addAction(s, this, [this] { newFromTemplate(); });
-        a->setProperty("name", s); // e.g. "lyrics.template"
-    }
-
-    ui->pushButtonNewFromTemplate->setMenu(templateMenu);
-
-    ui->pushButtonEditLyrics->setVisible(false); // don't show this button until there are cuesheets available to edit
-    ui->pushButtonNewFromTemplate->setVisible(false); // don't show this button until there is a song loaded
-
-#ifdef DEBUG_LIGHT_MODE
-    // THEME STUFF -------------
-    t.elapsed(__LINE__);
-
-    svgClockStateChanged("UNINITIALIZED");
-
-    // initial stylesheet loaded here -----------
-    t.elapsed(__LINE__);
-    QString modeString = QString("Setting up %1 Theme...").arg(themePreference);
-    splash->setProgress(65, modeString); // Setting up {Light, Dark} theme...
-
-    themesFileModified(); // load the Themes.qss file for the first time
-
-    // // and set the dynamic properties for LIGHT mode to start with
-    // themeTriggered(ui->actionLight); // start out with the mandatory "Light" theme (do NOT delete "Light")
-
-    t.elapsed(__LINE__);
-
-    ui->actionSwitch_to_Light_Mode->setVisible(false);  // in NEW LIGHT/DARK MODES, don't show the old Switch to X Mode menu item
-#else
-    // qDebug() << "turning off menuTheme";
-    ui->menuTheme->menuAction()->setVisible(false);  // in OLD LIGHT MODE, don't show the new Theme menu
-#endif
-
-    // and update the caches ---------
-    t.elapsed(__LINE__);
-
-    ui->theSVGClock->finishInit();
-    ui->darkSeekBar->finishInit();  // load everything up!
-
-    // qDebug() << "trigger!";
-
-    t.elapsed(__LINE__);
-
-    ui->darkTrebleKnob->finishInit();
-    ui->darkMidKnob->finishInit();
-    ui->darkBassKnob->finishInit();
-
-    t.elapsed(__LINE__);
-
-    ui->darkPitchSlider->finishInit();
-    ui->darkTempoSlider->finishInit();
-    ui->darkVolumeSlider->finishInit();
-
-    t.elapsed(__LINE__);
-
-    ui->FXbutton->setVisible(false); // if USE_JUCE is enabled, and if LoudMax AU is present, this button will be made visible
-    ui->FXbutton->setChecked(false); // checked = LoudMaxWin is visible
-
-    t.elapsed(__LINE__);
-
-#ifdef USE_JUCE
-    // JUCE ---------------
-    juce::initialiseJuce_GUI(); // not sure this is needed
-    scanForPlugins();
-    t.elapsed(__LINE__);
-
-#endif
-
-    // SEARCH -----------
-    typeSearch = labelSearch = titleSearch = ""; // no filters at startup
-    searchAllFields = true; // search is OR, not AND
-
-    // remember what we had set last time the app ran -----
-    QString numPaletteSlots = prefsManager.Getnumpaletteslots();
-    if (numPaletteSlots == "0") {
-        on_action0paletteSlots_triggered();
-    } else if (numPaletteSlots == "1") {
-        on_action1paletteSlots_triggered();
-    } else if (numPaletteSlots == "2") {
-        on_action2paletteSlots_triggered();
-    } else {
-        on_action3paletteSlots_triggered();
-    }
 
     // NOTE: This MUST be down here at the end of the constructor now.
     //   The startup sequence takes longer now, and we don't want the
@@ -922,21 +235,6 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     t.elapsed(__LINE__);
     splash->setProgress(90, "Almost there...");
 
-    vampStatus = -1;  // UNKNOWN
-    vampStatus = testVamp();  // 0 = GOOD, otherwise positive integer error code
-    // qDebug() << "testVamp:" << testVamp();
-
-    // QString vampIndicator = (vampStatus == 0 ? QString(QChar(0x263a)) + " " : QString(QChar(0x26a0)) + " "); // smiley vs ! warning triangle
-    QString vampIndicator = (vampStatus == 0 ? "" : QString(QChar(0x26a0))); // <nothing> vs ! warning triangle
-    QString msg1 = QString("%1Songs found: %2")
-                       .arg(vampIndicator, QString::number(pathStack->size()));
-    ui->statusBar->showMessage(msg1);
-
-    if (vampStatus != 0) {
-        ui->statusBar->setToolTip(QString("Bar/Beat detection and Segmentation disabled: please report error ") + (QString::number(100 + vampStatus)));
-    } else {
-        ui->statusBar->setToolTip(""); // no problems, so no tooltip for you
-    }
 
     mainWindowReady = true;
 
@@ -963,18 +261,6 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
                 // delete hdrMenu; // done with it
 
             });
-
-    // Initialize Preview Playback Device menu
-    populatePlaybackDeviceMenu();
-
-    // Initialize Cuesheet menu
-    setupCuesheetMenu();
-
-    // read label names and IDs
-    readLabelNames();
-
-    // embedded HTTP server for Taminations
-    startTaminationsServer();
 
     // Initialize Now Playing integration for iOS/watchOS remote control
     setupNowPlaying();
@@ -1433,6 +719,42 @@ void MainWindow::initializeUI() {
         ui->splitterMusicTabHorizontal->setSizes(sizes);
     }
 
+    // THEME STUFF -------------
+    svgClockStateChanged("UNINITIALIZED");
+
+    // initial stylesheet loaded here -----------
+    QString modeString = QString("Setting up %1 Theme...").arg(themePreference);
+    // splash->setProgress(65, modeString); // Setting up {Light, Dark} theme...
+
+    themesFileModified(); // load the Themes.qss file for the first time
+
+    // // and set the dynamic properties for LIGHT mode to start with
+    // themeTriggered(ui->actionLight); // start out with the mandatory "Light" theme (do NOT delete "Light")
+
+    ui->actionSwitch_to_Light_Mode->setVisible(false);  // in NEW LIGHT/DARK MODES, don't show the old Switch to X Mode menu item
+
+    vampStatus = -1;  // UNKNOWN
+    vampStatus = testVamp();  // 0 = GOOD, otherwise positive integer error code
+    // qDebug() << "testVamp:" << testVamp();
+
+    // QString vampIndicator = (vampStatus == 0 ? QString(QChar(0x263a)) + " " : QString(QChar(0x26a0)) + " "); // smiley vs ! warning triangle
+    QString vampIndicator = (vampStatus == 0 ? "" : QString(QChar(0x26a0))); // <nothing> vs ! warning triangle
+    QString msg1 = QString("%1Songs found: %2")
+                       .arg(vampIndicator, QString::number(pathStack->size()));
+    ui->statusBar->showMessage(msg1);
+
+    if (vampStatus != 0) {
+        ui->statusBar->setToolTip(QString("Bar/Beat detection and Segmentation disabled: please report error ") + (QString::number(100 + vampStatus)));
+    } else {
+        ui->statusBar->setToolTip(""); // no problems, so no tooltip for you
+    }
+
+    // Initialize Preview Playback Device menu
+    populatePlaybackDeviceMenu();
+
+    // read label names and IDs
+    readLabelNames();
+
 }
 
 
@@ -1630,6 +952,91 @@ void MainWindow::initializeMusicPlaybackControls() {
     ui->darkPitchLabel->setStyleSheet("color: " + darkTextColor);
 #endif
 
+    // VUMETER:
+    ui->darkVUmeter->levelChanged(0, 0, false);  // initialize the VUmeter
+
+    // TITLE:
+    setProp(ui->darkTitle, "flashcall", false);
+    ui->darkTitle->setText(""); // get rid of the placeholder text
+
+    // TOOLBUTTONS:
+    QString toolButtonIconColor = "#A0A0A0";
+
+    QStyle* style = QApplication::style();
+    QPixmap pixmap = style->standardPixmap(QStyle::SP_MediaPlay);
+    //#ifndef DEBUG_LIGHT_MODE
+    QBitmap mask = pixmap.createMaskFromColor(QColor("transparent"), Qt::MaskInColor);
+    pixmap.fill((QColor(toolButtonIconColor)));
+    pixmap.setMask(mask);
+    //#endif
+    //    pixmap.save("darkPlay.png");
+
+    darkPlayIcon = new QIcon(pixmap);
+
+    pixmap = style->standardPixmap(QStyle::SP_MediaPause);
+    //#ifndef DEBUG_LIGHT_MODE
+    mask = pixmap.createMaskFromColor(QColor("transparent"), Qt::MaskInColor);
+    pixmap.fill((QColor(toolButtonIconColor)));
+    pixmap.setMask(mask);
+    //#endif
+    //    pixmap.save("darkPause.png");
+
+    darkPauseIcon = new QIcon(pixmap);
+
+    pixmap = style->standardPixmap(QStyle::SP_MediaStop);
+    //#ifndef DEBUG_LIGHT_MODE
+    mask = pixmap.createMaskFromColor(QColor("transparent"), Qt::MaskInColor);
+    pixmap.fill((QColor(toolButtonIconColor)));
+    pixmap.setMask(mask);
+    //#endif
+
+    //    pixmap.save("darkStop.png");
+
+    darkStopIcon = new QIcon(pixmap);
+
+    ui->darkStopButton->setIcon(*darkStopIcon);  // SET THE INITIAL STOP BUTTON ICON
+    ui->darkPlayButton->setIcon(*darkPlayIcon);  // SET THE INITIAL PLAY BUTTON ICON
+
+    // Note: I don't do it this way below, because changing color then requires editing the resource files.
+    //  Instead, the above method allows me to change colors at any time by regenerating the cached icons from pixmaps.
+    //    QPixmap pixmap2(":/graphics/darkPlay.png");
+    //    QIcon darkPlayPixmap2(pixmap2);
+
+    //    QIcon dd(":/graphics/darkPlay.png"); // I can't stick this in the MainWindow object without getting errors either...
+
+    waveform = new float[WAVEFORMSAMPLES];
+
+    auditionInProgress = false;
+    auditionSingleShotTimer.setSingleShot(true);
+    connect(&auditionSingleShotTimer, &QTimer::timeout, this,
+            [this]() {
+                // if the timer ever times out, it will set auditionInProgress to false;
+                // qDebug() << "setting auditionInProgress to false";
+                auditionInProgress = false;
+            });
+
+    ui->theSVGClock->finishInit();
+
+    ui->darkSeekBar->finishInit();  // load everything up!
+
+    ui->darkTrebleKnob->finishInit();
+    ui->darkMidKnob->finishInit();
+    ui->darkBassKnob->finishInit();
+
+    ui->darkPitchSlider->finishInit();
+    ui->darkTempoSlider->finishInit();
+    ui->darkVolumeSlider->finishInit();
+
+    ui->FXbutton->setVisible(false); // if USE_JUCE is enabled, and if LoudMax AU is present, this button will be made visible
+    ui->FXbutton->setChecked(false); // checked = LoudMaxWin is visible
+
+
+#ifdef USE_JUCE
+    // JUCE ---------------
+    juce::initialiseJuce_GUI(); // not sure this is needed
+    scanForPlugins();
+#endif
+
 }
 
 // ====================================================
@@ -1643,6 +1050,450 @@ void MainWindow::initializeMusicPlaylists() {
     connect(ui->playlist2Table, &QTableWidget::itemDoubleClicked, this, &MainWindow::handlePlaylistDoubleClick);
     connect(ui->playlist3Table, &QTableWidget::itemDoubleClicked, this, &MainWindow::handlePlaylistDoubleClick);
 
+    // PLAYLISTS:
+    ui->playlist1Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers_2023.09.20");
+    ui->playlist1Label->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->playlist1Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
+
+    ui->playlist1Table->setMainWindow(this);
+    ui->playlist1Table->resizeColumnToContents(COLUMN_NUMBER); // number
+    ui->playlist1Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
+    ui->playlist1Table->setColumnWidth(2,20); // pitch
+    ui->playlist1Table->setColumnWidth(3,45); // tempo
+    ui->playlist1Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
+    ui->playlist1Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter);
+    ui->playlist1Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter);
+    ui->playlist1Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter);
+    ui->playlist1Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->playlist1Table->verticalHeader()->setMaximumSectionSize(28);
+
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(2, false); // hide pitch
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(3, false); // hide tempo
+
+    // WARNING: THIS CODE IS ONLY FOR THE NUMBERS COLUMN OF PLAYLIST TABLES.
+    //  THE NORMAL CONTEXT MENU IS IN PLAYLISTS.CPP SOURCE FILE.
+    //
+    // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST1 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
+    ui->playlist1Table->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->playlist1Table, &QTableWidget::customContextMenuRequested,
+            this, [this](QPoint q) {
+
+                // qDebug() << "***** PLAYLIST 1 CONTEXT MENU REQUESTED";
+                // if (this->ui->playlist1Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
+
+                int rowCount = this->ui->playlist1Table->selectionModel()->selectedRows().count();
+                if (rowCount < 1) {
+                    return;  // if mouse clicked and nothing was selected (this should be impossible)
+                }
+                QMenu *plMenu = new QMenu(this);
+
+                plMenu->setProperty("theme", currentThemeString);
+
+                // can only move slot items if they are playlists, NOT tracks
+                QString plural;
+                if (rowCount == 1) {
+                    plural = "item";
+                } else {
+                    plural = QString::number(rowCount) + " items";
+                }
+
+                // Move up/down/top/bottom in playlist
+                if (!relPathInSlot[0].contains("/tracks/")) {
+                    plMenu->addAction(QString("Move " + plural + " to TOP of playlist"),    [this]() { this->PlaylistItemsToTop();    } );
+                    plMenu->addAction(QString("Move " + plural + " UP in playlist"),        [this]() { this->PlaylistItemsMoveUp();   } );
+                    plMenu->addAction(QString("Move " + plural + " DOWN in playlist"),      [this]() { this->PlaylistItemsMoveDown(); } );
+                    plMenu->addAction(QString("Move " + plural + " to BOTTOM of playlist"), [this]() { this->PlaylistItemsToBottom(); } );
+                    plMenu->addSeparator();
+                    plMenu->addAction(QString("Remove " + plural + " from playlist"),       [this]() { this->PlaylistItemsRemove(); } );
+                }
+
+                if (rowCount == 1) {
+                    // Reveal Audio File and Cuesheet in Finder
+                    plMenu->addSeparator();
+                    QString fullPath = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
+                    QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
+                    //                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
+
+                    QFileInfo fi(fullPath);
+                    QString menuString = "Reveal Audio File In Finder";
+                    QString thingToOpen = fullPath;
+
+                    if (!fi.exists()) {
+                        menuString = "Reveal Enclosing Folder In Finder";
+                        thingToOpen = enclosingFolderName;
+                    }
+
+                    plMenu->addAction(QString(menuString),
+                                      [thingToOpen]() {
+            // opens either the folder and highlights the file (if file exists), OR
+            // opens the folder where the file was SUPPOSED to exist.
+#if defined(Q_OS_MAC)
+                                          QStringList args;
+                                          args << "-e";
+                                          args << "tell application \"Finder\"";
+                                          args << "-e";
+                                          args << "activate";
+                                          args << "-e";
+                                          args << "select POSIX file \"" + thingToOpen + "\"";
+                                          args << "-e";
+                                          args << "end tell";
+
+                                          //    QProcess::startDetached("osascript", args);
+
+                                          // same as startDetached, but suppresses output from osascript to console
+                                          //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
+                                          QProcess process;
+                                          process.setProgram("osascript");
+                                          process.setArguments(args);
+                                          process.setStandardOutputFile(QProcess::nullDevice());
+                                          process.setStandardErrorFile(QProcess::nullDevice());
+                                          qint64 pid;
+                                          process.startDetached(&pid);
+#endif
+
+                                      });
+
+                    // if the current song has a cuesheet, offer to show it to the user -----
+                    QString fullMP3Path = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
+                    QString cuesheetPath;
+
+                    SongSetting settings1;
+                    if (songSettings.loadSettings(fullMP3Path, settings1)) {
+                        cuesheetPath = settings1.getCuesheetName();
+                    } else {
+                        // qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
+                    }
+
+                    // qDebug() << "convertCuesheetPathNameToCurrentRoot BEFORE:" << cuesheetPath;
+                    cuesheetPath = convertCuesheetPathNameToCurrentRoot(cuesheetPath);
+                    // qDebug() << "convertCuesheetPathNameToCurrentRoot AFTER:" << cuesheetPath;
+
+                    if (cuesheetPath != "") {
+                        plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
+                                          [this, cuesheetPath]() {
+                                              showInFinderOrExplorer(cuesheetPath);
+                                          }
+                                          );
+                        plMenu->addAction(QString("Load Cuesheets"),
+                                          [this, fullMP3Path, cuesheetPath]() {
+                                              maybeLoadCuesheets(fullMP3Path, cuesheetPath);
+                                          }
+                                          );
+                    }
+                }
+
+                plMenu->popup(QCursor::pos());
+                plMenu->exec();
+            }
+            );
+
+    // -----
+#ifndef DEBUG_LIGHT_MODE
+    ui->playlist2Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
+#endif
+    ui->playlist2Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers_2023.09.20");
+    ui->playlist2Label->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->playlist2Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
+
+    ui->playlist2Table->setMainWindow(this);
+    ui->playlist2Table->resizeColumnToContents(COLUMN_NUMBER); // number
+    ui->playlist2Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
+    ui->playlist2Table->setColumnWidth(2,20); // pitch
+    ui->playlist2Table->setColumnWidth(3,45); // tempo
+    ui->playlist2Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
+    ui->playlist2Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter );
+    ui->playlist2Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter );
+    ui->playlist2Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter );
+    ui->playlist2Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->playlist2Table->verticalHeader()->setMaximumSectionSize(28);
+
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(2, false); // hide pitch
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(3, false); // hide tempo
+
+    // WARNING: THIS CODE IS ONLY FOR THE NUMBERS COLUMN OF PLAYLIST TABLES.
+    //  THE NORMAL CONTEXT MENU IS IN PLAYLISTS.CPP SOURCE FILE.
+    //
+    // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST2 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
+    ui->playlist2Table->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->playlist2Table, &QTableWidget::customContextMenuRequested,
+            this, [this](QPoint q) {
+
+                // qDebug() << "***** PLAYLIST 2 CONTEXT MENU REQUESTED";
+                // if (this->ui->playlist2Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
+
+                int rowCount = this->ui->playlist2Table->selectionModel()->selectedRows().count();
+                if (rowCount < 1) {
+                    return;  // if mouse clicked and nothing was selected (this should be impossible)
+                }
+                QString plural;
+                if (rowCount == 1) {
+                    plural = "item";
+                } else {
+                    plural = QString::number(rowCount) + " items";
+                }
+
+                QMenu *plMenu = new QMenu(this);
+                plMenu->setProperty("theme", currentThemeString);
+
+                // Move up/down/top/bottom in playlist
+                if (!relPathInSlot[1].contains("/tracks/")) {
+                    plMenu->addAction(QString("Move " + plural + " to TOP of playlist"),    [this]() { this->PlaylistItemsToTop();    } );
+                    plMenu->addAction(QString("Move " + plural + " UP in playlist"),        [this]() { this->PlaylistItemsMoveUp();   } );
+                    plMenu->addAction(QString("Move " + plural + " DOWN in playlist"),      [this]() { this->PlaylistItemsMoveDown(); } );
+                    plMenu->addAction(QString("Move " + plural + " to BOTTOM of playlist"), [this]() { this->PlaylistItemsToBottom(); } );
+                    plMenu->addSeparator();
+                    plMenu->addAction(QString("Remove " + plural + " from playlist"),       [this]() { this->PlaylistItemsRemove(); } );
+                }
+
+                if (rowCount == 1) {
+                    // Reveal Audio File and Cuesheet in Finder
+                    plMenu->addSeparator();
+                    QString fullPath = this->ui->playlist2Table->item(this->ui->playlist2Table->itemAt(q)->row(), 4)->text();
+                    QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
+                    //                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
+
+                    QFileInfo fi(fullPath);
+                    QString menuString = "Reveal Audio File In Finder";
+                    QString thingToOpen = fullPath;
+
+                    if (!fi.exists()) {
+                        menuString = "Reveal Enclosing Folder In Finder";
+                        thingToOpen = enclosingFolderName;
+                    }
+
+                    plMenu->addAction(QString(menuString),
+                                      [thingToOpen]() {
+            // opens either the folder and highlights the file (if file exists), OR
+            // opens the folder where the file was SUPPOSED to exist.
+#if defined(Q_OS_MAC)
+                                          QStringList args;
+                                          args << "-e";
+                                          args << "tell application \"Finder\"";
+                                          args << "-e";
+                                          args << "activate";
+                                          args << "-e";
+                                          args << "select POSIX file \"" + thingToOpen + "\"";
+                                          args << "-e";
+                                          args << "end tell";
+
+                                          //    QProcess::startDetached("osascript", args);
+
+                                          // same as startDetached, but suppresses output from osascript to console
+                                          //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
+                                          QProcess process;
+                                          process.setProgram("osascript");
+                                          process.setArguments(args);
+                                          process.setStandardOutputFile(QProcess::nullDevice());
+                                          process.setStandardErrorFile(QProcess::nullDevice());
+                                          qint64 pid;
+                                          process.startDetached(&pid);
+#endif
+
+                                      });
+
+                    // if the current song has a cuesheet, offer to show it to the user -----
+                    QString fullMP3Path = this->ui->playlist2Table->item(this->ui->playlist2Table->itemAt(q)->row(), 4)->text();
+                    QString cuesheetPath;
+
+                    SongSetting settings1;
+                    if (songSettings.loadSettings(fullMP3Path, settings1)) {
+                        cuesheetPath = settings1.getCuesheetName();
+                    } else {
+                        // qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
+                    }
+
+                    // qDebug() << "convertCuesheetPathNameToCurrentRoot BEFORE:" << cuesheetPath;
+                    cuesheetPath = convertCuesheetPathNameToCurrentRoot(cuesheetPath);
+                    // qDebug() << "convertCuesheetPathNameToCurrentRoot AFTER:" << cuesheetPath;
+
+                    if (cuesheetPath != "") {
+                        plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
+                                          [this, cuesheetPath]() {
+                                              showInFinderOrExplorer(cuesheetPath);
+                                          }
+                                          );
+                        plMenu->addAction(QString("Load Cuesheets"),
+                                          [this, fullMP3Path, cuesheetPath]() {
+                                              maybeLoadCuesheets(fullMP3Path, cuesheetPath);
+                                          }
+                                          );
+                    }
+                }
+
+                plMenu->popup(QCursor::pos());
+                plMenu->exec();
+            }
+            );
+
+    // -----
+    ui->playlist3Table->setMainWindow(this);
+#ifndef DEBUG_LIGHT_MODE
+    ui->playlist3Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
+#endif
+    ui->playlist3Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers_2023.09.20");
+    ui->playlist3Label->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->playlist3Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
+
+    ui->playlist3Table->resizeColumnToContents(COLUMN_NUMBER); // number
+    ui->playlist3Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
+    ui->playlist3Table->setColumnWidth(2,20); // pitch
+    ui->playlist3Table->setColumnWidth(3,45); // tempo
+    ui->playlist3Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
+    ui->playlist3Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter );
+    ui->playlist3Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter );
+    ui->playlist3Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter );
+    ui->playlist3Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->playlist3Table->verticalHeader()->setMaximumSectionSize(28);
+
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(2, false); // hide pitch
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(3, false); // hide tempo
+
+    // WARNING: THIS CODE IS ONLY FOR THE NUMBERS COLUMN OF PLAYLIST TABLES.
+    //  THE NORMAL CONTEXT MENU IS IN PLAYLISTS.CPP SOURCE FILE.
+    //
+    // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST3 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
+    ui->playlist3Table->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->playlist3Table, &QTableWidget::customContextMenuRequested,
+            this, [this](QPoint q) {
+
+                // qDebug() << "***** PLAYLIST 3 CONTEXT MENU REQUESTED";
+                // if (this->ui->playlist3Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
+
+                int rowCount = this->ui->playlist3Table->selectionModel()->selectedRows().count();
+                if (rowCount < 1) {
+                    return;  // if mouse clicked and nothing was selected (this should be impossible)
+                }
+                QString plural;
+                if (rowCount == 1) {
+                    plural = "item";
+                } else {
+                    plural = QString::number(rowCount) + " items";
+                }
+
+                QMenu *plMenu = new QMenu(this);
+                plMenu->setProperty("theme", currentThemeString);
+
+                // Move up/down/top/bottom in playlist
+                if (!relPathInSlot[2].contains("/tracks/")) {
+                    plMenu->addAction(QString("Move " + plural + " to TOP of playlist"),    [this]() { this->PlaylistItemsToTop();    } );
+                    plMenu->addAction(QString("Move " + plural + " UP in playlist"),        [this]() { this->PlaylistItemsMoveUp();   } );
+                    plMenu->addAction(QString("Move " + plural + " DOWN in playlist"),      [this]() { this->PlaylistItemsMoveDown(); } );
+                    plMenu->addAction(QString("Move " + plural + " to BOTTOM of playlist"), [this]() { this->PlaylistItemsToBottom(); } );
+                    plMenu->addSeparator();
+                    plMenu->addAction(QString("Remove " + plural + " from playlist"),       [this]() { this->PlaylistItemsRemove(); } );
+                }
+
+                if (rowCount == 1) {
+                    // Reveal Audio File and Cuesheet in Finder
+                    plMenu->addSeparator();
+                    QString fullPath = this->ui->playlist3Table->item(this->ui->playlist3Table->itemAt(q)->row(), 4)->text();
+                    QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
+                    //                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
+
+                    QFileInfo fi(fullPath);
+                    QString menuString = "Reveal Audio File In Finder";
+                    QString thingToOpen = fullPath;
+
+                    if (!fi.exists()) {
+                        menuString = "Reveal Enclosing Folder In Finder";
+                        thingToOpen = enclosingFolderName;
+                    }
+
+                    plMenu->addAction(QString(menuString),
+                                      [thingToOpen]() {
+            // opens either the folder and highlights the file (if file exists), OR
+            // opens the folder where the file was SUPPOSED to exist.
+#if defined(Q_OS_MAC)
+                                          QStringList args;
+                                          args << "-e";
+                                          args << "tell application \"Finder\"";
+                                          args << "-e";
+                                          args << "activate";
+                                          args << "-e";
+                                          args << "select POSIX file \"" + thingToOpen + "\"";
+                                          args << "-e";
+                                          args << "end tell";
+
+                                          //    QProcess::startDetached("osascript", args);
+
+                                          // same as startDetached, but suppresses output from osascript to console
+                                          //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
+                                          QProcess process;
+                                          process.setProgram("osascript");
+                                          process.setArguments(args);
+                                          process.setStandardOutputFile(QProcess::nullDevice());
+                                          process.setStandardErrorFile(QProcess::nullDevice());
+                                          qint64 pid;
+                                          process.startDetached(&pid);
+#endif
+
+                                      });
+            // if the current song has a cuesheet, offer to show it to the user -----
+            QString fullMP3Path = this->ui->playlist3Table->item(this->ui->playlist3Table->itemAt(q)->row(), 4)->text();
+            QString cuesheetPath;
+
+            SongSetting settings1;
+            if (songSettings.loadSettings(fullMP3Path, settings1)) {
+                cuesheetPath = settings1.getCuesheetName();
+            } else {
+                // qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
+            }
+
+            // qDebug() << "convertCuesheetPathNameToCurrentRoot BEFORE:" << cuesheetPath;
+            cuesheetPath = convertCuesheetPathNameToCurrentRoot(cuesheetPath);
+            // qDebug() << "convertCuesheetPathNameToCurrentRoot AFTER:" << cuesheetPath;
+
+            if (cuesheetPath != "") {
+                plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
+                                  [this, cuesheetPath]() {
+                                      showInFinderOrExplorer(cuesheetPath);
+                                  }
+                                  );
+                plMenu->addAction(QString("Load Cuesheets"),
+                                  [this, fullMP3Path, cuesheetPath]() {
+                                      maybeLoadCuesheets(fullMP3Path, cuesheetPath);
+                                  }
+                                  );
+
+            }
+        }
+
+        plMenu->popup(QCursor::pos());
+        plMenu->exec();
+    }
+            );
+
+    ui->toggleShowPaletteTables->setVisible(false);
+    ui->splitterMusicTabHorizontal->setCollapsible(1, false); // TEST TEST TEST
+
+    clearSlot(0);
+    clearSlot(1);
+    clearSlot(2);
+
+    reloadPaletteSlots();  // reload all the palette slots, based on the last time we ran SquareDesk
+
+    for (int i = 0; i < 3; i++) {
+        slotModified[i] = false;
+    }
+
+    // remember what we had set last time the app ran -----
+    QString numPaletteSlots = prefsManager.Getnumpaletteslots();
+    if (numPaletteSlots == "0") {
+        on_action0paletteSlots_triggered();
+    } else if (numPaletteSlots == "1") {
+        on_action1paletteSlots_triggered();
+    } else if (numPaletteSlots == "2") {
+        on_action2paletteSlots_triggered();
+    } else {
+        on_action3paletteSlots_triggered();
+    }
+
 }
 
 // ====================================================
@@ -1651,6 +1502,22 @@ void MainWindow::initializeMusicSearch() {
 
     ui->darkSearch->setFocus();  // this should be the intial focus
 
+    // TREEWIDGET:
+    QList<QTreeWidgetItem *> trackItem = ui->treeWidget->findItems("Tracks", Qt::MatchExactly);
+    doNotCallDarkLoadMusicList = true;
+    trackItem[0]->setSelected(true); // entire Tracks was already loaded by actionTags
+    doNotCallDarkLoadMusicList = false;
+
+    // enable context menus for TreeWidget
+    ui->treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customTreeWidgetMenuRequested(QPoint)));
+
+    // SEARCH BOX:
+    ui->darkSearch->setToolTip("Search\nFilter songs by specifying Type:Label:Title.\n\nExamples:\nlove = any song where type or label or title contains 'love'\nsing::heart = singing calls where title contains 'heart'\np:riv = patter from Riverboat\netc.");
+
+    // SEARCH -----------
+    typeSearch = labelSearch = titleSearch = ""; // no filters at startup
+    searchAllFields = true; // search is OR, not AND
 
 }
 
@@ -1752,7 +1619,7 @@ void MainWindow::initializeMusicSongTable() {
 
     ui->darkSongTable->setMainWindow(this);
 
-
+    stopLongSongTableOperation("MainWindow");
 
 }
 
@@ -1811,6 +1678,33 @@ void MainWindow::initializeCuesheetTab() {
 
     connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
             this, SLOT(LyricsCopyAvailable(bool)));
+
+    ui->seekBarCuesheet->setFusionMode(true); // allow click-to-move-there
+    updateSongTableColumnView();
+
+    // set up Template menu ---------
+    templateMenu = new QMenu(this);
+
+    // find all template HTML files, and add to the menu
+    QString templatesDir = musicRootPath + "/lyrics/templates";
+    QString templatePattern = "*template*html";
+    QDir currentDir(templatesDir);
+    // const QString prefix = templatesDir + "/";
+    for (const auto &match : currentDir.entryList(QStringList(templatePattern), QDir::Files | QDir::NoSymLinks)) {
+        // qDebug() << "FOUND ONE: " << match;
+        QString s = match;
+        s.replace(".html", "");
+        QAction *a = templateMenu->addAction(s, this, [this] { newFromTemplate(); });
+        a->setProperty("name", s); // e.g. "lyrics.template"
+    }
+
+    ui->pushButtonNewFromTemplate->setMenu(templateMenu);
+
+    ui->pushButtonEditLyrics->setVisible(false); // don't show this button until there are cuesheets available to edit
+    ui->pushButtonNewFromTemplate->setVisible(false); // don't show this button until there is a song loaded
+
+    // Initialize Cuesheet menu
+    setupCuesheetMenu();
 
 }
 
@@ -2236,7 +2130,8 @@ void MainWindow::initializeSDTab() {
 
 // ====================================================
 void MainWindow::initializeTaminationsTab() {
-
+    // embedded HTTP server for Taminations
+    startTaminationsServer();
 }
 
 // ====================================================
