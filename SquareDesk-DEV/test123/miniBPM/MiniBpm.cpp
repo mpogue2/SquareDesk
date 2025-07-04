@@ -171,7 +171,7 @@ public:
 
 private:
     int m_n;
-    double m_fs;
+    double m_fs [[maybe_unused]];  // -mpogue, compiler be quiet!
     double m_fmin;
     double m_fmax;
     bool m_windowed;

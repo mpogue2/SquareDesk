@@ -63,29 +63,18 @@
 #pragma clang diagnostic pop
 
 #include "ui_mainwindow.h"
-#include "utility.h"
 #include "perftimer.h"
-#include "tablenumberitem.h"
-#include "tablelabelitem.h"
-#include "importdialog.h"
-//#include "embeddedserver.h"
 #include "exportdialog.h"
 #include "songhistoryexportdialog.h"
 #include "calllistcheckbox.h"
 #include "sessioninfo.h"
-// #include "songtitlelabel.h"
-#include "tablewidgettimingitem.h"
-#include "danceprograms.h"
 #include "startupwizard.h"
 #include "makeflashdrivewizard.h"
-// #include "downloadmanager.h"
 #include "songlistmodel.h"
 #include "mytablewidget.h"
 
 #include "svgWaveformSlider.h"
-// #include "auditionbutton.h"
 
-#include "src/communicator.h"
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #ifndef M1MAC
