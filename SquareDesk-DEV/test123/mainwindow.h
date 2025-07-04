@@ -842,6 +842,7 @@ private:
     // other initialization
     void initializeSessions();
     void initializeAudioEngine();
+    void initializeLightDarkTheme();
 
     // ============================================================================
     // CORE APPLICATION STATE

@@ -249,6 +249,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     scanForPlugins();
 #endif
 
+    initializeLightDarkTheme();
 }
 // END CONSTRUCTOR ---------
 
@@ -596,27 +597,6 @@ void MainWindow::initializeUI() {
 
 
     songSettings.setDefaultTagColors( prefsManager.GettagsBackgroundColorString(), prefsManager.GettagsForegroundColorString());
-
-
-#ifdef DEBUG_LIGHT_MODE
-    themePreference = prefsManager.GetactiveTheme();
-    // qDebug() << "themePreference:" << themePreference;
-
-    // set the theme, but do not call darkLoadSongList again
-    doNotCallDarkLoadMusicList = true;  // avoid calling it twice at startup, but allow later for it to be called by both actionViewTags and ThemeToggled
-    if (themePreference == "Light") {
-        // qDebug() << "    setting to Light";
-        ui->actionLight->setChecked(true);
-        themeTriggered(ui->actionLight);
-    } else if (themePreference == "Dark") {
-        // qDebug() << "    setting to Dark";
-        ui->actionDark->setChecked(true);
-        themeTriggered(ui->actionDark);
-    }
-    doNotCallDarkLoadMusicList = false;
-
-#endif
-
 
     {
         // MUSIC TAB VERTICAL SPLITTER IS PERSISTENT ---------
@@ -2146,4 +2126,22 @@ void MainWindow::initializeAudioEngine() {
     cBass->SetIntelBoost(GAIN_DB,  static_cast<float>(prefsManager.GetintelGain_dB()/10.0));  // expressed as positive number
 
     cBass->SetPanEQVolumeCompensation(static_cast<float>(prefsManager.GetpanEQGain_dB()/2.0)); // expressed as signed half-dB's
+}
+
+void MainWindow::initializeLightDarkTheme() {
+    themePreference = prefsManager.GetactiveTheme();
+    // qDebug() << "themePreference:" << themePreference;
+
+    // set the theme, but do not call darkLoadSongList again
+    doNotCallDarkLoadMusicList = true;  // avoid calling it twice at startup, but allow later for it to be called by both actionViewTags and ThemeToggled
+    if (themePreference == "Light") {
+        // qDebug() << "    setting to Light";
+        ui->actionLight->setChecked(true);
+        themeTriggered(ui->actionLight);
+    } else if (themePreference == "Dark") {
+        // qDebug() << "    setting to Dark";
+        ui->actionDark->setChecked(true);
+        themeTriggered(ui->actionDark);
+    }
+    doNotCallDarkLoadMusicList = false;
 }
