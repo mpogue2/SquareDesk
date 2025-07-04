@@ -839,6 +839,10 @@ private:
     void initializeDanceProgramsTab();
     void initializeReferenceTab();
 
+    // other initialization
+    void initializeSessions();
+    void initializeAudioEngine();
+
     // ============================================================================
     // CORE APPLICATION STATE
     // ============================================================================

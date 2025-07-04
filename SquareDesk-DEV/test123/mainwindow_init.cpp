@@ -144,6 +144,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     sd_redo_stack(new SDRedoStack())
 {
     Q_UNUSED(dark)
+
     // NEW INITIALIZATION STUFF ==============
     PerfTimer t("MainWindow::MainWindow", __LINE__);
     t.start(__LINE__);
@@ -160,20 +161,10 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 #endif
 
     // INITIALIZE AUDIO SUBSYSTEM UP FRONT -----------
-    cBass = new flexible_audio();
-    connect(cBass, SIGNAL(haveDuration()), this, SLOT(haveDuration2()));  // when decode complete, we know MP3 duration
-    cBass->Init();
-
-    cBass->SetIntelBoostEnabled(prefsManager.GetintelBoostIsEnabled());
-    cBass->SetIntelBoost(FREQ_KHZ, static_cast<float>(prefsManager.GetintelCenterFreq_KHz()/10.0)); // yes, we have to initialize these manually
-    cBass->SetIntelBoost(BW_OCT,  static_cast<float>(prefsManager.GetintelWidth_oct()/10.0));
-    cBass->SetIntelBoost(GAIN_DB, static_cast<float>(prefsManager.GetintelGain_dB()/10.0));  // expressed as positive number
-
-    cBass->SetPanEQVolumeCompensation(static_cast<float>(prefsManager.GetpanEQGain_dB()/2.0)); // expressed as signed half-dB's
-
+    initializeAudioEngine();
 
     // General UI initialization ----------------------
-    splash->setProgress(10, "Initializing the application UI...");
+    splash->setProgress(10, "Setting up SquareDesk for you...");
     initializeUI();
 
     // Music tab initialization
@@ -190,19 +181,22 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     initializeMusicPlaylists();
 
     // Other tabs initialization
+    splash->setProgress(55, "Initializing the Cuesheet tab...");
     initializeCuesheetTab();
 
     splash->setProgress(60, "Loading SD and Taminations...");
     initializeSDTab();
     initializeTaminationsTab();
 
-    splash->setProgress(65, "Initializing Dance Programs...");
+    splash->setProgress(65, "Initializing the Dance Programs Tab...");
     initializeDanceProgramsTab();
 
-    splash->setProgress(70, "Initializing Reference Tab...");
+    splash->setProgress(70, "Initializing the Reference Tab...");
     initializeReferenceTab();
 
     // OLD INITIALIZATION STUFF ==============
+
+
 
     // NOTE: This MUST be down here at the end of the constructor now.
     //   The startup sequence takes longer now, and we don't want the
@@ -224,10 +218,6 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
         //     }
         // }
 
-        // also watch the abbrevs.txt file for changes, and reload the abbreviations if it changed
-        abbrevsWatcher.addPath(musicRootPath + "/sd/abbrevs.txt");
-        QObject::connect(&abbrevsWatcher, SIGNAL(fileChanged(QString)), this, SLOT(readAbbreviations()));
-
         ui->darkSongTable->selectRow(0);
         ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
     });
@@ -235,8 +225,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     t.elapsed(__LINE__);
     splash->setProgress(90, "Almost there...");
 
-
     mainWindowReady = true;
+
+    initializeSessions();
 
     // this is down here intentionally.
     // darkLoadMusicList will either:
@@ -262,12 +253,18 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
             });
 
-    // Initialize Now Playing integration for iOS/watchOS remote control
-    setupNowPlaying();
+// This needs to be down here
+#ifdef USE_JUCE
+    // JUCE ---------------
+    juce::initialiseJuce_GUI(); // not sure this is needed
+    scanForPlugins();
+#endif
+
 }
 // END CONSTRUCTOR ---------
 
-// ====================================================
+// ========================================================================================================
+// ========================================================================================================
 // General UI initialization
 void MainWindow::initializeUI() {
     oldFocusWidget = nullptr;
@@ -422,8 +419,6 @@ void MainWindow::initializeUI() {
 
     // ERROR LOGGING ------
     logFilePath = musicRootPath + "/.squaredesk/debug.log";
-
-    switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
 
 //#define DISABLEFILEWATCHER 1
 #ifndef DISABLEFILEWATCHER
@@ -633,49 +628,6 @@ void MainWindow::initializeUI() {
 
 #endif
 
-    // // what session are we in to start with?
-    // SessionDefaultType sessionDefault =
-    //     static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()); // preference setting
-
-    // if (sessionDefault == SessionDefaultDOW) {
-
-    //     int currentSessionID = songSettings.currentSessionIDByTime(); // what session are we in?
-    //     setCurrentSessionId(currentSessionID); // save it in songSettings
-
-    //     populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
-
-    //     // splash->setProgress(25, "Looking up when songs were last played...");
-    //     reloadSongAges(ui->actionShow_All_Ages->isChecked());
-
-
-    //     lastSessionID = currentSessionID;
-    //     currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
-    //     currentSongSecondsPlayedRecorded = false; // not reported yet, because this is a new session
-    // } else {
-    //     // do this once at startup, and never again.  I think that was the intent of this mode.
-    //     int practiceID = 1; // wrong, if there are deleted rows in Sessions table
-    //     QList<SessionInfo> sessions = songSettings.getSessionInfo();
-
-    //     for (const auto &s : std::as_const(sessions)) {
-    //         // qDebug() << s.day_of_week << s.id << s.name << s.order_number << s.start_minutes;
-    //         if (s.order_number == 0) { // 0 is the first non-deleted row where order_number == 0
-    //             // qDebug() << "Found it: " << s.name << "row:" << s.id;
-    //             practiceID = s.id; // now it's right!
-    //         }
-    //     }
-
-    //     setCurrentSessionId(practiceID); // save it in songSettings
-
-    //     reloadSongAges(ui->actionShow_All_Ages->isChecked());
-
-    //     populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
-    //     lastSessionID = practiceID;
-    //     currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
-    //     currentSongSecondsPlayedRecorded = false; // not reported yet, because this is a new session
-    //     // qDebug() << "***** We are now in Practice Session, id =" << practiceID;
-    // }
-
-    // populateMenuSessionOptions();  // update the Session menu
 
     {
         // MUSIC TAB VERTICAL SPLITTER IS PERSISTENT ---------
@@ -755,6 +707,8 @@ void MainWindow::initializeUI() {
     // read label names and IDs
     readLabelNames();
 
+    // Initialize Now Playing integration for iOS/watchOS remote control
+    setupNowPlaying();
 }
 
 
@@ -1029,13 +983,6 @@ void MainWindow::initializeMusicPlaybackControls() {
 
     ui->FXbutton->setVisible(false); // if USE_JUCE is enabled, and if LoudMax AU is present, this button will be made visible
     ui->FXbutton->setChecked(false); // checked = LoudMaxWin is visible
-
-
-#ifdef USE_JUCE
-    // JUCE ---------------
-    juce::initialiseJuce_GUI(); // not sure this is needed
-    scanForPlugins();
-#endif
 
 }
 
@@ -1640,7 +1587,8 @@ void MainWindow::initializeCuesheetTab() {
     loadedCuesheetNameWithPath = "";
     cuesheetDebugDialog = nullptr;
 
-    switchToLyricsOnPlay = false;
+    // switchToLyricsOnPlay = false;
+    switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
 
     ui->textBrowserCueSheet->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->textBrowserCueSheet, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customLyricsMenuRequested(QPoint)));
@@ -2125,6 +2073,9 @@ void MainWindow::initializeSDTab() {
     newSequenceInProgress = editSequenceInProgress = false; // no sequence being edited right now.
     on_actionFormation_Thumbnails_triggered(); // make sure that the thumbnails are turned OFF, if Formation Thumbnails is not initially checked
 
+    // also watch the abbrevs.txt file for changes, and reload the abbreviations if it changed
+    abbrevsWatcher.addPath(musicRootPath + "/sd/abbrevs.txt");
+    QObject::connect(&abbrevsWatcher, SIGNAL(fileChanged(QString)), this, SLOT(readAbbreviations()));
 
 }
 
@@ -2147,3 +2098,63 @@ void MainWindow::initializeReferenceTab() {
     initReftab();
 }
 
+// ====================================================
+void MainWindow::initializeSessions() {
+    // what session are we in to start with?
+    SessionDefaultType sessionDefault =
+        static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()); // preference setting
+
+    if (sessionDefault == SessionDefaultDOW) {
+
+        int currentSessionID = songSettings.currentSessionIDByTime(); // what session are we in?
+        setCurrentSessionId(currentSessionID); // save it in songSettings
+
+        populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
+
+        // splash->setProgress(25, "Looking up when songs were last played...");
+        reloadSongAges(ui->actionShow_All_Ages->isChecked());
+
+
+        lastSessionID = currentSessionID;
+        currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
+        currentSongSecondsPlayedRecorded = false; // not reported yet, because this is a new session
+    } else {
+        // do this once at startup, and never again.  I think that was the intent of this mode.
+        int practiceID = 1; // wrong, if there are deleted rows in Sessions table
+        QList<SessionInfo> sessions = songSettings.getSessionInfo();
+
+        for (const auto &s : std::as_const(sessions)) {
+            // qDebug() << s.day_of_week << s.id << s.name << s.order_number << s.start_minutes;
+            if (s.order_number == 0) { // 0 is the first non-deleted row where order_number == 0
+                // qDebug() << "Found it: " << s.name << "row:" << s.id;
+                practiceID = s.id; // now it's right!
+            }
+        }
+
+        setCurrentSessionId(practiceID); // save it in songSettings
+
+        reloadSongAges(ui->actionShow_All_Ages->isChecked());
+
+        populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
+        lastSessionID = practiceID;
+        currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
+        currentSongSecondsPlayedRecorded = false; // not reported yet, because this is a new session
+        // qDebug() << "***** We are now in Practice Session, id =" << practiceID;
+    }
+
+    populateMenuSessionOptions();  // update the Session menu
+}
+
+void MainWindow::initializeAudioEngine() {
+
+    cBass = new flexible_audio();
+    connect(cBass, SIGNAL(haveDuration()), this, SLOT(haveDuration2()));  // when decode complete, we know MP3 duration
+    cBass->Init();
+
+    cBass->SetIntelBoostEnabled(prefsManager.GetintelBoostIsEnabled());
+    cBass->SetIntelBoost(FREQ_KHZ, static_cast<float>(prefsManager.GetintelCenterFreq_KHz()/10.0)); // yes, we have to initialize these manually
+    cBass->SetIntelBoost(BW_OCT,   static_cast<float>(prefsManager.GetintelWidth_oct()/10.0));
+    cBass->SetIntelBoost(GAIN_DB,  static_cast<float>(prefsManager.GetintelGain_dB()/10.0));  // expressed as positive number
+
+    cBass->SetPanEQVolumeCompensation(static_cast<float>(prefsManager.GetpanEQGain_dB()/2.0)); // expressed as signed half-dB's
+}
