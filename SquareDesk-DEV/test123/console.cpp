@@ -74,117 +74,117 @@
 **
 ****************************************************************************/
 
-#include "console.h"
+// #include "console.h"
 
-#include <QScrollBar>
-#include <QtCore/QDebug>
-#include <QApplication>
-#include <QRegularExpression>
+// #include <QScrollBar>
+// #include <QtCore/QDebug>
+// #include <QApplication>
+// #include <QRegularExpression>
 
-Console::Console(QWidget *parent)
-    : QPlainTextEdit(parent)
-    , localEchoEnabled(false)
-{
-    document()->setMaximumBlockCount(100);
-    QPalette p = palette();
-    p.setColor(QPalette::Base, Qt::white);
-    p.setColor(QPalette::Text, Qt::black);
-    setPalette(p);
-#if defined(Q_OS_MAC)
-    // temporarily commented out for Win32 because of runtime errors
-    QFont theFont("courier");
-    this->setFont(theFont);
-#endif
-}
+// Console::Console(QWidget *parent)
+//     : QPlainTextEdit(parent)
+//     , localEchoEnabled(false)
+// {
+//     document()->setMaximumBlockCount(100);
+//     QPalette p = palette();
+//     p.setColor(QPalette::Base, Qt::white);
+//     p.setColor(QPalette::Text, Qt::black);
+//     setPalette(p);
+// #if defined(Q_OS_MAC)
+//     // temporarily commented out for Win32 because of runtime errors
+//     QFont theFont("courier");
+//     this->setFont(theFont);
+// #endif
+// }
 
-void Console::putData(const QByteArray &data)
-{
-//    QByteArray data2 = data; // mutable
-    QString data2s(data);
+// void Console::putData(const QByteArray &data)
+// {
+// //    QByteArray data2 = data; // mutable
+//     QString data2s(data);
 
-//    qDebug() << "console data:" << data2 << "length:" << data.length();
+// //    qDebug() << "console data:" << data2 << "length:" << data.length();
 
-    if (data2s.contains('\x07')) {
-            QApplication::beep();
-//            qDebug() << "Console::putData -- BEEP";
-            data2s.replace('\x07',"");
-//            qDebug() << "post-beep console data:" << data2 << "length:" << data.length();
-    }
+//     if (data2s.contains('\x07')) {
+//             QApplication::beep();
+// //            qDebug() << "Console::putData -- BEEP";
+//             data2s.replace('\x07',"");
+// //            qDebug() << "post-beep console data:" << data2 << "length:" << data.length();
+//     }
 
-    bool done = false;
-    static QRegularExpression regex1(".\b \b");
-    while (!done) {
-        int beforeLength = data2s.length();
-        data2s.replace(regex1,""); // if coming in as bulk text, delete one char
-        int afterLength = data2s.length();
-        done = (beforeLength == afterLength);
-    }
-//    if (data2s.length()==3 && data2s[0]=='\b' && data2s[1]==' ' && data2s[2] == '\b') {
-    if (data2s == "\b \b") {
-        // backspace: get rid of one character on the screen (the hard way)
-        textCursor().deletePreviousChar();  // the easy way
-    } else {
-        // normal text
-        insertPlainText(QString(data2s));
-    }
+//     bool done = false;
+//     static QRegularExpression regex1(".\b \b");
+//     while (!done) {
+//         int beforeLength = data2s.length();
+//         data2s.replace(regex1,""); // if coming in as bulk text, delete one char
+//         int afterLength = data2s.length();
+//         done = (beforeLength == afterLength);
+//     }
+// //    if (data2s.length()==3 && data2s[0]=='\b' && data2s[1]==' ' && data2s[2] == '\b') {
+//     if (data2s == "\b \b") {
+//         // backspace: get rid of one character on the screen (the hard way)
+//         textCursor().deletePreviousChar();  // the easy way
+//     } else {
+//         // normal text
+//         insertPlainText(QString(data2s));
+//     }
 
-    QScrollBar *bar = verticalScrollBar();
-    bar->setValue(bar->maximum());
-}
+//     QScrollBar *bar = verticalScrollBar();
+//     bar->setValue(bar->maximum());
+// }
 
-void Console::setLocalEchoEnabled(bool set)
-{
-    localEchoEnabled = set;
-}
+// void Console::setLocalEchoEnabled(bool set)
+// {
+//     localEchoEnabled = set;
+// }
 
-void Console::keyPressEvent(QKeyEvent *e)
-{
-//    qDebug() << "Console:keyPressEvent:" << e << e->key() << Qt::Key_Escape;
-    switch (e->key()) {
-    case Qt::Key_Left:
-    case Qt::Key_Right:
-    case Qt::Key_Up:
-    case Qt::Key_Down:
-        break;
-    default:
-        if (localEchoEnabled) {
-            QPlainTextEdit::keyPressEvent(e);
-        }
-        if (e->text() == "\u001B") {
-//            qDebug() << "ESC detected.";
-//            qDebug() << "ESC detected:" << e->key() << e->text() << e->text().toLocal8Bit();
+// void Console::keyPressEvent(QKeyEvent *e)
+// {
+// //    qDebug() << "Console:keyPressEvent:" << e << e->key() << Qt::Key_Escape;
+//     switch (e->key()) {
+//     case Qt::Key_Left:
+//     case Qt::Key_Right:
+//     case Qt::Key_Up:
+//     case Qt::Key_Down:
+//         break;
+//     default:
+//         if (localEchoEnabled) {
+//             QPlainTextEdit::keyPressEvent(e);
+//         }
+//         if (e->text() == "\u001B") {
+// //            qDebug() << "ESC detected.";
+// //            qDebug() << "ESC detected:" << e->key() << e->text() << e->text().toLocal8Bit();
 
-#if defined(Q_OS_MAC)
-            // map ESC to Ctrl-U (delete entire line), MAC OS ONLY
-            emit getData(QByteArray("\025")); // Ctrl-U
-#endif
-#if defined(Q_OS_WIN32) | defined(Q_OS_LINUX)
-            emit getData(QByteArray("\u001B")); // ESC is passed thru to sd, translated there to ClearToEOL
-#endif
+// #if defined(Q_OS_MAC)
+//             // map ESC to Ctrl-U (delete entire line), MAC OS ONLY
+//             emit getData(QByteArray("\025")); // Ctrl-U
+// #endif
+// #if defined(Q_OS_WIN32) | defined(Q_OS_LINUX)
+//             emit getData(QByteArray("\u001B")); // ESC is passed thru to sd, translated there to ClearToEOL
+// #endif
 
-        } else {
-//            qDebug() << "Normal key detected:" << e->key() << e->text() << e->text().toLocal8Bit();
-            emit getData(e->text().toLocal8Bit());
-        }
-    }
-}
+//         } else {
+// //            qDebug() << "Normal key detected:" << e->key() << e->text() << e->text().toLocal8Bit();
+//             emit getData(e->text().toLocal8Bit());
+//         }
+//     }
+// }
 
-void Console::mousePressEvent(QMouseEvent *e)
-{
-    Q_UNUSED(e)
-    setFocus();
-}
+// void Console::mousePressEvent(QMouseEvent *e)
+// {
+//     Q_UNUSED(e)
+//     setFocus();
+// }
 
-void Console::mouseDoubleClickEvent(QMouseEvent *e)
-{
-    Q_UNUSED(e)
-}
+// void Console::mouseDoubleClickEvent(QMouseEvent *e)
+// {
+//     Q_UNUSED(e)
+// }
 
-void Console::contextMenuEvent(QContextMenuEvent *e)
-{
-    Q_UNUSED(e)
-}
+// void Console::contextMenuEvent(QContextMenuEvent *e)
+// {
+//     Q_UNUSED(e)
+// }
 
-QString Console::getAllText() {
-    return this->document()->toPlainText();
-}
+// QString Console::getAllText() {
+//     return this->document()->toPlainText();
+// }

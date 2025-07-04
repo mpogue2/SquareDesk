@@ -77,6 +77,7 @@ SOURCES += main.cpp\
     lyricsEditor.cpp \
     lyricseditor_autoformat.cpp \
     mainwindow.cpp \
+    mainwindow_init.cpp \
     mainwindow_nowplaying.cpp \
 #    miniBPM/MiniBpm.cpp \
     mainwindow_JUCE.cpp \

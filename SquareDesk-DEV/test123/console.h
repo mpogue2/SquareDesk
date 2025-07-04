@@ -74,35 +74,35 @@
 ****************************************************************************/
 
 
-#ifndef CONSOLE_H
-#define CONSOLE_H
+// #ifndef CONSOLE_H
+// #define CONSOLE_H
 
-#include <QPlainTextEdit>
+// #include <QPlainTextEdit>
 
-class Console : public QPlainTextEdit
-{
-    Q_OBJECT
+// class Console : public QPlainTextEdit
+// {
+//     Q_OBJECT
 
-signals:
-    void getData(const QByteArray &data);
+// signals:
+//     void getData(const QByteArray &data);
 
-public:
-    explicit Console(QWidget *parent = 0);
+// public:
+//     explicit Console(QWidget *parent = 0);
 
-    void putData(const QByteArray &data);
+//     void putData(const QByteArray &data);
 
-    void setLocalEchoEnabled(bool set);
-    QString getAllText();
+//     void setLocalEchoEnabled(bool set);
+//     QString getAllText();
 
-protected:
-    virtual void keyPressEvent(QKeyEvent *e);
-    virtual void mousePressEvent(QMouseEvent *e);
-    virtual void mouseDoubleClickEvent(QMouseEvent *e);
-    virtual void contextMenuEvent(QContextMenuEvent *e);
+// protected:
+//     virtual void keyPressEvent(QKeyEvent *e);
+//     virtual void mousePressEvent(QMouseEvent *e);
+//     virtual void mouseDoubleClickEvent(QMouseEvent *e);
+//     virtual void contextMenuEvent(QContextMenuEvent *e);
 
-private:
-    bool localEchoEnabled;
+// private:
+//     bool localEchoEnabled;
 
-};
+// };
 
-#endif // CONSOLE_H
+// #endif // CONSOLE_H

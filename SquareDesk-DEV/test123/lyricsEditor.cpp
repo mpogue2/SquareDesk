@@ -31,6 +31,7 @@
 #include "songlistmodel.h"
 #include "ui_mainwindow.h"
 #include "utility.h"
+#include "selectionretainer.h"
 
 // START LYRICS EDITOR STUFF
 

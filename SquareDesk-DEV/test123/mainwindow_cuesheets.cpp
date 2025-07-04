@@ -24,6 +24,7 @@
 ****************************************************************************/
 // Disable warning, see: https://github.com/llvm/llvm-project/issues/48757
 #include "downloadmanager.h"
+#include "perftimer.h"
 #include "songlistmodel.h"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Welaborated-enum-base"

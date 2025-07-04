@@ -23,6 +23,7 @@
 **
 ****************************************************************************/
 
+#include "selectionretainer.h"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Welaborated-enum-base"
 #include "mainwindow.h"
