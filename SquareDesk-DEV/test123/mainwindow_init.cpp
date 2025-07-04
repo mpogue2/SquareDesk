@@ -186,32 +186,24 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     // OLD INITIALIZATION STUFF ==============
 
 
-
     // NOTE: This MUST be down here at the end of the constructor now.
     //   The startup sequence takes longer now, and we don't want the
     //   timer to start too early, or it won't affect the focus.
     //
     // startup the file watcher, AND make sure that focus has gone to the Title search field
-    QTimer::singleShot(10, [this]{
-        //            qDebug("Starting up FileWatcher now (intentionally delayed from app startup, to avoid Box.net locks retriggering loadMusicList)");
+    QTimer::singleShot(100, [this]{
+        // qDebug("Starting up FileWatcher now (intentionally delayed from app startup, to avoid Box.net locks retriggering loadMusicList)");
         QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
-        // if (darkmode) {
+
         if (!ui->darkSearch->hasFocus()) {
             // qDebug() << "HACK: DARK SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
             ui->darkSearch->setFocus();
         }
-        // } else {
-        //     if (!ui->titleSearch->hasFocus()) {
-        //         //                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
-        //         ui->titleSearch->setFocus();
-        //     }
-        // }
 
         ui->darkSongTable->selectRow(0);
         ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
     });
 
-    t.elapsed(__LINE__);
     splash->setProgress(90, "Almost there...");
 
     mainWindowReady = true;
@@ -250,6 +242,7 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 #endif
 
     initializeLightDarkTheme();
+
 }
 // END CONSTRUCTOR ---------
 
