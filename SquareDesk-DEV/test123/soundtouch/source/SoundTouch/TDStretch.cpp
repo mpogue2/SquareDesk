@@ -41,7 +41,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <string.h>
-#include <limits.h>
+//#include <limits.h> // -mpogue, compiler warning be gone!
 #include <assert.h>
 #include <math.h>
 #include <float.h>
@@ -771,7 +771,7 @@ void * TDStretch::operator new(size_t s)
 
 TDStretch * TDStretch::newInstance()
 {
-    uint uExtensions;
+    uint uExtensions [[maybe_unused]];  // -mpogue, compiler be quiet!
 
     uExtensions = detectCPUextensions();
 

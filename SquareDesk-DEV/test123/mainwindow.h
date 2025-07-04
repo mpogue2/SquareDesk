@@ -822,6 +822,28 @@ private slots:
 
 private:
     // ============================================================================
+    // INITIALIZATION METHODS (REFACTORED FROM CONSTRUCTOR)
+    // ============================================================================
+    void initializeUI(); // general UI init
+
+    // Music tab initialization
+    void initializeMusicPlaybackControls();
+    void initializeMusicPlaylists();
+    void initializeMusicSearch();
+    void initializeMusicSongTable();
+
+    // Other tabs initialization
+    void initializeCuesheetTab();
+    void initializeSDTab();
+    void initializeTaminationsTab();
+    void initializeDanceProgramsTab();
+    void initializeReferenceTab();
+
+    // other initialization
+    void initializeSessions();
+    void initializeAudioEngine();
+
+    // ============================================================================
     // CORE APPLICATION STATE
     // ============================================================================
     QString lastAudioDeviceName;
@@ -911,6 +933,8 @@ private:
     void zoomInOut(int increment);
     int col0_width;
     int totalZoom;
+
+    QString themePreference;
 
     // ============================================================================
     // AUDIO SYSTEM PRIVATE
