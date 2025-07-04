@@ -2813,6 +2813,8 @@ bool MainWindow::handleKeypress(int key, QString text)
     }
 //    qDebug() << "YES: handleKeypress(" << key << ")";
 
+    QList<QTreeWidgetItem *> trackItem;
+
     switch (key) {
 
         case Qt::Key_Escape:
@@ -2829,34 +2831,23 @@ bool MainWindow::handleKeypress(int key, QString text)
             }
             oldFocusWidget = nullptr;  // indicates that we want NO FOCUS on restore, yes both of these are needed.
 
-            // FIX: should we also stop editing of the songTable on ESC?
-
             ui->textBrowserCueSheet->clearFocus();  // ESC should always get us out of editing lyrics/patter
 
-            // on_clearSearchButton_clicked(); // clears search fields, selects first visible item in songTable
+            // clear the Search field, and set focus there
             ui->darkSearch->setText("");
             ui->darkSearch->setFocus();  // When Clear Search is clicked (or ESC ESC), set focus to the darkSearch field, so that UP/DOWN works
+
+            // ESC also now clears out the selected filter in the TreeWidget
+            ui->treeWidget->clearSelection(); // unselect all
+            trackItem = ui->treeWidget->findItems("Tracks", Qt::MatchExactly);
+            trackItem[0]->setSelected(true); // and select just this one
+
             darkFilterMusic();               // highlights first visible row (if there are any rows)
 
-            if (
-                // ui->labelSearch->text() != "" ||
-                // ui->typeSearch->text() != "" ||
-                ui->darkSearch->text() != ""
-                // ui->titleSearch->text() != ""
-                ) {
-                // clear the search fields, if there was something in them.  (First press of ESCAPE).
-//                ui->labelSearch->setText("");
-//                ui->typeSearch->setText("");
-//                ui->titleSearch->setText("");
-
-            } else {
-                // if the search fields were already clear, then this is the second press of ESCAPE (or the first press
-                //   of ESCAPE when the search function was not being used).  So, ONLY NOW do we Stop Playback.
-                // So, GET ME OUT OF HERE is now "ESC ESC", or "Hit ESC a couple of times".
-                //    and, CLEAR SEARCH is just ESC (or click on the Clear Search button).
-                if (cBass->currentStreamState() == BASS_ACTIVE_PLAYING) {
-                    on_darkPlayButton_clicked();  // we were playing, so PAUSE now.
-                }
+            // GET ME OUT OF HERE is now "Hit ESC".  (There is no "ESC ESC" sequence anymore...)
+            //    and, CLEAR SEARCH is just ESC (or click on the Clear Search button).
+            if (cBass->currentStreamState() == BASS_ACTIVE_PLAYING) {
+                on_darkPlayButton_clicked();  // we were playing, so PAUSE now.
             }
 
             cBass->StopAllSoundEffects();  // and, it also stops ALL sound effects
