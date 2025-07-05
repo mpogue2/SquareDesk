@@ -978,7 +978,7 @@ private:
     bool currentSongIsExtra;
     bool currentSongIsUndefined;
     QString currentSongTitle;
-    QString currentSongLabel;
+    // QString currentSongLabel;
     int currentSongMP3SampleRate;
     QString currentSongIdentifier;
     uint32_t currentSongID;

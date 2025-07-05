@@ -969,7 +969,12 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     q.bindValue(":introPos", settings.getIntroPos() );
     q.bindValue(":outroPos", settings.getOutroPos() );
     q.bindValue(":volume", settings.getVolume() );
-    q.bindValue(":name", settings.getSongname() );
+
+    QString revisedSongName = settings.getSongname();
+    revisedSongName = revisedSongName.replace(QRegularExpression(" \\[L:.*\\]$"), ""); // for safety, remove the " [L: level]"
+    // q.bindValue(":name", settings.getSongname() );
+    q.bindValue(":name", revisedSongName ); // I don't think the :name is used anymore, but just being safe here.
+
     q.bindValue(":last_cuesheet", settings.getCuesheetName() );
     q.bindValue(":songLength", settings.getSongLength() );
     q.bindValue(":introOutroIsTimeBased", settings.getIntroOutroIsTimeBased() );
@@ -1082,7 +1087,12 @@ bool SongSettings::loadSettings(const QString &filenameWithPath,
     {
         QSqlQuery q(m_db);
         q.prepare(baseSql + " name=:name");
-        q.bindValue(":name", settings.getSongname());
+
+        QString revisedSongName = settings.getSongname();
+        revisedSongName = revisedSongName.replace(QRegularExpression(" \\[L:.*\\]$"), ""); // for safety, remove the " [L: level]"
+        // q.bindValue(":name", settings.getSongname());
+        q.bindValue(":name", revisedSongName);  // I don't think the :name is used anymore, but just being safe here.
+
         exec("loadSettings", q);
         while (q.next())
         {

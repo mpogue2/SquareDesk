@@ -3250,6 +3250,22 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 //        qDebug() << "----- AUTO START PRESSING PLAY, BECAUSE SONG IS NOW LOADED";
         on_darkPlayButton_clicked();
     }
+
+    if (currentSongIsSinger) {
+        QString cuesheet = ui->comboBoxCuesheetSelector->currentText();
+        // qDebug() << "current cuesheet! " << cuesheet;
+
+        QRegularExpression regex(" \\[L:.*\\]$", QRegularExpression::CaseInsensitiveOption); // e.g. " [L: Plus]"
+        QRegularExpressionMatch match = regex.match(cuesheet);
+        if (match.hasMatch()) {
+            QString levelStr = match.captured(0);
+            // qDebug() << "found match: " << levelStr;
+            currentSongTitle += levelStr; // Note: this will get saved in the DB, but that shouldn't hurt anything
+            // NOTE: I now remove the levelStr before it gets shoved into the DB, even though I think that DB column
+            //   is no longer in use.
+        }
+    }
+
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()

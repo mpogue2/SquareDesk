@@ -749,7 +749,7 @@ void MainWindow::initializeMusicPlaybackControls() {
     currentSongTypeName = "";
     currentSongCategoryName = "";
     currentSongTitle = "";
-    currentSongLabel = "";
+    // currentSongLabel = "";
 
     // mutually exclusive items in Flash Call Timing menu
     flashCallTimingActionGroup = new QActionGroup(this);

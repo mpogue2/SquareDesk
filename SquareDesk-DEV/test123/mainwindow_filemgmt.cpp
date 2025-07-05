@@ -160,7 +160,8 @@ void MainWindow::reloadCurrentMP3File() {
     // if there is a song loaded, reload it (to pick up, e.g. new cuesheets)
     if ((currentMP3filenameWithPath != "") && (currentSongTitle != "") && (currentSongTypeName != "")) {
 //        qDebug() << "reloading song: " << currentMP3filename;
-        loadMP3File(currentMP3filenameWithPath, currentSongTitle, currentSongTypeName, currentSongLabel);
+        // loadMP3File(currentMP3filenameWithPath, currentSongTitle, currentSongTypeName, currentSongLabel);
+        loadMP3File(currentMP3filenameWithPath, currentSongTitle, currentSongTypeName, "NA");
     }
 }
 
@@ -234,7 +235,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     currentMP3filenameWithPath = MP3FileName;
 
-    currentSongLabel = songLabel;   // remember it, in case we need it later
+    // currentSongLabel = songLabel;   // remember it, in case we need it later
 
     // resolve aliases at load time, rather than findFilesRecursively time, because it's MUCH faster
     QFileInfo fi(MP3FileName);
@@ -1226,7 +1227,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
     if (reloadPaletteSlots) {
         // now, if we just loaded the darkMusicList, we have to check the palette slots, to see if they need to
         //  be reloaded, too.  This normally happens just when the fileWatcher is triggered.
-        qDebug() << "reloading the palette slots too";
+        // qDebug() << "reloading the palette slots too";
         for (int i = 0; i < 3; i++) {
     //        qDebug() << "TRACKS? " << relPathInSlot[i];
             if (relPathInSlot[i].startsWith("/tracks")) {
