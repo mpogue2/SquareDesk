@@ -4365,6 +4365,8 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <addaction name="actionImport_and_Organize_Files"/>
+    <addaction name="separator"/>
     <addaction name="actionImport"/>
     <addaction name="actionExport"/>
     <addaction name="separator"/>
@@ -6219,6 +6221,11 @@
   <action name="actionExplore_Cuesheet_Matching">
    <property name="text">
     <string>Explore Cuesheet Matching...</string>
+   </property>
+  </action>
+  <action name="actionImport_and_Organize_Files">
+   <property name="text">
+    <string>Import and Organize Files...</string>
    </property>
   </action>
  </widget>

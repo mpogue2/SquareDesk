@@ -671,6 +671,7 @@ void MainWindow::initializeUI() {
 
     // Initialize Now Playing integration for iOS/watchOS remote control
     setupNowPlaying();
+    setAcceptDrops(true);
 }
 
 

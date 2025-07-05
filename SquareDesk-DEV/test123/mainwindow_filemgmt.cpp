@@ -167,6 +167,7 @@ void MainWindow::reloadCurrentMP3File() {
 
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType, QString songLabel, QString nextFilename)
 {
+    Q_UNUSED(songLabel)
     on_loopButton_toggled(false); // when we load a new file, make sure looping is turned OFF (turn it on when needed for patter)
 
     // loadTimer.start();
@@ -383,6 +384,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
 }
 
+// ======================================================================
 void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QList<QString> *pathStackCuesheets, QString suffix, Ui::MainWindow *ui, QMap<int, QString> *soundFXarray, QMap<int, QString> *soundFXname)
 {
     QDirIterator it(rootDir, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
@@ -1247,4 +1249,427 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
     }
 
     currentTypeFilter = typeFilter;
+}
+
+// Custom QTableWidgetItem for numeric sorting
+class NumericTableWidgetItem : public QTableWidgetItem {
+public:
+    NumericTableWidgetItem(const QString &text) : QTableWidgetItem(text) {}
+
+    bool operator<(const QTableWidgetItem &other) const override {
+        return text().toInt() < other.text().toInt();
+    }
+};
+
+// ====================================================================================
+#include <QMessageBox>
+#include <QDragEnterEvent>
+#include <QDropEvent>
+#include <QMimeData>
+#include <QDirIterator>
+#include <QDebug>
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QTableWidget>
+#include <QHeaderView>
+#include <QDialogButtonBox>
+#include <QComboBox>
+#include <QSet>
+#include <QPushButton>
+#include <QPainter>
+#include <QHBoxLayout>
+#include <QFile>
+#include <QMessageBox>
+
+enum CopyAction {
+    Ask,
+    ReplaceAll,
+    SkipAll,
+    CancelAll
+};
+
+static CopyAction currentCopyAction = Ask;
+
+// Custom QTableWidgetItem for numeric sorting
+
+void MainWindow::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasUrls()) {
+        event->acceptProposedAction();
+    }
+}
+
+QString toTitleCase(const QString& input) {
+    QStringList words = input.split(' ', Qt::SkipEmptyParts);
+    QStringList titleCaseWords;
+    for (const QString& word : words) {
+        if (!word.isEmpty()) {
+            titleCaseWords.append(word.at(0).toUpper() + word.mid(1).toLower());
+        }
+    }
+    return titleCaseWords.join(' ');
+}
+
+QString MainWindow::proposeCanonicalName(QString baseName, bool withLabelNumExtra) {
+    QString theLabel, theLabelNum, theLabelNumExtra, theTitle, theShortTitle;
+    breakFilenameIntoParts(baseName, theLabel, theLabelNum, theLabelNumExtra, theTitle, theShortTitle);
+
+    QString proposedBaseName;
+
+    if (!baseName.contains("-")) {
+        return(baseName); // e.g. "containerwidth" or "foo.png"
+    }
+
+    if (!withLabelNumExtra) {
+        theLabelNumExtra = "";
+    }
+
+    theTitle = toTitleCase(theTitle); // "foo bar" --> "Foo Bar"
+    theLabel = theLabel.toUpper();    // "riv" --> "RIV"
+
+    switch (songFilenameFormat) {
+        case SongFilenameNameDashLabel:
+            // e.g. "Foo Bar - RIV 123"
+            proposedBaseName = theTitle + "  " + theLabel + " " + theLabelNum + theLabelNumExtra;
+        case SongFilenameBestGuess:
+        case SongFilenameLabelDashName:
+            // e.g. "RIV 123 - Foo Bar"
+            proposedBaseName = theLabel + " " + theLabelNum + theLabelNumExtra + " - " + theTitle;
+    }
+
+    return(proposedBaseName);
+}
+
+void MainWindow::dropEvent(QDropEvent *event)
+{
+    const QMimeData *mimeData = event->mimeData();
+    if (!mimeData->hasUrls()) {
+        return;
+    }
+
+    // 1. Gather all file paths, recursing into directories
+    QStringList allFilePaths;
+    for (const QUrl &url : mimeData->urls()) {
+        QString path = url.toLocalFile();
+        QFileInfo fileInfo(path);
+        if (fileInfo.isDir()) {
+            QDirIterator it(path, QDir::Files, QDirIterator::Subdirectories);
+            while (it.hasNext()) {
+                allFilePaths.append(it.next());
+            }
+        } else {
+            allFilePaths.append(path);
+        }
+    }
+    allFilePaths.sort();
+
+    // 2. Create the dialog and its components
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("Import and Organize Files"));
+    dialog.setMinimumSize(900, 600);
+    QVBoxLayout *layout = new QVBoxLayout(&dialog);
+
+    QTableWidget *table = new QTableWidget(&dialog);
+    table->setColumnCount(6);
+    table->setHorizontalHeaderLabels({"Item", "Original Filename", "Proposed Title (editable)", "Extension", "Destination", "Copy"});
+    table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    table->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+    table->verticalHeader()->setVisible(false);
+
+    // Make header bold using a stylesheet for reliability
+    table->horizontalHeader()->setStyleSheet("QHeaderView::section { font-weight: bold; }");
+
+    layout->addWidget(table);
+
+    QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    QPushButton *okButton = buttonBox->button(QDialogButtonBox::Ok);
+    connect(buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    layout->addWidget(buttonBox);
+
+    // 3. Pre-process to find all HTML files for default logic (case-insensitive)
+    QSet<QString> htmlBasenames;
+    static QRegularExpression vocalPattern("\\d+[Vv]"); // Matches one or more digits followed by 'V' or 'v'
+
+    for (const QString &path : allFilePaths) {
+        if (path.endsWith(".htm", Qt::CaseInsensitive) || path.endsWith(".html", Qt::CaseInsensitive)) {
+            QString baseNameLower = QFileInfo(path).completeBaseName().toLower();
+            htmlBasenames.insert(baseNameLower.simplified());
+        }
+    }
+
+    // 4. Populate the table
+    table->setRowCount(0);
+    int currentItem = 1;
+    for (const QString &path : allFilePaths) {
+        QFileInfo fileInfo(path);
+        QString fileName = fileInfo.fileName();
+        QString baseName = fileInfo.completeBaseName().simplified();
+        QString extension = fileInfo.suffix();
+
+        QStringList badExtensions;
+        badExtensions << "jpg" << "jpeg" << "xml" << "png" << "thmx";
+
+        if (badExtensions.contains(extension.toLower())) {
+            continue; // skip this one
+        }
+
+        table->insertRow( table->rowCount() ); // add a row!
+
+        // Item Number (read-only, numeric sort)
+        QTableWidgetItem *itemNumber = new NumericTableWidgetItem(QString::number(currentItem));
+        itemNumber->setFlags(itemNumber->flags() & ~Qt::ItemIsEditable);
+        itemNumber->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+
+        // Original Title (read-only)
+        QTableWidgetItem *titleItem = new QTableWidgetItem(fileName);
+        titleItem->setFlags(titleItem->flags() & ~Qt::ItemIsEditable);
+
+        // New Title (editable)
+        QString proposedBaseName = proposeCanonicalName(baseName);
+        QTableWidgetItem *newTitleItem = new QTableWidgetItem(proposedBaseName);
+        newTitleItem->setBackground(QColor(255, 255, 224)); // Light yellow to indicate editable
+
+        // Extension (read-only)
+        QTableWidgetItem *extItem = new QTableWidgetItem(extension.toLower());
+        extItem->setFlags(extItem->flags() & ~Qt::ItemIsEditable);
+
+        // Destination (combo box)
+        QComboBox *destCombo = new QComboBox();
+        destCombo->addItems({"patter", "singing", "vocals", "lyrics"});
+
+        static QRegularExpression parenRegex("\\(.*\\)");
+        QString noExtraName = proposeCanonicalName(baseName.toLower(), false);
+        noExtraName.replace(parenRegex,"");
+        noExtraName = noExtraName.simplified();
+        // qDebug() << baseName << noExtraName << htmlBasenames;
+
+        // --- Apply default destination logic ---
+        if (extension.toLower() == "htm" || extension.toLower() == "html") {
+            destCombo->setCurrentText("lyrics");
+        } else if (baseName.toLower().contains(vocalPattern)) {
+            destCombo->setCurrentText("vocals");
+        } else if (htmlBasenames.contains(baseName.toLower())) {
+            destCombo->setCurrentText("singing");
+        } else if (htmlBasenames.contains(noExtraName.toLower())) {
+            // e.g. "RIV 123b - Foo Bar"
+            destCombo->setCurrentText("singing");
+        } else {
+            destCombo->setCurrentText("patter");
+        }
+
+        // Copy checkbox
+        QPushButton *copyButton = new QPushButton();
+        copyButton->setCheckable(true);
+
+        copyButton->setFlat(true);
+        copyButton->setMinimumSize(24, 24);
+
+        QPixmap checkPixmap(16, 16);
+        checkPixmap.fill(Qt::white);
+        QPainter checkPainter(&checkPixmap);
+        checkPainter.setRenderHint(QPainter::Antialiasing);
+        QPen checkPen(Qt::darkGreen, 2);
+        checkPainter.setPen(checkPen);
+        checkPainter.drawLine(3, 8, 7, 12);
+        checkPainter.drawLine(7, 12, 13, 4);
+        checkPainter.end();
+        QIcon greenCheckIcon(checkPixmap);
+
+        QPixmap xPixmap(16, 16);
+        xPixmap.fill(Qt::white);
+        QPainter xPainter(&xPixmap);
+        xPainter.setRenderHint(QPainter::Antialiasing);
+        QPen xPen(Qt::red, 2);
+        xPainter.setPen(xPen);
+        xPainter.drawLine(4, 4, 12, 12);
+        xPainter.drawLine(4, 12, 12, 4);
+        xPainter.end();
+        QIcon redXIcon(xPixmap);
+
+        // copyButton->setIcon(greenCheckIcon);
+
+        QStringList musicExtensions;
+        musicExtensions << "mp3" << "wav" << "m4a" << "flac";
+
+        QStringList lyricsExtensions;
+        lyricsExtensions << "htm" << "html" << "pdf" << "doc" << "txt";
+
+        if (musicExtensions.contains(extension.toLower()) ||
+            lyricsExtensions.contains(extension.toLower())) {
+            copyButton->setChecked(true);
+        } else {
+            copyButton->setChecked(false);
+        }
+
+        bool checked = copyButton->isChecked();
+
+        copyButton->setIcon(checked ? greenCheckIcon : redXIcon);
+        QFont font;
+
+        font = itemNumber->font();
+        font.setStrikeOut(!checked);
+        itemNumber->setFont(font);
+
+        font = titleItem->font();
+        font.setStrikeOut(!checked);
+        titleItem->setFont(font);
+
+        font = newTitleItem->font();
+        font.setStrikeOut(!checked);
+        newTitleItem->setFont(font);
+
+        font = extItem->font();
+        font.setStrikeOut(!checked);
+        extItem->setFont(font);
+
+        connect(copyButton, &QPushButton::toggled, [=](bool checked) {
+            copyButton->setIcon(checked ? greenCheckIcon : redXIcon);
+            QFont font;
+
+            font = itemNumber->font();
+            font.setStrikeOut(!checked);
+            itemNumber->setFont(font);
+
+            font = titleItem->font();
+            font.setStrikeOut(!checked);
+            titleItem->setFont(font);
+
+            font = newTitleItem->font();
+            font.setStrikeOut(!checked);
+            newTitleItem->setFont(font);
+
+            font = extItem->font();
+            font.setStrikeOut(!checked);
+            extItem->setFont(font);
+
+            // Update OK button text
+            int checkedCount = 0;
+            for (int r = 0; r < table->rowCount(); ++r) {
+                QWidget* w = table->cellWidget(r, 5);
+                QPushButton* b = w->findChild<QPushButton*>();
+                if (b && b->isChecked()) {
+                    checkedCount++;
+                }
+            }
+            okButton->setText(tr("Copy %1 Files").arg(checkedCount));
+        });
+
+        QWidget* widget = new QWidget();
+        widget->setStyleSheet("background-color: white; border: none;");
+        QHBoxLayout* hLayout = new QHBoxLayout(widget);
+        hLayout->addWidget(copyButton);
+        hLayout->setAlignment(Qt::AlignCenter);
+        hLayout->setContentsMargins(0,0,0,0);
+
+        int row = currentItem - 1;
+        table->setItem(row, 0, itemNumber);
+        table->setItem(row, 1, titleItem);
+        table->setItem(row, 2, newTitleItem);
+        table->setItem(row, 3, extItem);
+        table->setCellWidget(row, 4, destCombo);
+        table->setCellWidget(row, 5, widget);
+
+        currentItem++;
+    }
+    // table->resizeColumnToContents(0);
+    table->setColumnWidth(0, 50);
+    table->resizeColumnToContents(3);
+    table->resizeColumnToContents(4);
+    table->resizeColumnToContents(5);
+
+    table->setSortingEnabled(true);
+    table->sortByColumn(0, Qt::AscendingOrder);
+
+    // Initial update of OK button text
+    int initialCheckedCount = 0;
+    for (int r = 0; r < table->rowCount(); ++r) {
+        QWidget* w = table->cellWidget(r, 5);
+        QPushButton* b = w->findChild<QPushButton*>();
+        if (b && b->isChecked()) {
+            initialCheckedCount++;
+        }
+    }
+    okButton->setText(tr("Copy %1 Files").arg(initialCheckedCount));
+
+    // 5. Show the dialog and process the result
+    if (dialog.exec() == QDialog::Accepted) {
+        // qDebug() << "--- Begin Import Selections ---";
+        for (int i = 0; i < table->rowCount(); ++i) {
+            QWidget* w = table->cellWidget(i, 5);
+            QPushButton* b = w->findChild<QPushButton*>();
+
+            if (b && b->isChecked()) {
+                QString originalPath = allFilePaths.at(i);
+                QString newTitleFromTable = table->item(i, 2)->text();
+                QString extension = table->item(i, 3)->text();
+                QComboBox *combo = static_cast<QComboBox*>(table->cellWidget(i, 4));
+                QString dest = combo->currentText();
+
+                QString finalPath = musicRootPath + "/" + dest + "/" + newTitleFromTable + "." + extension;
+
+                // qDebug() << "File:" << originalPath
+                //          << "New Title:" << finalPath;
+
+                // --- File Copying Logic ---
+                if (QFile::exists(finalPath)) {
+                    if (currentCopyAction == Ask) {
+                        QMessageBox msgBox;
+                        msgBox.setWindowTitle(tr("File Exists"));
+                        msgBox.setText(tr("The file \"%1\" already exists. What do you want to do?").arg(QFileInfo(finalPath).fileName()));
+                        msgBox.setInformativeText(tr("Source: %1\nDestination: %2").arg(originalPath).arg(finalPath));
+                        msgBox.setIcon(QMessageBox::Question);
+
+                        QPushButton *replaceButton = msgBox.addButton(tr("Replace"), QMessageBox::AcceptRole);
+                        QPushButton *skipButton = msgBox.addButton(tr("Skip"), QMessageBox::RejectRole);
+                        QPushButton *cancelButton = msgBox.addButton(tr("Cancel"), QMessageBox::DestructiveRole);
+                        QPushButton *replaceAllButton = msgBox.addButton(tr("Replace All"), QMessageBox::AcceptRole);
+                        QPushButton *skipAllButton = msgBox.addButton(tr("Skip All"), QMessageBox::RejectRole);
+
+                        msgBox.setDefaultButton(replaceButton);
+                        msgBox.exec();
+
+                        if (msgBox.clickedButton() == replaceButton) {
+                            currentCopyAction = Ask; // Reset for next time if not "All"
+                            QFile::remove(finalPath);
+                            QFile::copy(originalPath, finalPath);
+                        } else if (msgBox.clickedButton() == skipButton) {
+                            currentCopyAction = Ask; // Reset for next time if not "All"
+                            // Do nothing, effectively skipping
+                        } else if (msgBox.clickedButton() == cancelButton) {
+                            currentCopyAction = CancelAll;
+                            break; // Exit the loop
+                        } else if (msgBox.clickedButton() == replaceAllButton) {
+                            currentCopyAction = ReplaceAll;
+                            QFile::remove(finalPath);
+                            QFile::copy(originalPath, finalPath);
+                        } else if (msgBox.clickedButton() == skipAllButton) {
+                            currentCopyAction = SkipAll;
+                            // Do nothing, effectively skipping
+                        }
+                    } else if (currentCopyAction == ReplaceAll) {
+                        QFile::remove(finalPath);
+                        QFile::copy(originalPath, finalPath);
+                    } else if (currentCopyAction == SkipAll) {
+                        // Do nothing, effectively skipping
+                    } else if (currentCopyAction == CancelAll) {
+                        break; // Exit the loop
+                    }
+                } else {
+                    // File does not exist, just copy
+                    QFile::copy(originalPath, finalPath);
+                }
+            }
+        }
+        // qDebug() << "--- End Import Selections ---";
+    }
+}
+
+void MainWindow::on_actionImport_and_Organize_Files_triggered()
+{
+    QMessageBox::information(
+        this,
+        tr("Import and Organize Files"),
+        tr("To import files, drag and drop them from the Finder onto the main window.")
+    );
 }
