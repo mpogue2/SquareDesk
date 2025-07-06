@@ -1682,6 +1682,7 @@ void MainWindow::dropEvent(QDropEvent *event)
             //   a refresh of the darkSongTable, so we don't technically need to do this now.
         }
     }
+    currentCopyAction = Ask; // In all cases, Reset to ASK for next time
 }
 
 void MainWindow::on_actionImport_and_Organize_Files_triggered()

@@ -1021,8 +1021,16 @@ void MyTableWidget::dropEvent(QDropEvent *event)
         // qDebug() << "sourceSlot/destSlot: " << sourceSlot << destSlot;
         QString sourceRelPath, destRelPath;
         if (mw != nullptr) {
-            sourceRelPath = ((MainWindow *)mw)->relPathInSlot[sourceSlot];
-            destRelPath = ((MainWindow *)mw)->relPathInSlot[destSlot];
+            if (sourceSlot != -1) {
+                sourceRelPath = ((MainWindow *)mw)->relPathInSlot[sourceSlot];
+            } else {
+                sourceRelPath = "";
+            }
+            if (destSlot != -1) {
+                destRelPath = ((MainWindow *)mw)->relPathInSlot[destSlot];
+            } else {
+                destRelPath = "";
+            }
         }
         bool sourceIsTrackFilter = sourceRelPath.startsWith("/tracks/");
         bool destIsTrackFilter   = destRelPath.startsWith("/tracks/");
