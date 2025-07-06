@@ -4313,6 +4313,37 @@ void MainWindow::changeTagOnCurrentSongSelection(QString tag, bool add)
     Q_UNUSED(add)
 }
 
+void MainWindow::darkChangeTagOnPathToMP3(QString pathToMP3, QString tag, bool add) {
+    // QString pathToMP3 = ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+    SongSetting settings;
+    songSettings.loadSettings(pathToMP3, settings);
+
+    QStringList tags;
+    QString oldTags;
+    if (settings.isSetTags())
+    {
+        oldTags = settings.getTags();
+        tags = oldTags.split(" ");
+        songSettings.removeTags(oldTags); // remove all the tags
+    }
+
+    if (add && !tags.contains(tag)) {
+         // modify: add a tag
+        tags.append(tag);
+    }
+
+    if (!add) {
+        // modify: remove a tag
+        int i = tags.indexOf(tag);
+        if (i >= 0) {
+            tags.removeAt(i);
+        }
+    }
+    settings.setTags(tags.join(" "));
+    // qDebug() << "darkChangeTagOnPathToMP3" << settings;
+    songSettings.saveSettings(pathToMP3, settings); // and put back the modified tags
+}
+
 void MainWindow::darkChangeTagOnCurrentSongSelection(QString tag, bool add)
 {
     int row = darkSelectedSongRow();

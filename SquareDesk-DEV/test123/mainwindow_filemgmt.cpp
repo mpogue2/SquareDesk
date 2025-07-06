@@ -1595,6 +1595,7 @@ void MainWindow::dropEvent(QDropEvent *event)
     // 5. Show the dialog and process the result
     if (dialog.exec() == QDialog::Accepted) {
         // qDebug() << "--- Begin Import Selections ---";
+        bool didAtLeastOneCopy = false;
         for (int i = 0; i < table->rowCount(); ++i) {
             QWidget* w = table->cellWidget(i, 5);
             QPushButton* b = w->findChild<QPushButton*>();
@@ -1611,13 +1612,15 @@ void MainWindow::dropEvent(QDropEvent *event)
                 // qDebug() << "File:" << originalPath
                 //          << "New Title:" << finalPath;
 
+                bool didCopy = false;
+
                 // --- File Copying Logic ---
                 if (QFile::exists(finalPath)) {
                     if (currentCopyAction == Ask) {
                         QMessageBox msgBox;
                         msgBox.setWindowTitle(tr("File Exists"));
                         msgBox.setText(tr("The file \"%1\" already exists. What do you want to do?").arg(QFileInfo(finalPath).fileName()));
-                        msgBox.setInformativeText(tr("Source: %1\nDestination: %2").arg(originalPath).arg(finalPath));
+                        msgBox.setInformativeText(tr("Source:\n%1\n\nDestination:\n%2").arg(originalPath).arg(finalPath));
                         msgBox.setIcon(QMessageBox::Question);
 
                         QPushButton *replaceButton = msgBox.addButton(tr("Replace"), QMessageBox::AcceptRole);
@@ -1633,6 +1636,7 @@ void MainWindow::dropEvent(QDropEvent *event)
                             currentCopyAction = Ask; // Reset for next time if not "All"
                             QFile::remove(finalPath);
                             QFile::copy(originalPath, finalPath);
+                            didCopy = true;
                         } else if (msgBox.clickedButton() == skipButton) {
                             currentCopyAction = Ask; // Reset for next time if not "All"
                             // Do nothing, effectively skipping
@@ -1643,6 +1647,7 @@ void MainWindow::dropEvent(QDropEvent *event)
                             currentCopyAction = ReplaceAll;
                             QFile::remove(finalPath);
                             QFile::copy(originalPath, finalPath);
+                            didCopy = true;
                         } else if (msgBox.clickedButton() == skipAllButton) {
                             currentCopyAction = SkipAll;
                             // Do nothing, effectively skipping
@@ -1650,6 +1655,7 @@ void MainWindow::dropEvent(QDropEvent *event)
                     } else if (currentCopyAction == ReplaceAll) {
                         QFile::remove(finalPath);
                         QFile::copy(originalPath, finalPath);
+                        didCopy = true;
                     } else if (currentCopyAction == SkipAll) {
                         // Do nothing, effectively skipping
                     } else if (currentCopyAction == CancelAll) {
@@ -1658,10 +1664,23 @@ void MainWindow::dropEvent(QDropEvent *event)
                 } else {
                     // File does not exist, just copy
                     QFile::copy(originalPath, finalPath);
+                    didCopy = true;
+                }
+
+                if (didCopy) {
+                    // qDebug() << "didCopy, so set the NEW tag on" << finalPath;
+                    darkChangeTagOnPathToMP3(finalPath, QString("NEW"), true); // add the NEW tag to the copied file
+                    didAtLeastOneCopy = true;
                 }
             }
         }
         // qDebug() << "--- End Import Selections ---";
+
+        if (didAtLeastOneCopy) {
+            // qDebug() << "******* REFRESH SONGTABLE NEEDED *******";
+            // this is here for future expansion.  Doing the copy already triggers
+            //   a refresh of the darkSongTable, so we don't technically need to do this now.
+        }
     }
 }
 

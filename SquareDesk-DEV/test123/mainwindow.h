@@ -1031,6 +1031,7 @@ private:
     void darkLoadMusicList(QList<QString> *aPathStack, QString typeFilter, bool forceTypeFilter, bool reloadPaletteSlots, bool suppressSelectionChange = false);
     QString FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags, QString titleColor = "");
     void changeTagOnCurrentSongSelection(QString tag, bool add);
+    void darkChangeTagOnPathToMP3(QString pathToMP3, QString tag, bool add);  // add/remove tag on specific song
     void darkChangeTagOnCurrentSongSelection(QString tag, bool add);
     void removeAllTagsFromSong();
     void removeAllTagsFromSongRow(int row);
