@@ -1381,6 +1381,38 @@ void MainWindow::dropEvent(QDropEvent *event)
 
     layout->addWidget(table);
 
+    QStringList patterSingingTypes = songTypeNamesForPatter + songTypeNamesForSinging; // no single quotes
+    QStringList patterSingingTypesSQ = patterSingingTypes; // will add single quotes to each for user dialog
+    QString defaultPatterFolderName  = songTypeNamesForPatter[0];  // e.g. "patter"
+    QString defaultSingingFolderName = songTypeNamesForSinging[0]; // e.g. "singing"
+    QString defaultVocalsFolderName  = songTypeNamesForCalled[0];  // e.g. "vocals"
+    QString allTypes;
+
+    // put single quotes around the types, to make them easier to read
+    for (int i = 0; i < patterSingingTypesSQ.size(); ++i) {
+        patterSingingTypesSQ[i] = "'" + patterSingingTypesSQ[i] + "'";
+    }
+
+    // now put in a nice A, B, C, and D format...
+    if (patterSingingTypesSQ.count() > 1) {
+        // Join all elements except the last one
+        allTypes = patterSingingTypesSQ.mid(0, patterSingingTypesSQ.count() - 1).join(", ");
+        // Add " and " before the last element
+        allTypes += ", and " + patterSingingTypesSQ.last();
+    } else if (patterSingingTypesSQ.count() == 1) {
+        // Handle the case of a single element
+        allTypes = patterSingingTypesSQ.first();
+    }
+
+    // qDebug() << "noteLabel:" << songTypeNamesForPatter << songTypeNamesForSinging << allTypes;
+
+    QLabel *noteLabel = new QLabel(QString("Note: the NEW tag will be set on files that are copied to: ") + allTypes + ".");
+    QFont font = noteLabel->font();
+    font.setPointSize(font.pointSize() * 1.0);
+    noteLabel->setFont(font);
+    noteLabel->setAlignment(Qt::AlignLeft); // Align to the right
+    layout->addWidget(noteLabel);
+
     QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     QPushButton *okButton = buttonBox->button(QDialogButtonBox::Ok);
     connect(buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
@@ -1436,7 +1468,10 @@ void MainWindow::dropEvent(QDropEvent *event)
 
         // Destination (combo box)
         QComboBox *destCombo = new QComboBox();
-        destCombo->addItems({"patter", "singing", "vocals", "lyrics"});
+        // destCombo->addItems({"patter", "singing", "vocals", "lyrics"});
+
+        QStringList destFolders = songTypeNamesForPatter + songTypeNamesForSinging + songTypeNamesForCalled + songTypeNamesForExtras + QStringList("lyrics");
+        destCombo->addItems(destFolders); // e.g. patter, hoedown, singing, xtras, lyrics
 
         static QRegularExpression parenRegex("\\(.*\\)");
         QString noExtraName = proposeCanonicalName(baseName.toLower(), false);
@@ -1445,17 +1480,22 @@ void MainWindow::dropEvent(QDropEvent *event)
         // qDebug() << baseName << noExtraName << htmlBasenames;
 
         // --- Apply default destination logic ---
+        // defaults are the first items on each of the songNamesFor* lists (set by user in Preferences)
         if (extension.toLower() == "htm" || extension.toLower() == "html") {
             destCombo->setCurrentText("lyrics");
         } else if (baseName.toLower().contains(vocalPattern)) {
-            destCombo->setCurrentText("vocals");
+            // destCombo->setCurrentText("vocals");
+            destCombo->setCurrentText(defaultVocalsFolderName);
         } else if (htmlBasenames.contains(baseName.toLower())) {
-            destCombo->setCurrentText("singing");
+            // destCombo->setCurrentText("singing");
+            destCombo->setCurrentText(defaultSingingFolderName);
         } else if (htmlBasenames.contains(noExtraName.toLower())) {
             // e.g. "RIV 123b - Foo Bar"
-            destCombo->setCurrentText("singing");
+            // destCombo->setCurrentText("singing");
+            destCombo->setCurrentText(defaultSingingFolderName);
         } else {
-            destCombo->setCurrentText("patter");
+            // destCombo->setCurrentText("patter");
+            destCombo->setCurrentText(defaultPatterFolderName);
         }
 
         // Copy checkbox
@@ -1667,7 +1707,8 @@ void MainWindow::dropEvent(QDropEvent *event)
                     didCopy = true;
                 }
 
-                if (didCopy) {
+                // qDebug() << "FOO:" << didCopy << patterSingingTypes << dest;
+                if (didCopy && (patterSingingTypes.contains(dest))) {
                     // qDebug() << "didCopy, so set the NEW tag on" << finalPath;
                     darkChangeTagOnPathToMP3(finalPath, QString("NEW"), true); // add the NEW tag to the copied file
                     didAtLeastOneCopy = true;

@@ -562,6 +562,7 @@ QHash<QString,QPair<QString,QString>> SongSettings::getTagColors(bool loadCache)
     {
         colors[q.value(0).toString()] = QPair<QString,QString>(q.value(1).toString(),q.value(2).toString());
     }
+
     for (auto tag = tagCounts.cbegin(); tag != tagCounts.cend(); ++tag)
     {
         if (tag.value() > 0 && !colors.contains(tag.key()))
@@ -572,6 +573,7 @@ QHash<QString,QPair<QString,QString>> SongSettings::getTagColors(bool loadCache)
             }
         }
     }
+
     // do this even if we aren't caching.
     if (colors.empty())
     {
@@ -586,11 +588,22 @@ QHash<QString,QPair<QString,QString>> SongSettings::getTagColors(bool loadCache)
         colors["halloween"] = QPair<QString,QString>("#ff8b00","#00ff00");
         colors["DUET"] = QPair<QString,QString>("#ae8eff","#781e19");
 
+        colors["NEW"] = QPair<QString,QString>("#ffffff","#c64434"); // added to default set for Import and Organize
+
         for (const auto& color : colors)
         {
             tagCounts[color.first] = 1;
         }
         setTagColors(colors);
+    }
+
+    // NOTE: the NEW tag is now required, since it's used by Import and Organize.
+    //    If the NEW tag is NOT there, then Import and Organize will silently fail to set the NEW tag
+    //    So, let's make sure it is there...
+    if (!colors.contains("NEW")) {
+        colors["NEW"] = QPair<QString,QString>("#ffffff","#c64434");
+        tagCounts["NEW"] = 1;
+        setTagColors(colors);  // and remember them all
     }
     
     if (loadCache)
