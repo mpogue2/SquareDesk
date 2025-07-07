@@ -2514,7 +2514,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         int cindex = ui->tabWidget->currentIndex();  // get index of tab, so we can see which it is
         bool tabIsCuesheet = (ui->tabWidget->tabText(cindex) == CUESHEET_TAB_NAME);
         bool tabIsSD = (ui->tabWidget->tabText(cindex) == "SD");
-        // bool tabIsTaminations = (ui->tabWidget->tabText(cindex) == "Taminations");
+        bool tabIsTaminations = (ui->tabWidget->tabText(cindex) == "Taminations");
         bool tabIsDarkMode = (ui->tabWidget->tabText(cindex) == "Music");
 
         bool cmdC_KeyPressed = (KeyEvent->modifiers() & Qt::ControlModifier) && KeyEvent->key() == Qt::Key_C;
@@ -2593,7 +2593,13 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                     return QObject::eventFilter(Object,Event); // let the lineEditWidget handle it normally
                 }
             }
-        } else if (tabIsCuesheet &&  // we're on the Lyrics editor tab
+        } else if (tabIsTaminations) {
+            if (!(KeyEvent->modifiers() & Qt::ControlModifier)) {
+                // if it's NOT a CMD key, let it go through to Taminations
+                // qDebug() << "Letting it go thru to Taminations:" << theKey;
+                return QObject::eventFilter(Object,Event); // let the lineEditWidget handle it normally
+            }
+        }    else if (tabIsCuesheet &&  // we're on the Lyrics editor tab
                  cmdC_KeyPressed &&      // When CMD-C is pressed
                  maybeMainWindow->lyricsCopyIsAvailable    // and the lyrics edit widget told us that copy was available
                  ) {
