@@ -2120,6 +2120,17 @@ void MainWindow::initializeAudioEngine() {
     cBass->SetIntelBoost(GAIN_DB,  static_cast<float>(prefsManager.GetintelGain_dB()/10.0));  // expressed as positive number
 
     cBass->SetPanEQVolumeCompensation(static_cast<float>(prefsManager.GetpanEQGain_dB()/2.0)); // expressed as signed half-dB's
+
+    connect(&auditionPlayer, &QMediaPlayer::mediaStatusChanged,
+            this,[=](QMediaPlayer::MediaStatus status) {
+            if (status == QMediaPlayer::MediaStatus::BufferedMedia)
+            {
+                // auditionPlayer->pause();
+                // qDebug() << "connect: " << auditionStartHere_ms;
+                auditionPlayer.setPosition(auditionStartHere_ms);
+                // auditionPlayer->pause();
+            }
+        });
 }
 
 void MainWindow::initializeLightDarkTheme() {

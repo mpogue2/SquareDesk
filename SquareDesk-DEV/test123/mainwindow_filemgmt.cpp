@@ -999,6 +999,8 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
                     QString origPath = ((auditionButton *)(sender()))->origPath;
                     // qDebug() << "AUDITION PATH:" << origPath;
 
+                    auditionSetStartMs(origPath);
+
                     // QModelIndexList list = this->ui->darkSongTable->selectionModel()->selectedRows();
                     // int row = list.at(0).row();
                     // QString origPath = this->ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();

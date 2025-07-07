@@ -199,8 +199,11 @@ public:
     bool auditionPlaying = false;
     QTimer auditionSingleShotTimer;
     QString auditionPlaybackDeviceName;
+    qint64 auditionStartHere_ms;
+
     void auditionByKeyPress(void);
     void auditionByKeyRelease(void);
+    void auditionSetStartMs(QString filepath);
 
     // Preview Playback Device functions
     void populatePlaybackDeviceMenu();

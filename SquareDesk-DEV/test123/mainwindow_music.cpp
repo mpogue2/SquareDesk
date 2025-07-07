@@ -141,6 +141,7 @@ QAudioDevice MainWindow::getAudioDeviceByName(const QString &deviceName)
     }
     
     // If not found, return the default device, and log an error...
-    qDebug() << "Audio device not found:" << deviceName << ", using default device";
+    // NOTE: I don't think we need this in the log anymore...
+    // qDebug() << "Audio device not found:" << deviceName << ", using default device";
     return QMediaDevices::defaultAudioOutput();
 }

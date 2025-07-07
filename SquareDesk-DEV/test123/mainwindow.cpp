@@ -7861,6 +7861,56 @@ void MainWindow::setCurrentSongMetadata(QString type) {
 //     on_actionNext_Playlist_Item_triggered();
 // }
 
+void MainWindow::auditionSetStartMs(QString auditionSongFilePath) {
+    // now get Loop Point (patter) or Figure 1 Start Point (singer)
+    SongSetting settings;
+    double intro = 0.0;
+    double songLen_sec = 0.0;
+    double songBPM = 125.0;
+
+    auditionStartHere_ms = 0; // always start at the beginning, unless there's an intro/loop point set
+
+    if (songSettings.loadSettings(auditionSongFilePath, settings)) {
+        if (settings.isSetIntroPos()) {
+            intro = settings.getIntroPos();
+        }
+
+        if (settings.isSetSongLength()) {
+            songLen_sec = settings.getSongLength();
+        }
+
+        // note: tempo is what it's currently set to, NOT what is the base tempo of the file
+        // if (settings.isSetTempo()) {
+        //     if (settings.isSetTempoIsPercent()) {
+        //         songBPM = 125.0;
+        //     } else {
+        //         songBPM = settings.getTempo();
+        //     }
+        // }
+
+        songBPM = 125.0; // we're gonna assume that the base tempo is approx 125 for all songs.
+                         //   it's OK if this is not precisely correct.
+
+        double oneMeasure_ms = 4.5 * (60.0/songBPM) * 1000.0; // approx. to get idea of lead-up to start point
+
+        // NOTE: depending on exactly which beat was selected by bar/beat detection to be beat 1
+        //  of a measure, and the ACTUAL BPM of the song (which might not be 125),
+        //  the user might hear 4, 5, or even 6 beats before the start of the measure.  I think
+        //  this is acceptable.  Note that when bar detection is one beat off, it's one beat off
+        //  on both ends, so the loop still sounds seamless.
+
+        if (intro >= 0.0 && intro <= 1.0 && songLen_sec > 1.0) {
+            // if everything looks valid, change the start playback point
+            auditionStartHere_ms = (qint64)(intro * songLen_sec * 1000.0 - oneMeasure_ms);
+            if (auditionStartHere_ms < 0) {
+                auditionStartHere_ms = 0;
+            }
+        }
+    }
+
+    // qDebug() << "auditionSetStartMs:" << auditionStartHere_ms;
+}
+
 void MainWindow::auditionByKeyPress(void) {
     // qDebug() << "***** auditionByKeyPress";
 
@@ -7914,7 +7964,9 @@ void MainWindow::auditionByKeyPress(void) {
     // qDebug() << "setting auditionInProgress to true";
 
     this->auditionPlayer.setSource(QUrl::fromLocalFile(auditionSongFilePath));
-    
+
+    auditionSetStartMs(auditionSongFilePath);
+
     // Use the selected audition playback device, or default if not set
     QAudioDevice selectedDevice;
     if (!auditionPlaybackDeviceName.isEmpty()) {
