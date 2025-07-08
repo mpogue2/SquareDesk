@@ -1,0 +1,32 @@
+{
+  "dxt_version": "0.1",
+  "name": "squaredesk-mcp",
+  "version": "1.0.0",
+  "display_name": "SquareDesk MCP Server",
+  "description": "MCP server for SquareDesk square dance calling software",
+  "long_description": "A Model Context Protocol (MCP) server that provides integration with SquareDesk, a comprehensive square dance calling software. This extension enables AI assistants to interact with SquareDesk's features and functionality.",
+  "author": {
+    "name": "SquareDesk",
+    "email": "support@squaredesk.net"
+  },
+  "license": "MIT",
+  "keywords": ["squaredesk", "square dance", "calling", "music", "mcp"],
+  "server": {
+    "type": "binary",
+    "entry_point": "sd_mcp",
+    "mcp_config": {
+      "command": "${__dirname}/sd_mcp",
+      "args": []
+    }
+  },
+  "tools": [
+    {
+      "name": "echo",
+      "description": "Echo the provided text with a prefix"
+    }
+  ],
+  "compatibility": {
+    "platforms": ["darwin", "linux", "win32"],
+    "claude_desktop": ">=0.1.0"
+  }
+}
