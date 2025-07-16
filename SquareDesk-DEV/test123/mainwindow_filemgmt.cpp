@@ -1435,6 +1435,9 @@ void MainWindow::dropEvent(QDropEvent *event)
     // 4. Populate the table
     table->setRowCount(0);
     int currentItem = 1;
+
+    QStringList pathsInTable;
+
     for (const QString &path : allFilePaths) {
         QFileInfo fileInfo(path);
         QString fileName = fileInfo.fileName();
@@ -1445,8 +1448,10 @@ void MainWindow::dropEvent(QDropEvent *event)
         badExtensions << "jpg" << "jpeg" << "xml" << "png" << "thmx";
 
         if (badExtensions.contains(extension.toLower())) {
-            continue; // skip this one
+            continue; // then skip processing this item
         }
+
+        pathsInTable << path;  // these are the paths that made it into the table
 
         table->insertRow( table->rowCount() ); // add a row!
 
@@ -1535,7 +1540,7 @@ void MainWindow::dropEvent(QDropEvent *event)
         musicExtensions << "mp3" << "wav" << "m4a" << "flac";
 
         QStringList lyricsExtensions;
-        lyricsExtensions << "htm" << "html" << "pdf" << "doc" << "txt";
+        lyricsExtensions << "htm" << "html" << "txt"; // no pdf or doc files copied
 
         if (musicExtensions.contains(extension.toLower()) ||
             lyricsExtensions.contains(extension.toLower())) {
@@ -1634,6 +1639,8 @@ void MainWindow::dropEvent(QDropEvent *event)
     }
     okButton->setText(tr("Copy %1 Files").arg(initialCheckedCount));
 
+    qDebug() << "pathsInTable" << pathsInTable;
+
     // 5. Show the dialog and process the result
     if (dialog.exec() == QDialog::Accepted) {
         // qDebug() << "--- Begin Import Selections ---";
@@ -1643,7 +1650,7 @@ void MainWindow::dropEvent(QDropEvent *event)
             QPushButton* b = w->findChild<QPushButton*>();
 
             if (b && b->isChecked()) {
-                QString originalPath = allFilePaths.at(i);
+                QString originalPath = pathsInTable.at(i);
                 QString newTitleFromTable = table->item(i, 2)->text();
                 QString extension = table->item(i, 3)->text();
                 QComboBox *combo = static_cast<QComboBox*>(table->cellWidget(i, 4));
@@ -1651,8 +1658,9 @@ void MainWindow::dropEvent(QDropEvent *event)
 
                 QString finalPath = musicRootPath + "/" + dest + "/" + newTitleFromTable + "." + extension;
 
-                // qDebug() << "File:" << originalPath
-                //          << "New Title:" << finalPath;
+                // qDebug() << "COPYING "
+                //          << "From:" << originalPath
+                //          << "To:" << finalPath;
 
                 bool didCopy = false;
 
