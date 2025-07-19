@@ -1374,12 +1374,12 @@ void MainWindow::dropEvent(QDropEvent *event)
     // Calculate minimum width to ensure all columns are visible
     int minWidth = 50 + 250 + 250 + 150 + 50 + 20; // sum of column widths + scrollbar
     dialog.setMinimumSize(minWidth, 600);
-    dialog.resize(minWidth + 175, 600);  // Default size 175 pixels wider
+    dialog.resize(minWidth + 225, 600);  // Default size 225 pixels wider
     QVBoxLayout *layout = new QVBoxLayout(&dialog);
 
     QTableWidget *table = new QTableWidget(&dialog);
     table->setColumnCount(5);
-    table->setHorizontalHeaderLabels({"Item", "Original Filename", "Proposed Title (editable)", "Destination", "Copy"});
+    table->setHorizontalHeaderLabels({"Item", "Original Filename", "Proposed Title (double-click to edit)", "Destination", "Copy"});
     // Set column resize modes
     table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);        // Item - fixed width
     table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents); // Original Filename - resize to contents
@@ -1407,6 +1407,7 @@ void MainWindow::dropEvent(QDropEvent *event)
     QString defaultPatterFolderName  = songTypeNamesForPatter[0];  // e.g. "patter"
     QString defaultSingingFolderName = songTypeNamesForSinging[0]; // e.g. "singing"
     QString defaultVocalsFolderName  = songTypeNamesForCalled[0];  // e.g. "vocals"
+    QString defaultLyricsFolderName  = "lyrics";
     QString allTypes;
 
     // put single quotes around the types, to make them easier to read
@@ -1502,10 +1503,17 @@ void MainWindow::dropEvent(QDropEvent *event)
         noExtraName = noExtraName.simplified();
         // qDebug() << baseName << noExtraName << htmlBasenames;
 
+        QStringList noCopyLyricsExtensions;
+        noCopyLyricsExtensions << "pdf" << "doc" << "rtf";
+
         // --- Apply default destination logic ---
         // defaults are the first items on each of the songNamesFor* lists (set by user in Preferences)
         if (extension.toLower() == "htm" || extension.toLower() == "html") {
             destCombo->setCurrentText("lyrics");
+        } else if (noCopyLyricsExtensions.contains(extension.toLower())) {
+            // destCombo->setCurrentText("singing");
+            destCombo->setCurrentText(defaultLyricsFolderName);
+            // these will have destination LYRICS, but will default to NO COPY
         } else if (baseName.toLower().contains(vocalPattern)) {
             // destCombo->setCurrentText("vocals");
             destCombo->setCurrentText(defaultVocalsFolderName);
