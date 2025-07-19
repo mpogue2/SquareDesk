@@ -1532,9 +1532,14 @@ QString MainWindow::makeCanonicalRelativePath(QString s) {
 
     // qDebug() << "suffix:" << suffix;
 
-    // NOTE: THIS NEEDS TO MATCH STEP 5 IN MP3FilenameVsCuesheetnameScore()
+    // NOTE: THIS NEEDS TO MATCH STEPS 1d and 5 IN MP3FilenameVsCuesheetnameScore()
     //   TODO: Factor this code out into a separate function
     //
+
+    // Step 1d: note that this requires capitalized "NB" and no spaces for it to work
+    static QRegularExpression NewBeatAndNumber("NB-([0-9]?)");
+    name.replace(NewBeatAndNumber, "NB \\1");
+
     // Step 5: Parse the filenames to extract components
     // Try to identify label, label number, label extra, and title
     struct ParsedName {
