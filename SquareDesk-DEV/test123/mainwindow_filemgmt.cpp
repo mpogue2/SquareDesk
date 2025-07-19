@@ -1372,27 +1372,26 @@ void MainWindow::dropEvent(QDropEvent *event)
     QDialog dialog(this);
     dialog.setWindowTitle(tr("Import and Organize Files"));
     // Calculate minimum width to ensure all columns are visible
-    int minWidth = 50 + 250 + 250 + 80 + 150 + 50 + 20; // sum of column widths + scrollbar
+    int minWidth = 50 + 250 + 250 + 150 + 50 + 20; // sum of column widths + scrollbar
     dialog.setMinimumSize(minWidth, 600);
-    dialog.resize(minWidth + 75, 600);  // Default size 75 pixels wider
+    dialog.resize(minWidth + 175, 600);  // Default size 175 pixels wider
     QVBoxLayout *layout = new QVBoxLayout(&dialog);
 
     QTableWidget *table = new QTableWidget(&dialog);
-    table->setColumnCount(6);
-    table->setHorizontalHeaderLabels({"Item", "Original Filename", "Proposed Title (editable)", "Extension", "Destination", "Copy"});
-    // Make all columns resizable by the user
-    table->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
-    // Set reasonable initial column widths
+    table->setColumnCount(5);
+    table->setHorizontalHeaderLabels({"Item", "Original Filename", "Proposed Title (editable)", "Destination", "Copy"});
+    // Set column resize modes
+    table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);        // Item - fixed width
+    table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents); // Original Filename - resize to contents
+    table->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);      // Proposed Title - stretch to fill
+    table->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);        // Destination - fixed width
+    table->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);        // Copy - fixed width
+    // Set fixed column widths
     table->setColumnWidth(0, 50);   // Item
-    table->setColumnWidth(1, 250);  // Original Filename
-    table->setColumnWidth(2, 250);  // Proposed Title
-    table->setColumnWidth(3, 80);   // Extension
-    table->setColumnWidth(4, 150);  // Destination
-    table->setColumnWidth(5, 50);   // Copy
-    // Make the last column stretch to fill remaining space
-    table->horizontalHeader()->setStretchLastSection(true);
-    // Ensure horizontal scrollbar appears when needed
-    table->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    table->setColumnWidth(3, 150);  // Destination
+    table->setColumnWidth(4, 50);   // Copy
+    // Disable horizontal scrollbar
+    table->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     table->verticalHeader()->setVisible(false);
 
     // Make header bold using a stylesheet for reliability
@@ -1481,14 +1480,11 @@ void MainWindow::dropEvent(QDropEvent *event)
         QTableWidgetItem *titleItem = new QTableWidgetItem(fileName);
         titleItem->setFlags(titleItem->flags() & ~Qt::ItemIsEditable);
 
-        // New Title (editable)
+        // New Title (editable) - includes extension
         QString proposedBaseName = proposeCanonicalName(baseName);
-        QTableWidgetItem *newTitleItem = new QTableWidgetItem(proposedBaseName);
+        QString proposedFullName = proposedBaseName + "." + extension.toLower();
+        QTableWidgetItem *newTitleItem = new QTableWidgetItem(proposedFullName);
         newTitleItem->setBackground(QColor(255, 255, 224)); // Light yellow to indicate editable
-
-        // Extension (read-only)
-        QTableWidgetItem *extItem = new QTableWidgetItem(extension.toLower());
-        extItem->setFlags(extItem->flags() & ~Qt::ItemIsEditable);
 
         // Destination (combo box)
         QComboBox *destCombo = new QComboBox();
@@ -1586,11 +1582,6 @@ void MainWindow::dropEvent(QDropEvent *event)
         newTitleItem->setFont(font);
         newTitleItem->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
 
-        font = extItem->font();
-        font.setStrikeOut(!checked);
-        extItem->setFont(font);
-        extItem->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
-
         const int currentRow = currentItem - 1;
         connect(copyButton, &QPushButton::toggled, [=](bool checked) {
             copyButton->setIcon(checked ? greenCheckIcon : redXIcon);
@@ -1611,23 +1602,18 @@ void MainWindow::dropEvent(QDropEvent *event)
             newTitleItem->setFont(font);
             newTitleItem->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
 
-            font = extItem->font();
-            font.setStrikeOut(!checked);
-            extItem->setFont(font);
-            extItem->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
-
             // Update background color of cells containing widgets
+            if (table->item(currentRow, 3)) {
+                table->item(currentRow, 3)->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
+            }
             if (table->item(currentRow, 4)) {
                 table->item(currentRow, 4)->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
-            }
-            if (table->item(currentRow, 5)) {
-                table->item(currentRow, 5)->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
             }
 
             // Update OK button text
             int checkedCount = 0;
             for (int r = 0; r < table->rowCount(); ++r) {
-                QWidget* w = table->cellWidget(r, 5);
+                QWidget* w = table->cellWidget(r, 4);
                 QPushButton* b = w->findChild<QPushButton*>();
                 if (b && b->isChecked()) {
                     checkedCount++;
@@ -1647,29 +1633,24 @@ void MainWindow::dropEvent(QDropEvent *event)
         table->setItem(row, 0, itemNumber);
         table->setItem(row, 1, titleItem);
         table->setItem(row, 2, newTitleItem);
-        table->setItem(row, 3, extItem);
         
         // Create items for cells that will contain widgets (for background color control)
         QTableWidgetItem *destItem = new QTableWidgetItem();
         destItem->setFlags(destItem->flags() & ~Qt::ItemIsEditable);
         destItem->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
-        table->setItem(row, 4, destItem);
+        table->setItem(row, 3, destItem);
         
         QTableWidgetItem *copyItem = new QTableWidgetItem();
         copyItem->setFlags(copyItem->flags() & ~Qt::ItemIsEditable);
         copyItem->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
-        table->setItem(row, 5, copyItem);
+        table->setItem(row, 4, copyItem);
         
-        table->setCellWidget(row, 4, destCombo);
-        table->setCellWidget(row, 5, widget);
+        table->setCellWidget(row, 3, destCombo);
+        table->setCellWidget(row, 4, widget);
 
         currentItem++;
     }
-    // table->resizeColumnToContents(0);
-    table->setColumnWidth(0, 50);
-    table->resizeColumnToContents(3);
-    table->resizeColumnToContents(4);
-    table->resizeColumnToContents(5);
+    // Column widths are now handled by resize modes
 
     table->setSortingEnabled(true);
     table->sortByColumn(0, Qt::AscendingOrder);
@@ -1677,7 +1658,7 @@ void MainWindow::dropEvent(QDropEvent *event)
     // Initial update of OK button text
     int initialCheckedCount = 0;
     for (int r = 0; r < table->rowCount(); ++r) {
-        QWidget* w = table->cellWidget(r, 5);
+        QWidget* w = table->cellWidget(r, 4);
         QPushButton* b = w->findChild<QPushButton*>();
         if (b && b->isChecked()) {
             initialCheckedCount++;
@@ -1692,17 +1673,16 @@ void MainWindow::dropEvent(QDropEvent *event)
         // qDebug() << "--- Begin Import Selections ---";
         bool didAtLeastOneCopy = false;
         for (int i = 0; i < table->rowCount(); ++i) {
-            QWidget* w = table->cellWidget(i, 5);
+            QWidget* w = table->cellWidget(i, 4);
             QPushButton* b = w->findChild<QPushButton*>();
 
             if (b && b->isChecked()) {
                 QString originalPath = pathsInTable.at(i);
                 QString newTitleFromTable = table->item(i, 2)->text();
-                QString extension = table->item(i, 3)->text();
-                QComboBox *combo = static_cast<QComboBox*>(table->cellWidget(i, 4));
+                QComboBox *combo = static_cast<QComboBox*>(table->cellWidget(i, 3));
                 QString dest = combo->currentText();
 
-                QString finalPath = musicRootPath + "/" + dest + "/" + newTitleFromTable + "." + extension;
+                QString finalPath = musicRootPath + "/" + dest + "/" + newTitleFromTable;
 
                 // qDebug() << "COPYING "
                 //          << "From:" << originalPath
