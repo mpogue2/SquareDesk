@@ -1349,6 +1349,9 @@ void MainWindow::dropEvent(QDropEvent *event)
         return;
     }
 
+    // Dark grey background color for unchecked/strikethrough rows
+    const QColor darkGreyBackground("#A0A0A0"); // RGB(160, 160, 160)
+
     // 1. Gather all file paths, recursing into directories
     QStringList allFilePaths;
     for (const QUrl &url : mimeData->urls()) {
@@ -1368,14 +1371,28 @@ void MainWindow::dropEvent(QDropEvent *event)
     // 2. Create the dialog and its components
     QDialog dialog(this);
     dialog.setWindowTitle(tr("Import and Organize Files"));
-    dialog.setMinimumSize(900, 600);
+    // Calculate minimum width to ensure all columns are visible
+    int minWidth = 50 + 250 + 250 + 80 + 150 + 50 + 20; // sum of column widths + scrollbar
+    dialog.setMinimumSize(minWidth, 600);
+    dialog.resize(minWidth + 75, 600);  // Default size 75 pixels wider
     QVBoxLayout *layout = new QVBoxLayout(&dialog);
 
     QTableWidget *table = new QTableWidget(&dialog);
     table->setColumnCount(6);
     table->setHorizontalHeaderLabels({"Item", "Original Filename", "Proposed Title (editable)", "Extension", "Destination", "Copy"});
-    table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    table->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+    // Make all columns resizable by the user
+    table->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+    // Set reasonable initial column widths
+    table->setColumnWidth(0, 50);   // Item
+    table->setColumnWidth(1, 250);  // Original Filename
+    table->setColumnWidth(2, 250);  // Proposed Title
+    table->setColumnWidth(3, 80);   // Extension
+    table->setColumnWidth(4, 150);  // Destination
+    table->setColumnWidth(5, 50);   // Copy
+    // Make the last column stretch to fill remaining space
+    table->horizontalHeader()->setStretchLastSection(true);
+    // Ensure horizontal scrollbar appears when needed
+    table->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     table->verticalHeader()->setVisible(false);
 
     // Make header bold using a stylesheet for reliability
@@ -1557,19 +1574,24 @@ void MainWindow::dropEvent(QDropEvent *event)
         font = itemNumber->font();
         font.setStrikeOut(!checked);
         itemNumber->setFont(font);
+        itemNumber->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
 
         font = titleItem->font();
         font.setStrikeOut(!checked);
         titleItem->setFont(font);
+        titleItem->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
 
         font = newTitleItem->font();
         font.setStrikeOut(!checked);
         newTitleItem->setFont(font);
+        newTitleItem->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
 
         font = extItem->font();
         font.setStrikeOut(!checked);
         extItem->setFont(font);
+        extItem->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
 
+        const int currentRow = currentItem - 1;
         connect(copyButton, &QPushButton::toggled, [=](bool checked) {
             copyButton->setIcon(checked ? greenCheckIcon : redXIcon);
             QFont font;
@@ -1577,18 +1599,30 @@ void MainWindow::dropEvent(QDropEvent *event)
             font = itemNumber->font();
             font.setStrikeOut(!checked);
             itemNumber->setFont(font);
+            itemNumber->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
 
             font = titleItem->font();
             font.setStrikeOut(!checked);
             titleItem->setFont(font);
+            titleItem->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
 
             font = newTitleItem->font();
             font.setStrikeOut(!checked);
             newTitleItem->setFont(font);
+            newTitleItem->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
 
             font = extItem->font();
             font.setStrikeOut(!checked);
             extItem->setFont(font);
+            extItem->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
+
+            // Update background color of cells containing widgets
+            if (table->item(currentRow, 4)) {
+                table->item(currentRow, 4)->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
+            }
+            if (table->item(currentRow, 5)) {
+                table->item(currentRow, 5)->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
+            }
 
             // Update OK button text
             int checkedCount = 0;
@@ -1603,7 +1637,7 @@ void MainWindow::dropEvent(QDropEvent *event)
         });
 
         QWidget* widget = new QWidget();
-        widget->setStyleSheet("background-color: white; border: none;");
+        widget->setStyleSheet("background-color: transparent; border: none;");
         QHBoxLayout* hLayout = new QHBoxLayout(widget);
         hLayout->addWidget(copyButton);
         hLayout->setAlignment(Qt::AlignCenter);
@@ -1614,6 +1648,18 @@ void MainWindow::dropEvent(QDropEvent *event)
         table->setItem(row, 1, titleItem);
         table->setItem(row, 2, newTitleItem);
         table->setItem(row, 3, extItem);
+        
+        // Create items for cells that will contain widgets (for background color control)
+        QTableWidgetItem *destItem = new QTableWidgetItem();
+        destItem->setFlags(destItem->flags() & ~Qt::ItemIsEditable);
+        destItem->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
+        table->setItem(row, 4, destItem);
+        
+        QTableWidgetItem *copyItem = new QTableWidgetItem();
+        copyItem->setFlags(copyItem->flags() & ~Qt::ItemIsEditable);
+        copyItem->setBackground(!checked ? QBrush(darkGreyBackground) : QBrush());
+        table->setItem(row, 5, copyItem);
+        
         table->setCellWidget(row, 4, destCombo);
         table->setCellWidget(row, 5, widget);
 
