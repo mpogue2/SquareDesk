@@ -2206,6 +2206,19 @@ void MainWindow::on_vuMeterTimerTick(void)
     double currentVolumeSlider = ui->darkVolumeSlider->value();
     int levelR      = cBass->StreamGetVuMeterR();        // do not reset peak detector
     int levelL_mono = cBass->StreamGetVuMeterL_mono();   // get AND reset peak detector
+    
+#ifdef USE_JUCE
+    // Update FX button LED based on LoudMax parameters
+    if (loudMaxPlugin != nullptr) {
+        float thresh = loudMaxPlugin->getHostedParameter(0)->getValue(); // Thresh parameter
+        float output = loudMaxPlugin->getHostedParameter(1)->getValue(); // Output parameter
+        bool isActive = (thresh != 1.0f || output != 1.0f); // 1.0 = 0dB
+        // qDebug() << "vu says:" << thresh << output;
+        updateFXButtonLED(isActive);
+    } else {
+        updateFXButtonLED(false);
+    }
+#endif
 
     // levelL_mono = 32768.0; // DEBUG DEBUG DEBUG
 

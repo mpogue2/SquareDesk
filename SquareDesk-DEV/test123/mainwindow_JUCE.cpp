@@ -314,6 +314,11 @@ void MainWindow::scanForPlugins() {
     }
 
     ui->FXbutton->setVisible(true);
+    
+    // Initialize LED state
+    currentFXButtonLEDState = false; // Start with unknown state to force update
+    updateFXButtonLED(true);         // Tricky: set to true, so that the set to false will register as a change
+    updateFXButtonLED(false);        // Initialize to grey LED
 
     // loudMaxPlugin->createEditorIfNeeded();
 
@@ -635,5 +640,20 @@ void MainWindow::setLoudMaxFromPersistedSettings(QString persistParameterString)
     }
 
     // qDebug() << "LoudMax parameters applied successfully.";
+}
+
+void MainWindow::updateFXButtonLED(bool active) {
+    // qDebug() << "updateFXButtonLED called with" << active;
+    if (currentFXButtonLEDState != active) {
+        // qDebug() << "***** updateFXButtonLED changed" << active;
+        currentFXButtonLEDState = active;
+        QIcon ledIcon(active ? ":/graphics/led_red.png" : ":/graphics/led_grey.png");
+        ui->FXbutton->setIcon(ledIcon);
+        
+        // Update font weight based on LED state
+        QFont font = ui->FXbutton->font();
+        font.setBold(active);
+        ui->FXbutton->setFont(font);
+    }
 }
 

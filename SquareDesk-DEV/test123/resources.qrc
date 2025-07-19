@@ -18,5 +18,7 @@
         <file>applescript/getAppleMusicPlaylists.txt</file>
         <file>graphics/SplashScreen2025c.png</file>
         <file>graphics/icons8-apple-48.png</file>
+        <file>graphics/led_red.png</file>
+        <file>graphics/led_grey.png</file>
     </qresource>
 </RCC>

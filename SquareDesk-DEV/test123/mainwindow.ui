@@ -751,7 +751,7 @@
               </item>
              </layout>
             </widget>
-            <widget class="QPushButton" name="FXbutton">
+            <widget class="QToolButton" name="FXbutton">
              <property name="geometry">
               <rect>
                <x>10</x>
@@ -779,8 +779,8 @@
              <property name="checkable">
               <bool>true</bool>
              </property>
-             <property name="flat">
-              <bool>false</bool>
+             <property name="toolButtonStyle">
+              <enum>Qt::ToolButtonTextBesideIcon</enum>
              </property>
             </widget>
            </widget>

@@ -1312,6 +1312,8 @@ private: // SD Engine Implementation
     void scanForPlugins();
     QString getCurrentLoudMaxSettings();
     void setLoudMaxFromPersistedSettings(QString s);
+    void updateFXButtonLED(bool active);
+    bool currentFXButtonLEDState;
 #endif
 };
 
