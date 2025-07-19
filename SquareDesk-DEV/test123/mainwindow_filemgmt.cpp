@@ -1393,6 +1393,9 @@ void MainWindow::dropEvent(QDropEvent *event)
     // Disable horizontal scrollbar
     table->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     table->verticalHeader()->setVisible(false);
+    
+    // Enable zebra striping for alternating row colors
+    table->setAlternatingRowColors(true);
 
     // Make header bold using a stylesheet for reliability
     table->horizontalHeader()->setStyleSheet("QHeaderView::section { font-weight: bold; }");
@@ -1517,6 +1520,53 @@ void MainWindow::dropEvent(QDropEvent *event)
             // destCombo->setCurrentText("patter");
             destCombo->setCurrentText(defaultPatterFolderName);
         }
+
+        // Set text colors based on destination type (like playlists.cpp:243)
+        QString cType = destCombo->currentText().toLower();
+        QColor textCol;
+        if (songTypeNamesForExtras.contains(cType)) {
+            textCol = QColor(extrasColorString);
+        }
+        else if (songTypeNamesForPatter.contains(cType)) {
+            textCol = QColor(patterColorString);
+        }
+        else if (songTypeNamesForSinging.contains(cType)) {
+            textCol = QColor(singingColorString);
+        }
+        else if (songTypeNamesForCalled.contains(cType)) {
+            textCol = QColor(calledColorString);
+        } else {
+            textCol = QColor(extrasColorString); // default fallback
+        }
+        
+        // Apply the color to filename columns
+        titleItem->setForeground(QBrush(textCol));
+        newTitleItem->setForeground(QBrush(textCol));
+
+        // Connect destination dropdown to update colors when changed
+        connect(destCombo, QOverload<const QString &>::of(&QComboBox::currentTextChanged),
+                [=](const QString &newType) {
+                    QString cType = newType.toLower();
+                    QColor textCol;
+                    if (songTypeNamesForExtras.contains(cType)) {
+                        textCol = QColor(extrasColorString);
+                    }
+                    else if (songTypeNamesForPatter.contains(cType)) {
+                        textCol = QColor(patterColorString);
+                    }
+                    else if (songTypeNamesForSinging.contains(cType)) {
+                        textCol = QColor(singingColorString);
+                    }
+                    else if (songTypeNamesForCalled.contains(cType)) {
+                        textCol = QColor(calledColorString);
+                    } else {
+                        textCol = QColor(extrasColorString); // default fallback
+                    }
+                    
+                    // Update the color of filename columns
+                    titleItem->setForeground(QBrush(textCol));
+                    newTitleItem->setForeground(QBrush(textCol));
+                });
 
         // Copy checkbox
         QPushButton *copyButton = new QPushButton();
