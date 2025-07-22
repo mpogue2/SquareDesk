@@ -3707,11 +3707,9 @@ static void addToProgramsAndWriteTextFile(QStringList &programs, QDir outputDir,
 void MainWindow::loadDanceProgramList(QString lastDanceProgram)
 {
     ui->comboBoxCallListProgram->clear();
-    QListIterator<QString> iter(*pathStack); // I guess Reference items are in the pathStack too
+    QListIterator<QString> iter(*pathStackReference); // Reference items are now in the pathStackReference
     QStringList programs;
 
-    // FIX: This should be changed to look only in <rootDir>/reference, rather than looking
-    //   at all pathnames in the <rootDir>.  It will be much faster.
     while (iter.hasNext()) {
         QString s = iter.next();
 
@@ -3720,7 +3718,7 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
         static QRegularExpression re1("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", QRegularExpression::CaseInsensitiveOption);
         if (s.indexOf(re1) != -1)  // matches the Dance Program files in /reference
         {
-            //qDebug() << "Dance Program Match:" << s;
+            // qDebug() << "Dance Program Match:" << s;
             QStringList sl1 = s.split("#!#");
 //            QString type = sl1[0];  // the type (of original pathname, before following aliases)
             QString origPath = sl1[1];  // everything else
@@ -3731,6 +3729,8 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
             }
         }
     }
+
+    // qDebug() << "Programs" << programs << programs.length();
 
     if (programs.length() == 0)
     {

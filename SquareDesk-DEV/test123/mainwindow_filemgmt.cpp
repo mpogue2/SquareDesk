@@ -385,7 +385,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 }
 
 // ======================================================================
-void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QList<QString> *pathStackCuesheets, QString suffix, Ui::MainWindow *ui, QMap<int, QString> *soundFXarray, QMap<int, QString> *soundFXname)
+void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QList<QString> *pathStackCuesheets, QList<QString> *pathStackReference, QString suffix, Ui::MainWindow *ui, QMap<int, QString> *soundFXarray, QMap<int, QString> *soundFXname)
 {
     QDirIterator it(rootDir, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     while(it.hasNext()) {
@@ -411,9 +411,10 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QList<QString
             //            pathStack->append(type + "#!#" + resolvedFilePath);
 
             // add to the pathStack iff it's not a sound FX .mp3 file (those are internal) AND iff it's not sd, choreography, or reference
-            if (newType != "sd" && newType != "choreography" && newType != "reference") {
-                // qDebug() << "FFR: " << fi.path() << resolvedFilePath << type << newType;
-                // qDebug() << "FFR adding:" << newType + "#!#" + resolvedFilePath;
+            if (newType == "reference") {
+                // qDebug() << "pathStackReference adding:" << resolvedFilePath;
+                pathStackReference->append(newType + "#!#" + resolvedFilePath);
+            } else if (newType != "sd" && newType != "choreography") {
                 if (newType == "lyrics" || resolvedFilePath.endsWith(".html") || resolvedFilePath.endsWith(".htm")) {
                     pathStackCuesheets->append(newType + "#!#" + resolvedFilePath);
                 } else {
@@ -489,7 +490,7 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
 
     t.elapsed(__LINE__);
 
-    findFilesRecursively(rootDir1, pathStack, pathStackCuesheets, "", ui, &soundFXfilenames, &soundFXname);  // appends to the pathstack
+    findFilesRecursively(rootDir1, pathStack, pathStackCuesheets, pathStackReference, "", ui, &soundFXfilenames, &soundFXname);  // appends to the pathstack
 
     t.elapsed(__LINE__);
 

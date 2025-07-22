@@ -387,9 +387,10 @@ void MainWindow::initializeUI() {
 
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
-    pathStackCuesheets = new QList<QString>();
-    pathStackPlaylists = new QList<QString>();
+    pathStackCuesheets      = new QList<QString>();
+    pathStackPlaylists      = new QList<QString>();
     pathStackApplePlaylists = new QList<QString>();
+    pathStackReference      = new QList<QString>();
     currentlyShowingPathStack = nullptr; // nothing is showing yet
 
     musicRootPath = prefsManager.GetmusicPath();      // defaults to ~/squareDeskMusic at very first startup

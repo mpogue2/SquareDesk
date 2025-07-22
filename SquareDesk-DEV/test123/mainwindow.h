@@ -1074,6 +1074,7 @@ private:
     QList<QString> *pathStackCuesheets;
     QList<QString> *pathStackPlaylists;
     QList<QString> *pathStackApplePlaylists;
+    QList<QString> *pathStackReference;
     QList<QString> *currentlyShowingPathStack;
     QString currentTypeFilter;
     QString currentTreePath;
