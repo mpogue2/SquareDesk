@@ -3536,6 +3536,9 @@ void MainWindow::updateTreeWidget() {
                 line = in.readLine();
                 QStringList SL = parseCSV(line);
                 // relpath,pitch,tempo
+                if (SL.length() != 3) {
+                    continue; // ignore lines that don't parse to exactly 3 fields
+                }
                 QString relpath = SL[0];
                 QString fullPath = musicRootPath + relpath;
                 QStringList relPathSplit = relpath.split("/");
