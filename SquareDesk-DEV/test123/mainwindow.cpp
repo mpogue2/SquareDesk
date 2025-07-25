@@ -7199,19 +7199,22 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
     twMenu->addAction("Show in palette slot #1",
                       [this, PlaylistFileName](){
                           int songCount;
-                          loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 0, songCount);
+                          loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 0, songCount);                          
+                          updateRecentPlaylistsList(PlaylistFileName);  // Update the recent playlists list
                       }
                       );
     twMenu->addAction("Show in palette slot #2",
                       [this, PlaylistFileName](){
                           int songCount;
                           loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 1, songCount);
+                          updateRecentPlaylistsList(PlaylistFileName);  // Update the recent playlists list
                       }
                       );
     twMenu->addAction("Show in palette slot #3",
                       [this, PlaylistFileName](){
                           int songCount;
                           loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 2, songCount);
+                          updateRecentPlaylistsList(PlaylistFileName);  // Update the recent playlists list
                       }
                       );
 
