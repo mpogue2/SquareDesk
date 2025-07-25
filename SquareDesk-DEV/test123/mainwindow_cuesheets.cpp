@@ -1885,7 +1885,7 @@ QString MainWindow::maybeCuesheetLevel(QString relativeFilePath) {
         // Look for "L:<level string>" with proper spacing and termination
         // Spacing: either preceded by at least one space OR at start of line
         // Termination: followed by a letter and colon, comma, semicolon, <BR, or end of line
-        QRegularExpression levelRegex("(^|\\s+|>)(L|LEVEL):(.*?)([a-zA-Z]:|,|;|<BR|$)",
+        QRegularExpression levelRegex("(^|\\s+|>)(L|LEVEL):(.*?)([a-zA-Z]:|,|;|<|$)",
                                       QRegularExpression::CaseInsensitiveOption);
         
         QRegularExpressionMatch match = levelRegex.match(line);
