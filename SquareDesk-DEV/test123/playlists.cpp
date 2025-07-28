@@ -856,6 +856,10 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
     int row = item->row();
     QString pathToMP3 = tableWidget->item(row, COLUMN_PATH)->text();
 
+    currentSongPlaylistTable = tableWidget;
+    currentSongPlaylistRow = tableWidget->selectedRanges()[0].topRow();
+    // qDebug() << "currentSongPlaylistRow" << currentSongPlaylistRow;
+
     QFileInfo fi(pathToMP3);
     if (!fi.exists()) {
         qDebug() << "ERROR: File does not exist " << pathToMP3;

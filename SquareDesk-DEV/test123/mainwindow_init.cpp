@@ -957,6 +957,9 @@ void MainWindow::initializeMusicPlaylists() {
 
     linesInCurrentPlaylist = 0;
 
+    currentSongPlaylistTable = nullptr;
+    currentSongPlaylistRow = 0;
+
     connect(ui->playlist1Table, &QTableWidget::itemDoubleClicked, this, &MainWindow::handlePlaylistDoubleClick);
     connect(ui->playlist2Table, &QTableWidget::itemDoubleClicked, this, &MainWindow::handlePlaylistDoubleClick);
     connect(ui->playlist3Table, &QTableWidget::itemDoubleClicked, this, &MainWindow::handlePlaylistDoubleClick);

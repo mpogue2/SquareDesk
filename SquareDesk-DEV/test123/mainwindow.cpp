@@ -6694,6 +6694,9 @@ void MainWindow::on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item)
     int row = item->row();
     QString pathToMP3 = ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
 
+    currentSongPlaylistTable = nullptr; // CMDK for darkSongTable not implemented right now
+    currentSongPlaylistRow = -1;
+
     QString songTitle = getTitleColTitle(ui->darkSongTable, row);
     // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
 
@@ -7887,10 +7890,32 @@ void MainWindow::setCurrentSongMetadata(QString type) {
     // qDebug() << "setCurrentSongMetadata(): " << currentSongTypeName  << currentSongCategoryName << currentSongIsPatter << currentSongIsSinger << currentSongIsVocal << currentSongIsExtra << currentSongIsUndefined;
 }
 
-// void MainWindow::on_actionMove_on_to_Next_Song_triggered()
-// {
-//     on_actionNext_Playlist_Item_triggered();
-// }
+void MainWindow::on_actionMove_on_to_Next_Song_triggered()
+{
+    // qDebug() << "on_actionMove_on_to_Next_Song_triggered";
+
+    // if (currentSongPlaylistTable == ui->playlist1Table) {
+    //     qDebug() << "Loaded Playlist 1 from row " << currentSongPlaylistRow;
+    // } else if (currentSongPlaylistTable == ui->playlist2Table) {
+    //     qDebug() << "Loaded Playlist 2 from row " << currentSongPlaylistRow;
+    // } else if (currentSongPlaylistTable == ui->playlist3Table) {
+    //     qDebug() << "Loaded Playlist 3 from row " << currentSongPlaylistRow;
+    // } else {
+    //     qDebug() << "Playlist UNKNOWN, row " << currentSongPlaylistRow;
+    // }
+
+    if (currentSongPlaylistTable != nullptr) {
+        int nextRow = currentSongPlaylistRow + 1;
+        if (nextRow < currentSongPlaylistTable->rowCount()) {
+            // count is say 5, row nums are 0 - 4
+            // qDebug() << "going to row " << nextRow;
+            handlePlaylistDoubleClick(currentSongPlaylistTable->item(currentSongPlaylistRow+1,0));
+            currentSongPlaylistTable->clearSelection();   // deselect this one
+            currentSongPlaylistTable->selectRow(nextRow); // and select the next one
+            currentSongPlaylistRow = nextRow;
+        }
+    }
+}
 
 void MainWindow::auditionSetStartMs(QString auditionSongFilePath) {
     // now get Loop Point (patter) or Figure 1 Start Point (singer)

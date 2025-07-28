@@ -828,6 +828,8 @@ private slots:
     QString SDOutputToUserOutput(QString sdOutputString);
     void sdtest();
 
+    void on_actionMove_on_to_Next_Song_triggered();
+
 private:
     // ============================================================================
     // INITIALIZATION METHODS (REFACTORED FROM CONSTRUCTOR)
@@ -991,6 +993,10 @@ private:
     int currentSongMP3SampleRate;
     QString currentSongIdentifier;
     uint32_t currentSongID;
+
+    QTableWidget *currentSongPlaylistTable;
+    int currentSongPlaylistRow;
+
     int randCallIndex;
 
     // File operations
