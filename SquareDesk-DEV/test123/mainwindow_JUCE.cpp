@@ -592,6 +592,11 @@ QString MainWindow::getCurrentLoudMaxSettings() {
     return(persistParameterString);  // e.g. "LoudMax:Thresh=0.9,Output=1.0, ... "
 }
 
+void MainWindow::resetLoudMax() {
+    // reset the plugin back to initial conditions
+    setLoudMaxFromPersistedSettings("LoudMax:Thresh=1,Output=1,Fader Link=0,ISP Detection=0,Large GUI=0,Bypass=0");
+}
+
 void MainWindow::setLoudMaxFromPersistedSettings(QString persistParameterString) {
     // qDebug() << "setLoudMaxFromPersistedSettings:" << persistParameterString;
 

@@ -4908,19 +4908,25 @@ void MainWindow::loadSettingsForSong(QString songTitle)
             qDebug() << "NOTE: isSetLoop was false, so using default loop setting for this song type.";
         }
 
+        // LoudMax settings for this song -----------------
+        if (settings.isSetVSTsettings()) {
+            // qDebug() << "Calling setLoudMaxFromPersistedSettings for:" << settings.getFilename();
+            // qDebug() << "Calling setLoudMaxFromPersistedSettings from loadSettingsFor Song...";
+            setLoudMaxFromPersistedSettings(settings.getVSTsettings());
+        }
+        // qDebug() << "done with settings for" << settings.getFilename();
     }
     else
     {
+        // qDebug() << "song" << currentMP3filename << "not seen before.";
         ui->darkTrebleKnob->setValue(SliderToKnob(0)); // song not seen before, so T/M/B = (0 Slider, 50 Knob) = 0dB
         ui->darkBassKnob->setValue(SliderToKnob(0));
         ui->darkMidKnob->setValue(SliderToKnob(0));
         // ui->mixSlider->setValue(0);
+
+        resetLoudMax(); // reset back to initial conditions, because song not seen before
     }
 
-    // LoudMax settings for this song -----------------
-    if (settings.isSetVSTsettings()) {
-        // qDebug() << "Calling setLoudMaxFromPersistedSettings from loadSettingsFor Song...";
-        setLoudMaxFromPersistedSettings(settings.getVSTsettings()); } // ADDED *****
 }
 
 void MainWindow::loadGlobalSettingsForSong(QString songTitle) {

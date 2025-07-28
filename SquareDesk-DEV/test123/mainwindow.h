@@ -1312,6 +1312,7 @@ private: // SD Engine Implementation
     std::unique_ptr<juce::DocumentWindow> loudMaxWin;
     void scanForPlugins();
     QString getCurrentLoudMaxSettings();
+    void resetLoudMax();
     void setLoudMaxFromPersistedSettings(QString s);
     void updateFXButtonLED(bool active);
     bool currentFXButtonLEDState;
