@@ -97,7 +97,9 @@ if [ -f "$ZIP_NAME" ]; then
     echo "Removed existing ZIP file"
 fi
 
-ditto -c -k --keepParent "$APP_PATH" "$ZIP_NAME"
+# MUST USE -sequesterRsrc for notarization
+ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$ZIP_NAME"
+
 if [ $? -ne 0 ]; then
     echo "Error: Failed to create ZIP archive"
     exit 1

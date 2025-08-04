@@ -653,19 +653,21 @@ macx {
     #  unzip the web.zip file into the Resources/Taminations/web folder
     copydata1tam.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations
     copydata2tam.commands = sleep 1;unzip -o -q $$PWD/../Taminations/web.zip -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations
-    # copydata3tam.commands = sleep 3;rm -Rf $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations/__MACOSX
-    # copydata4tam.commands = sleep 5;find $$OUT_PWD/SquareDesk.app/Contents/Resources -name \".*\" -type f -delete
+    copydata3tam.commands = sleep 3;dot_clean $$OUT_PWD/SquareDesk.app
+    copydata4tam.commands = sleep 5;find $$OUT_PWD/SquareDesk.app/Contents -name \".last_build_id\" -type f -delete
+    copydata5tam.commands = sleep 5;find $$OUT_PWD/SquareDesk.app/Contents -name \".DS_Store\" -type f -delete
 
-    first.depends += copydata1tam copydata2tam # copydata3tam copydata4tam
+    first.depends += copydata1tam copydata2tam copydata3tam copydata4tam copydata5tam
 
     export(first.depends)
 
     export(copydata1tam.commands)
     export(copydata2tam.commands)
-    # export(copydata3tam.commands)
-    # export(copydata4tam.commands)
+    export(copydata3tam.commands)
+    export(copydata4tam.commands)
+    export(copydata5tam.commands)
 
-    QMAKE_EXTRA_TARGETS += copydata1tam copydata2tam # copydata3tam copydata4tam
+    QMAKE_EXTRA_TARGETS += copydata1tam copydata2tam copydata3tam copydata4tam copydata5tam
 
     # Binary Resources for VAMP (beat/measure detection and segmentation) -----------------
     #  NOTE: The dylibs and the vamp-simple-host executable are all ARM64 binaries.  Segmentino and QM plugins are universal binaries.
