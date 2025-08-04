@@ -4601,10 +4601,11 @@ void MainWindow::saveCurrentSongSettings()
         //  otherwise, leave it alone.  This prevents SquareDesk from erasing previous
         //  LoudMax settings, if transferring to a laptop that temporarily does not
         //  have LoudMax installed.
+#ifdef USE_JUCE
         if (loudMaxPlugin != nullptr) {
             setting.setVSTsettings(getCurrentLoudMaxSettings()); // get parameters from LoudMax plugin, and persist them
         }
-
+#endif
         if (ui->actionLoop->isChecked()) {
             setting.setLoop( 1 );
         } else {
@@ -4909,12 +4910,14 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         }
 
         // LoudMax settings for this song -----------------
+#ifdef USE_JUCE
         if (settings.isSetVSTsettings()) {
             // qDebug() << "Calling setLoudMaxFromPersistedSettings for:" << settings.getFilename();
             // qDebug() << "Calling setLoudMaxFromPersistedSettings from loadSettingsFor Song...";
             setLoudMaxFromPersistedSettings(settings.getVSTsettings());
         }
         // qDebug() << "done with settings for" << settings.getFilename();
+#endif
     }
     else
     {
@@ -4924,7 +4927,9 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         ui->darkMidKnob->setValue(SliderToKnob(0));
         // ui->mixSlider->setValue(0);
 
+#ifdef USE_JUCE
         resetLoudMax(); // reset back to initial conditions, because song not seen before
+#endif
     }
 
 }
@@ -6369,10 +6374,12 @@ void MainWindow::on_darkStopButton_clicked()
     cBass->Stop();                 // Stop playback, rewind to the beginning
     cBass->StopAllSoundEffects();  // and, it also stops ALL sound effects
 
+#ifdef USE_JUCE
     if (loudMaxPlugin != nullptr) {
         // qDebug() << "Clearing LoudMax's buffers...";
         loudMaxPlugin->reset();  // clear out the LoudMax audio buffers
     }
+#endif
 
     setNowPlayingLabelWithColor(currentSongTitle);
     

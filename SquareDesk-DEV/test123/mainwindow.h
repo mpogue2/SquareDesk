@@ -462,8 +462,9 @@ protected:
     bool maybeSavePlaylist(int whichSlot);
     bool maybeSaveCuesheet(int optionCount);
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
+#ifdef USE_JUCE
     bool eventFilter(QObject *watched, QEvent *event) Q_DECL_OVERRIDE;
-
+#endif
     // Protected UI event handlers
     void on_loopButton_toggled(bool checked);
     void on_monoButton_toggled(bool checked);

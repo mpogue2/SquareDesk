@@ -490,6 +490,7 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 #import <Cocoa/Cocoa.h>
 #endif
 
+#ifdef USE_JUCE
 // Implement the static method defined in PluginWindow
 void PluginWindow::syncWindowLevelsNative(WId mainWindowId, void* pluginWindowHandle)
 {
@@ -527,6 +528,7 @@ void PluginWindow::syncWindowLevelsNative(WId mainWindowId, void* pluginWindowHa
 #endif
 }
 #endif // Q_OS_MAC
+#endif
 
 // =============================================================================
 // PER-SONG PERSISTANCE OF LOUDMAX PARAMS
@@ -567,8 +569,8 @@ void PluginWindow::syncWindowLevelsNative(WId mainWindowId, void* pluginWindowHa
 //          << paramThresh->getCurrentValueAsText().toStdString()
 //          << paramThresh->getDefaultValue();
 
+#ifdef USE_JUCE
 QString MainWindow::getCurrentLoudMaxSettings() {
-
     if (loudMaxPlugin == nullptr) {
         return("");  // no LoudMax, so return empty string nothing to do
     }
@@ -661,4 +663,5 @@ void MainWindow::updateFXButtonLED(bool active) {
         ui->FXbutton->setFont(font);
     }
 }
+#endif
 
