@@ -1194,7 +1194,7 @@ void SDThread::run()
                           &waitCondAckToMainThread, &mutexAckToMainThread);
     iofull = &ggg;
     QString executableDir = QCoreApplication::applicationDirPath(); // this is where the executable is (not necessarily the current working directory)
-    QString sdCallsFilename = executableDir + "/sd_calls.dat";
+    QString sdCallsFilename = executableDir + "/../Resources/sd_calls.dat"; // NEW: Moved to the Resources folder
 
 #if !(defined(Q_OS_MAC) || defined(Q_OS_WIN))
     // if it's Linux, look in /usr/share/SquareDesk
@@ -1206,7 +1206,7 @@ void SDThread::run()
 #endif
     std::string str = sdCallsFilename.toStdString();
     const char* p = str.c_str();
-    //    qDebug() << "database:" << p;
+    // qDebug() << "database:" << p;
 
     char *levelString = strdup(const_cast<char *>(dance_program_name.toStdString().c_str())); // make a copy of the string
 
