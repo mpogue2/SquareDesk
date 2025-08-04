@@ -620,10 +620,10 @@ macx {
     QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata0d copydata0e copydata1dir copydata1 copydata2 copydata3 copydata4s copydata5
 
     # For the PDF viewer -----------------
-    copydata1p.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web
-    copydata2p.commands = sleep 2;$(COPY_DIR) $$PWD/../qpdfjs/minified/*   $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
+    copydata1p.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/Resources/minified/web || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/minified/web
+    copydata2p.commands = sleep 2;$(COPY_DIR) $$PWD/../qpdfjs/minified/*   $$OUT_PWD/SquareDesk.app/Contents/Resources/minified
     #copydata3p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/build $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
-    copydata4p.commands = sleep 2;$(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web/compressed.*.pdf
+    copydata4p.commands = sleep 2;$(RM) $$OUT_PWD/SquareDesk.app/Contents/Resources/minified/web/compressed.*.pdf
 
     #first.depends += copydata1p copydata2p copydata3p copydata4p
     first.depends += copydata1p copydata2p copydata4p
@@ -653,15 +653,17 @@ macx {
     #  unzip the web.zip file into the Resources/Taminations/web folder
     copydata1tam.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations
     copydata2tam.commands = sleep 2;unzip -o -q $$PWD/../Taminations/web.zip -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations
+    copydata3tam.commands = sleep 3;rm -Rf $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations/__MACOSX
 
-    first.depends += copydata1tam copydata2tam
+    first.depends += copydata1tam copydata2tam copydata3tam
 
     export(first.depends)
 
     export(copydata1tam.commands)
     export(copydata2tam.commands)
+    export(copydata3tam.commands)
 
-    QMAKE_EXTRA_TARGETS += copydata1tam copydata2tam
+    QMAKE_EXTRA_TARGETS += copydata1tam copydata2tam copydata3tam
 
     # Binary Resources for VAMP (beat/measure detection and segmentation) -----------------
     #  NOTE: The dylibs and the vamp-simple-host executable are all ARM64 binaries.  Segmentino and QM plugins are universal binaries.

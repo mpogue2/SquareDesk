@@ -5142,10 +5142,10 @@ void MainWindow::initReftab() {
 //                qDebug() << "PDF FILE DETECTED:" << filename;
 
                 QString app_path = qApp->applicationDirPath();
-                auto url = QUrl::fromLocalFile(app_path+"/minified/web/viewer.html");  // point at the viewer
+                auto url = QUrl::fromLocalFile(app_path+"/../Resources/minified/web/viewer.html");  // point at the viewer
 //                qDebug() << "    Viewer URL:" << url;
 
-                QDir dir(app_path+"/minified/web/");
+                QDir dir(app_path+"/../Resources/minified/web/");
                 QString pdf_path = dir.relativeFilePath(filename);  // point at the file to be viewed (relative!)
 //                qDebug() << "    pdf_path: " << pdf_path;
 

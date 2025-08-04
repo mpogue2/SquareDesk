@@ -83,7 +83,8 @@ fi
 echo "Backing up and updating Info.plist files..."
 
 # Backup main Info.plist
-cp "$INFO_PLIST" "$INFO_PLIST.bak.$(date +%Y%m%d%H%M%S)"
+# NOTE: .bak files will cause failure of Notarization, so don't make them anymore.
+# cp "$INFO_PLIST" "$INFO_PLIST.bak.$(date +%Y%m%d%H%M%S)"
 
 # Update main Info.plist with QWebEngine settings
 echo "Updating main Info.plist..."
@@ -115,7 +116,8 @@ echo "Updating main Info.plist..."
 # Update QtWebEngineProcess Info.plist if it exists
 if [ -f "$QWE_INFO_PLIST" ]; then
     echo "Updating QtWebEngineProcess Info.plist..."
-    cp "$QWE_INFO_PLIST" "$QWE_INFO_PLIST.bak.$(date +%Y%m%d%H%M%S)"
+    # NOTE: .bak files will cause failure of Notarization, so don't make them anymore.
+    # cp "$QWE_INFO_PLIST" "$QWE_INFO_PLIST.bak.$(date +%Y%m%d%H%M%S)"
     
     # Add/update App Transport Security
     /usr/libexec/PlistBuddy -c "Delete :NSAppTransportSecurity" "$QWE_INFO_PLIST" 2>/dev/null || true
