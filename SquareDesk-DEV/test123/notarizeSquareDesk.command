@@ -105,6 +105,13 @@ fi
 echo "Successfully created ZIP archive: $ZIP_NAME"
 echo ""
 
+echo "DELAYING 10 SECONDS, IN CASE YOU WANT TO CTRL-C HERE"
+sleep 10
+echo "CONTINUING..."
+echo ""
+echo ""
+sleep 1
+
 # Step 2: Submit for notarization
 echo "Submitting for notarization..."
 echo ""
