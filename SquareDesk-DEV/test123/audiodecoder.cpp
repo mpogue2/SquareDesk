@@ -273,7 +273,7 @@ public:
         // fadeIsStop = false;
 
         if (pLoudMaxPluginRaw != nullptr) {
-            pLoudMaxPluginRaw->prepareToPlay(44100.0, sizeof(processedData)/sizeof(float)); // 8192 is sizeof processedData/R, everything is 44.1K right now
+            pLoudMaxPluginRaw->prepareToPlay(44100.0, sizeof(processedData)/sizeof(float)); // 4 * 8192 is sizeof processedData/R, everything is 44.1K right now
         } else {
             qDebug() << "Play: pLoudMaxPluginRaw was null";
         }
@@ -644,6 +644,19 @@ public:
 //             scaleFactor = (fadeIsStop ? 0.0 : scaleFactor); // force volume to zero, if we are doing a JUCE-style stop
 // #endif
             // qDebug() << "scaleFactor:" << scaleFactor;
+
+            if (scaled_inLength_frames > sizeof(processedData)) {
+                // I don't want to dynamically size processedData, because this error really should never happen, if
+                //   we size this output buffer big enough.  I think it needed to get bigger because of changes
+                //   in Qt 6.9 .
+                // BUT, if it DOES happen again, I want an error message to be printed, so it's way easier to track down.
+                // Note: inDataFloat is dynamically sized based on the MP3 length, so no problem with accessing
+                //   beyond the array bounds there.
+                qDebug() << "ERROR 8192:" << scaled_inLength_frames << sizeof(processedData);
+                scaled_inLength_frames = sizeof(processedData);  // if this happens, I think we'll at least get a stack trace
+                                                                 //    in my testing, it still crashes.
+            }
+
             for (unsigned int i = 0; i < scaled_inLength_frames; i++) {
                 // output data is de-interleaved into first and second half of outDataFloat buffer
 //                outDataFloat[2*i]   = (float)(scaleFactor*KL*inDataFloat[2*i]);   // L: stereo to 2ch stereo + volume + pan
@@ -784,8 +797,8 @@ private:
     double       loopFrom_sec;  // when both From and To are zero, that means "no looping"
     double       loopTo_sec;
 
-    float       processedData[8192];
-    float       processedDataR[8192];
+    float       processedData[4 * 8192];
+    float       processedDataR[4 * 8192];
 #ifdef USE_JUCE
     float * const dataToReferTo[2] = {processedData, processedDataR}; // array of pointers to the float data
     juce::AudioPluginInstance *pLoudMaxPluginRaw;
