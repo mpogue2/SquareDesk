@@ -64,6 +64,26 @@ bool MyTableWidget::isEditing()
     return (state() == QTableWidget::EditingState);
 }
 
+bool rowsNumbersAreContiguous(const QList<int>& rowNumbers) {
+    // Empty list is considered contiguous
+    if (rowNumbers.isEmpty()) {
+        return true;
+    }
+
+    // Create a sorted copy to check sequence
+    QList<int> sorted = rowNumbers;
+    std::sort(sorted.begin(), sorted.end());
+
+    // Check if each number is exactly 1 more than the previous
+    for (int i = 1; i < sorted.size(); ++i) {
+        if (sorted[i] != sorted[i-1] + 1) {
+            return false; // Gap found or duplicate number
+        }
+    }
+
+    return true;
+}
+
 // -----------------------------------------------
 bool MyTableWidget::moveSelectedItemsUp() {
     QModelIndexList list = selectionModel()->selectedRows();
@@ -71,9 +91,15 @@ bool MyTableWidget::moveSelectedItemsUp() {
     QList<int> rows;
     for (const auto &m : std::as_const(list)) {
         rows.append(m.row());
+        // qDebug() << "m.row()" << m.row();
     }
 
     std::sort(rows.begin(), rows.end()); // ascending sort intentionally
+
+    if (rowsNumbersAreContiguous(rows) && rows.startsWith(0)) {
+        // qDebug() << "At top AND contiguous!";
+        return false;  // do nothing, if they are all at the top AND contiguous
+    }
 
     // qDebug() << "***** MOVESELECTEDITEMS UP SORTED: " << rows;
 
@@ -143,9 +169,17 @@ bool MyTableWidget::moveSelectedItemsDown() {
     QList<int> rows;
     for (const auto &m : std::as_const(list)) {
         rows.append(m.row());
+        // qDebug() << "m.row()" << m.row();
     }
 
     std::sort(rows.begin(), rows.end(), std::greater<int>()); // descending sort intentionally
+
+    // qDebug() << "this->rowCount()" << this->rowCount() << rowsNumbersAreContiguous(rows) << rows.endsWith(this->rowCount()-1);
+    if (rowsNumbersAreContiguous(rows) && rows.startsWith(this->rowCount()-1)) {
+        // use startsWith, because the order is DESCENDING here
+        // qDebug() << "At bottom AND contiguous!";
+        return false;  // do nothing, if they are all at the bottom AND contiguous
+    }
 
     // qDebug() << "***** MOVESELECTEDITEMS DOWN SORTED: " << rows;
 
