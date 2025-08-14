@@ -145,6 +145,7 @@ static QRegularExpression title_tags_remover("(\\&nbsp\\;)*\\<\\/?span( .*?)?>")
 
 // TITLE COLORS
 static QRegularExpression spanPrefixRemover("<span style=\"color:.*\">(.*)</span>", QRegularExpression::InvertedGreedinessOption);
+const char *kCharStarStringTracks = "Tracks";
 
 #include <QProxyStyle>
 
@@ -2756,16 +2757,12 @@ void MainWindow::actionSwitchToTab(const char *tabname)
 
 void MainWindow::actionFilterSongsPatterSingersToggle()
 {
-    QString darkFilter = ui->darkSearch->text();
-    qsizetype doubleColonIndex = darkFilter.indexOf("::");
-    
-    QString currentFilter(doubleColonIndex >= 0 ? darkFilter.mid(0, doubleColonIndex) : "");
-
+    QList<QTreeWidgetItem *> items = ui->treeWidget->selectedItems();
+    QString currentFilter(items.length() > 0 ? items[0]->text(0) : "");
     if (songTypeToggleList.length() > 1)
     {
         int nextToggle = 0;
-        QList<QTreeWidgetItem *> trackItems = ui->treeWidget->findItems("Tracks", Qt::MatchExactly);
-        QTreeWidgetItem *trackItem = trackItems[0];
+        QTreeWidgetItem *trackItem = treeWidgetTrackItem();
         
         for (int i = 0; i < songTypeToggleList.length(); ++i)
         {
@@ -2804,13 +2801,34 @@ void MainWindow::actionFilterSongsPatterSingersToggle()
     actionFilterSongsToPatter();
 }
 
+QTreeWidgetItem * MainWindow::treeWidgetTrackItem() {
+    QList<QTreeWidgetItem *> trackItems = ui->treeWidget->findItems(kCharStarStringTracks, Qt::MatchExactly);
+    return trackItems[0];
+}
+
+void MainWindow::filterSongsToFirstItemInList(QStringList &list) {
+    QTreeWidgetItem *trackItem = treeWidgetTrackItem();
+    for (int i = 0; i < trackItem->childCount(); ++i) {
+        QTreeWidgetItem *item = trackItem->child(i);
+        QString t = item->text(0);
+        for (int j = 0; j < list.length(); ++j) {
+            QString s = list[j];
+            if (t.contains(s, Qt::CaseInsensitive)) {
+                ui->treeWidget->setCurrentItem(item);
+                return;
+            }
+        }
+    }
+}
 
 void MainWindow::actionFilterSongsToPatter()
 {
+    filterSongsToFirstItemInList(songTypeNamesForPatter);
 }
 
 void MainWindow::actionFilterSongsToSingers()
 {
+    filterSongsToFirstItemInList(songTypeNamesForSinging);
 }
 
 void MainWindow::actionToggleCuesheetAutoscroll()
@@ -2832,7 +2850,7 @@ bool MainWindow::handleKeypress(int key, QString text)
     }
 //    qDebug() << "YES: handleKeypress(" << key << ")";
 
-    QList<QTreeWidgetItem *> trackItem;
+    QTreeWidgetItem *trackItem = treeWidgetTrackItem();
 
     switch (key) {
 
@@ -2858,8 +2876,7 @@ bool MainWindow::handleKeypress(int key, QString text)
 
             // ESC also now clears out the selected filter in the TreeWidget
             ui->treeWidget->clearSelection(); // unselect all
-            trackItem = ui->treeWidget->findItems("Tracks", Qt::MatchExactly);
-            trackItem[0]->setSelected(true); // and select just this one
+            trackItem->setSelected(true); // and select just this one
 
             darkFilterMusic();               // highlights first visible row (if there are any rows)
 
@@ -3418,7 +3435,7 @@ void MainWindow::updateTreeWidget() {
 //    qDebug() << "types: " << types;
 
     QTreeWidgetItem *tracksItem = new QTreeWidgetItem();
-    tracksItem->setText(0, "Tracks");
+    tracksItem->setText(0, kCharStarStringTracks);
 //    tracksItem->setIcon(0, QIcon(":/graphics/darkiTunes.png"));
     tracksItem->setIcon(0, QIcon(":/graphics/icons8-musical-note-60.png"));
 
@@ -5234,7 +5251,7 @@ void MainWindow::on_actionStartup_Wizard_triggered()
         findMusic(musicRootPath, true);  // get the filenames from the user's directories
         darkFilterMusic(); // and filter them into the songTable
 //        qDebug() << "LOAD MUSIC LIST FROM STARTUP WIZARD TRIGGERED";
-        darkLoadMusicList(nullptr, "Tracks", true, true); // just refresh whatever is showing
+        darkLoadMusicList(nullptr, kCharStarStringTracks, true, true); // just refresh whatever is showing
 
         // install soundFX if not already present
         maybeInstallSoundFX();
@@ -6627,8 +6644,8 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
             QString theText = thisItem->text(0);
             if (!doNotCallDarkLoadMusicList) {
                 ui->darkSearch->setText(""); // clear the search to show all Local Tracks
-                if (theText == "Tracks") {
-                    darkLoadMusicList(pathStack, "Tracks", true, false);  // show MUSIC
+                if (theText == kCharStarStringTracks) {
+                    darkLoadMusicList(pathStack, kCharStarStringTracks, true, false);  // show MUSIC
                     return;
                 } else if (theText == "Apple Music") {
                     darkLoadMusicList(pathStackApplePlaylists, "Apple Music", true, false);  // show APPLE MUSIC playlists
@@ -6669,13 +6686,13 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
             ui->darkSearch->setText(""); // clear the search to show all Tracks
             if (!doNotCallDarkLoadMusicList) {
                 currentTreePath = "Tracks/";
-                darkLoadMusicList(pathStack, "Tracks", true, false);  // show MUSIC TRACKS
+                darkLoadMusicList(pathStack, kCharStarStringTracks, true, false);  // show MUSIC TRACKS
             }
         } else {
             ui->darkSearch->setText(""); // clear the search to show all Tracks
             if (!doNotCallDarkLoadMusicList) {
                 currentTreePath = treePath; // e.g. "Tracks/patter", "Playlists/CPSD/" "Apple Music/CuriousBlend"
-                if (treePath.startsWith("Tracks")) {
+                if (treePath.startsWith(kCharStarStringTracks)) {
                     darkLoadMusicList(pathStack, shortTreePath, true, false);  // show MUSIC TRACKS
                 } else if (treePath.startsWith("Playlists")) {
                     darkLoadMusicList(pathStackPlaylists, shortTreePath, true, false);  // show MUSIC TRACKS

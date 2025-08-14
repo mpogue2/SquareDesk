@@ -1058,6 +1058,8 @@ private:
     QStringList getUncheckedItemsFromCurrentCallList();
     void sortByDefaultSortOrder();
 
+    void filterSongsToFirstItemInList(QStringList &list);
+    QTreeWidgetItem * treeWidgetTrackItem();
     // ============================================================================
     // FILE SYSTEM WATCHING & MONITORING
     // ============================================================================
