@@ -59,13 +59,13 @@ QString MainWindow::getResourceFile(QString s) {
 
     // QFileInfo checkFile(userTemplateOverridePath);
     // if (checkFile.exists()) {
-    //     patterTemplatePath = userTemplateOverridePath;  // use user-specified template instead of default
+    //     resourcePath = userTemplateOverridePath;  // use user-specified template instead of default
     // }
 
 #elif defined(Q_OS_WIN32)
     QString appPath = QApplication::applicationFilePath();
-    QString patterTemplatePath = appPath + "/" + s;
-    patterTemplatePath.replace("SquareDesk.exe/","");
+    QString resourcePath = appPath + "/" + s;
+    resourcePath.replace("SquareDesk.exe/","");
 
     // path of the optional user-specified template, which overrides the default template --------
     // s is of the form "<type>.template.html", so first we split it into its component parts
@@ -74,11 +74,11 @@ QString MainWindow::getResourceFile(QString s) {
 
     QFileInfo checkFile(userTemplateOverridePath);
     if (checkFile.exists()) {
-        patterTemplatePath = userTemplateOverridePath;  // use user-specified template instead of default
+        resourcePath = userTemplateOverridePath;  // use user-specified template instead of default
     }
 
 #else
-    QString patterTemplatePath = s;
+    QString resourcePath = s;
 
     // Linux
 
@@ -99,7 +99,7 @@ QString MainWindow::getResourceFile(QString s) {
         QFileInfo check_file(filename);
         if (check_file.exists() && check_file.isFile())
         {
-            patterTemplatePath = s;
+            resourcePath = s;
             break;
         }
     }
@@ -107,10 +107,10 @@ QString MainWindow::getResourceFile(QString s) {
 
     QString fileContents;
 
-    QFile file(patterTemplatePath);
+    QFile file(resourcePath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug() << "Could not open '" + s + "' file.";
-        qDebug() << "looked here:" << patterTemplatePath;
+        qDebug() << "looked here:" << resourcePath;
         return("");  // NOTE: early return, couldn't find file we wanted
     } else {
         fileContents = file.readAll();
