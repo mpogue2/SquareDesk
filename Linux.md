@@ -28,10 +28,8 @@ Build them:
 
 ```mkdir -p $HOME/local
 pushd kfr
-mkdir -p build && cd build
-cmake -DCMAKE_INSTALL_PREFIX:PATH=$HOME/local -GNinja -DENABLE_CAPI_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ ..
-ninja kfr_capi
-ninja install
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$HOME/local -G"Unix Makefiles" -DENABLE_CAPI_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DKFR_ENABLE_MULTIARCH=OFF -DCMAKE_CXX_COMPILER=g++ .
+make && make install
 popd
 pushd soundtouch
 cmake -DCMAKE_INSTALL_PREFIX:PATH=$HOME/local && make && make all && make install

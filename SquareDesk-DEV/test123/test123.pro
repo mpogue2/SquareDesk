@@ -66,6 +66,7 @@ TEMPLATE = app
 #  turn off QML warning for Debug builds
 DEFINES += QT_QML_DEBUG_NO_WARNING
 
+
 SOURCES += main.cpp\
 #    AppleMusicLibraryXMLReader.cpp \  # no longer need this
     addcommentdialog.cpp \
@@ -293,17 +294,23 @@ DEPENDPATH += $$PWD/ $$PWD/../local_win32/include
 }
 
 unix:!macx {
-LIBS += -L$$OUT_PWD/../taglib -ltaglib
+DEFINES += JUCE_DEBUG
+LIBS += -L$$OUT_PWD/../libJUCEstatic/Builds/LinuxMakefile/build -lJUCEstatic 
+LIBS += -lz -ljpeg -lcurl
+LIBS += -L$$OUT_PWD/../taglib -ltaglib -lz -lfreetype -lpng
+INCLUDEPATH += /usr/share/juce/modules
+INCLUDEPATH += /usr/include/freetype2
 INCLUDEPATH += $$PWD/../taglib/binaries/include
 INCLUDEPATH += $$PWD/../taglib
 INCLUDEPATH += $$PWD/../taglib/taglib
 INCLUDEPATH += $$PWD/../taglib/taglib/toolkit
 INCLUDEPATH += $$PWD/../taglib/taglib/mpeg/id3v2
-INCLUDEPATH += $$PWD/ $$PWD/../local/include /home/danlyke/local/include /home/danlyke/local/include/soundtouch 
+INCLUDEPATH += $$PWD/ $$PWD/../local/include $$(HOME)/local/include $$(HOME)/local/include/soundtouch 
 DEPENDPATH += $$PWD/ $$PWD/../local/include
 LIBS += -L$$PWD/../sdlib -lsdlib
-LIBS += -L/home/danlyke/local/lib -lkfr_dft -lkfr_io
-QT += multimedia
+LIBS += -L$$(HOME)/local/lib -lkfr_dsp -lkfr_io
+
+QT += multimedia httpserver concurrent
 
 # MiniBPM for BPM detection -----------------------------------
 INCLUDEPATH += $$PWD/miniBPM

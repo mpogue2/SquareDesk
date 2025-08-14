@@ -1198,11 +1198,21 @@ void SDThread::run()
 
 #if !(defined(Q_OS_MAC) || defined(Q_OS_WIN))
     // if it's Linux, look in /usr/share/SquareDesk
-    QFileInfo check_file(sdCallsFilename);
-    if (!(check_file.exists() && check_file.isFile()))
     {
-        sdCallsFilename = "/usr/share/SquareDesk/sd_calls.dat";
+      QFileInfo check_file(sdCallsFilename);
+      if (!(check_file.exists() && check_file.isFile()))
+	{
+	  sdCallsFilename = "/usr/share/SquareDesk/sd_calls.dat";
+	}
     }
+    {
+      QFileInfo check_file(sdCallsFilename);
+      if (!(check_file.exists() && check_file.isFile()))
+	{
+	  sdCallsFilename = "./sd_calls.dat";
+	}
+    }
+    
 #endif
     std::string str = sdCallsFilename.toStdString();
     const char* p = str.c_str();

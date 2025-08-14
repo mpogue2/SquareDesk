@@ -3327,11 +3327,12 @@ void MainWindow::checkLockFile() {
 
     QString databaseDir(musicRootPath + "/.squaredesk");
 
-    QFileInfo checkFile(databaseDir + "/lock.txt");
+    QString lockFilePath = databaseDir + "/lock.txt";
+    QFileInfo checkFile(lockFilePath);
     if (checkFile.exists()) {
 
         // get the hostname of who is using it
-        QFile file(databaseDir + "/lock.txt");
+        QFile file(lockFilePath);
         file.open(QIODevice::ReadOnly | QIODevice::Text);
         QTextStream lockfile(&file);
         QString hostname = lockfile.readLine();

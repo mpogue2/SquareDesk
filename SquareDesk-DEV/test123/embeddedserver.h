@@ -2,10 +2,17 @@
 #define EMBEDDEDSERVER_H
 
 #include <QObject>
+#ifdef Q_OS_LINUX
+#include <QtHttpServer/QHttpServer>
+#include <QtHttpServer/QHttpServerResponse>
+#include <QtHttpServer/QHttpServerRequest>
+#include <QTcpServer>
+#else
 #include <QHttpServer>
 #include <QHttpServerResponse>
 #include <QHttpServerRequest>
 #include <QTcpServer>
+#endif
 #include <QMimeDatabase>
 
 class EmbeddedServer : public QObject

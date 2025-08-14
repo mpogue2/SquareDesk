@@ -107,10 +107,10 @@ QString MainWindow::getResourceFile(QString s) {
 
     QString fileContents;
 
-    QFile file(resourcePath);
+    QFile file(patterTemplatePath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug() << "Could not open '" + s + "' file.";
-        qDebug() << "looked here:" << resourcePath;
+        qDebug() << "looked here:" << patterTemplatePath;
         return("");  // NOTE: early return, couldn't find file we wanted
     } else {
         fileContents = file.readAll();

@@ -45,6 +45,7 @@
 #include <QTemporaryFile>
 #include <QUuid>
 #include <QDir>
+#include <QMutex>
 
 // EQ ----------
 // Disable unused parameter warnings (kfr has a lot of them)
@@ -61,6 +62,28 @@
 #pragma GCC diagnostic pop
 
 using namespace kfr;
+
+#ifdef Q_OS_LINUX
+#include <mcheck.h>
+#endif
+
+inline void DoAMemoryCheck() {
+//    mcheck(0);
+}
+
+class LockHolder {
+private:
+    QMutex &myMutex;
+public :
+    LockHolder(QMutex &mutex) : myMutex(mutex) {
+        myMutex.lock();
+    }
+    ~LockHolder() {
+        myMutex.unlock();
+    }
+};
+
+
 
 // BPM Estimation ==========
 
@@ -82,6 +105,7 @@ using namespace breakfastquay;
 
 // Processing chunk size (size chosen to be divisible by 2, 4, 6, etc. channels ...)
 #define SOUNDTOUCH_BUFF_SIZE           6720
+#define SAMPLE_RATE 44100
 using namespace soundtouch;
 
 QElapsedTimer timer1;
@@ -131,7 +155,7 @@ public:
         tempoSpeedup_percent = 0.0;
         pitchUp_semitones = 0.0;
 
-        soundTouch.setSampleRate(44100);
+        soundTouch.setSampleRate(SAMPLE_RATE);
         soundTouch.setChannels(2);  // we are already setup for stereo processing, just don't copy-to-mono.
 
         soundTouch.setTempoChange(tempoSpeedup_percent);  // this is in PERCENT
@@ -167,7 +191,10 @@ public:
         while (!threadDone) {
 //            unsigned int bytesFree = m_audioSink->bytesFree();  // the audioSink has room to accept this many bytes
             unsigned int bytesFree = 0;
-            if ( activelyPlaying && (m_audioSink) && (bytesFree = m_audioSink->bytesFree()) > 0) {  // let's be careful not to dereference a null pointer
+            m_audioSinkAssignmentMutex.lock();
+            if ( activelyPlaying && (m_audioSink) && (bytesFree = bytesAvailable(m_audioSink)) > 0) {  // let's be careful not to dereference a null pointer
+                m_audioSinkAssignmentMutex.unlock();
+                LockHolder dataAndTotalFramesLockHolder(m_dataAndTotalFramesMutex);
                 unsigned int framesFree = bytesFree/bytesPerFrame;  // One frame = LR
                 if (framesFree > 100) {
                     // if we are actively playing, AND there are less than 100 frames (2.25ms) available in the m_audioSink, let's wait
@@ -176,8 +203,6 @@ public:
                     //   and causing the loop back to the start loop point to be missed.
 
 //                    qDebug() << "framesFree OK:" << framesFree; // most of the time it's 512 LR frames = 11.6ms
-
-                    const char *p_data = (const char *)(m_data) + (bytesPerFrame * playPosition_frames);  // next samples to play
 
                     // write the smaller of bytesFree and how much we have left in the song
                     int bytesNeededToWrite = bytesFree;  // default is to write all we can
@@ -189,8 +214,8 @@ public:
                         bytesNeededToWrite = (int)bytesPerFrame * ((int)totalFramesInSong - (int)playPosition_frames);
                     }
 
-                    unsigned int loopStartpoint_frames = 44100 * loopTo_sec;
-                    unsigned int loopEndpoint_frames = 44100 * loopFrom_sec;
+                    unsigned int loopStartpoint_frames = SAMPLE_RATE * loopTo_sec;
+                    unsigned int loopEndpoint_frames = SAMPLE_RATE * loopFrom_sec;
                     bool straddlingLoopFromPoint =
                             !(loopFrom_sec == 0.0 && loopTo_sec == 0.0) &&
                             (playPosition_frames < loopEndpoint_frames) &&
@@ -209,7 +234,11 @@ public:
                         // if we need bytes, let's go get them.  BUT, if processDSP only gives us less than that, then write just those.
                         numProcessedFrames = 0;
                         sourceFramesConsumed = 0;
+                        DoAMemoryCheck();
+                        ASSERT(playPosition_frames + (bytesNeededToWrite / bytesPerFrame) <= totalFramesInSong);
+                        const char *p_data = (const char *)(m_data) + (bytesPerFrame * playPosition_frames);  // next samples to play
                         processDSP(p_data, bytesNeededToWrite);  // processes 8-byte-per-frame stereo to 8-byte-per-frame *processedData (dual mono)
+                        DoAMemoryCheck();
 
                         int excessFramesPlayed = playPosition_frames - loopEndpoint_frames;
                         bool weSnuckPastTheLoopEndpoint = !(loopFrom_sec == 0.0 && loopTo_sec == 0.0) &&  // loop is NOT disabled
@@ -238,6 +267,8 @@ public:
 //                            qDebug() << "consumed: " << sourceFramesConsumed;
                         }
                         if (numProcessedFrames > 0) {  // but, maybe we didn't get any back from soundTouch.
+                            DoAMemoryCheck();
+                            ASSERT((const char *)(processedData) + bytesPerFrame * numProcessedFrames < (const char *)(processedData + PROCESSED_DATA_BUFFER_SIZE));
                             m_audioDevice->write((const char *)&processedData, bytesPerFrame * numProcessedFrames);  // DSP processed audio is 8 bytes/frame floats
                         }
                     } else {
@@ -247,6 +278,9 @@ public:
 //                    qDebug() << "***** framesFree was small: " << framesFree;
                 }
             } // activelyPlaying
+            else {
+                m_audioSinkAssignmentMutex.unlock();
+            }
             msleep((activelyPlaying ? 5 : 50)); // sleep 10 milliseconds, this sets the polling rate for writing bytes to the audioSink  // CHECK THIS!
         } // while
     }
@@ -273,7 +307,7 @@ public:
         // fadeIsStop = false;
 
         if (pLoudMaxPluginRaw != nullptr) {
-            pLoudMaxPluginRaw->prepareToPlay(44100.0, sizeof(processedData)/sizeof(float)); // 4 * 8192 is sizeof processedData/R, everything is 44.1K right now
+            pLoudMaxPluginRaw->prepareToPlay(((double)(SAMPLE_RATE)), sizeof(processedData)/sizeof(float)); // 4 * 8192 is sizeof processedData/R, everything is 44.1K right now
         } else {
             qDebug() << "Play: pLoudMaxPluginRaw was null";
         }
@@ -429,15 +463,16 @@ public:
 
     // EQ --------------------------------------------------------------------------------
     void updateEQ() {
+        LockHolder filterLock(m_filterParameterMutex);
         // given bassBoost_dB, etc., recreate the bq's.
-        bq[0] = biquad_peak( 125.0/44100.0,  4.0,   bassBoost_dB);    // tweaked Q to match Intel version
-        bq[1] = biquad_peak(1000.0/44100.0,  0.9,   midBoost_dB);     // tweaked Q to match Intel version
-        bq[2] = biquad_peak(8000.0/44100.0,  0.9,   trebleBoost_dB);  // tweaked Q to match Intel version
+        bq[0] = biquad_peak( 125.0/((double)(SAMPLE_RATE)),  4.0,   bassBoost_dB);    // tweaked Q to match Intel version
+        bq[1] = biquad_peak(1000.0/((double)(SAMPLE_RATE)),  0.9,   midBoost_dB);     // tweaked Q to match Intel version
+        bq[2] = biquad_peak(8000.0/((double)(SAMPLE_RATE)),  0.9,   trebleBoost_dB);  // tweaked Q to match Intel version
 
         float W0 = 2 * 3.14159265 * (1000.0 * intelligibilityBoost_fKHz/sampleRate);
         float Q = 1/(2.0 * sinhf( (logf(2.0)/2.0) * intelligibilityBoost_widthOctaves * (W0/sinf(W0)) ) );
 //        qDebug() << "Q: " << Q << ", boost_dB: " << intelligibilityBoost_dB;
-        bq[3] = biquad_peak(1000.0 * intelligibilityBoost_fKHz/44100.0, Q, intelligibilityBoost_dB);
+        bq[3] = biquad_peak(1000.0 * intelligibilityBoost_fKHz/((double)(SAMPLE_RATE)), Q, intelligibilityBoost_dB);
 
         newFilterNeeded = true;
 
@@ -500,11 +535,13 @@ public:
 
     void setPitch(float newPitchSemitones) {
 //        qDebug() << "new Pitch value: " << newPitchSemitones << " semitones";
+        LockHolder soundTouchLockHolder(m_soundTouchMutex);
         soundTouch.setPitchSemiTones(newPitchSemitones);
     }
 
     void setTempo(float newTempoPercent) {
 //        qDebug() << "new Tempo value: " << newTempoPercent;
+        LockHolder soundTouchLockHolder(m_soundTouchMutex);
         soundTouch.setTempo(newTempoPercent/100.0);
     }
 
@@ -520,6 +557,7 @@ public:
 
         // INS and OUTS ----------
         const float *inDataFloat   = (const float *)inData;     // input is stereo float interleaved (8 bytes per frame)
+        const float *inDataFloatEndOfBuffer = (const float *)(inData + inLength_bytes);
         float *outDataFloat  = (float *)(&processedData);       // final output is stereo float interleaved (8 bytes per frame), also used as intermediate
         float *outDataFloatR  = (float *)(&processedDataR);     // intermediate output is R channel mono float (4 bytes per frame)
 
@@ -529,10 +567,12 @@ public:
         //    scaled_inLength_frames is how many frames we need to process, so that we get the request inLength_frames output (which
         //    is what the AudioSink needs.  We have to scale the number of samples for BOTH the EQ processing (which has state)
         //    and the SoundTouch processing (which also has state).
+        m_soundTouchMutex.lock();
         double inOutRatio = soundTouch.getInputOutputSampleRatio();
-        double scaled_inLength_frames = floor(((double)inLength_frames) / inOutRatio);
-        if (scaled_inLength_frames < 1.0) {
-            scaled_inLength_frames = 1.0; // this can happen at the very end of the song, if inOutRatio = say 1.02
+        m_soundTouchMutex.unlock();
+        unsigned int scaled_inLength_frames = floor(((double)inLength_frames) / inOutRatio);
+        if (scaled_inLength_frames < 1) {
+            scaled_inLength_frames = 1; // this can happen at the very end of the song, if inOutRatio = say 1.02
         }
         // qDebug() << "inOutRatio:" << inOutRatio << "scaled_inLength_frames" << scaled_inLength_frames << "inLength_frames" << inLength_frames;
 
@@ -576,6 +616,7 @@ public:
         // if the EQ has changed, make a new filter, but do it here only, just before it's used,
         //   to avoid crashing the thread when EQ is changed.
         if (newFilterNeeded) {
+            LockHolder filterLock(m_filterParameterMutex);
 //            qDebug() << "making a new filter...";
             if (filter != NULL) {
                 delete filter;
@@ -596,12 +637,14 @@ public:
         if (m_mono) {
             // Force Mono is ENABLED
             scaleFactor = currentNormalizeFactor * currentPanEQFactor * currentDuckingFactor * currentFadeFactor * m_volume / (100.0 * 2.0);  // divide by 2, to avoid overflow; fade factor goes from 1.0 -> 0.0
+            ASSERT(scaled_inLength_frames <= PROCESSED_DATA_BUFFER_SIZE);
 // #ifdef USE_JUCE
 //             scaleFactor = (fadeIsStop ? 0.0 : scaleFactor); // force volume to zero, if we are doing a JUCE-style stop
 // #endif
 //    qDebug() << "scaleFactor: " << scaleFactor;
             for (int i = 0; i < (int)scaled_inLength_frames; i++) {
                 // output data is MONO (de-interleaved)
+                ASSERT(&inDataFloat[2*i+1] < inDataFloatEndOfBuffer);
                 outDataFloat[i] = (float)(scaleFactor*KL*inDataFloat[2*i] + scaleFactor*KR*inDataFloat[2*i+1]); // stereo to 2ch mono + volume + pan
             }
 
@@ -613,6 +656,7 @@ public:
 
             // APPLY EQ TO MONO (4 biquads, including B/M/T and Intelligibility Boost) ----------------------
             if (!EQdisabled) {
+                LockHolder filterLock(m_filterParameterMutex);
                 filter->apply(outDataFloat, scaled_inLength_frames);   // NOTE: applies IN PLACE
             }
 
@@ -644,7 +688,6 @@ public:
 //             scaleFactor = (fadeIsStop ? 0.0 : scaleFactor); // force volume to zero, if we are doing a JUCE-style stop
 // #endif
             // qDebug() << "scaleFactor:" << scaleFactor;
-
             if (scaled_inLength_frames > sizeof(processedData)) {
                 // I don't want to dynamically size processedData, because this error really should never happen, if
                 //   we size this output buffer big enough.  I think it needed to get bigger because of changes
@@ -657,15 +700,21 @@ public:
                                                                  //    in my testing, it still crashes.
             }
 
+            ASSERT(scaled_inLength_frames <= PROCESSED_DATA_BUFFER_SIZE);
             for (unsigned int i = 0; i < scaled_inLength_frames; i++) {
                 // output data is de-interleaved into first and second half of outDataFloat buffer
 //                outDataFloat[2*i]   = (float)(scaleFactor*KL*inDataFloat[2*i]);   // L: stereo to 2ch stereo + volume + pan
 //                outDataFloat[2*i+1] = (float)(scaleFactor*KR*inDataFloat[2*i+1]); // R: stereo to 2ch stereo + volume + pan
+                ASSERT(&inDataFloat[2*i+1] < inDataFloatEndOfBuffer);
                 outDataFloat[i]  = (float)(scaleFactor*KL*inDataFloat[2*i]);   // L:
                 outDataFloatR[i] = (float)(scaleFactor*KR*inDataFloat[2*i+1]); // R:
             }
             // APPLY EQ TO EACH CHANNEL SEPARATELY (4 biquads, including B/M/T and Intelligibility Boost) ----------------------
+            ASSERT(outDataFloat + scaled_inLength_frames <= (float *)(processedData + PROCESSED_DATA_BUFFER_SIZE));
+            ASSERT(outDataFloatR + scaled_inLength_frames <= (float *)(processedDataR + PROCESSED_DATA_BUFFER_SIZE));
+
             if (!EQdisabled) {
+                LockHolder filterLock(m_filterParameterMutex);
                 filter->apply(outDataFloat,   scaled_inLength_frames);    // NOTE: applies L filter IN PLACE (filter and storage used for mono and L)
                 filterR->apply(outDataFloatR, scaled_inLength_frames);    // NOTE: applies R filter IN PLACE (separate filter for R, because has separate state)
             }
@@ -681,6 +730,7 @@ public:
 #endif
 
             // output data is INTERLEAVED STEREO (normal LR stereo) -- re-interleave to the outDataFloat buffer (which is the final output buffer)
+            ASSERT((outDataFloat + (2 * scaled_inLength_frames)) <= (float *)(processedData + PROCESSED_DATA_BUFFER_SIZE)); 
             for (int i = scaled_inLength_frames-1; i >= 0; i--) {
                 outDataFloat[2*i]   = max(min(1.0f, outDataFloat[i]),-1.0);  // L + hard limiter
                 outDataFloat[2*i+1] = max(min(1.0f, outDataFloatR[i]),-1.0); // R + hard limiter
@@ -707,6 +757,8 @@ public:
             m_peakLevelR      = fmaxf((float)(32768.0 * thePeakLevelR),      (float)m_peakLevelR);
         }
 
+        { // sound touch mutex scope
+        LockHolder soundTouchLockHolder(m_soundTouchMutex);
         // SOUNDTOUCH PITCH/TEMPO -----------
         if (clearSoundTouch) {
             // don't try to clear while the soundTouch buffers are in use.  Clear HERE, which is safe, because
@@ -714,16 +766,19 @@ public:
             soundTouch.clear();
             clearSoundTouch = false;
         }
-
+        DoAMemoryCheck();
         soundTouch.putSamples(outDataFloat, scaled_inLength_frames);  // Feed the samples into SoundTouch processor
                                                                //  NOTE: it always takes ALL of them in, so outDataFloat is now unused.
+        DoAMemoryCheck();
 
 //        qDebug() << "unprocessed: " << soundTouch.numUnprocessedSamples() << ", ready: " << soundTouch.numSamples() << "scaled_frames: " << scaled_inLength_frames;
+        ASSERT(inLength_frames <= PROCESSED_DATA_BUFFER_SIZE);
         int nFrames = soundTouch.receiveSamples(outDataFloat, inLength_frames);  // this is how many frames the AudioSink wants
 //        qDebug() << "    room to write: " << inLength_frames <<  ", received: " << nFrames;
         // get ready to return --------------
         numProcessedFrames   = nFrames;         // it gave us this many frames back (might be less thatn inLength_frames)
         sourceFramesConsumed = scaled_inLength_frames; // we consumed all the input frames we were given
+        } // end of sound touch mutex scope
 
         currentFadeFactor -= numProcessedFrames * fadeFactorDecrementPerFrame;  // fade takes place here
         if (currentFadeFactor <= 0.0) {
@@ -739,8 +794,56 @@ public:
 }
 
 public:
+    void assignDataAndTotalFrames(unsigned char *data, unsigned int totalFrames) {
+        LockHolder dataAndTotalFramesLockHolder(m_dataAndTotalFramesMutex);
+        m_data = data;
+        totalFramesInSong = totalFrames;
+    }
+    unsigned int getBytesPerFrame() { return bytesPerFrame; }
+    void setBytesPerFrameAndSampleRate(unsigned int bytesPerFrame, unsigned int sampleRate) {
+        this->bytesPerFrame = bytesPerFrame;
+        this->sampleRate = sampleRate;
+    }
+
+    unsigned int getTotalFramesInSong() {
+        LockHolder dataAndTotalFramesLockHolder(m_dataAndTotalFramesMutex);
+        unsigned int total = totalFramesInSong;
+        return total;
+    }
+
+    void assignAudioDeviceAudioSinkAndZeroBufferSize(QIODevice *audioDevice, QAudioSink *audioSink) {
+        LockHolder lockHolder(m_audioSinkAssignmentMutex);
+        m_audioDevice = audioDevice;
+        m_audioSink   = audioSink;
+        m_audioSinkBufferSize = 0;
+    }
+private:
+    unsigned int bytesAvailable(QAudioSink *audioSink) {
+        DoAMemoryCheck();
+        if (0 == m_audioSinkBufferSize) {
+            m_audioSinkBufferSize = audioSink->bytesFree();
+        }
+        const unsigned int wantedBufferSize =  8 * sampleRate / 10;
+        unsigned int padding = m_audioSinkBufferSize > wantedBufferSize ? (m_audioSinkBufferSize - wantedBufferSize) : 0;
+        unsigned int bytesFree = audioSink->bytesFree();
+        if (bytesFree > padding) {
+            unsigned int toSend =  bytesFree - padding;
+            if (wantedBufferSize < toSend) {
+                return wantedBufferSize;
+            }
+            return toSend;
+        }
+        return 0;
+    }
+
+    
+private:
+    QMutex m_audioSinkAssignmentMutex;
     QIODevice      *m_audioDevice;
     QAudioSink     *m_audioSink;
+    unsigned int    m_audioSinkBufferSize;
+
+    QMutex m_dataAndTotalFramesMutex;
     unsigned char  *m_data;
     unsigned int   totalFramesInSong;
 
@@ -771,11 +874,13 @@ public:
     float intelligibilityBoost_dB = 0.0;
     bool  intelligibilityBoost_enabled = false;
 
+    QMutex m_filterParameterMutex;
     biquad_section<float> bq[4];
     iir_filter<float> *filter;   // filter initialization (also holds context between apply calls), for mono and L stereo
     iir_filter<float> *filterR;  // filter initialization (also holds context between apply calls), for R stereo only
 
     // PITCH/TEMPO ============
+    QMutex m_soundTouchMutex;
     SoundTouch soundTouch;  // SoundTouch
     float tempoSpeedup_percent = 0.0;
     float pitchUp_semitones    = 0.0;
@@ -840,7 +945,7 @@ AudioDecoder::AudioDecoder()
 //    QString t = QString("0x%1").arg((quintptr)(m_data->data()), QT_POINTER_SIZE * 2, 16, QChar('0'));
 //    qDebug() << "audio data is at:" << t;
 
-    myPlayer.m_data = (unsigned char *)(m_data->data());
+    myPlayer.assignDataAndTotalFrames((unsigned char *)(m_data->data()), 0);
 
     m_audioSink = 0;                        // nothing yet
     m_currentAudioOutputDeviceName = "";    // nothing yet
@@ -871,12 +976,11 @@ AudioDecoder::~AudioDecoder()
 void AudioDecoder::newSystemAudioOutputDevice() {
     // we want a format that will be no resampling for 99% of the MP3 files, but is float for kfr/rubberband processing
     QAudioFormat desiredAudioFormat; // = device.preferredFormat();  // 48000, 2ch, float = WHY?  Why not 16-bit int?  Less memory used.
-    desiredAudioFormat.setSampleRate(44100);
+    desiredAudioFormat.setSampleRate(SAMPLE_RATE);
     desiredAudioFormat.setChannelConfig(QAudioFormat::ChannelConfigStereo);
     desiredAudioFormat.setSampleFormat(QAudioFormat::Float);  // Note: 8 bytes per frame
 
-    myPlayer.bytesPerFrame = 8;  // post-mixdown
-    myPlayer.sampleRate = 44100;
+    myPlayer.setBytesPerFrameAndSampleRate(8,SAMPLE_RATE);
 
 //    qDebug() << "desiredAudioFormat: " << desiredAudioFormat << " )";
 
@@ -907,8 +1011,7 @@ void AudioDecoder::newSystemAudioOutputDevice() {
     m_decoder.setAudioFormat(desiredAudioFormat);
 
     // give the data pointers to myPlayer
-    myPlayer.m_audioDevice = m_audioDevice;
-    myPlayer.m_audioSink   = m_audioSink;
+    myPlayer.assignAudioDeviceAudioSinkAndZeroBufferSize(m_audioDevice, m_audioSink);
 }
 
 
@@ -1023,9 +1126,7 @@ float AudioDecoder::BPMsample(float sampleStart_sec, float sampleLength_sec, flo
     float finalBPMresult;
 
     unsigned char *p_data = (unsigned char *)(m_data->data());
-    myPlayer.m_data = p_data;  // we are done decoding, so tell the player where the data is
-
-    myPlayer.totalFramesInSong = m_data->size()/myPlayer.bytesPerFrame; // pre-mixdown is 2 floats per frame = 8
+    myPlayer.assignDataAndTotalFrames(p_data,  m_data->size()/myPlayer.getBytesPerFrame()); // pre-mixdown is 2 floats per frame = 8
 //    qDebug() << "** AudioDecoder::BPMsample totalFramesInSong: " << myPlayer.totalFramesInSong;  // TODO: this is really frames
 
 //    qDebug() << "BPMsample: " << m_data->size()/myPlayer.bytesPerFrame << p_data;
@@ -1035,7 +1136,7 @@ float AudioDecoder::BPMsample(float sampleStart_sec, float sampleLength_sec, flo
     const float *songPointer = (const float *)p_data;
 
     float sampleEnd_sec = sampleStart_sec + sampleLength_sec;
-    float songLength_sec = myPlayer.totalFramesInSong/44100.0;
+    float songLength_sec = ((double)(myPlayer.getTotalFramesInSong()))/(double)(SAMPLE_RATE);
 
     // if song is longer than 40, end_sec will be 40; else end_sec will be the end of the song.
     float end_sec = (songLength_sec >= sampleEnd_sec ? sampleEnd_sec : songLength_sec);
@@ -1044,8 +1145,8 @@ float AudioDecoder::BPMsample(float sampleStart_sec, float sampleLength_sec, flo
     //   else, just use the start of the song
     float start_sec = (end_sec - sampleLength_sec > 0.0 ? end_sec - sampleLength_sec : 0.0 );
 
-    unsigned int offsetIntoSong_samples = 44100 * start_sec;            // start looking at time T = 10 sec
-    unsigned int numSamplesToLookAt = 44100 * (end_sec - start_sec);    //   look at 10 sec of samples
+    unsigned int offsetIntoSong_samples = SAMPLE_RATE * start_sec;            // start looking at time T = 10 sec
+    unsigned int numSamplesToLookAt = SAMPLE_RATE * (end_sec - start_sec);    //   look at 10 sec of samples
 
     //    qDebug() << "***** BPM DEBUG: " << songLength_sec << start_sec << end_sec << offsetIntoSong_samples << numSamplesToLookAt;
 
@@ -1057,7 +1158,7 @@ float AudioDecoder::BPMsample(float sampleStart_sec, float sampleLength_sec, flo
         monoBuffer[i] = 0.5*songPointer[2*(i+offsetIntoSong_samples)] + 0.5*songPointer[2*(i+offsetIntoSong_samples)+1];
     }
 
-    MiniBPM BPMestimator(44100.0);
+    MiniBPM BPMestimator(((double)(SAMPLE_RATE)));
     BPMestimator.setBPMRange(BPMbase-BPMtolerance, BPMbase+BPMtolerance);  // limited range for square dance songs, else use percent
     finalBPMresult = BPMestimator.estimateTempoOfSamples(monoBuffer, numSamplesToLookAt); // 10 seconds of samples
 
@@ -1171,7 +1272,7 @@ double AudioDecoder::getStreamPosition() {
 }
 
 double AudioDecoder::getStreamLength() {
-    return(myPlayer.totalFramesInSong/44100.0);
+    return(((double)(myPlayer.getTotalFramesInSong()))/((double)(SAMPLE_RATE)));
 }
 
 unsigned char AudioDecoder::getCurrentState() {
@@ -1278,7 +1379,7 @@ QString AudioDecoder::makeExternalAudioFile(QString WAVfilename) {
 
     // CREATE MONO VERSION OF AUDIO DATA -------------------------------------
     unsigned char *p_data = (unsigned char *)(m_data->data());
-    unsigned int framesInSong = m_data->size()/myPlayer.bytesPerFrame; // pre-mixdown is 2 floats per frame = 8
+    unsigned int framesInSong = m_data->size()/myPlayer.getBytesPerFrame(); // pre-mixdown is 2 floats per frame = 8
     const float *songPointer = (const float *)p_data;  // these are floats, range: -1.0 to 1.0
 
     float *monoBuffer = new float[framesInSong];
@@ -1290,7 +1391,7 @@ QString AudioDecoder::makeExternalAudioFile(QString WAVfilename) {
     t->elapsed(__LINE__); // toMono takes 11ms
 
     // LOW PASS FILTER IT, TO ELIMINATE THE CHUCK of BOOM-CHUCK -------------------------------------
-    biquad_section<float> bq[] = { biquad_lowpass(1500.0 / 44100.0, 0.5) };
+    biquad_section<float> bq[] = { biquad_lowpass(1500.0 / ((double)(SAMPLE_RATE)), 0.5) };
     iir_filter<float> filter(iir_params<float>(bq, 1));
     filter.apply(monoBuffer, framesInSong);   // NOTE: applies IN PLACE
 
@@ -1322,7 +1423,7 @@ QString AudioDecoder::makeExternalAudioFile(QString WAVfilename) {
 
     // qDebug() << "Temp WAV filename: " << WAVfilename;
 
-    WAV_FILE_INFO wavInfo2 = wav_set_info(44100, framesInSong,1,16,2,1);   // assumes 44.1KHz sample rate, floats, range: -1.0 to 1.0
+    WAV_FILE_INFO wavInfo2 = wav_set_info(SAMPLE_RATE, framesInSong,1,16,2,1);   // assumes 44.1KHz sample rate, floats, range: -1.0 to 1.0
     wav_write_file_float1(monoBuffer, WAVfilename.toStdString().c_str(), wavInfo2, framesInSong);   // write entire song as mono to a file
 
     delete[] monoBuffer;  // we don't need the data anymore (until we decide to call the library directly, instead of via QProcess)
@@ -1342,13 +1443,13 @@ QString AudioDecoder::runVamp(QString whichModule, QString WAVfilename, QString 
     // qDebug() << "VAMP path: " << pathNameToVamp;
 
     if (!QFileInfo::exists(pathNameToVamp) ) {
-
+#if !defined(Q_OS_LINUX)
         QMessageBox msgBox;
         msgBox.setText(QString("ERROR: Could not find Vamp executable.<P>Snapping is disabled."));
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.setDefaultButton(QMessageBox::Ok);
         msgBox.exec();
-
+#endif
         return("error: vamp does not exist"); // ERROR, VAMP DOES NOT EXIST
     }
 
@@ -1469,7 +1570,7 @@ int AudioDecoder::segmentDetection() {
 
                                  if (ok1) {
                                      // qDebug() << "OK" << line;
-                                     segmentMap.push_back(start_s/44100.0); // time_sec
+                                     segmentMap.push_back(start_s/((double)(SAMPLE_RATE))); // time_sec
                                      segmentMapName.push_back(segmentName); // "A", "B", "N", etc.
                                  } else {
                                      qDebug() << "ERROR IN CONVERSION: " << line << ok1;
@@ -1581,9 +1682,9 @@ int AudioDecoder::beatBarDetection() {
 
                 if (ok1 && ok2) {
                     // qDebug() << "OK" << line;
-                    beatMap.push_back(sampleNum/44100.0); // time_sec
+                    beatMap.push_back(sampleNum/((double)(SAMPLE_RATE))); // time_sec
                     if (beatNum == 1) {
-                        measureMap.push_back(sampleNum/44100.0); // time_sec for beat 1's of each measure (NOTE: TODO assumes 4/4 time for all!)
+                        measureMap.push_back(sampleNum/((double)(SAMPLE_RATE))); // time_sec for beat 1's of each measure (NOTE: TODO assumes 4/4 time for all!)
                     }
                 } else {
                     qDebug() << "ERROR IN CONVERSION: " << line << ok1 << ok2;
@@ -1719,9 +1820,9 @@ void AudioDecoder::updateWaveformMap()
     waveformMap.clear();
 
     unsigned char *p_data = (unsigned char *)(m_data->data());
-    int totalFramesInSong = m_data->size()/myPlayer.bytesPerFrame; // pre-mixdown is 2 floats per frame = 8
+    int totalFramesInSong = m_data->size()/myPlayer.getBytesPerFrame(); // pre-mixdown is 2 floats per frame = 8
     const float *songPointer = (const float *)p_data; // THIS is where the audio data is. They are interleaved floats.  I think.
-//    float secondsInSong = totalFramesInSong / 44100.0;
+//    float secondsInSong = totalFramesInSong / ((double)(SAMPLE_RATE));
 
 //    qDebug() << "AudioDecoder::updateWaveformMap" << totalFramesInSong << myPlayer.bytesPerFrame << secondsInSong << WAVEFORMWIDTH; // should be 44.1kHz at this point
 

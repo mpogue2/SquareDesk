@@ -43,7 +43,11 @@
 #include <QDebug>
 
 #include <utility>
+#ifdef Q_OS_LINUX
+#include <QtConcurrent/QtConcurrent>
+#else
 #include <QtConcurrent>
+#endif
 #include <QtMultimedia>
 
 #define MINIMP3_FLOAT_OUTPUT

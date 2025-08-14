@@ -117,6 +117,8 @@
 #define BASS_ACTIVE_STALLED 2
 #define BASS_ACTIVE_PAUSED  3
 
+#define PROCESSED_DATA_BUFFER_SIZE 65536
+
 #include <vector>
 
 class AudioDecoder : public QObject

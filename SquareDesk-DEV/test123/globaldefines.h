@@ -32,7 +32,12 @@ private: \
 // #define NDEBUG 1
 
 #define JUCE_PLUGINHOST_AU 1
+#ifdef Q_OS_MAC
 #define JUCE_MAC 1
+#endif
+#ifdef Q_OS_LINUX
+#define JUCE_LINUX 1
+#endif
 #endif
 
 // this needs to match the version of the sd_doc.pdf that is in the Resources folder
