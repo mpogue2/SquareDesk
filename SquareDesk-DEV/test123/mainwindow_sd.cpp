@@ -5092,7 +5092,8 @@ void MainWindow::sdLoadDance(QString danceName) {
             nameToLevel.insert(name.toLower(), lvl);
         }
         // Add synonyms
-        nameToLevel.insert("ms", l_mainstream);
+        nameToLevel.insert("ms",  l_mainstream); // "ms" allowed for "mainstream"
+        nameToLevel.insert("ssd", l_mainstream); // SD does not support SSD, but MS is a superset of SSD
 
         int usIdx = danceName.lastIndexOf('_');
         if (usIdx < 0 || usIdx >= danceName.length() - 1)
