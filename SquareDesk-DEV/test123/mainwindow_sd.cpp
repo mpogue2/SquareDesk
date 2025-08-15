@@ -5076,6 +5076,80 @@ void MainWindow::sdLoadDance(QString danceName) {
         danceFolder.mkpath(".");          // make the folder exist, so we can populate it with sample data below
     }
 
+    // If the dance name ends with _XXXX where XXXX matches a valid
+    // dance program (case-insensitive), switch to that level.
+    do {
+        // Build reverse map from program name (lowercased) to enum
+        QHash<QString, dance_level> nameToLevel;
+        for (auto it = sdLevelEnumsToStrings.constBegin(); it != sdLevelEnumsToStrings.constEnd(); ++it) {
+            const dance_level lvl = it.key();
+            const QString name = it.value();
+            // Skip non-dance placeholders
+            if (name.compare("Dontshow", Qt::CaseInsensitive) == 0 ||
+                name.compare("Nonexistent_concept", Qt::CaseInsensitive) == 0) {
+                continue;
+            }
+            nameToLevel.insert(name.toLower(), lvl);
+        }
+        // Add synonyms
+        nameToLevel.insert("ms", l_mainstream);
+
+        int usIdx = danceName.lastIndexOf('_');
+        if (usIdx < 0 || usIdx >= danceName.length() - 1)
+            break; // no trailing _XXXX
+
+        const QString suffix = danceName.mid(usIdx + 1).toLower();
+        if (!nameToLevel.contains(suffix))
+            break; // suffix not a known level
+
+        const dance_level desiredLevel = nameToLevel.value(suffix);
+        const dance_level currentLevel = get_current_sd_dance_program();
+        if (currentLevel == desiredLevel)
+            break; // already on this level
+
+        switch (desiredLevel) {
+            case l_mainstream:
+                if (!ui->actionSDDanceProgramMainstream->isChecked()) ui->actionSDDanceProgramMainstream->trigger();
+                break;
+            case l_plus:
+                if (!ui->actionSDDanceProgramPlus->isChecked()) ui->actionSDDanceProgramPlus->trigger();
+                break;
+            case l_a1:
+                if (!ui->actionSDDanceProgramA1->isChecked()) ui->actionSDDanceProgramA1->trigger();
+                break;
+            case l_a2:
+                if (!ui->actionSDDanceProgramA2->isChecked()) ui->actionSDDanceProgramA2->trigger();
+                break;
+            case l_c1:
+                if (!ui->actionSDDanceProgramC1->isChecked()) ui->actionSDDanceProgramC1->trigger();
+                break;
+            case l_c2:
+                if (!ui->actionSDDanceProgramC2->isChecked()) ui->actionSDDanceProgramC2->trigger();
+                break;
+            case l_c3a:
+                if (!ui->actionSDDanceProgramC3A->isChecked()) ui->actionSDDanceProgramC3A->trigger();
+                break;
+            case l_c3:
+                if (!ui->actionSDDanceProgramC3->isChecked()) ui->actionSDDanceProgramC3->trigger();
+                break;
+            case l_c3x:
+                if (!ui->actionSDDanceProgramC3x->isChecked()) ui->actionSDDanceProgramC3x->trigger();
+                break;
+            case l_c4a:
+                // No dedicated menu action exists; fall back to direct set
+                setCurrentSDDanceProgram(l_c4a);
+                break;
+            case l_c4:
+                if (!ui->actionSDDanceProgramC4->isChecked()) ui->actionSDDanceProgramC4->trigger();
+                break;
+            case l_c4x:
+                if (!ui->actionSDDanceProgramC4x->isChecked()) ui->actionSDDanceProgramC4x->trigger();
+                break;
+            default:
+                break;
+        }
+    } while (false);
+
     frameName = danceName;    // TODO: "frameName" is a misnomer now.  This really should be fixed.
     microphoneStatusUpdate();  // force update of the Dance: name
 
