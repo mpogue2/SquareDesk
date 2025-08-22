@@ -93,6 +93,7 @@ SOURCES += main.cpp\
     mainwindow_taminations.cpp \
     mainwindow_themes.cpp \
     miniBPM/MiniBpm.cpp \
+    mytextedit.cpp \
     newdancedialog.cpp \
     playlists.cpp \
     preferencesdialog.cpp \
@@ -171,6 +172,7 @@ HEADERS  += mainwindow.h \
     embeddedserver.h \
     flexible_audio.h \
     globaldefines.h \
+    mytextedit.h \
     playlist_constants.h \
     miniBPM/MiniBpm.h \
     minimp3.h \
