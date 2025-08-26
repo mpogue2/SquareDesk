@@ -957,7 +957,7 @@ void MainWindow::on_menuLyrics_aboutToShow()
     // qDebug() << "About to show:" << optionCurrentlyPressed;
 
     // Cuesheet > Explore Cuesheet Matching... dialog box option visible only when OPT is held down
-    ui->actionExplore_Cuesheet_Matching->setVisible(optionCurrentlyPressed);
+    ui->actionExplore_Cuesheet_Matching->setVisible(true);
 }
 
 void MainWindow::on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/)
