@@ -107,6 +107,7 @@ private:
 
 
     QMutex mutexThreadRunning;
+    QMutex mutexIOFullAccess;
     bool abort;
     SquareDesk_iofull *iofull;    
 

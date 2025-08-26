@@ -155,6 +155,7 @@ void SDThread::set_dance_program(dance_level dance_program)
 
 dance_level SDThread::find_dance_program(QString call)
 {
+    QMutexLocker locker(&mutexIOFullAccess);
     if (iofull != nullptr) {
         return iofull->find_dance_program(call);
     }
@@ -194,6 +195,7 @@ dance_level SquareDesk_iofull::find_dance_program(QString call)
 
 SDThread::CurrentInputState SDThread::currentInputState()
 {
+    QMutexLocker locker(&mutexIOFullAccess);
     if (iofull != nullptr) {
         return iofull->currentInputState;
     }
@@ -223,6 +225,7 @@ bool SDThread::on_user_input(QString str)
     QByteArray inUtf8 = str.simplified().toUtf8();
     const char *data = inUtf8.constData();
 
+    QMutexLocker locker(&mutexIOFullAccess);
     if (iofull != nullptr) {
         // only dereference after SD has been spun up
         return iofull->add_string_input(data);
@@ -1011,6 +1014,7 @@ SDThread::SDThread(MainWindow *mw, dance_level dance_program, QString dance_prog
       waitCondSDAwaitingInput(),
       mutexSDAwaitingInput(),
       mutexThreadRunning(),
+      mutexIOFullAccess(),
       abort(false)
 {
     // return SD to its original glory
@@ -1098,8 +1102,15 @@ SDThread::SDThread(MainWindow *mw, dance_level dance_program, QString dance_prog
 
 void SDThread::resetSDState() {
 
-    if (iofull != nullptr) {
-        iofull->answerYesToEverything = true;
+    bool continueRunState = false;
+    {
+        QMutexLocker locker(&mutexIOFullAccess);
+        if (iofull != nullptr) {
+            iofull->answerYesToEverything = true;
+            continueRunState = true;
+        }
+    }
+    if (continueRunState) {
         abort = true;
     //    mutexSDAwaitingInput.lock();
         while (iofull->currentInputState != InputStateNormal)
@@ -1117,16 +1128,23 @@ void SDThread::resetSDState() {
 void SDThread::resetAndExecute(QStringList &commands)
 {
     resetSDState();
+    bool continueToAbortThisSequence = false;
 
-    if (iofull == nullptr) {
-        qDebug() << "ERROR: resetAndExecute iofull was NULL.";
-        return;  // something bad happened
-    }
-
-    iofull->answerYesToEverything = false;
-    abort = false;
-    if (iofull->seenAFormation)
     {
+        QMutexLocker locker(&mutexIOFullAccess);
+        if (iofull == nullptr) {
+            qDebug() << "ERROR: resetAndExecute iofull was NULL.";
+            return;  // something bad happened
+        }
+
+        iofull->answerYesToEverything = false;
+        abort = false;
+        if (iofull->seenAFormation)
+        {
+            continueToAbortThisSequence = true;
+        }
+    }
+    if (continueToAbortThisSequence) {
 //        qDebug() << "resetAndExecute: aborting";
         do_user_input("abort this sequence");
         do_user_input("yes");
@@ -1192,7 +1210,10 @@ void SDThread::run()
     mutexSDAwaitingInput.lock();
     SquareDesk_iofull ggg(this, mw, &waitCondSDAwaitingInput, &mutexSDAwaitingInput,
                           &waitCondAckToMainThread, &mutexAckToMainThread);
-    iofull = &ggg;
+    {
+        QMutexLocker locker(&mutexIOFullAccess);
+        iofull = &ggg;
+    }
     QString executableDir = QCoreApplication::applicationDirPath(); // this is where the executable is (not necessarily the current working directory)
     QString sdCallsFilename = executableDir + "/../Resources/sd_calls.dat"; // NEW: Moved to the Resources folder
 
@@ -1236,6 +1257,10 @@ void SDThread::run()
                     nullptr};
 
     sdmain(sizeof(argv) / sizeof(*argv) - 1, argv, ggg);  // note: manually set argc to match number of argv arguments...
+    {
+        QMutexLocker locker(&mutexIOFullAccess);
+        iofull = nullptr;
+    }
 }
 
 void SDThread::unlock()
