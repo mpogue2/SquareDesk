@@ -434,6 +434,13 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
     // Helper function to check if two labels are "fuzzy equal", using the labelName <-> labelID map
     auto labelWordEqual = [this](const QString &w1, const QString &w2) -> bool {
         // check it both ways
+        // qDebug() << "labelWordEqual" << w1 << w2;
+        // qDebug() << "labelName2labelID" << labelName2labelID;
+
+        if (w1 == w2) {
+            return(true); // if both are two-word label names, they DO match
+        }
+
         // way 1:
         QStringList sl1 = labelName2labelID.values(w1.toLower());
         if (sl1.contains(w2.toLower())) {
