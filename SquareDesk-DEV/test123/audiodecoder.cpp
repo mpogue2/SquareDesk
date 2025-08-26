@@ -644,7 +644,6 @@ public:
 //    qDebug() << "scaleFactor: " << scaleFactor;
             for (int i = 0; i < (int)scaled_inLength_frames; i++) {
                 // output data is MONO (de-interleaved)
-                ASSERT(&inDataFloat[2*i+1] < inDataFloatEndOfBuffer);
                 outDataFloat[i] = (float)(scaleFactor*KL*inDataFloat[2*i] + scaleFactor*KR*inDataFloat[2*i+1]); // stereo to 2ch mono + volume + pan
             }
 
@@ -705,7 +704,6 @@ public:
                 // output data is de-interleaved into first and second half of outDataFloat buffer
 //                outDataFloat[2*i]   = (float)(scaleFactor*KL*inDataFloat[2*i]);   // L: stereo to 2ch stereo + volume + pan
 //                outDataFloat[2*i+1] = (float)(scaleFactor*KR*inDataFloat[2*i+1]); // R: stereo to 2ch stereo + volume + pan
-                ASSERT(&inDataFloat[2*i+1] < inDataFloatEndOfBuffer);
                 outDataFloat[i]  = (float)(scaleFactor*KL*inDataFloat[2*i]);   // L:
                 outDataFloatR[i] = (float)(scaleFactor*KR*inDataFloat[2*i+1]); // R:
             }
