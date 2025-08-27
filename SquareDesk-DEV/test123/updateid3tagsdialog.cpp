@@ -50,8 +50,8 @@
 #include <taglib/audioproperties.h>
 
 #define BADCOLOR "color:red;text-decoration:line-through;"
-#define GOODCOLOR "color:chartreuse"
-#define NEUTRALCOLOR "color:chartreuse"
+#define GOODCOLOR "color:green"
+#define NEUTRALCOLOR "color:green"
 
 // -------------------------------------------------------------------
 updateID3TagsDialog::updateID3TagsDialog(QWidget *parent) :
