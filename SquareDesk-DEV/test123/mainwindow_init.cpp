@@ -799,7 +799,7 @@ void MainWindow::initializeMusicPlaybackControls() {
 
     // DARK MODE UI TESTING --------------------
 
-    ui->darkWarningLabel->setToolTip("Shows Time-in-Tip (Patter) in MM:SS, and Section-in-Tip (Singer).");
+    ui->darkWarningLabel->setToolTip("Shows Time-in-Tip (Patter) in MM:SS, and Section-in-Tip (Singer).\nClick here to reset.");
     ui->currentLocLabel3->setToolTip("Shows Position-in-Song in MM:SS.");
     ui->songLengthLabel2->setToolTip("Shows Length-of-Song in MM:SS.");
 

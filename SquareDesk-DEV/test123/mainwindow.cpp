@@ -3302,6 +3302,8 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
         }
     }
 
+    ui->theSVGClock->resetPatter();     // ALL songs (patter, singer, etc.)
+                                        //   will reset the patter timer at load time now.
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()
