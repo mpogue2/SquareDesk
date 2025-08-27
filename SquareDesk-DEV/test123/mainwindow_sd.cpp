@@ -2075,6 +2075,8 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
 //                qDebug() << "ready to call do_user_input in submit_lineEditSDInput_contents_to_sd with: sides start";
                 sdthread->do_user_input("sides start");
                 cmd.replace("sides ", "");
+            } else if (cmd.startsWith("create ")) {
+                sdthread->do_user_input("heads start");
             }
         }
 //        qDebug() << "ready to call do_user_input in submit_lineEditSDInput_contents_to_sd with: " << cmd;
