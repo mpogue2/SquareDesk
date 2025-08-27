@@ -557,7 +557,7 @@ public:
 
         // INS and OUTS ----------
         const float *inDataFloat   = (const float *)inData;     // input is stereo float interleaved (8 bytes per frame)
-        const float *inDataFloatEndOfBuffer = (const float *)(inData + inLength_bytes);
+        // const float *inDataFloatEndOfBuffer = (const float *)(inData + inLength_bytes);
         float *outDataFloat  = (float *)(&processedData);       // final output is stereo float interleaved (8 bytes per frame), also used as intermediate
         float *outDataFloatR  = (float *)(&processedDataR);     // intermediate output is R channel mono float (4 bytes per frame)
 
