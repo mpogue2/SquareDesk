@@ -648,22 +648,6 @@ void MainWindow::initializeUI() {
 
     ui->actionSwitch_to_Light_Mode->setVisible(false);  // in NEW LIGHT/DARK MODES, don't show the old Switch to X Mode menu item
 
-    vampStatus = -1;  // UNKNOWN
-    vampStatus = testVamp();  // 0 = GOOD, otherwise positive integer error code
-    // qDebug() << "testVamp:" << testVamp();
-
-    // QString vampIndicator = (vampStatus == 0 ? QString(QChar(0x263a)) + " " : QString(QChar(0x26a0)) + " "); // smiley vs ! warning triangle
-    QString vampIndicator = (vampStatus == 0 ? "" : QString(QChar(0x26a0))); // <nothing> vs ! warning triangle
-    QString msg1 = QString("%1Songs found: %2")
-                       .arg(vampIndicator, QString::number(pathStack->size()));
-    ui->statusBar->showMessage(msg1);
-
-    if (vampStatus != 0) {
-        ui->statusBar->setToolTip(QString("Bar/Beat detection and Segmentation disabled: please report error ") + (QString::number(100 + vampStatus)));
-    } else {
-        ui->statusBar->setToolTip(""); // no problems, so no tooltip for you
-    }
-
     // Initialize Preview Playback Device menu
     populatePlaybackDeviceMenu();
 
@@ -1459,6 +1443,23 @@ void MainWindow::initializeMusicSongTable() {
     zoomInOut(0);  // trigger reloading of all fonts, including horizontalHeader of songTable()
 
     findMusic(musicRootPath, true);  // get the filenames from the user's directories
+
+    // At this point, the pathStack was populated by findMusic, so we can do the status message:
+    vampStatus = -1;  // UNKNOWN
+    vampStatus = testVamp();  // 0 = GOOD, otherwise positive integer error code
+    // qDebug() << "testVamp:" << testVamp();
+
+    // QString vampIndicator = (vampStatus == 0 ? QString(QChar(0x263a)) + " " : QString(QChar(0x26a0)) + " "); // smiley vs ! warning triangle
+    QString vampIndicator = (vampStatus == 0 ? "" : QString(QChar(0x26a0))); // <nothing> vs ! warning triangle
+    QString msg1 = QString("%1Songs found: %2")
+                       .arg(vampIndicator, QString::number(pathStack->size()));
+    ui->statusBar->showMessage(msg1);
+
+    if (vampStatus != 0) {
+        ui->statusBar->setToolTip(QString("Bar/Beat detection and Segmentation disabled: please report error ") + (QString::number(100 + vampStatus)));
+    } else {
+        ui->statusBar->setToolTip(""); // no problems, so no tooltip for you
+    }
 
     doNotCallDarkLoadMusicList = false; // We want it to load the darkSongTable
 
