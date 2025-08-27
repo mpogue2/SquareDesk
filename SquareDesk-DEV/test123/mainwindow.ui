@@ -4467,6 +4467,8 @@
     <addaction name="actionClear_Search"/>
     <addaction name="separator"/>
     <addaction name="actionMove_on_to_Next_Song"/>
+    <addaction name="separator"/>
+    <addaction name="actionReset_Patter_Timer"/>
    </widget>
    <widget class="QMenu" name="menuSequence">
     <property name="title">
@@ -6226,6 +6228,11 @@
   <action name="actionImport_and_Organize_Files">
    <property name="text">
     <string>Import and Organize Files...</string>
+   </property>
+  </action>
+  <action name="actionReset_Patter_Timer">
+   <property name="text">
+    <string>Reset Patter Timer</string>
    </property>
   </action>
  </widget>

@@ -839,6 +839,8 @@ private slots:
 
     void on_actionMove_on_to_Next_Song_triggered();
 
+    void on_actionReset_Patter_Timer_triggered();
+
 private:
     // ============================================================================
     // INITIALIZATION METHODS (REFACTORED FROM CONSTRUCTOR)

@@ -8134,3 +8134,8 @@ void MainWindow::handleNewSort(QString newSortString) {
     // qDebug() << "handleNewSort:" << newSortString;
     prefsManager.SetcurrentSortOrder(newSortString); // persist it
 }
+
+void MainWindow::on_actionReset_Patter_Timer_triggered()
+{
+    on_darkWarningLabel_clicked();
+}
