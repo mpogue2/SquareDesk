@@ -1624,6 +1624,75 @@ void MainWindow::initializeCuesheetTab() {
 
 }
 
+
+// ========
+void MainWindow::rescanForSDDances() {
+    QMenu *oldMenu = ui->actionDance->menu(); // get the current one
+
+    // set up Dances menu, items are mutually exclusive
+    sdActionGroupDances = new QActionGroup(this);  // Dances are mutually exclusive
+    sdActionGroupDances->setExclusive(true);
+    connect(sdActionGroupDances, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredDances(QAction*)));
+
+    QString parentFolder = musicRootPath + "/sd/dances";
+    QStringList allDances;
+    //    QStringList allDancesShortnames;
+    QDirIterator directories(parentFolder, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+
+    while(directories.hasNext()){
+        directories.next();
+        QString thePath = directories.filePath();
+        QString shortName = thePath.split('/').takeLast();
+        allDances << shortName;
+    }
+
+    auto dances = allDances;
+
+    QCollator collator;
+    collator.setNumericMode(true);
+    collator.setCaseSensitivity(Qt::CaseInsensitive);
+
+    std::sort(dances.begin(), dances.end(), collator); // sort by natural alphanumeric order
+
+    // qDebug() << "rescanForSDDances: " << dances;
+
+    QMenu *dancesSubmenu = new QMenu("Load Dance"); // This is the NEW one
+    QString lastDance = prefsManager.GetlastDance();
+    QAction *matchAction = NULL;	// which item to be made selected
+    int whichItem = 0;
+    frameName = "";
+    for (const auto& shortName : dances) {
+        //        qDebug() << "shortName: " << shortName;
+        QAction *actionOne = dancesSubmenu->addAction(shortName);
+        actionOne->setActionGroup(sdActionGroupDances);
+        actionOne->setCheckable(true);
+        actionOne->setChecked(false);	// one will be checked below
+        if (whichItem == 0 || lastDance == shortName) {
+            frameName = shortName;
+            matchAction = actionOne;
+        }
+        whichItem++;
+    }
+    if (matchAction != NULL) {
+        sdActionTriggeredDances(matchAction); // call the init function for the last dance if found else the first one
+        matchAction->setChecked(true);        // make it selected
+    } // else there were not dances found at all (should be caught by test below)
+
+    if (frameName == "") {
+        // if ZERO dances found, make one
+        sdLoadDance("SampleDance"); // TODO: is there a better name for this?
+        // NOTE: if there was SOME frame (dance) found, then don't load it until later, when we make the menu
+    }
+
+    // ui->menuSequence->insertMenu(ui->actionDance, dancesSubmenu);
+    // ui->actionDance->setVisible(false);  // TODO: This is a kludge, because it's just a placeholder, so I could stick the Dances item at the top
+
+    ui->actionDance->setMenu(dancesSubmenu);
+    if (oldMenu) {
+        delete oldMenu; // clean up the old one
+    }
+}
+
 // ====================================================
 void MainWindow::initializeSDTab() {
     sd_animation_running = false;
@@ -1935,62 +2004,8 @@ void MainWindow::initializeSDTab() {
 
     // ------------------
     // set up Dances menu, items are mutually exclusive
-    sdActionGroupDances = new QActionGroup(this);  // Dances are mutually exclusive
-    sdActionGroupDances->setExclusive(true);
-    connect(sdActionGroupDances, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredDances(QAction*)));
+    rescanForSDDances();
 
-    QString parentFolder = musicRootPath + "/sd/dances";
-    QStringList allDances;
-    //    QStringList allDancesShortnames;
-    QDirIterator directories(parentFolder, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
-
-    while(directories.hasNext()){
-        directories.next();
-        QString thePath = directories.filePath();
-        QString shortName = thePath.split('/').takeLast();
-        allDances << shortName;
-    }
-
-    auto dances = allDances;
-
-    QCollator collator;
-    collator.setNumericMode(true);
-    collator.setCaseSensitivity(Qt::CaseInsensitive);
-
-    std::sort(dances.begin(), dances.end(), collator); // sort by natural alphanumeric order
-
-    //    qDebug() << "allDances, dances: " << allDances << dances;
-
-    QMenu *dancesSubmenu = new QMenu("Load Dance");
-    QString lastDance = prefsManager.GetlastDance();
-    QAction *matchAction = NULL;	// which item to be made selected
-    int whichItem = 0;
-    frameName = "";
-    for (const auto& shortName : dances) {
-        //        qDebug() << "shortName: " << shortName;
-        QAction *actionOne = dancesSubmenu->addAction(shortName);
-        actionOne->setActionGroup(sdActionGroupDances);
-        actionOne->setCheckable(true);
-        actionOne->setChecked(false);	// one will be checked below
-        if (whichItem == 0 || lastDance == shortName) {
-            frameName = shortName;
-            matchAction = actionOne;
-        }
-        whichItem++;
-    }
-    if (matchAction != NULL) {
-        sdActionTriggeredDances(matchAction); // call the init function for the last dance if found else the first one
-        matchAction->setChecked(true);        // make it selected
-    } // else there were not dances found at all (should be caught by test below)
-
-    if (frameName == "") {
-        // if ZERO dances found, make one
-        sdLoadDance("SampleDance"); // TODO: is there a better name for this?
-        // NOTE: if there was SOME frame (dance) found, then don't load it until later, when we make the menu
-    }
-
-    ui->menuSequence->insertMenu(ui->actionDance, dancesSubmenu);
-    ui->actionDance->setVisible(false);  // TODO: This is a kludge, because it's just a placeholder, so I could stick the Dances item at the top
     // ------------------
 
 

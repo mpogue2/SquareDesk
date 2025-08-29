@@ -855,6 +855,7 @@ private:
 
     // Other tabs initialization
     void initializeCuesheetTab();
+    void rescanForSDDances();
     void initializeSDTab();
     void initializeTaminationsTab();
     void initializeDanceProgramsTab();

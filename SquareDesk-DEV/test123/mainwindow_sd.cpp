@@ -3997,7 +3997,7 @@ void MainWindow::SDGetCurrentSeqs() {
         }
     } else {
         // use 1 internally
-        qDebug() << "Didn't find .current.csv, so making one with all 1's";
+        // qDebug() << "Didn't find .current.csv, so making one with all 1's";
         for (int i = 0; i < frameFiles.length(); i++) {
             frameCurSeq[i] = 1; // if .current.csv file does not exist yet, just init all to zero internally
         }
@@ -4902,7 +4902,7 @@ void MainWindow::SDReadSequencesUsed() {
 //        qDebug() << "sequenceStatus: " << sequenceStatus;
     } else {
         // TODO: This is duplicated code that could be factored into a single function.
-        qDebug() << "SDReadSequencesUsed: File " << file.fileName() << " could not be opened, so creating one.";
+        // qDebug() << "SDReadSequencesUsed: File " << file.fileName() << " could not be opened, so creating one.";
         QFileInfo info(file.fileName());
 
         if (!info.exists()) {
@@ -4972,7 +4972,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
                 pathToFrameFile = (musicRootPath + "/sd/dances/" + frameName + "/f%1-%2.txt").arg(QString::number(ff), fileName); // NOTE: FILENAME STRUCTURE IS HERE, TOO (TODO: FACTOR THIS)
             }
 
-            qDebug() << "MISSING A FRAME, SO MAKING ONE: " << ff << pathToFrameFile;  // counts on default existing in frameFiles that was NOT overwritten
+            // qDebug() << "MISSING A FRAME, SO MAKING ONE: " << ff << pathToFrameFile;  // counts on default existing in frameFiles that was NOT overwritten
 
             // we already know that it doesn't exist yet
             QFile file(pathToFrameFile);
@@ -5050,7 +5050,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
 
     if (!deletedDotTxtFileInfo.exists()) {
         // file doesn't exist, so create one
-        qDebug() << "Making new deleted.txt file: " << file.fileName();
+        // qDebug() << "Making new deleted.txt file: " << file.fileName();
         if (file.open(QFile::WriteOnly | QFile::Append)) {
             // file is created, and CSV header is written
             QTextStream out(&file);
@@ -5092,8 +5092,13 @@ void MainWindow::sdLoadDance(QString danceName) {
     prefsManager.SetlastDance(danceName);
     QDir danceFolder(musicRootPath + "/sd/dances/" + danceName);
     if (!danceFolder.exists()) {
-        qDebug() << "danceFolder does not exist, so we're gonna make one: " << danceFolder.dirName();
+        // qDebug() << "danceFolder does not exist, so we're gonna make one: " << danceFolder.dirName();
         danceFolder.mkpath(".");          // make the folder exist, so we can populate it with sample data below
+
+        // set it as the last dance used, and rescan so it populates into the Load Dance menu and
+        //   is selected
+        prefsManager.SetlastDance(danceName);
+        rescanForSDDances();
     }
 
     // If the dance name ends with _XXXX where XXXX matches a valid
@@ -5676,7 +5681,7 @@ void MainWindow::on_actionNew_Dance_triggered()
 
     // qDebug() << "NEW DANCE NAME:" << newDanceName;
 
-    sdLoadDance(newDanceName);
+    sdLoadDance(newDanceName);  // passing in a dance name will cause that dance to be created, if it doesn't already exist
 
     actionSwitchToTab("SD"); // and now that the Dance exists, switch to the SD tab to view it
 }
