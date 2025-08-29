@@ -1120,6 +1120,14 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
         ui->listWidgetSDOutput->clear();
     }
 
+    // qDebug() << "str:" << str;
+    if (str.toLower().endsWith("from squared set")) {
+        // first command in the sequence is "from squared set"
+        // qDebug() << "Replacing from squared set with just as they are";
+        str = "1:   just as they are";
+    }
+
+
     if (str.startsWith("Output file is") || str.contains("uiSquareDesk"))
     {
         // UNDO does "refresh", which spits out another of these:
@@ -2044,9 +2052,19 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
     cmd.replace("1/2 breed thru", "brace thru");
     cmd.replace(" 1 times", ""); // 1 times can always be deleted, as in "Circulate 1 TIMES"
 
+    if (
+         ((firstCall == 0 && ui->tableWidgetCurrentSequence->rowCount() == 0) ||  // SD Input AND this is the first call being entered
+          firstCall == 1     // loading a frame, and this is the first call in the frame
+         ) &&
+         (cmd == "from squared set")
+       ) {
+        // qDebug() << "first call was 'From Squared Set'";
+        cmd = "just as they are";
+    }
+
     // SD COMMANDS -------
 
-//    qDebug() << "CMD: " << cmd << firstCall;
+    // qDebug() << "CMD: " << cmd << firstCall;
 
     // square your|the set -> square thru 4
     if (cmd == "square the set" || cmd == "square your set"
@@ -2079,7 +2097,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
                 sdthread->do_user_input("heads start");
             }
         }
-//        qDebug() << "ready to call do_user_input in submit_lineEditSDInput_contents_to_sd with: " << cmd;
+        // qDebug() << "ready to call do_user_input in submit_lineEditSDInput_contents_to_sd with: " << cmd;
 
         if (todo.count() == 2) {
             // if first call is "HEADS ( foo ) Square Thru"
