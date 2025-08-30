@@ -241,7 +241,7 @@ void flexible_audio::StreamCreate(const char *filepath, double  *pSongStart_sec,
     Q_UNUSED(outro1_frac)
 
 //    qDebug() << "flexible_audio::StreamCreate: " << filepath << *pSongStart_sec << *pSongEnd_sec << intro1_frac << outro1_frac;
-    decoder.setSource(filepath);  // decode THIS file
+    decoder.setSource(filepath, musicRootPath);  // decode THIS file, with THIS musicRoot
     Stream_BPM = -1;  // means "not available yet"
     decoder.start();              // start the decode
 }

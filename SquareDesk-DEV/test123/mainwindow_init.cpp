@@ -395,6 +395,8 @@ void MainWindow::initializeUI() {
 
     musicRootPath = prefsManager.GetmusicPath();      // defaults to ~/squareDeskMusic at very first startup
 
+    cBass->musicRootPath = musicRootPath; // tell cBass where the musicRoot is for caching by AudioDecoder and Vamp
+
     // make required folders in the MusicDir, if and only if they are not there already --------
     maybeMakeAllRequiredFolders();
     maybeInstallSoundFX();

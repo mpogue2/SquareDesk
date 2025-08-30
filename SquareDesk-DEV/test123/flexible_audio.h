@@ -70,10 +70,11 @@ class flexible_audio : public QIODevice
 
 private:
     AudioDecoder decoder; // TEST of AudioDecoder from example, must call setSource!
-
     //-------------------------------------------------------------
 public:
     //---------------------------------------------------------
+    QString musicRootPath;  // so that the AudioDecoder can cache vamp results in the musicRoot
+
     double                  FileLength;
     double                  Current_Position;
     int                     Stream_Volume;

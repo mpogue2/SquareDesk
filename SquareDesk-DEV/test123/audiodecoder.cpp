@@ -1013,9 +1013,11 @@ void AudioDecoder::newSystemAudioOutputDevice() {
 }
 
 
-void AudioDecoder::setSource(const QString &fileName)
+void AudioDecoder::setSource(const QString &fileName, const QString &rootPath)
 {
-//    qDebug() << "AudioDecoder:: setSource" << fileName;
+    currentlyLoadedFilename = fileName; // .replace(musicRootPath,"");
+    musicRootPath = rootPath;
+
     if (m_decoder.isDecoding()) {
 //        qDebug() << "*** had to stop decoding...";
         m_decoder.stop();
@@ -1712,10 +1714,26 @@ int AudioDecoder::beatBarDetection() {
                 return; // ERROR from lambda
             }
 
+// #define CACHEBEATRESULTS
+#ifdef CACHEBEATRESULTS
+            qDebug() << "Processing 2:" << currentlyLoadedFilename << musicRootPath;
+
+            QString beatCacheFilename = currentlyLoadedFilename
+                                            .replace(musicRootPath,
+                                                     musicRootPath + "/.squareDesk/bulk") +
+                                        ".beatResults.txt";
+
+
+            qDebug() << "COPYING FROM resultsFile" << resultsFile.fileName();
+            qDebug() << "TO beatCacheFilename:" << beatCacheFilename;
+            QFile::copy(resultsFile.fileName(), beatCacheFilename);  // copy it to the beatcache
+#endif
+
             if (!resultsFile.remove()) {
                 qDebug() << "ERROR: Had trouble removing the RESULTS file:" << resultsFile.fileName();
                 return; // ERROR from lambda
             }
+
 #endif
             t->elapsed(__LINE__);
         } else {

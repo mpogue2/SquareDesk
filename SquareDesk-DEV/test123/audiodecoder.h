@@ -131,7 +131,7 @@ public:
 
     void newSystemAudioOutputDevice();
 
-    void setSource(const QString &fileName);
+    void setSource(const QString &fileName, const QString &musicRootPath);
     void start();
     void stop();
     QAudioDecoder::Error getError();
@@ -219,6 +219,9 @@ private slots:
     void updateProgress();
 
 private:
+    QString       currentlyLoadedFilename;
+    QString       musicRootPath;
+
     QAudioDecoder m_decoder;
 
     QAudioSink   *m_audioSink;
