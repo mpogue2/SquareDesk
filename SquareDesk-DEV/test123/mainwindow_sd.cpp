@@ -5089,6 +5089,29 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
 
 // Dances/frames -------------------------------------
 void MainWindow::sdLoadDance(QString danceName) {
+    // we are DEFINITELY switching dances, so see if there's a sequence being edited
+    if (newSequenceInProgress || editSequenceInProgress) {
+        QMessageBox msgBox(QMessageBox::Warning,
+                           "TITLE",
+                           QString("You are currently editing an SD sequence.")
+                           );
+        msgBox.setInformativeText(QString("If you continue, changes to this sequence will be lost."));
+        QAbstractButton *continueButton =
+                msgBox.addButton(tr("&Continue anyway"), QMessageBox::AcceptRole);
+        Q_UNUSED(continueButton)
+        QAbstractButton *cancelButton = msgBox.addButton(tr("&Cancel"), QMessageBox::RejectRole);
+        msgBox.exec();
+        if (msgBox.clickedButton() == cancelButton) {
+            return; // return if the user wants to do more
+        }
+    }
+
+    // user wanted to continue anyway...
+    if (newSequenceInProgress || editSequenceInProgress) {
+        // but there's a sequence open, so let's throw it away.
+        on_pushButtonSDRevert_clicked();
+    }
+
     prefsManager.SetlastDance(danceName);
     QDir danceFolder(musicRootPath + "/sd/dances/" + danceName);
     if (!danceFolder.exists()) {
