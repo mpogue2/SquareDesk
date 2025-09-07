@@ -277,7 +277,6 @@ static int getLastSelectedRow(QTableWidget *tableWidget)
     return lastSelectedRow;
 }
 
-
 static void setPushButtonColor(QPushButton *pushButton, QString color)
 {
     QString styleSheet(COLOR_STYLE.arg(color));
@@ -294,16 +293,18 @@ static void setTagColorsSample(QTableWidget *tableWidget, int row)
     PushButtonColorTag *backgroundButton(dynamic_cast<PushButtonColorTag*>(tableWidget->cellWidget(row, kTagsColBackground)));
     QLabel *labelItem(dynamic_cast<QLabel *>(tableWidget->cellWidget(row, kTagsColExample)));
 
-    QString foreground = foregroundButton->text();
-    QString background = backgroundButton->text();
-    QString str("<span style=\"background-color:%1; color: %2;\">&nbsp;");
-    str = str.arg(background).arg(foreground);
-    str += tag;
-    str += "&nbsp;</span>";
-    labelItem->setText(str);
+    if (labelItem) {
+        QString foreground = foregroundButton->text();
+        QString background = backgroundButton->text();
+        QString str("<span style=\"background-color:%1; color: %2;\">&nbsp;");
+        str = str.arg(background).arg(foreground);
+        str += tag;
+        str += "&nbsp;</span>";
+        labelItem->setText(str);
+    } else {
+        qDebug() << "ERROR: setTagColorsSample::labelItem was NULL!";
+    }
 }
-
-
 
 PushButtonColorTag::PushButtonColorTag(PreferencesDialog *prefsDialog,
                                        const QString &tagName,
@@ -332,7 +333,8 @@ static void addRowToTagColors(PreferencesDialog *prefsDialog, QTableWidget *tabl
 {
     PushButtonColorTag *backgroundButton(new PushButtonColorTag(prefsDialog, tag, background, false));
     PushButtonColorTag *foregroundButton(new PushButtonColorTag(prefsDialog, tag, foreground, false));
-    int row = getLastSelectedRow(tableWidget);
+    // int row = getLastSelectedRow(tableWidget);
+    int row = tableWidget->rowCount(); // always add at the end, since table is auto-sorted nowadays
     tableWidget->insertRow(row);
     tableWidget->setCellWidget(row, kTagsColForeground, foregroundButton);
     tableWidget->setCellWidget(row, kTagsColBackground, backgroundButton);
@@ -343,6 +345,7 @@ static void addRowToTagColors(PreferencesDialog *prefsDialog, QTableWidget *tabl
     labelItem->setAlignment(Qt::AlignCenter);
     labelItem->setTextFormat(Qt::RichText);
     tableWidget->setCellWidget(row, kTagsColExample, labelItem);
+    // NOTE: the text for labelItem will be set by setTagColorsSample() below.
 
     setPushButtonColor(backgroundButton, background);
     setPushButtonColor(foregroundButton, foreground);
@@ -353,7 +356,9 @@ static void addRowToTagColors(PreferencesDialog *prefsDialog, QTableWidget *tabl
 void PreferencesDialog::on_pushButtonTagAdd_clicked()
 {
     songTableReloadNeeded = true;
-    addRowToTagColors(this, ui->tableWidgetTagColors, "<new>", ui->pushButtonTagsBackgroundColor->text(), ui->pushButtonTagsForegroundColor->text());
+    ui->tableWidgetTagColors->setSortingEnabled(false);
+    addRowToTagColors(this, ui->tableWidgetTagColors, "<NEWTAG>", ui->pushButtonTagsBackgroundColor->text(), ui->pushButtonTagsForegroundColor->text());
+    ui->tableWidgetTagColors->setSortingEnabled(true);
 }
 
 void PreferencesDialog::on_pushButtonTagRemove_clicked()
