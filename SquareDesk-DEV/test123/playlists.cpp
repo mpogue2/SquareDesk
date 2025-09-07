@@ -973,7 +973,8 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
     QString startingPlaylistDirectory;
 
     if (relPathInSlot[whichSlot] == "") {
-        startingPlaylistDirectory = musicRootPath + "/playlists/Untitled playlist.csv";
+        QString tomorrowString = QDate::currentDate().addDays(1).toString("yyyy.MM.dd");
+        startingPlaylistDirectory = musicRootPath + "/playlists/" + tomorrowString + ".csv";
     } else {
         startingPlaylistDirectory = musicRootPath + PLAYLISTS_PATH_PREFIX + relPathInSlot[whichSlot] + "_copy.csv";
     }
