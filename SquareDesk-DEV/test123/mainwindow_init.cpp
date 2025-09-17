@@ -2005,11 +2005,12 @@ void MainWindow::initializeSDTab() {
     //    refreshSDframes();
 
     // ------------------
+    // When we start the app, these must be false, because we cannot be editing anything yet...
+    newSequenceInProgress = editSequenceInProgress = false; // no sequence being edited right now
+
     // set up Dances menu, items are mutually exclusive
-    rescanForSDDances();
-
+    rescanForSDDances(); // calls ultimately to sdLoadDance, which checks to see if something is being edited
     // ------------------
-
 
     // TODO: if any frameVisible = {central, sidebar} file is not found, disable all the edit buttons for now
     if (SDtestmode) {
@@ -2055,7 +2056,6 @@ void MainWindow::initializeSDTab() {
 
     //    debugCSDSfile("plus"); // DEBUG DEBUG DEBUG THIS HELPS TO DEBUG IMPORT OF CSDS SEQUENCES TO SD FORMAT *********
 
-    newSequenceInProgress = editSequenceInProgress = false; // no sequence being edited right now.
     on_actionFormation_Thumbnails_triggered(); // make sure that the thumbnails are turned OFF, if Formation Thumbnails is not initially checked
 
     // also watch the abbrevs.txt file for changes, and reload the abbreviations if it changed
