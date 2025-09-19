@@ -36,6 +36,7 @@ PerfTimer::PerfTimer(const char *name, int lineNumber)
 {
 #ifdef ENABLEPERFTIMER
     //start(lineNumber);
+    Q_UNUSED(lineNumber)
 #else
     Q_UNUSED(lineNumber)
 #endif

@@ -54,6 +54,9 @@
 #define MINIMP3_IMPLEMENTATION
 #include "minimp3_ex.h"
 
+// special signature for the drop-in replacement for mp3dec_load()
+int audiodec_load(mp3dec_t *mp3d, const char *file_name, mp3dec_file_info_t *info, MP3D_PROGRESS_CB progress_cb, void *user_data);
+
 #include "xxhash64.h"
 
 // forward decl's from wav_file.h -------
@@ -131,11 +134,18 @@ int MainWindow::processOneFile(const QString &fn) {
     // LOAD TO MEMORY -----------
     mp3dec_t mp3d;
     mp3dec_file_info_t info;
-    if (mp3dec_load(&mp3d, fn.toStdString().c_str(), &info, NULL, NULL))
+
+    PerfTimer t("audiodec_load", __LINE__); // TIMER TIMER TIMER
+    t.start(__LINE__);
+
+    // if (mp3dec_load(&mp3d, fn.toStdString().c_str(), &info, NULL, NULL))
+    if (audiodec_load(&mp3d, fn.toStdString().c_str(), &info, NULL, NULL))
     {
         qDebug() << "ERRORL mp3dec_load()";
         return(-1);
     }
+
+    t.elapsed(__LINE__);  // TIMER TIMER TIMER
 
     // NOTE TO SELF: This is super fast to load the whole file in at once.  Consider replacing existing code with this,
     //   at least for MP3 files...
@@ -587,16 +597,16 @@ void MainWindow::EstimateSectionsForThisSong(QString mp3Filename) {
         return;
     }
 
-    if (!mp3Filename.endsWith(".mp3")) {
-        // qDebug() << "Not an MP3 song: " << mp3Filename;
-        QMessageBox msgBox;
-        msgBox.setText("Only MP3 files are supported right now.");
-        msgBox.exec();
-        return;
-    }
+    // if (!mp3Filename.endsWith(".mp3")) {
+    //     // qDebug() << "Not an MP3 song: " << mp3Filename;
+    //     QMessageBox msgBox;
+    //     msgBox.setText("Only MP3 files are supported right now.");
+    //     msgBox.exec();
+    //     return;
+    // }
 
     QString theCategory = filepath2SongCategoryName(mp3Filename);
-    if (theCategory != "patter") {
+    if (theCategory != "patter" && theCategory != "test") {
         QMessageBox msgBox;
         msgBox.setText("Only patter files are supported right now.");
         msgBox.exec();
@@ -641,16 +651,17 @@ void MainWindow::EstimateSectionsForThisSong(QString mp3Filename) {
 void MainWindow::RemoveSectionsForThisSong(QString mp3Filename) {
     // qDebug() << "RemoveSections for" << mp3Filename;
 
-    if (!mp3Filename.endsWith(".mp3", Qt::CaseInsensitive)) {
-        // qDebug() << "Not an MP3 song: " << mp3Filename;
-        QMessageBox msgBox;
-        msgBox.setText("Only MP3 files are supported right now.");
-        msgBox.exec();
-        return;
-    }
+    // if (!mp3Filename.endsWith(".mp3", Qt::CaseInsensitive) &&
+    //     !mp3Filename.endsWith(".mp3", Qt::CaseInsensitive)) {
+    //     // qDebug() << "Not an MP3 song: " << mp3Filename;
+    //     QMessageBox msgBox;
+    //     msgBox.setText("Only MP3 files are supported right now.");
+    //     msgBox.exec();
+    //     return;
+    // }
 
     QString theCategory = filepath2SongCategoryName(mp3Filename);
-    if (theCategory != "patter") {
+    if (theCategory != "patter" && theCategory != "test") {
         QMessageBox msgBox;
         msgBox.setText("Only patter files are supported right now.");
         msgBox.exec();
@@ -678,7 +689,7 @@ void MainWindow::RemoveSectionsForThisSong(QString mp3Filename) {
         return;
     }
 
-    if (mp3Filename.endsWith(".mp3", Qt::CaseInsensitive)) {
+    if (true || mp3Filename.endsWith(".mp3", Qt::CaseInsensitive)) {
         QString resultsFilename = mp3Filename;
         QString bulkDirname = musicRootPath + "/.squaredesk/bulk";
         resultsFilename.replace(musicRootPath, bulkDirname);
