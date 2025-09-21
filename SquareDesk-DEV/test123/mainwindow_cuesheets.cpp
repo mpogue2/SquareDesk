@@ -121,6 +121,14 @@ struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingTyp
     return label_first_matches;
 }
 
+// Public wrapper for filename parsing
+bool MainWindow::parseFilenameIntoParts(const QString &s,
+                                        QString &label, QString &labelnum,
+                                        QString &labelnum_extra,
+                                        QString &title, QString &shortTitle)
+{
+    return breakFilenameIntoParts(s, label, labelnum, labelnum_extra, title, shortTitle);
+}
 
 bool MainWindow::breakFilenameIntoParts(const QString &s,
                                         QString &label, QString &labelnum,

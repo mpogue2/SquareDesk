@@ -279,6 +279,8 @@ public:
     void saveSlotNow(int whichSlot);
     void saveSlotNow(MyTableWidget *mtw);
     QStringList parseCSV(const QString &string);
+    bool parseFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &labelnum_extra,
+                                QString &title, QString &shortTitle);
     void movePlaylistItems(std::function<bool(MyTableWidget*)> moveOperation);
     std::pair<QTableWidget*, QLabel*> getSlotWidgets(int slotNumber);
     void clearDuplicateSlots(const QString& relPath);

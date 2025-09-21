@@ -30,6 +30,7 @@
 #include "songsettings.h"
 #include "sessioninfo.h"
 #include "globaldefines.h"
+#include "mainwindow.h"
 
 SongHistoryExportDialog::SongHistoryExportDialog(QWidget *parent) :
     QDialog(parent),
@@ -99,8 +100,9 @@ void SongHistoryExportDialog::populateOptions(SongSettings &songSettings)
 
 class FileExportSongPlayEvent : public SongPlayEvent {
     QTextStream &stream;
+    MainWindow *mainWindow;
 public:
-    FileExportSongPlayEvent(QTextStream &stream) : stream(stream) {}
+    FileExportSongPlayEvent(QTextStream &stream, MainWindow *mw) : stream(stream), mainWindow(mw) {}
     virtual void operator() (const QString &name,
                              const QString &playedOnUTC,
                              const QString &playedOnLocal,
@@ -110,6 +112,35 @@ public:
                              const QString &playedOnLastCuesheet
                              )
     {
+        // Extract labelID from filename
+        QString label = "";
+        QString labelnum = "";
+        QString labelnum_extra = "";
+        QString title = "";
+        QString shortTitle = "";
+
+        QFileInfo fi(playedOnFilename);
+        QString baseName = fi.completeBaseName();
+
+        if (mainWindow) {
+            mainWindow->parseFilenameIntoParts(baseName, label, labelnum, labelnum_extra, title, shortTitle);
+        }
+
+        // Combine label parts and capitalize
+        QString labelID = "";
+        if (!label.isEmpty()) {
+            labelID = label.toUpper();
+            if (!labelnum.isEmpty()) {
+                labelID += " " + labelnum.toUpper();
+            }
+            if (!labelnum_extra.isEmpty()) {
+                labelID += labelnum_extra.toUpper();
+            }
+        }
+
+        // Output labelID as first field
+        outputString(stream, labelID, true);
+        stream << ",";
         outputString(stream, name, true);
         stream << ",";
         outputString(stream, playedOnLocal, true);
@@ -129,7 +160,7 @@ public:
 };
 
 
-QString SongHistoryExportDialog::exportSongPlayData(SongSettings &settings, QString lastSaveDir)
+QString SongHistoryExportDialog::exportSongPlayData(SongSettings &settings, QString lastSaveDir, MainWindow *mainWindow)
 {
     QString dateFormat1("yyyy.MM.dd");
     QString startDate1 = ui->dateTimeEditStart->dateTime().toString(dateFormat1);
@@ -152,7 +183,7 @@ QString SongHistoryExportDialog::exportSongPlayData(SongSettings &settings, QStr
     if ( file.open(QIODevice::WriteOnly) )
     {        
         QTextStream stream( &file );
-        FileExportSongPlayEvent fespe(stream);
+        FileExportSongPlayEvent fespe(stream, mainWindow);
         
         QString dateFormat("yyyy-MM-dd HH:mm:ss.sss");
         QString startDate = ui->dateTimeEditStart->dateTime().toUTC().toString(dateFormat);
@@ -165,7 +196,7 @@ QString SongHistoryExportDialog::exportSongPlayData(SongSettings &settings, QStr
         bool omitEndDate = ui->checkBoxOmitEnd->isChecked();
         int session_id = ui->comboBoxSession->currentData().toInt();
 
-        stream << "\"Song\",\"when played (local)\",\"when played (UTC)\",\"filename\",\"pitch\",\"tempo\",\"last_cuesheet\"\n"; // CSV HEADER
+        stream << "\"labelID\",\"Song\",\"when played (local)\",\"when played (UTC)\",\"filename\",\"pitch\",\"tempo\",\"last_cuesheet\"\n"; // CSV HEADER
         settings.getSongPlayHistory(fespe, session_id,
                                     omitStartDate,
                                     startDate,

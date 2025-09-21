@@ -42,6 +42,7 @@ class SongHistoryExportDialog;
 
 
 class SongSettings;
+class MainWindow;
 
 class SongHistoryExportDialog : public QDialog
 {
@@ -50,7 +51,7 @@ class SongHistoryExportDialog : public QDialog
 public:
     explicit SongHistoryExportDialog(QWidget *parent = 0);
     ~SongHistoryExportDialog();
-    QString exportSongPlayData(SongSettings &settings, QString lastSaveDir); // returns last saved directory or ""
+    QString exportSongPlayData(SongSettings &settings, QString lastSaveDir, MainWindow *mainWindow); // returns last saved directory or ""
     void populateOptions(SongSettings &settings);
 
 private slots:
