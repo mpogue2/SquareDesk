@@ -917,6 +917,7 @@ private:
     int lyricsTabNumber;
     bool hasLyrics;
     QString txtToHTMLlyrics(QString text, QString filePathname);
+    QString markdownToHTMLlyrics(QString markdownText, QString filePathname);
     bool cuesheetIsUnlockedForEditing;
 
     // ============================================================================

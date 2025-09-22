@@ -33,6 +33,8 @@
 #include "utility.h"
 #include "selectionretainer.h"
 
+#include <QTextDocument>
+
 // START LYRICS EDITOR STUFF
 
 // RESOURCE FILES ----------------------------------------------
@@ -1038,6 +1040,18 @@ QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
     HTML += "<BODY>\n" + text + "</BODY>\n";
     HTML += "</HTML>\n";
 
+    return(HTML);
+}
+
+// Convert .md file to .html string -------------------
+QString MainWindow::markdownToHTMLlyrics(QString markdownText, QString filePathname) {
+    Q_UNUSED(filePathname)
+
+    // Use Qt's built-in markdown support in QTextDocument
+    QTextDocument doc;
+    doc.setMarkdown(markdownText);
+
+    QString HTML = doc.toHtml();
     return(HTML);
 }
 

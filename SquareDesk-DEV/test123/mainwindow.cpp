@@ -5159,7 +5159,9 @@ void MainWindow::initReftab() {
                 QFile f1(filename);
                 f1.open(QIODevice::ReadOnly | QIODevice::Text);
                 QTextStream in(&f1);
-                QString html = txtToHTMLlyrics(in.readAll(), filename);
+                QString html = markdownToHTMLlyrics(in.readAll(), filename);
+
+                // qDebug() << "the HTML:" << html;
 
                 newView->setHtml(html);
                 newView->setZoomFactor(1.5);
