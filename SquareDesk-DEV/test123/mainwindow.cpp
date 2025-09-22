@@ -5123,16 +5123,18 @@ void MainWindow::initReftab() {
                 documentsTab->addTab(newView, tabname);
             }
 
-        } else if (filename.endsWith(".txt") &&   // ends in .txt, AND
+        } else if ((filename.endsWith(".txt",  Qt::CaseInsensitive) ||
+                    filename.endsWith(".htm",  Qt::CaseInsensitive) ||
+                    filename.endsWith(".html", Qt::CaseInsensitive)) &&   // ends in .{txt,htm,html}, AND
 //                   QRegExp("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", Qt::CaseInsensitive).indexIn(filename) == -1) {  // is not a Dance Program file in /reference
             filename.indexOf(re1) == -1) {
-//                qDebug() << "    FOUND TXT FILE";
-                static QRegularExpression re2(".txt$");
+//                qDebug() << "    FOUND TXT/HTM/HTML FILE";
+                    static QRegularExpression re2(".(txt|htm|html)$", QRegularExpression::CaseInsensitiveOption);
                 tabname = filename.split("/").last().remove(re2);
                 static QRegularExpression re3("^1[0-9][0-9]\\.");
                 tabname.remove(re3);  // 122.bar.txt -> "bar"
 
-//                qDebug() << "    tabname:" << tabname;
+                // qDebug() << "    txt/htm/html tabname:" << tabname;
 
                 QWebEngineView *newView = new QWebEngineView();
                 webViews.append(newView);
