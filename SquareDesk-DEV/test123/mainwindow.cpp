@@ -3603,7 +3603,7 @@ void MainWindow::updateTreeWidget() {
     }
 
     ui->treeWidget->addTopLevelItem(appleMusicItem);  // add this one to the tree
-    appleMusicItem->setExpanded(true);
+    appleMusicItem->setExpanded(false);
 }
 
 void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
