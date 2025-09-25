@@ -1052,6 +1052,107 @@ QString MainWindow::markdownToHTMLlyrics(QString markdownText, QString filePathn
     doc.setMarkdown(markdownText);
 
     QString HTML = doc.toHtml();
+
+    // Post-process the HTML to fix code block styling and consolidate consecutive lines
+
+    // First, style all code blocks and then consolidate consecutive ones
+    // Handle <p> tag code blocks
+    QRegularExpression pCodeBlockRegex(R"(<p style="[^"]*margin-left:0px[^"]*"><span style="[^"]*font-family:'[^']*'[^"]*">([^<]*)</span></p>)");
+    QRegularExpressionMatchIterator pIterator = pCodeBlockRegex.globalMatch(HTML);
+
+    while (pIterator.hasNext()) {
+        QRegularExpressionMatch match = pIterator.next();
+        QString originalTag = match.captured(0);
+        QString codeContent = match.captured(1);
+
+        // Check if this looks like a code block (contains monospace font)
+        if (originalTag.contains("font-family:") && (originalTag.contains("Menlo") || originalTag.contains("monospace") || originalTag.contains("Courier"))) {
+            QString styledCodeBlock = QString(R"(<pre style="margin-top:0px; margin-bottom:0px; margin-left:40px; margin-right:0px; -qt-block-indent:0; text-indent:0px; background-color:#f4f4f4; border-left:3px solid #f66; padding:8px 12px; white-space:pre;"><span style="font-family:'Menlo'; font-size:80%; color:#666;">%1</span></pre>)").arg(codeContent);
+            HTML.replace(originalTag, styledCodeBlock);
+        }
+    }
+
+    // Handle existing <pre> tag code blocks
+    QRegularExpression preCodeBlockRegex(R"(<pre style="[^"]*margin-left:0px[^"]*"><span style="[^"]*font-family:'[^']*'[^"]*">([^<]*)</span></pre>)");
+    QRegularExpressionMatchIterator preIterator = preCodeBlockRegex.globalMatch(HTML);
+
+    while (preIterator.hasNext()) {
+        QRegularExpressionMatch match = preIterator.next();
+        QString originalTag = match.captured(0);
+        QString codeContent = match.captured(1);
+
+        // Check if this looks like a code block (contains monospace font)
+        if (originalTag.contains("font-family:") && (originalTag.contains("Menlo") || originalTag.contains("monospace") || originalTag.contains("Courier"))) {
+            QString styledCodeBlock = QString(R"(<pre style="margin-top:0px; margin-bottom:0px; margin-left:40px; margin-right:0px; -qt-block-indent:0; text-indent:0px; background-color:#f4f4f4; border-left:3px solid #f66; padding:8px 12px; white-space:pre;"><span style="font-family:'Menlo'; font-size:80%; color:#666;">%1</span></pre>)").arg(codeContent);
+            HTML.replace(originalTag, styledCodeBlock);
+        }
+    }
+
+    // Now consolidate consecutive styled code blocks
+    QRegularExpression consecutivePreRegex(R"((<pre style="margin-top:0px; margin-bottom:0px; margin-left:40px[^>]*><span[^>]*>.*?</span></pre>\s*){2,})");
+    QRegularExpressionMatchIterator consecutiveIterator = consecutivePreRegex.globalMatch(HTML);
+    QList<QRegularExpressionMatch> matches;
+
+    // Collect all matches first to avoid iterator invalidation
+    while (consecutiveIterator.hasNext()) {
+        matches.append(consecutiveIterator.next());
+    }
+
+    // Process matches in reverse order to avoid position shifts
+    for (int i = matches.size() - 1; i >= 0; i--) {
+        QRegularExpressionMatch match = matches[i];
+        QString fullMatch = match.captured(0);
+
+        // Extract individual lines from the consecutive code blocks
+        QRegularExpression lineRegex(R"(<span[^>]*>([^<]*)</span>)");
+        QRegularExpressionMatchIterator lineIterator = lineRegex.globalMatch(fullMatch);
+        QStringList codeLines;
+
+        while (lineIterator.hasNext()) {
+            QRegularExpressionMatch lineMatch = lineIterator.next();
+            codeLines.append(lineMatch.captured(1));
+        }
+
+        // Create a consolidated pre block
+        QString consolidatedCode = codeLines.join("\n");
+        QString styledCodeBlock = QString(R"(<pre style="margin-top:0px; margin-bottom:0px; margin-left:40px; margin-right:0px; -qt-block-indent:0; text-indent:0px; background-color:#f4f4f4; border-left:3px solid #f66; padding:8px 12px; white-space:pre;"><span style="font-family:'Menlo'; font-size:80%; color:#666;">%1</span></pre>)").arg(consolidatedCode);
+
+        HTML.replace(fullMatch, styledCodeBlock);
+    }
+
+    // Handle blockquote code blocks (margin-left:40px; margin-right:40px)
+    QRegularExpression blockquoteCodeRegex(R"(<p style="[^"]*margin-left:40px[^"]*margin-right:40px[^"]*"><span style="[^"]*font-family:'[^']*'[^"]*">([^<]*)</span></p>)");
+    QRegularExpressionMatchIterator blockquoteIterator = blockquoteCodeRegex.globalMatch(HTML);
+
+    while (blockquoteIterator.hasNext()) {
+        QRegularExpressionMatch match = blockquoteIterator.next();
+        QString originalTag = match.captured(0);
+        QString codeContent = match.captured(1);
+
+        // Check if this looks like a code block (contains monospace font)
+        if (originalTag.contains("font-family:") && (originalTag.contains("Menlo") || originalTag.contains("monospace") || originalTag.contains("Courier"))) {
+            QString styledCodeBlock = QString(R"(<p style="margin-top:0px; margin-bottom:0px; margin-left:80px; margin-right:0px; -qt-block-indent:0; text-indent:0px; background-color:#f4f4f4; border-left:3px solid #f66; padding:8px 12px;"><span style="font-family:'Menlo'; font-size:80%; color:#666;">%1</span></p>)").arg(codeContent);
+            HTML.replace(originalTag, styledCodeBlock);
+        }
+    }
+
+    // Handle inline code within regular paragraphs
+    QRegularExpression inlineCodeRegex(R"(<span style="[^"]*font-family:'(?:Menlo|monospace|Courier)[^"]*">([^<]*)</span>)");
+    QRegularExpressionMatchIterator inlineIterator = inlineCodeRegex.globalMatch(HTML);
+
+    while (inlineIterator.hasNext()) {
+        QRegularExpressionMatch match = inlineIterator.next();
+        QString originalSpan = match.captured(0);
+        QString codeContent = match.captured(1);
+
+        // Only process if this span contains monospace font and hasn't been styled yet
+        if (originalSpan.contains("font-family:") && (originalSpan.contains("Menlo") || originalSpan.contains("monospace") || originalSpan.contains("Courier")) && !originalSpan.contains("font-size:")) {
+            QString styledInlineCode = QString(R"(<span style="font-family:'Menlo'; font-size:80%; background-color:#f4f4f4; padding:2px 4px; border-radius:3px;">%1</span>)").arg(codeContent);
+            HTML.replace(originalSpan, styledInlineCode);
+        }
+    }
+
+    // qDebug() << "HTML:\n" << HTML;
     return(HTML);
 }
 
