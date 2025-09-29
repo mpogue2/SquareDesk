@@ -2049,6 +2049,8 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
         cmd.replace("square thru", "square thru 4");
     }
 
+    cmd.replace(", all",""); // e.g. Boys work stable, ALL switch to a diamond
+
     cmd.replace("1/2 breed thru", "brace thru");
     cmd.replace(" 1 times", ""); // 1 times can always be deleted, as in "Circulate 1 TIMES"
 
