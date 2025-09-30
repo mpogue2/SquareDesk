@@ -1152,7 +1152,12 @@ QString MainWindow::markdownToHTMLlyrics(QString markdownText, QString filePathn
         }
     }
 
-    // qDebug() << "HTML:\n" << HTML;
+    // Post-process horizontal rules to make them visible in QWebEngineView
+    QRegularExpression hrRegex(R"(<hr\s*/?>\s*)");
+    QString styledHr = R"(<hr style="border: none; border-top: 1px solid #ccc; height: 1px; margin: 16px 0;" />)";
+    HTML.replace(hrRegex, styledHr);
+
+    qDebug() << "HTML:\n" << HTML;
     return(HTML);
 }
 
