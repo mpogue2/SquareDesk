@@ -1157,7 +1157,7 @@ QString MainWindow::markdownToHTMLlyrics(QString markdownText, QString filePathn
     QString styledHr = R"(<hr style="border: none; border-top: 1px solid #ccc; height: 1px; margin: 16px 0;" />)";
     HTML.replace(hrRegex, styledHr);
 
-    qDebug() << "HTML:\n" << HTML;
+    // qDebug() << "HTML:\n" << HTML;
     return(HTML);
 }
 
