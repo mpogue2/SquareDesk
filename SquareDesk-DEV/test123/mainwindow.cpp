@@ -2551,7 +2551,17 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                 maybeMainWindow->do_sd_tab_completion();
                 return true;
             } else if ((theKey >= Qt::Key_F1 && theKey <= Qt::Key_F12) ||
-                       (!ui->lineEditSDInput->hasFocus() && !ui->sdCurrentSequenceTitle->hasFocus() && (theKey == Qt::Key_G || theKey == Qt::Key_B))
+                       (!ui->lineEditSDInput->hasFocus() &&
+                        !ui->sdCurrentSequenceTitle->hasFocus() &&
+                        !ui->boy1->hasFocus() &&
+                        !ui->boy2->hasFocus() &&
+                        !ui->boy3->hasFocus() &&
+                        !ui->boy4->hasFocus() &&
+                        !ui->girl1->hasFocus() &&
+                        !ui->girl2->hasFocus() &&
+                        !ui->girl3->hasFocus() &&
+                        !ui->girl4->hasFocus() &&
+                        (theKey == Qt::Key_G || theKey == Qt::Key_B))
                        ) {
                 // this has to come first.
                 return (maybeMainWindow->handleSDFunctionKey(KeyEvent->keyCombination(), KeyEvent->text()));
