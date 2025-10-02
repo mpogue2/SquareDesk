@@ -2313,9 +2313,12 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->accept();  // OK to close, if user said "OK" or "SAVE"
         saveCurrentSongSettings();
 
-        {
-            // SAVE SD TAB VERTICAL SPLITTER SIZES ----------
-            QList<int> sizes = ui->splitterSDTabVertical->sizes();
+        // Guard against accessing UI widgets during early startup/shutdown
+        if (ui && ui->splitterSDTabVertical && ui->splitterSDTabHorizontal &&
+            ui->splitterMusicTabVertical && ui->splitterMusicTabHorizontal) {
+            {
+                // SAVE SD TAB VERTICAL SPLITTER SIZES ----------
+                QList<int> sizes = ui->splitterSDTabVertical->sizes();
             QString sizeStr("");
             for (int s : sizes)
             {
@@ -2375,6 +2378,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
                 sizeStr += sstr;
             }
             prefsManager.SetMusicTabHorizontalSplitterPosition(sizeStr);
+        }
         }
 
         // as per http://doc.qt.io/qt-5.7/restoring-geometry.html
@@ -3844,6 +3848,11 @@ void MainWindow::on_actionPitch_Down_triggered()
 
 void MainWindow::on_actionAutostart_playback_triggered()
 {
+    // Guard against accessing UI widgets during early startup/shutdown
+    if (!ui || !ui->actionAutostart_playback) {
+        return;
+    }
+
     // the Autostart on Playback mode setting is persistent across restarts of the application
     prefsManager.Setautostartplayback(ui->actionAutostart_playback->isChecked());
 }
@@ -4587,6 +4596,14 @@ void MainWindow::saveCurrentSongSettings()
         // qDebug() << "***** WARNING: MainWindow::saveCurrentSongSettings tried to save while loadingSong was true";
         return;
     }
+
+    // Guard against accessing UI widgets during early startup/shutdown
+    if (!ui || !ui->darkTitle || !ui->darkPitchSlider || !ui->darkTempoSlider ||
+        !ui->comboBoxCuesheetSelector || !ui->seekBarCuesheet ||
+        !ui->darkTrebleKnob || !ui->darkBassKnob || !ui->darkMidKnob || !ui->actionLoop) {
+        return;
+    }
+
 //    qDebug() << "MainWindow::saveCurrentSongSettings trying to save settings...";
     QString currentSong = ui->darkTitle->text();
 

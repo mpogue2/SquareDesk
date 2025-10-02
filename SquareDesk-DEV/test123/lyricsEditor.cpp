@@ -536,6 +536,11 @@ static const char *cuesheet_file_extensions[3] = { "htm", "html", "txt" };      
 void MainWindow::writeCuesheet(QString filename)
 {
 //    qDebug() << "writeCuesheet: " << filename;
+    // Guard against calling during shutdown/early startup
+    if (!ui || !ui->textBrowserCueSheet) {
+        return;
+    }
+
     bool needs_extension = true;
     for (size_t i = 0; i < (sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions)); ++i)
     {
