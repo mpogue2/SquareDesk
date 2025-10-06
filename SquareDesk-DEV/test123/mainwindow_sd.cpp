@@ -4594,10 +4594,22 @@ QString MainWindow::makeLevelString(const char *levelCalls[]) {
     return(allCallsString);
 }
 
+// comment IN this line if you want to show SD call coloring on the console
+// #define DEBUGCALLCOLORS 1
+
 QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
-//    qDebug() << "translateCallToLevel: " << thePrettifiedCall;
+
+#ifdef DEBUGCALLCOLORS
+    qDebug() << "translateCallToLevel: " << thePrettifiedCall;
+#endif
 
     static QRegularExpression textInParens("\\(.*\\)");
+
+    bool asCouples = false;
+    if ((thePrettifiedCall.contains("as couples", Qt::CaseInsensitive))) {
+        asCouples = true; // indicates A1
+    }
+
     QString theCall = thePrettifiedCall.toLower().replace(textInParens, "").replace(who, "").simplified(); // lowecase, remove comments, remove WHO, consolidate whitespace
 
     // OK, sorry, but we CANNOT do this here, because the whole find_dance_program() function tells you the answer
@@ -4712,7 +4724,9 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
             theCall.contains("zing") ||
             allC1CallsString.contains(";" + theCall + ";")
             ) {
-//        qDebug() << theCall << "is C1.";
+#ifdef DEBUGCALLCOLORS
+       qDebug() << theCall << "is C1.";
+#endif
         return("C1");
     } else if (theCall.contains("windmill") ||
                (allA2CallsString.contains(";" + theCall + ";") && (theCall != "recycle")) ||
@@ -4724,10 +4738,12 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
                theCall.startsWith("all 8") ||
                theCall.contains("motivate")                // takes care of "motivate, turn the star 1/4"
                ) {
-//        qDebug() << theCall << "is A2.";
+#ifdef DEBUGCALLCOLORS
+       qDebug() << theCall << "is A2.";
+#endif
         return("A2");
     } else if (theCall.contains("any hand") ||
-               theCall.contains("as couples") ||
+               asCouples || //  NOTE: "couples" in "as couples" is removed by the replace of who --> "", so this is special check for "as couples"
                theCall.contains("belles") ||
                theCall.contains("beaus") ||
                theCall.contains("shadow") ||
@@ -4744,17 +4760,23 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
                theCall.contains("chain reaction") ||    // takes care of "chain reaction, turn the star 1/2"
                theCall.contains("wheel thru") ||
                allA1CallsString.contains(";" + theCall + ";")) {
-//        qDebug() << theCall << "is A1.";
+#ifdef DEBUGCALLCOLORS
+       qDebug() << theCall << "is A1.";
+#endif
         return("A1");
     } else if (theCall.contains("and roll") ||
                theCall.contains("and spread") ||
                theCall.contains("flip the diamond") ||
                theCall.contains("cut the diamond") ||
                allPlusCallsString.contains(";" + theCall + ";")) {
-//        qDebug() << theCall << "is Plus.";
+#ifdef DEBUGCALLCOLORS
+       qDebug() << theCall << "is PLUS.";
+#endif
         return("Plus");
     }
-//    qDebug() << theCall << "is Mainstream.";
+#ifdef DEBUGCALLCOLORS
+       qDebug() << theCall << "is Mainstream or below.";
+#endif
 
     return("Mainstream"); // else it's probably Basic or MS
 }
