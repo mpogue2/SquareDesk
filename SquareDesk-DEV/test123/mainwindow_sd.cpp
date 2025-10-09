@@ -1760,6 +1760,8 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
         cmd = s;
     }
 
+    cmd.replace(",","");  // DELETE COMMENTS (TODO: Is this too aggressive?  Are some comments actually required?)
+
 //    qDebug() << "original cmd: " << cmd << ", firstCall = " << firstCall;
 
     ui->lineEditSDInput->clear();
