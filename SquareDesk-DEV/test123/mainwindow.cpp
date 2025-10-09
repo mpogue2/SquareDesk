@@ -1011,7 +1011,8 @@ MainWindow::~MainWindow()
 
     if (sdthread)
     {
-        sdthread->finishAndShutdownSD(); // try to kill it nicely
+        // sdthread->finishAndShutdownSD(); // try to kill it nicely
+        sdthread->terminate();
         delete sdthread; // call the destructor explicitly, which will terminate the thread, if it is not stopped in 250ms
     }
 //    if (ps) {

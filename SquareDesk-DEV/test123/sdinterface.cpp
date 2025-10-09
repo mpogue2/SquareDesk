@@ -1192,6 +1192,12 @@ SDThread::~SDThread()
     //   because SD is in a bad state, and trying to get the lock will cause a hang at shutdown time.
     // QMutexLocker locker(&mutexThreadRunning);
 
+    mutexThreadRunning.tryLock();
+    // One of two things just happened:
+    // Either it was already unlocked, and now we locked it again, so it's now OK to unlock now
+    // or, we were unable to get the lock because it was already locked, so again it's OK to unlock here
+    mutexThreadRunning.unlock();
+
     // Instead, if the thread is running, we'll wait 250ms, and then terminate it.
     if (isRunning()) {
         if (!wait(250))
