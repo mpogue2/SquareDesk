@@ -195,6 +195,9 @@ void MainWindow::inOrder(struct dancer dancers[])
 int MainWindow::groupNum(struct dancer dancers[], bool top, int coupleNum, int gender) {
 //    qDebug() << "searching: " << top << coupleNum << gender;
     for (int i = 0; i < 8; i++) {
+        if (!dancers[i].foundInThisRenderingPass) {
+            continue;
+        }
         if (dancers[i].coupleNum == coupleNum && dancers[i].gender == gender) {
             if (top) {
 //                qDebug() << "found: " << dancers[i].topside;
@@ -218,6 +221,9 @@ int MainWindow::whichGroup (struct dancer dancers[], bool top) {
     minx = miny = 99;
     maxx = maxy = -99;
     for (int i = 0; i < 8; i++) {
+        if (!dancers[i].foundInThisRenderingPass) {
+            continue;
+        }
         minx = fmin(minx, dancers[i].x);
         miny = fmin(miny, dancers[i].y);
         maxx = fmax(maxx, dancers[i].x);
@@ -227,6 +233,9 @@ int MainWindow::whichGroup (struct dancer dancers[], bool top) {
     double dividerx = (minx + maxx)/2.0;  // find midpoint dividers of formation
     double dividery = (miny + maxy)/2.0;
     for (int i = 0; i < 8; i++) {
+        if (!dancers[i].foundInThisRenderingPass) {
+            continue;
+        }
         dancers[i].leftside = (dancers[i].x < dividerx ? 1 : (dancers[i].x > dividerx ? 0 : -1)); // 1 = left, 0 = right, -1 = i dunno
         dancers[i].topside = (dancers[i].y < dividery ? 1 : (dancers[i].y > dividery ? 0 : -1)); // 1 = top, 0 = bottom, -1 = i dunno
 //        qDebug() << dancers[i].coupleNum + 1 << (dancers[i].gender == 1 ? "G" : "B") << dancers[i].x << dancers[i].y << dancers[i].topside << dancers[i].leftside;
@@ -279,6 +288,9 @@ void MainWindow::decode_formation_into_dancer_destinations(
         max_y += 1;  // When double clicking on sequence, there will be "waves" or "8 chain" as an extra entry at beginning
                      //   by compensating for this, the whole diagram will no longer shift downward.
                      //   Don't ask me why it's +1 instead of -1.
+    }
+    for (int dancerNum = 0; dancerNum < 8; ++dancerNum) {
+        dancers[dancerNum].foundInThisRenderingPass = false;
     }
 
     // Assign each dancer a location based on the picture
@@ -348,6 +360,7 @@ void MainWindow::decode_formation_into_dancer_destinations(
                         sdpeople[dancerNum].setDestination(dancer_start_x, y, static_cast<int>(direction) );
 //                        QString gend = (girl == 1 ? "G" : "B");
 //                        qDebug() << "Couple: " << coupleNumber + 1 << gend << ", x/y: " << dancer_start_x << "," << y;
+                        dancers[dancerNum].foundInThisRenderingPass = true;
                         dancers[dancerNum].coupleNum = coupleNumber;
                         dancers[dancerNum].gender = girl;
                         dancers[dancerNum].x = dancer_start_x;
@@ -393,6 +406,9 @@ void MainWindow::decode_formation_into_dancer_destinations(
     // left_x = min(dancers.x)
     for (int dancerNum = 0; dancerNum < sdpeople.length(); dancerNum++)
     {
+        if (!dancers[dancerNum].foundInThisRenderingPass) {
+            continue;
+        }
         int dancer_start_x = static_cast<int>(sdpeople[dancerNum].getX(1.0));
         if (left_x < 0 || dancer_start_x < left_x)
             left_x = dancer_start_x;
@@ -432,6 +448,9 @@ void MainWindow::decode_formation_into_dancer_destinations(
     
     for (int dancerNum = 0; dancerNum < sdpeople.length(); dancerNum++)
     {
+        if (!dancers[dancerNum].foundInThisRenderingPass) {
+            continue;
+        }
         sdpeople[dancerNum].setDestinationScalingFactors(left_x, max_x, max_y, lowest_factor);
     }
 

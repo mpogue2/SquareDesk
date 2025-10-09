@@ -28,7 +28,7 @@ o**
 
 #include "common_enums.h"
 
-struct dancer { int coupleNum, gender, x, y, topside, leftside; };
+struct dancer { int coupleNum, gender, x, y, topside, leftside; bool foundInThisRenderingPass;};
 
 void getDancerOrder(struct dancer dancers[], Order *boyOrder, Order *girlOrder);
 Order whichOrder(double p1_x, double p1_y, double p2_x, double p2_y);

@@ -58,6 +58,9 @@ void getDancerOrder(struct dancer dancers[], Order *boyOrder, Order *girlOrder) 
     minx = miny = 99;
     maxx = maxy = -99;
     for (int i = 0; i < 8; i++) {
+        if (!dancers[i].foundInThisRenderingPass) {
+            continue;
+        }
         minx = fmin(minx, dancers[i].x);
         miny = fmin(miny, dancers[i].y);
         maxx = fmax(maxx, dancers[i].x);
@@ -71,6 +74,9 @@ void getDancerOrder(struct dancer dancers[], Order *boyOrder, Order *girlOrder) 
     double boy1_x = 0, boy1_y = 0, boy2_x = 0, boy2_y = 0;
     double girl1_x = 0, girl1_y = 0, girl2_x = 0, girl2_y = 0;
     for (int i = 0; i < 8; i++) {
+        if (!dancers[i].foundInThisRenderingPass) {
+            continue;
+        }
         double xpos = 1.0 * (dancers[i].x - dividerx);  // X relative to the center
         double ypos = -3.0 * (dancers[i].y - dividery);  // Y rel to center needs to be mult by 3 and flipped
 
