@@ -60,7 +60,6 @@ QLineEdit[theme="Dark"] {
 }
 
 QLineEdit[theme="Light"] {
-    background-color: red;  /* This is weird, but this must be here, or the bgcolor set manually doesn't work */
     color: #000;
     border: 1px solid #202020;   /* This is weird, but this must be here, or the bgcolor set manually doesn't work */
 }
