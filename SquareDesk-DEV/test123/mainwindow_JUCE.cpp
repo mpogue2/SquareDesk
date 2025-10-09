@@ -48,6 +48,10 @@
 
 #include <QDebug>
 
+#include "flexible_audio.h"
+
+extern flexible_audio *cBass;
+
 using namespace juce;
 
 #ifdef OLDSCAN
@@ -484,6 +488,32 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
         }
     }
 #endif
+
+    // Handle hover events on darkEndLoopButton to temporarily disable looping
+    if (watched == ui->darkEndLoopButton) {
+        if (event->type() == QEvent::Enter) {
+            // Mouse entered the button
+            uint32_t streamState = cBass->currentStreamState();
+            bool isPlaying = (streamState == BASS_ACTIVE_PLAYING);
+            bool loopingEnabled = ui->actionLoop->isChecked();
+
+            if (isPlaying && loopingEnabled) {
+                // Save the state and temporarily disable looping
+                loopingWasEnabledBeforeHover = true;
+                on_loopButton_toggled(false);
+            } else {
+                loopingWasEnabledBeforeHover = false;
+            }
+        }
+        else if (event->type() == QEvent::Leave) {
+            // Mouse left the button
+            if (loopingWasEnabledBeforeHover) {
+                // Restore looping
+                on_loopButton_toggled(true);
+                loopingWasEnabledBeforeHover = false;
+            }
+        }
+    }
 
     // Call the base class implementation
     return QMainWindow::eventFilter(watched, event);

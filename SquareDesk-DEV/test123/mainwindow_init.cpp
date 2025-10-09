@@ -671,6 +671,7 @@ void MainWindow::initializeMusicPlaybackControls() {
     lastMinuteInHour = -1;
     lastSessionID = -2; // initial startup
     pathsOfCalledSongs.clear(); // no songs (that we know of) have been used recently
+    loopingWasEnabledBeforeHover = false;
 
 
     lastAudioDeviceName = "";
@@ -792,6 +793,9 @@ void MainWindow::initializeMusicPlaybackControls() {
     // LOOP CONTROLS =========
     ui->darkStartLoopButton->setToolTip(QString("Sets start point of a loop (Patter) or Intro point (Singing Call)\n\nShortcuts: set Start [, set Start and End: %1[").arg(QChar(0x21e7)));
     ui->darkEndLoopButton->setToolTip(QString("Sets end point of a loop (Patter) or Outro point (Singing Call)\n\nShortcuts: set End ]"));
+
+    // Install event filter to handle hover on darkEndLoopButton
+    ui->darkEndLoopButton->installEventFilter(this);
 
     // layout the QDials in QtDesigner, promote to svgDial's, and then make sure to init all 3 parameters (in this order)
     ui->darkTrebleKnob->setKnobFile("knobs/knob_bg_regular.svg");
