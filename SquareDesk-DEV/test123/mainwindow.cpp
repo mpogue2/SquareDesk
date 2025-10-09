@@ -3725,6 +3725,30 @@ static void addToProgramsAndWriteTextFile(QStringList &programs, QDir outputDir,
 
     QString outputFile = outputDir.canonicalPath() + "/" + filename;
 
+    QString programName = QString(filename).split('.').at(1);
+    // qDebug() << "programName:" << programName;
+
+    // Pattern: number.string.txt (e.g., "0.myapp.txt", "123.config.txt")
+    QRegularExpression pattern("^\\d+\\..*\\.txt$");
+
+    // Get all files matching the pattern
+    QStringList allFiles = outputDir.entryList(QDir::Files);
+
+    for (const QString& filename : allFiles) {
+        if (pattern.match(filename).hasMatch()) {
+            // Check if filename starts with "0" and contains programName
+            if (filename.startsWith("0") && filename.contains(QString('.') + programName + ".")) {
+                // qDebug() << "haveFileAlready:" << programName;
+                return;
+            } else {
+                // qDebug() << "did not match!" << filename;
+            }
+        }
+    }
+
+    // else we need to make one
+    // qDebug() << "making a file for program:" << programName;
+
     QFileInfo info(outputFile);
     if (!info.exists()) {
         QFile file(outputFile);
@@ -3732,6 +3756,7 @@ static void addToProgramsAndWriteTextFile(QStringList &programs, QDir outputDir,
             QTextStream outStream(&file);
             for (int i = 0; fileLines[i]; ++i)
             {
+                // qDebug() << "writing new program file:" << fileLines[i];
                 outStream << fileLines[i] << ENDL;  // write to file
             }
             programs << outputFile; // and append to programs list
@@ -3769,24 +3794,25 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
 
     // qDebug() << "Programs" << programs << programs.length();
 
-    if (programs.length() == 0)
-    {
-        QString referencePath = musicRootPath + "/reference";
-        QDir outputDir(referencePath);
-        // if (!outputDir.exists())
-        // {
-        //     outputDir.mkpath(".");
-        // }
+    QString referencePath = musicRootPath + "/reference";
+    QDir outputDir(referencePath);
+    // if (!outputDir.exists())
+    // {
+    //     outputDir.mkpath(".");
+    // }
 
-        addToProgramsAndWriteTextFile(programs, outputDir, "010.basic1.txt",    danceprogram_basic1);
-        addToProgramsAndWriteTextFile(programs, outputDir, "020.basic2.txt",    danceprogram_basic2);
-        addToProgramsAndWriteTextFile(programs, outputDir, "025.SSD.txt",       danceprogram_SSD);
-        addToProgramsAndWriteTextFile(programs, outputDir, "027.NEWmainstream.txt", danceprogram_NEWmainstream);
-        addToProgramsAndWriteTextFile(programs, outputDir, "030.mainstream.txt", danceprogram_mainstream);
-        addToProgramsAndWriteTextFile(programs, outputDir, "040.plus.txt",      danceprogram_plus);
-        addToProgramsAndWriteTextFile(programs, outputDir, "050.a1.txt",        danceprogram_a1);
-        addToProgramsAndWriteTextFile(programs, outputDir, "060.a2.txt",        danceprogram_a2);
-    }
+    // addToProgramsAndWriteTextFile NEW BEHAVIOR:
+    //   checks to see if a program with that name exists,
+    //     and if not, it creates it and adds it to the list
+    //
+    addToProgramsAndWriteTextFile(programs, outputDir, "010.basic1.txt",    danceprogram_basic1);
+    addToProgramsAndWriteTextFile(programs, outputDir, "020.basic2.txt",    danceprogram_basic2);
+    addToProgramsAndWriteTextFile(programs, outputDir, "025.SSD.txt",       danceprogram_SSD);
+    addToProgramsAndWriteTextFile(programs, outputDir, "027.NEWmainstream.txt", danceprogram_NEWmainstream);
+    addToProgramsAndWriteTextFile(programs, outputDir, "030.mainstream.txt", danceprogram_mainstream);
+    addToProgramsAndWriteTextFile(programs, outputDir, "040.plus.txt",      danceprogram_plus);
+    addToProgramsAndWriteTextFile(programs, outputDir, "050.a1.txt",        danceprogram_a1);
+    addToProgramsAndWriteTextFile(programs, outputDir, "060.a2.txt",        danceprogram_a2);
 
     programs.sort(Qt::CaseInsensitive);
 
