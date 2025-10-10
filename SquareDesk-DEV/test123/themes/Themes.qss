@@ -95,6 +95,11 @@ QLabel[theme="Light"] {
     color: #000;
 }
 
+#darkVolumeLabel[volumeIsMin="true"] {
+    color: black;
+    background-color: #FF0000;
+}
+
 QLabel#darkTitle[flashcall="false"][theme="Light"] {
     color: #000;
     font-style: normal;

@@ -1316,6 +1316,7 @@ void MainWindow::on_darkVolumeSlider_valueChanged(int value)
         s = "MIN";
     }
     this->ui->darkVolumeLabel->setText(s);
+    setProp(ui->darkVolumeLabel,"volumeIsMin", value == 0);
 
     // -------------------------------
     if (value == 0) {
