@@ -1001,7 +1001,12 @@ void AudioDecoder::newSystemAudioOutputDevice() {
         m_currentAudioOutputDeviceName = defaultADName;    // assuming that succeeded, this is the one we are sending audio to
     }
 
-    m_audioDevice = m_audioSink->start();  // do write() to this to play music
+    // qDebug() << "m_audioSink state = " << m_audioSink->state();
+    if (m_audioSink->state() == QAudio::StoppedState) {
+        // start it again only if it was Stopped (this prevents a crash when coming back from sleep or back into clamshell mode)
+        //   when it crases, m_audioDevice was set to nullptr.  Don't try to start when it's already started!
+        m_audioDevice = m_audioSink->start();  // do write() to this to play music
+    }
 
     m_audioBufferSize = m_audioSink->bufferSize();
 //    qDebug() << "BUFFER SIZE: " << m_audioBufferSize;
