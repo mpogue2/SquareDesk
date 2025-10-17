@@ -908,6 +908,8 @@ void MainWindow::action_session_change_triggered()
     // qDebug() << "manual session change triggered!";
     currentSongSecondsPlayed = 0;
     currentSongSecondsPlayedRecorded = false;
+
+    microphoneStatusUpdate();
 }
 
 void MainWindow::populateMenuSessionOptions()
@@ -2138,7 +2140,6 @@ void MainWindow::on_UIUpdateTimerTick(void)
     }
 
     // figure out what Session we are in, once per minute
-
     // either SessionDefaultDOW or SessionDefaultPractice
     SessionDefaultType sessionDefault =
         static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()); // preference setting
@@ -5107,7 +5108,28 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 }
 
 void MainWindow::microphoneStatusUpdate() {
-    QString kybdStatus("SD (Level: " + currentSDKeyboardLevel + ", Dance: " + frameName + "), Audio: " + lastAudioDeviceName);
+
+    QString currentSessionName = "UNKNOWN";
+
+    if (songSettings.isDatabaseOpened()) {
+        // what are the sessions?
+        QList<SessionInfo> sessions = songSettings.getSessionInfo();
+        QMap<int, QString> sessionID2sessionName;
+        for (const auto& s : sessions) {
+            // qDebug() << s.day_of_week << s.id << s.name << s.order_number << s.start_minutes;
+            sessionID2sessionName[s.id] = s.name;
+        }
+
+        currentSessionName = sessionID2sessionName[lastSessionID];
+    }
+
+    QString kybdStatus;
+
+    if (currentSessionName == "Practice") {
+        kybdStatus = "SD (Level: " + currentSDKeyboardLevel + ", Dance: " + frameName + "), Audio: " + lastAudioDeviceName;
+    } else {
+        kybdStatus = "Session: " + currentSessionName + ", SD (Level: " + currentSDKeyboardLevel + ", Dance: " + frameName + "), Audio: " + lastAudioDeviceName;
+    }
 
 #ifndef DEBUG_LIGHT_MODE
     if (darkmode) {

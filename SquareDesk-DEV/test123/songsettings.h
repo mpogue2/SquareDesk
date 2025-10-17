@@ -123,6 +123,10 @@ public:
     float getNearbyMarker(const float markerPos, QMap<float,int> &markers);
     void deleteNearbyMarker(const float markerPos, QMap<float,int> &markers);  // delete a marker position from a marker set
 
+    bool isDatabaseOpened() {
+        return(databaseOpened);
+    }
+
 private:
     bool debugErrors(const char *where, QSqlQuery &q);
     void exec(const char *where, QSqlQuery &q);
