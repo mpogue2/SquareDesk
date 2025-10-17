@@ -204,8 +204,9 @@ void MainWindow::adjustFontSizes()
 
     int nowPlayingSize[8] = {22,27,31,35, 39,43,47,51};  // basically 27/13 * pointSize
 
-    // double nowPlayingHeightFactor = 1.5;
+    int paletteSlotSize[8]    = { 8,10,11,13, 14,16,17,19 };  //
 
+    // double nowPlayingHeightFactor = 1.5;
     // double buttonSizeH = 1.875;
     // double buttonSizeV = 1.125;
 #elif defined(Q_OS_WIN32)
@@ -438,7 +439,44 @@ void MainWindow::adjustFontSizes()
 
     //ui->pushButtonEditLyrics->setIconSize(newIconSize);
 
-    // these are special MEDIUM
+    // these are special SMALL ======================================
+    int paletteSlotFontSize = paletteSlotSize[(index != -1 ? index : 2)]; // keep ratio constant
+    currentFont.setPointSize(paletteSlotFontSize);
+    ui->playlist1Label->setFont(currentFont);
+    ui->playlist2Label->setFont(currentFont);
+    ui->playlist3Label->setFont(currentFont);
+
+    // set font on all palette slot items, too...
+    auto cf = currentFont;
+    cf.setBold(false);
+    cf.setItalic(false);
+    MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+    for (int i = 0; i < 3; i++) {
+        MyTableWidget *table = tables[i];
+        if (table->rowCount() > 0) {
+            for (int j = 0; j < table->rowCount(); j++) {
+                if (table->item(j,COLUMN_NUMBER) != nullptr) {
+                    table->item(j, COLUMN_NUMBER)->setFont(cf);
+                }
+                if (auto w = table->cellWidget(j, COLUMN_TITLE)) {
+                    if (auto lbl = qobject_cast<QLabel*>(w)) {
+                        lbl->setFont(cf);
+                    }
+                }
+                if (table->item(j,COLUMN_PITCH) != nullptr) {
+                    table->item(j, COLUMN_PITCH)->setFont(cf);
+                }
+                if (table->item(j,COLUMN_TEMPO) != nullptr) {
+                    table->item(j, COLUMN_TEMPO)->setFont(cf);
+                }
+            }
+        }
+    }
+
+    ui->playlist1Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->playlist1Table->resizeRowsToContents();
+
+    // these are special MEDIUM ==================================
     int warningLabelFontSize = warningLabelSize[(index != -1 ? index : 2)]; // keep ratio constant
     currentFont.setPointSize(warningLabelFontSize);
     // ui->warningLabel->setFont(currentFont);
@@ -446,19 +484,12 @@ void MainWindow::adjustFontSizes()
     ui->warningLabelSD->setFont(currentFont); // same size as the others
     ui->currentLocLabel_2->setFont(currentFont);
 
-//    int warningLabelFontSizeSD = warningLabelSize[0]; // special small font size for SD warning label (TIMER)
-//    currentFont.setPointSize(warningLabelFontSizeSD);
-//    ui->warningLabelSD->setFont(currentFont);
-
-    // ui->warningLabel->setFixedWidth(warningLabelWidth[(index != -1 ? index : 2)]);
     ui->warningLabelCuesheet->setFixedWidth(warningLabelWidth[(index != -1 ? index : 2)]);
     ui->warningLabelSD->setFixedWidth(warningLabelWidth[(index != -1 ? index : 2)]);  // this one is just like the others
-    //    ui->warningLabelSD->setFixedWidth(warningLabelWidth[0]); // special small width for SD warning label (TIMER)
-
     ui->currentLocLabel_2->setFixedWidth(warningLabelWidth[(index != -1 ? index : 2)]);
 
 
-    // these are special BIG
+    // these are special BIG ======================================
     int nowPlayingLabelFontSize = (nowPlayingSize[(index != -1 ? index : 2)]); // keep ratio constant
     currentFont.setPointSize(nowPlayingLabelFontSize);
     // ui->nowPlayingLabel->setFont(currentFont);
@@ -619,5 +650,7 @@ void MainWindow::on_actionReset_triggered()
     // setSongTableFont(ui->songTable, currentFont);
     setSongTableFont(ui->darkSongTable, currentFont);
     adjustFontSizes();
+
+    zoomInOut(6); // zoom from level 0 to level 4 out of 8 when CMD-ZERO is pressed to reset to something reasonable that's in the middle
     // qDebug() << "on_actionReset_triggered = currentMacPointSize:" << currentMacPointSize << ", totalZoom:" << totalZoom;
 }

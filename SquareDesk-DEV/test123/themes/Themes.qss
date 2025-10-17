@@ -165,10 +165,17 @@ QLabel#warningLabelCuesheet[state="BREAK_OVER"] {
     font-style: normal;
 }
 
+/* PLAYLIST SLOT STYLING ============== */
+#playlist1Table QLabel,
+#playlist2Table QLabel,
+#playlist3Table QLabel {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
 QLabel#playlist1Label[theme="Dark"],
 QLabel#playlist2Label[theme="Dark"],
 QLabel#playlist3Label[theme="Dark"] {
-    font-size: 11pt;
     color: #CCC;
     border: 1px solid #383838;
     background-color: #404040;
@@ -177,7 +184,6 @@ QLabel#playlist3Label[theme="Dark"] {
 QLabel#playlist1Label[theme="Light"],
 QLabel#playlist2Label[theme="Light"],
 QLabel#playlist3Label[theme="Light"] {
-    font-size: 11pt;
     color: #000;
 }
 

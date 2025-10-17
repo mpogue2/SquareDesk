@@ -1381,6 +1381,7 @@ void MainWindow::initializeMusicPlaylists() {
     clearSlot(2);
 
     reloadPaletteSlots();  // reload all the palette slots, based on the last time we ran SquareDesk
+    adjustFontSizes();      // and adjust their font sizes
 
     for (int i = 0; i < 3; i++) {
         slotModified[i] = false;
