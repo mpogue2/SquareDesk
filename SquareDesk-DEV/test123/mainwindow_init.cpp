@@ -843,6 +843,10 @@ void MainWindow::initializeMusicPlaybackControls() {
     ui->darkTempoSlider->setCenterVeinType(true);
     ui->darkTempoSlider->setToolTip(QString("Tempo (in BPM)\nControls the tempo of this song (independent from Pitch).\n\nShortcuts: faster %1+, slower %1-").arg(QChar(0x2318)));
 
+    // Connect tempo slider +/- buttons to actions
+    connect(ui->darkTempoSlider, &svgSlider::incrementRequested, ui->actionSpeed_Up, &QAction::trigger);
+    connect(ui->darkTempoSlider, &svgSlider::decrementRequested, ui->actionSlow_Down, &QAction::trigger);
+
 #ifndef DEBUG_LIGHT_MODE
     ui->darkTempoLabel->setStyleSheet("color: " + darkTextColor);
 #endif
@@ -855,6 +859,10 @@ void MainWindow::initializeMusicPlaybackControls() {
     ui->darkPitchSlider->setIncrement(1.0);
     ui->darkPitchSlider->setCenterVeinType(true);
     ui->darkPitchSlider->setToolTip(QString("Pitch (in semitones)\nControls the pitch of this song (relative to song's original pitch).\n\nShortcuts: pitch up %1u, pitch down %1d").arg(QChar(0x2318)));
+
+    // Connect pitch slider +/- buttons to actions
+    connect(ui->darkPitchSlider, &svgSlider::incrementRequested, ui->actionPitch_Up, &QAction::trigger);
+    connect(ui->darkPitchSlider, &svgSlider::decrementRequested, ui->actionPitch_Down, &QAction::trigger);
 
 #ifndef DEBUG_LIGHT_MODE
     ui->darkPitchLabel->setStyleSheet("color: " + darkTextColor);

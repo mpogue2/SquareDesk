@@ -91,6 +91,8 @@ signals:
     void defaultValueChanged(double d);
     void incrementChanged(double d);
     void centerVeinTypeChanged(bool b);
+    void incrementRequested();
+    void decrementRequested();
 
 private:
     void paintEvent(QPaintEvent *pe);

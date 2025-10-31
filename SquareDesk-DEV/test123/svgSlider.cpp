@@ -73,6 +73,11 @@ double svgSlider::valueFromMouseEvent(QMouseEvent* e) {
 }
 
 void svgSlider::mouseMoveEvent(QMouseEvent* e) {
+    // Ignore move events if mouse is over the +/- button regions
+    if (e->pos().x() <= 12 && (e->pos().y() <= 14 || e->pos().y() >= 94)) {
+        return;
+    }
+
     double value = valueFromMouseEvent(e);
 
 //    this->setValue(m_increment * round(value/m_increment));  // calls the overridden setValue() below, which also updates handle
@@ -115,6 +120,19 @@ void svgSlider::mousePressEvent(QMouseEvent* e) {
 
     switch (e->button()) {
     case Qt::LeftButton:
+        // Check if click is on the + button (top-left region)
+        if (e->pos().x() <= 12 && e->pos().y() <= 14) {
+            emit incrementRequested();
+            return;
+        }
+
+        // Check if click is on the - button (bottom-left region)
+        if (e->pos().x() <= 12 && e->pos().y() >= 94) {
+            emit decrementRequested();
+            return;
+        }
+
+        // Normal slider dragging behavior
         value = valueFromMouseEvent(e);
 
 //        this->setValue(m_increment * round(value/m_increment));
@@ -140,8 +158,20 @@ void svgSlider::mousePressEvent(QMouseEvent* e) {
 
 void svgSlider::mouseDoubleClickEvent(QMouseEvent* e) {
 //    qDebug() << "mouseDoubleClickEvent: " << e;
-    Q_UNUSED(e)
 
+    // Check if double-click is on the + button (top-left region) - treat as increment
+    if (e->pos().x() <= 12 && e->pos().y() <= 14) {
+        emit incrementRequested();
+        return;
+    }
+
+    // Check if double-click is on the - button (bottom-left region) - treat as decrement
+    if (e->pos().x() <= 12 && e->pos().y() >= 94) {
+        emit decrementRequested();
+        return;
+    }
+
+    // Normal double-click behavior: reset to default value
 //    this->setValue(m_increment * round(m_defaultValue/m_increment)); // double click --> (whatever the default value is)
 
     double value = this->getDefaultValue();
