@@ -6866,6 +6866,15 @@ void MainWindow::on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item)
 //                    currentFont.setPointSize(currentFont.pointSize() - 1);
                 table->item(i, 0)->setFont(currentFont);
                 table->item(i, 1)->setFont(currentFont);
+                // For COLUMN_TITLE, we need to modify the QLabel widget's HTML (issue #1547)
+                QLabel *titleLabel = dynamic_cast<QLabel*>(table->cellWidget(i, COLUMN_TITLE));
+                if (titleLabel) {
+                    QString html = titleLabel->text();
+                    // Remove <b><i> tags if present
+                    html.replace(QRegularExpression("</?b>"), "");
+                    html.replace(QRegularExpression("</?i>"), "");
+                    titleLabel->setText(html);
+                }
                 table->item(i, 2)->setFont(currentFont);
                 table->item(i, 3)->setFont(currentFont);
             }
