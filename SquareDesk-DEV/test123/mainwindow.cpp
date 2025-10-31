@@ -881,6 +881,27 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
             saveCuesheet(mp3ForDifferentCuesheet, cuesheetFilename);
         }
         loadCuesheet(cuesheetFilename);
+
+        // Update the Title field with the new cuesheet level (fix for issue #1510)
+        // Only update if we're not in the middle of loading a song (to avoid duplicate suffixes)
+        if (currentSongIsSinger && !flashCallsVisible && !loadingSong) {
+            // First, remove any existing [L:xxx] suffix from currentSongTitle
+            QRegularExpression regex(" \\[L:.*\\]$", QRegularExpression::CaseInsensitiveOption);
+            currentSongTitle.replace(regex, "");
+
+            // Get the newly selected cuesheet name (which includes the [L:xxx] suffix)
+            QString cuesheetText = ui->comboBoxCuesheetSelector->currentText();
+
+            // Extract the [L:xxx] suffix from the cuesheet name
+            QRegularExpressionMatch match = regex.match(cuesheetText);
+            if (match.hasMatch()) {
+                QString levelStr = match.captured(0);
+                currentSongTitle += levelStr; // Add the new level suffix to the title
+            }
+
+            // Update the display
+            setNowPlayingLabelWithColor(currentSongTitle);
+        }
     }
 }
 
