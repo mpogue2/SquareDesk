@@ -7333,48 +7333,132 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
     QMenu *twMenu = new QMenu(this);
     twMenu->setProperty("theme", currentThemeString);
 
+    // Build full path to the clicked item and determine the top-level category
     QString fullPathToLeaf = treeItem->text(0);
-    while (treeItem->parent() != NULL)
+    QTreeWidgetItem *currentItem = treeItem;
+
+    while (currentItem->parent() != NULL)
     {
-        fullPathToLeaf = treeItem->parent()->text(0) + "/" + fullPathToLeaf;
-        treeItem = treeItem->parent();
+        fullPathToLeaf = currentItem->parent()->text(0) + "/" + fullPathToLeaf;
+        currentItem = currentItem->parent();
     }
 
-    fullPathToLeaf = fullPathToLeaf.replace("Playlists", "playlists");  // difference between display "P" and file system "p"
+    // The top-level category is the root of the path
+    QString topLevelCategory = fullPathToLeaf.split("/")[0];
 
-    QString PlaylistFileName = musicRootPath + "/" + fullPathToLeaf + ".csv"; // prefix it with the path to musicDir, suffix it with .csv
+    // Check if this is a top-level item (don't show reveal for these)
+    bool isTopLevel = (treeItem->parent() == NULL);
 
-    twMenu->addAction("Show in palette slot #1",
-                      [this, PlaylistFileName](){
-                          int songCount;
-                          loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 0, songCount);                          
-                          updateRecentPlaylistsList(PlaylistFileName);  // Update the recent playlists list
-                      }
-                      );
-    twMenu->addAction("Show in palette slot #2",
-                      [this, PlaylistFileName](){
-                          int songCount;
-                          loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 1, songCount);
-                          updateRecentPlaylistsList(PlaylistFileName);  // Update the recent playlists list
-                      }
-                      );
-    twMenu->addAction("Show in palette slot #3",
-                      [this, PlaylistFileName](){
-                          int songCount;
-                          loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 2, songCount);
-                          updateRecentPlaylistsList(PlaylistFileName);  // Update the recent playlists list
-                      }
-                      );
+    // Check if this is a leaf node (no children)
+    bool isLeafNode = (treeItem->childCount() == 0);
 
-    if (ui->action0paletteSlots->isChecked()) {
-        twMenu->actions()[0]->setEnabled(false);
-        twMenu->actions()[1]->setEnabled(false);
-        twMenu->actions()[2]->setEnabled(false);
-    } else if (ui->action1paletteSlots->isChecked()) {
-        twMenu->actions()[1]->setEnabled(false);
-        twMenu->actions()[2]->setEnabled(false);
-    } else if (ui->action2paletteSlots->isChecked()) {
-        twMenu->actions()[2]->setEnabled(false);
+    // Handle based on the section
+    if (topLevelCategory == "Apple Music") {
+        // Apple Music items: no reveal actions at all
+        // Don't add any menu items for Apple Music, just return
+        return;
+    } else if (topLevelCategory == "Playlists") {
+        // Playlists section
+        if (!isTopLevel) {
+            // Remove "Playlists/" prefix to get relative path
+            QString relativePath = fullPathToLeaf;
+            relativePath.remove(0, QString("Playlists/").length());
+
+            if (isLeafNode) {
+                // LEAF node: this is an actual playlist file (.csv)
+                QString PlaylistFileName = musicRootPath + "/playlists/" + relativePath + ".csv";
+
+                // Add palette slot menu items
+                twMenu->addAction("Show in palette slot #1",
+                                  [this, PlaylistFileName](){
+                                      int songCount;
+                                      loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 0, songCount);
+                                      updateRecentPlaylistsList(PlaylistFileName);
+                                  }
+                                  );
+                twMenu->addAction("Show in palette slot #2",
+                                  [this, PlaylistFileName](){
+                                      int songCount;
+                                      loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 1, songCount);
+                                      updateRecentPlaylistsList(PlaylistFileName);
+                                  }
+                                  );
+                twMenu->addAction("Show in palette slot #3",
+                                  [this, PlaylistFileName](){
+                                      int songCount;
+                                      loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 2, songCount);
+                                      updateRecentPlaylistsList(PlaylistFileName);
+                                  }
+                                  );
+
+                if (ui->action0paletteSlots->isChecked()) {
+                    twMenu->actions()[0]->setEnabled(false);
+                    twMenu->actions()[1]->setEnabled(false);
+                    twMenu->actions()[2]->setEnabled(false);
+                } else if (ui->action1paletteSlots->isChecked()) {
+                    twMenu->actions()[1]->setEnabled(false);
+                    twMenu->actions()[2]->setEnabled(false);
+                } else if (ui->action2paletteSlots->isChecked()) {
+                    twMenu->actions()[2]->setEnabled(false);
+                }
+
+                // Add separator before reveal action
+                twMenu->addSeparator();
+
+                // Add "Reveal Playlist in Finder"
+                twMenu->addAction("Reveal Playlist in Finder",
+                                  [this, PlaylistFileName](){
+                                      QString pathToReveal = PlaylistFileName;
+                                      QFileInfo fileInfo(pathToReveal);
+
+                                      // If .csv doesn't exist, reveal the folder instead
+                                      if (!fileInfo.exists()) {
+                                          pathToReveal = fileInfo.absolutePath();
+                                      }
+
+                                      QFileInfo finalFileInfo(pathToReveal);
+
+                                      if (finalFileInfo.exists()) {
+                                          showInFinderOrExplorer(pathToReveal);
+                                      }
+                                  }
+                                  );
+            } else {
+                // NON-LEAF node: this is a folder containing playlists
+                QString folderPath = musicRootPath + "/playlists/" + relativePath;
+
+                // Add "Reveal Folder in Finder"
+                twMenu->addAction("Reveal Folder in Finder",
+                                  [this, folderPath](){
+                                      QFileInfo fileInfo(folderPath);
+
+                                      if (fileInfo.exists()) {
+                                          showInFinderOrExplorer(folderPath);
+                                      }
+                                  }
+                                  );
+            }
+        }
+    } else if (topLevelCategory == "Tracks") {
+        // Tracks section
+        if (!isTopLevel) {
+            // Remove "Tracks/" prefix to get relative path
+            QString relativePath = fullPathToLeaf;
+            relativePath.remove(0, QString("Tracks/").length());
+
+            QString folderPath = musicRootPath + "/" + relativePath;
+
+            // Add "Reveal Folder in Finder"
+            twMenu->addAction("Reveal Folder in Finder",
+                              [this, folderPath](){
+                                  QFileInfo fileInfo(folderPath);
+
+                                  if (fileInfo.exists()) {
+                                      showInFinderOrExplorer(folderPath);
+                                  }
+                              }
+                              );
+        }
     }
 
     twMenu->popup(QCursor::pos());
