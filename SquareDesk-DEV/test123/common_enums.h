@@ -97,6 +97,10 @@ constexpr int SLOT_3 = 2;
 constexpr int MAX_RECENT_PLAYLISTS = 5;
 constexpr int APPLE_SYMBOL_UNICODE = 0xF8FF;
 
+// Playlist marker indentation (issue #1547)
+// Number of non-breaking spaces to indent items following a marker row
+constexpr int PLAYLIST_INDENT_SPACES = 4;
+
 // Icon dimensions
 constexpr int TRACK_ICON_WIDTH = 15;
 constexpr int TRACK_ICON_HEIGHT = 15;

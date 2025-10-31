@@ -125,19 +125,24 @@ QStringList MainWindow::parseCSV(const QString &string)
 // Helper function to handle common playlist movement operations
 void MainWindow::movePlaylistItems(std::function<bool(MyTableWidget*)> moveOperation) {
     if (!darkmode) return;
-    
+
     MyTableWidget* tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-    // bool anyModified = false;
-    
+    bool anyModified = false;
+
     for (int i = 0; i < MAX_PLAYLIST_SLOTS; ++i) {
         if (!relPathInSlot[i].startsWith(TRACKS_PATH_PREFIX)) {
             bool modified = moveOperation(tables[i]);
             slotModified[i] = modified || slotModified[i];
             if (slotModified[i]) {
                 saveSlotNow(i);
-                // anyModified = true;
+                anyModified = true;
             }
         }
+    }
+
+    // Refresh indentation after move operations (issue #1547)
+    if (anyModified) {
+        refreshAllPlaylists();
     }
 }
 
@@ -218,8 +223,52 @@ void MainWindow::PlaylistItemsRemove() {
 }
 
 // ============================================================================================================
+// Detect if a filename is a playlist marker/separator (issue #1547)
+// Returns true if filename contains 3+ consecutive separator chars (=, -, _, or +)
+bool MainWindow::isPlaylistMarker(const QString &filename) {
+    // Extract short title (filename without path/extension)
+    static QRegularExpression dotMusicSuffix(SUPPORTED_AUDIO_EXTENSIONS_REGEX,
+                                              QRegularExpression::CaseInsensitiveOption);
+    QString shortTitle = filename.split('/').last().replace(dotMusicSuffix, "");
+
+    // Check for 3+ consecutive separator characters
+    static QRegularExpression markerPattern("[=\\-_+]{3,}");
+    return markerPattern.match(shortTitle).hasMatch();
+}
+
+// ============================================================================================================
+// Helper function to determine if a row should be indented based on previous rows (issue #1547)
+// Scans backwards from rowNum to find the most recent marker
+bool MainWindow::shouldIndentPlaylistRow(QTableWidget *table, int rowNum) {
+    if (rowNum < 0 || table == nullptr) {
+        return false;
+    }
+
+    // Check if current row is a marker - markers themselves are never indented
+    if (table->item(rowNum, COLUMN_PATH) != nullptr) {
+        QString currentPath = table->item(rowNum, COLUMN_PATH)->text();
+        if (isPlaylistMarker(currentPath)) {
+            return false;  // Markers are not indented
+        }
+    }
+
+    // Scan backwards to find if we're under a marker
+    for (int i = rowNum - 1; i >= 0; i--) {
+        if (table->item(i, COLUMN_PATH) != nullptr) {
+            QString path = table->item(i, COLUMN_PATH)->text();
+            if (isPlaylistMarker(path)) {
+                return true;  // Found a marker above us, so we should be indented
+            }
+        }
+    }
+
+    return false;  // No marker found above us
+}
+
+// ============================================================================================================
 void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString relativePath,
-                               bool isPlaylist, QString PlaylistFileName, QString theRealPath) {
+                               bool isPlaylist, QString PlaylistFileName, QString theRealPath,
+                               bool shouldIndent) {
 
     // relativePath is relative to the MusicRootPath, and it might be fake (because it was reversed, like Foo Bar - RIV123.mp3,
     //     we reversed it for presentation
@@ -283,6 +332,23 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
 
     QString titlePlusTags(FormatTitlePlusTags(shortTitle, settings.isSetTags(), settings.getTags(), textCol.name()));
 
+    // Check if this is a marker row (issue #1547)
+    bool isMarker = isPlaylistMarker(relativePath);
+
+    // Make marker rows bold using HTML (issue #1547)
+    if (isMarker) {
+        titlePlusTags = "<b>" + titlePlusTags + "</b>";
+    }
+
+    // Add indentation for non-marker rows following markers (issue #1547)
+    if (shouldIndent) {
+        QString indentSpaces;
+        for (int i = 0; i < PLAYLIST_INDENT_SPACES; i++) {
+            indentSpaces += "&nbsp;";  // HTML non-breaking space
+        }
+        titlePlusTags = indentSpaces + titlePlusTags;
+    }
+
     // qDebug() << "setTitleField:" << shortTitle << titlePlusTags;
     title->setText(titlePlusTags);
 
@@ -290,6 +356,13 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     whichTable->setItem(whichRow, COLUMN_TITLE, blankItem); // null item so I can get the row() later
 
     whichTable->setCellWidget(whichRow, 1, title);
+
+    // Also make the number column bold for markers (issue #1547)
+    if (isMarker && whichTable->item(whichRow, COLUMN_NUMBER) != nullptr) {
+        QFont f = whichTable->item(whichRow, COLUMN_NUMBER)->font();
+        f.setBold(true);
+        whichTable->item(whichRow, COLUMN_NUMBER)->setFont(f);
+    }
 
     // qDebug() << "setTitleField: " << relativePath;
 
@@ -532,6 +605,7 @@ void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativ
     static QRegularExpression spanPrefixRemover("<span style=\"color:.*\">(.*)</span>", QRegularExpression::InvertedGreedinessOption);
 
     songCount = 0;
+    bool currentlyUnderMarker = false;  // Track if we're in a section under a marker (issue #1547)
     for (int i = 0; i < ui->darkSongTable->rowCount(); i++) {
         if (true || !ui->darkSongTable->isRowHidden(i)) {
 
@@ -590,7 +664,18 @@ void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativ
                 ) {
                 fakePath = "/xtras" + fakePath;
             }
-            setTitleField(theTableWidget, songCount-1, fakePath, false, PlaylistFileName); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
+
+            // Determine if this row is a marker and if it should be indented (issue #1547)
+            bool thisRowIsMarker = isPlaylistMarker(pathToMP3);
+            bool shouldIndent;
+            if (thisRowIsMarker) {
+                currentlyUnderMarker = true;  // Start a new marker section
+                shouldIndent = false;         // Markers themselves are NOT indented
+            } else {
+                shouldIndent = currentlyUnderMarker;  // Indent if we're under a marker
+            }
+
+            setTitleField(theTableWidget, songCount-1, fakePath, false, PlaylistFileName, "", shouldIndent); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
 
             // PITCH column
             QTableWidgetItem *pit = new QTableWidgetItem(pitch);
@@ -648,12 +733,13 @@ void MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString 
 
     linesInCurrentPlaylist = 0;
     songCount = 0;
-    
+    bool currentlyUnderMarker = false;  // Track if we're in a section under a marker (issue #1547)
+
     for (const auto& sl : std::as_const(allAppleMusicPlaylists)) {
         bool isPlayableAppleMusicItem = sl[2].endsWith(".wav", Qt::CaseInsensitive) ||
                           sl[2].endsWith(".mp3", Qt::CaseInsensitive) ||
                           sl[2].endsWith(".m4a", Qt::CaseInsensitive);
-        
+
         if (sl[0] == applePlaylistName && isPlayableAppleMusicItem)  {
             // YES! it belongs to the playlist we want
             songCount++;
@@ -671,7 +757,18 @@ void MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString 
             QString appleSymbol = QChar(APPLE_SYMBOL_UNICODE); // TODO: factor into global?
             QString shortTitle = sl[1];
             shortTitle = appleSymbol + " " + shortTitle;
-            setTitleField(theTableWidget, songCount-1, "/xtras/" + shortTitle, false, sl[1]); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
+
+            // Determine if this row is a marker and if it should be indented (issue #1547)
+            bool thisRowIsMarker = isPlaylistMarker(sl[2]);
+            bool shouldIndent;
+            if (thisRowIsMarker) {
+                currentlyUnderMarker = true;  // Start a new marker section
+                shouldIndent = false;         // Markers themselves are NOT indented
+            } else {
+                shouldIndent = currentlyUnderMarker;  // Indent if we're under a marker
+            }
+
+            setTitleField(theTableWidget, songCount-1, "/xtras/" + shortTitle, false, sl[1], "", shouldIndent); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
 
             // PITCH column
             QTableWidgetItem *pit = new QTableWidgetItem("0"); // defaults to no pitch change
@@ -734,6 +831,7 @@ void MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString rel
             Q_UNUSED(header) // turn off the warning (actually need the readLine to happen);
 
             songCount = 0;
+            bool currentlyUnderMarker = false;  // Track if we're in a section under a marker (issue #1547)
 
             while (!in.atEnd()) {
                 QString line = in.readLine();
@@ -788,7 +886,17 @@ void MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString rel
                         theFakePath = absPath;
                     }
 
-                    setTitleField(theTableWidget, songCount-1, theFakePath, true, PlaylistFileName, list1[0]); // list1[0] points at the file, theFakePath might have been reversed, e.g. Foo - RIV123.mp3
+                    // Determine if this row is a marker and if it should be indented (issue #1547)
+                    bool thisRowIsMarker = isPlaylistMarker(list1[0]);
+                    bool shouldIndent;
+                    if (thisRowIsMarker) {
+                        currentlyUnderMarker = true;  // Start a new marker section
+                        shouldIndent = false;         // Markers themselves are NOT indented
+                    } else {
+                        shouldIndent = currentlyUnderMarker;  // Indent if we're under a marker
+                    }
+
+                    setTitleField(theTableWidget, songCount-1, theFakePath, true, PlaylistFileName, list1[0], shouldIndent); // list1[0] points at the file, theFakePath might have been reversed, e.g. Foo - RIV123.mp3
 
                     // PITCH column
                     QTableWidgetItem *pit = new QTableWidgetItem(list1[1]);
@@ -911,7 +1019,15 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
                 currentFont.setBold(false);
                 currentFont.setItalic(false);
                 table->item(j, COLUMN_NUMBER)->setFont(currentFont);
-                table->item(j, COLUMN_TITLE)->setFont(currentFont);
+                // For COLUMN_TITLE, we need to modify the QLabel widget's HTML (issue #1547)
+                QLabel *titleLabel = dynamic_cast<QLabel*>(table->cellWidget(j, COLUMN_TITLE));
+                if (titleLabel) {
+                    QString html = titleLabel->text();
+                    // Remove <b><i> tags if present
+                    html.replace(QRegularExpression("</?b>"), "");
+                    html.replace(QRegularExpression("</?i>"), "");
+                    titleLabel->setText(html);
+                }
                 table->item(j, COLUMN_PITCH)->setFont(currentFont);
                 table->item(j, COLUMN_TEMPO)->setFont(currentFont);
             }
@@ -927,7 +1043,17 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
             currentFont.setBold(true);
             currentFont.setItalic(true);
             sourceForLoadedSong->item(i, COLUMN_NUMBER)->setFont(currentFont);
-            sourceForLoadedSong->item(i, COLUMN_TITLE)->setFont(currentFont);
+            // For COLUMN_TITLE, we need to modify the QLabel widget's HTML (issue #1547)
+            QLabel *titleLabel = dynamic_cast<QLabel*>(sourceForLoadedSong->cellWidget(i, COLUMN_TITLE));
+            if (titleLabel) {
+                QString html = titleLabel->text();
+                // Remove any existing <b><i> tags first to avoid nesting issues (e.g., from marker rows)
+                html.replace(QRegularExpression("</?b>"), "");
+                html.replace(QRegularExpression("</?i>"), "");
+                // Wrap in <b><i> for loaded items
+                html = "<b><i>" + html + "</i></b>";
+                titleLabel->setText(html);
+            }
             sourceForLoadedSong->item(i, COLUMN_PITCH)->setFont(currentFont);
             sourceForLoadedSong->item(i, COLUMN_TEMPO)->setFont(currentFont);
         }
@@ -1417,8 +1543,11 @@ void MainWindow::refreshAllPlaylists() {
                 PlaylistFileName = musicRootPath + PLAYLISTS_PATH_PREFIX + relPathInSlot[i] + CSV_FILE_EXTENSION;
                 // qDebug() << "refreshAllPlaylists: relativePath, PlaylistFileName:" << relativePath << PlaylistFileName;
 
+                // Determine if this row should be indented (issue #1547)
+                bool shouldIndent = shouldIndentPlaylistRow(theTable, j);
+
                 // this is what we want: "/patter/RIV 1180 - Sea Chanty.mp3" "/Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/playlists/Jokers/2024/Jokers_2024.06.05.csv"
-                setTitleField(theTable, j, relativePath, true, PlaylistFileName, relativePath);
+                setTitleField(theTable, j, relativePath, true, PlaylistFileName, relativePath, shouldIndent);
             }
 
         }
@@ -1636,7 +1765,15 @@ void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, 
 
     QString theCanonicalRelativePath = makeCanonicalRelativePath(theRelativePath);
 
-    setTitleField(destTableWidget, insertRowNum, theCanonicalRelativePath, true, PlaylistFileName, theRelativePath); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
+    // First set the PATH column so shouldIndentPlaylistRow() can check it
+    // PATH column (set early for indentation calculation)
+    QTableWidgetItem *tempPath = new QTableWidgetItem(absPath);
+    destTableWidget->setItem(insertRowNum, COLUMN_PATH, tempPath);
+
+    // Determine if this row should be indented (issue #1547)
+    bool shouldIndent = shouldIndentPlaylistRow(destTableWidget, insertRowNum);
+
+    setTitleField(destTableWidget, insertRowNum, theCanonicalRelativePath, true, PlaylistFileName, theRelativePath, shouldIndent); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
 
     // PITCH column
     QTableWidgetItem *pit = new QTableWidgetItem(thePitch);
@@ -1646,9 +1783,7 @@ void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, 
     QTableWidgetItem *tem = new QTableWidgetItem(theTempo);
     destTableWidget->setItem(insertRowNum, COLUMN_TEMPO, tem);
 
-    // PATH column
-    QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
-    destTableWidget->setItem(insertRowNum, COLUMN_PATH, fullPath);
+    // PATH column already set above for indentation calculation
 
     // LOADED column
     QTableWidgetItem *loaded = new QTableWidgetItem("");

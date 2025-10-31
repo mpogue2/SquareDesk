@@ -395,7 +395,10 @@ public:
     // UI helper functions
     void darkPaletteTitleLabelDoubleClicked(QMouseEvent *e);
     void setTitleField(QTableWidget *whichTable, int whichRow, QString fullPath,
-                       bool isPlaylist, QString PlaylistFileName, QString theRealPath = "");
+                       bool isPlaylist, QString PlaylistFileName, QString theRealPath = "",
+                       bool shouldIndent = false);
+    bool isPlaylistMarker(const QString &filename);
+    bool shouldIndentPlaylistRow(QTableWidget *table, int rowNum);
     void titleLabelDoubleClicked(QMouseEvent * /* event */);
     void darkTitleLabelDoubleClicked(QMouseEvent * /* event */);
 #ifndef NO_TIMING_INFO
@@ -453,6 +456,7 @@ public slots:
     void darkAddPlaylistItemToBottom(int whichSlot, QString title, QString thePitch, QString theTempo, QString theFullPath, QString isLoaded);
     void darkAddPlaylistItemAt(int whichSlot, const QString &trackName, const QString &pitch, const QString &tempo, const QString &path, const QString &extra, int insertRow);
     void darkRevealInFinder();
+    void refreshAllPlaylists();  // Issue #1547: refresh indentation after moves
 
     // ============================================================================
     // LYRICS & CUESHEET SLOTS
@@ -934,7 +938,6 @@ private:
     void loadPlaylistFromFileToSlot(int whichSlot);
     void printPlaylistFromSlot(int whichSlot);
     void updateRecentPlaylistsList(const QString &playlistPath);
-    void refreshAllPlaylists();
     void getAppleMusicPlaylists();
     void getLocalPlaylists();
     QList<QStringList> allAppleMusicPlaylists;

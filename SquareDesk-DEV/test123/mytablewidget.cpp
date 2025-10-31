@@ -1007,6 +1007,9 @@ void MyTableWidget::dropEvent(QDropEvent *event)
 
         ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the darkSongTable view immediately
 
+        // Refresh indentation after internal move (issue #1547)
+        ((MainWindow *)mw)->refreshAllPlaylists();
+
         return;
     }
 
@@ -1148,7 +1151,11 @@ void MyTableWidget::dropEvent(QDropEvent *event)
 
     } // for each selected row in the source table
 
-
+    // Refresh indentation after all drops complete (issue #1547)
+    // This handles cases where adding/moving items affects indentation of other rows
+    if (mw != nullptr && itemNumber > 0) {
+        ((MainWindow *)mw)->refreshAllPlaylists();
+    }
 }
 
 void MyTableWidget::setMainWindow(void *m) {
