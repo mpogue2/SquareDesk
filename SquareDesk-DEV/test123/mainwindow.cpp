@@ -1135,6 +1135,12 @@ void MainWindow::on_loopButton_toggled(bool checked)
     Q_UNUSED(checked)
     if (checked) {
         ui->actionLoop->setChecked(true);
+
+        // Block signals to prevent recursive calls
+        ui->darkLoopToggleButton->blockSignals(true);
+        ui->darkLoopToggleButton->setChecked(true);
+        ui->darkLoopToggleButton->blockSignals(false);
+
         ui->seekBarCuesheet->SetLoop(true);
         ui->darkSeekBar->setLoop(true);
 
@@ -1146,6 +1152,35 @@ void MainWindow::on_loopButton_toggled(bool checked)
     }
     else {
         ui->actionLoop->setChecked(false);
+
+        // Block signals to prevent recursive calls
+        ui->darkLoopToggleButton->blockSignals(true);
+        ui->darkLoopToggleButton->setChecked(false);
+        ui->darkLoopToggleButton->blockSignals(false);
+
+        ui->seekBarCuesheet->SetLoop(false);
+        ui->darkSeekBar->setLoop(false);
+
+        cBass->ClearLoop();
+    }
+}
+
+// ----------------------------------------------------------------------
+void MainWindow::on_darkLoopToggleButton_toggled(bool checked)
+{
+    // Update the action state to stay in sync
+    ui->actionLoop->setChecked(checked);
+
+    // Directly implement loop logic (button state is already correct from the click)
+    if (checked) {
+        ui->seekBarCuesheet->SetLoop(true);
+        ui->darkSeekBar->setLoop(true);
+
+        double songLength = cBass->FileLength;
+        cBass->SetLoop(songLength * static_cast<double>(ui->darkSeekBar->getOutroFrac()),
+                      songLength * static_cast<double>(ui->darkSeekBar->getIntroFrac()));
+    }
+    else {
         ui->seekBarCuesheet->SetLoop(false);
         ui->darkSeekBar->setLoop(false);
 
@@ -3236,6 +3271,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 
     ui->darkStartLoopButton->setEnabled(true);  // always enabled now, because anything CAN be looped now OR it has an intro/outro
     ui->darkEndLoopButton->setEnabled(true);
+    ui->darkLoopToggleButton->setEnabled(true);
     ui->darkTestLoopButton->setEnabled(true);
     ui->darkSegmentButton->setEnabled(true);
 

@@ -20,5 +20,6 @@
         <file>graphics/icons8-apple-48.png</file>
         <file>graphics/led_red.png</file>
         <file>graphics/led_grey.png</file>
+        <file>graphics/arrow-loop-C.png</file>
     </qresource>
 </RCC>

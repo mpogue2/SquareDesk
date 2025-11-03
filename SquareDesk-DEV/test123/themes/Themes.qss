@@ -239,6 +239,17 @@ QToolButton:pressed[theme="Light"]
     background-color: #E0E0E0;
 }
 
+/* Loop Toggle Button - checked state */
+QToolButton#darkLoopToggleButton:checked[theme="Dark"] {
+    background-color: qlineargradient(x1:0 y1:1, x2:0 y2:0, stop:0 #2a5a2a, stop:1 #3a7a3a);
+    border: 2px solid #4a9a4a;
+}
+
+QToolButton#darkLoopToggleButton:checked[theme="Light"] {
+    background-color: #c8e6c8;
+    border: 2px solid #4a9a4a;
+}
+
 /* PUSH BUTTONS ===================== */
 QPushButton[theme="Dark"] {
     /* all types of push button */

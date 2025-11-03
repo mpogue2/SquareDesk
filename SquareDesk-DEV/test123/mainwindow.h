@@ -479,6 +479,7 @@ protected:
     bool eventFilter(QObject *watched, QEvent *event) Q_DECL_OVERRIDE;
     // Protected UI event handlers
     void on_loopButton_toggled(bool checked);
+    void on_darkLoopToggleButton_toggled(bool checked);
     void on_monoButton_toggled(bool checked);
     void on_flashcallbasic_toggled(bool checked);
     void on_flashcallmainstream_toggled(bool checked);

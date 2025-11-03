@@ -267,6 +267,9 @@ void MainWindow::initializeUI() {
 
     ui->setupUi(this);
 
+    // Manually connect the loop toggle button signal
+    connect(ui->darkLoopToggleButton, &QToolButton::toggled, this, &MainWindow::on_darkLoopToggleButton_toggled);
+
     ui->statusBar->showMessage("");
     micStatusLabel = new QLabel("MICS OFF");
     ui->statusBar->addPermanentWidget(micStatusLabel);
@@ -1594,6 +1597,7 @@ void MainWindow::initializeCuesheetTab() {
 
     //    ui->darkTestLoopButton->setHidden(true);
     ui->darkTestLoopButton->setEnabled(false);
+    ui->darkLoopToggleButton->setEnabled(false);
 
     ui->darkSegmentButton->setHidden(true);
     ui->darkSegmentButton->setEnabled(false);
