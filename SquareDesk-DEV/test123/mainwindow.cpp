@@ -3623,25 +3623,27 @@ void MainWindow::updateTreeWidget() {
     // --------------------------------------------------------------------
     // GET LIST OF PLAYLISTS AND POPULATE TREEWIDGET > APPLE MUSIC ----------
 
-    // if (allAppleMusicPlaylistNames.size() == 0) {
-    //     return; // if no Apple Music playlists
-    // }
+    if (prefsManager.GetenableAppleMusic()) {
+        // if (allAppleMusicPlaylistNames.size() == 0) {
+        //     return; // if no Apple Music playlists
+        // }
 
-    // qDebug() << "***** APPLE MUSIC";
+        // qDebug() << "***** APPLE MUSIC";
 
-    // top level Apple Music item with icon
-    QTreeWidgetItem *appleMusicItem = new QTreeWidgetItem();
-    appleMusicItem->setText(0, "Apple Music");
-    appleMusicItem->setIcon(0, QIcon(":/graphics/icons8-apple-48.png"));
+        // top level Apple Music item with icon
+        QTreeWidgetItem *appleMusicItem = new QTreeWidgetItem();
+        appleMusicItem->setText(0, "Apple Music");
+        appleMusicItem->setIcon(0, QIcon(":/graphics/icons8-apple-48.png"));
 
-    for (const auto &playlistName : std::as_const(allAppleMusicPlaylistNames)) {
-                // qDebug() << "playlistName: " << playlistName;
-                QTreeWidgetItem *childItem2 = new QTreeWidgetItem(appleMusicItem);
-                childItem2->setText(0, playlistName);
+        for (const auto &playlistName : std::as_const(allAppleMusicPlaylistNames)) {
+                    // qDebug() << "playlistName: " << playlistName;
+                    QTreeWidgetItem *childItem2 = new QTreeWidgetItem(appleMusicItem);
+                    childItem2->setText(0, playlistName);
+        }
+
+        ui->treeWidget->addTopLevelItem(appleMusicItem);  // add this one to the tree
+        appleMusicItem->setExpanded(false);
     }
-
-    ui->treeWidget->addTopLevelItem(appleMusicItem);  // add this one to the tree
-    appleMusicItem->setExpanded(false);
 }
 
 void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
@@ -7153,7 +7155,9 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
                                   [whichSlot, this]() {
                                       Q_UNUSED(this)
                                       // qDebug() << "Update Apple Music List from Apple Music" << whichSlot;
-                                      getAppleMusicPlaylists(); // update from Apple Music
+                                      if (prefsManager.GetenableAppleMusic()) {
+                                          getAppleMusicPlaylists(); // update from Apple Music
+                                      }
                                       // saveSlotAsPlaylist(whichSlot);
                                       // now filter into the table
                                       int songCount;

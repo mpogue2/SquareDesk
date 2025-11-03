@@ -108,6 +108,8 @@ CONFIG_ATTRIBUTE_SLIDER(limitVolumespinBox,limitVolume, (ushort)0) // spin boxes
 
 CONFIG_ATTRIBUTE_BOOLEAN(useTimeRemainingCheckbox,useTimeRemaining, false)
 
+CONFIG_ATTRIBUTE_BOOLEAN(enableAppleMusicCheckbox,enableAppleMusic, false)
+
 //CONFIG_ATTRIBUTE_BOOLEAN(enableFlashCallsCheckbox,enableFlashCalls, false)
 
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(normalizeTrackAudio, false);
