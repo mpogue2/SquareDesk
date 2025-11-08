@@ -3978,9 +3978,13 @@ void MainWindow::on_actionExport_Play_Data_triggered()
     if (dialogCode == QDialog::Accepted)
     {
         QString lastExportSaveHistoryDir = prefsManager.MySettings.value("lastExportSaveHistoryDir").toString();
-        lastExportSaveHistoryDir = dialog->exportSongPlayData(songSettings, lastExportSaveHistoryDir, this);
+        QString lastExportSaveHistoryExt = prefsManager.MySettings.value("lastExportSaveHistoryExt", ".csv").toString();
+
+        lastExportSaveHistoryDir = dialog->exportSongPlayData(songSettings, lastExportSaveHistoryDir, lastExportSaveHistoryExt, this);
+
         if (lastExportSaveHistoryDir != "") {
             prefsManager.MySettings.setValue("lastExportSaveHistoryDir", lastExportSaveHistoryDir);
+            prefsManager.MySettings.setValue("lastExportSaveHistoryExt", lastExportSaveHistoryExt);
         }
     }
     delete dialog;

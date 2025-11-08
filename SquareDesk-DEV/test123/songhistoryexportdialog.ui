@@ -108,7 +108,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Open file in text editor after export</string>
+    <string>Open file in editor after export</string>
    </property>
   </widget>
  </widget>

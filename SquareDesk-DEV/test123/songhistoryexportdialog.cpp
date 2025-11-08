@@ -160,7 +160,7 @@ public:
 };
 
 
-QString SongHistoryExportDialog::exportSongPlayData(SongSettings &settings, QString lastSaveDir, MainWindow *mainWindow)
+QString SongHistoryExportDialog::exportSongPlayData(SongSettings &settings, QString lastSaveDir, QString &lastSaveExt, MainWindow *mainWindow)
 {
     QString dateFormat1("yyyy.MM.dd");
     QString startDate1 = ui->dateTimeEditStart->dateTime().toString(dateFormat1);
@@ -169,10 +169,13 @@ QString SongHistoryExportDialog::exportSongPlayData(SongSettings &settings, QStr
     if (saveDir == "") {
         saveDir = QDir::homePath();  // use HOME, if one was not set previously
     }
-    QString defaultFilename = saveDir + "/songsPlayedOn_" + startDate1 + ".txt";
+    // Use remembered extension, default to ".csv" if not set
+    QString extension = lastSaveExt.isEmpty() ? ".csv" : lastSaveExt;
+    QString defaultFilename = saveDir + "/songsPlayedOn_" + startDate1 + extension;
 
     QString filename =
-        QFileDialog::getSaveFileName(this, tr("Select Export File"),
+        QFileDialog::getSaveFileName(this,
+                                     tr("Select Export File"),
                                      defaultFilename);
 
     if (filename.isNull()) {
@@ -204,33 +207,14 @@ QString SongHistoryExportDialog::exportSongPlayData(SongSettings &settings, QStr
                                     endDate);
 
         if (ui->checkBoxOpenAfterExport->isChecked()) {
-#if defined(Q_OS_MAC)
-            QStringList args;
-            args << "-e";
-            args << "tell application \"TextEdit\"";
-            args << "-e";
-            args << "activate";
-            args << "-e";
-            args << "open POSIX file \"" + filename + "\"";
-            args << "-e";
-            args << "end tell";
-
-            //    QProcess::startDetached("osascript", args);
-
-            // same as startDetached, but suppresses output from osascript to console
-            //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
-            QProcess process;
-            process.setProgram("osascript");
-            process.setArguments(args);
-            process.setStandardOutputFile(QProcess::nullDevice());
-            process.setStandardErrorFile(QProcess::nullDevice());
-            qint64 pid;
-            process.startDetached(&pid);
-#endif
+                // NOWADAYS DO THIS FOR ALL FILES/ALL PLATFORMS:
+                //   e.g. MacOS: (".txt" -> TextEdit), (".csv" -> Numbers/Excel/LibreOffice)
+                QProcess::startDetached("open", QStringList() << filename);
         }
-        // get path to directory of file user selected
+        // get path to directory and extension of file user selected
         QFileInfo fileInfo(filename);
         QString directoryPath = fileInfo.absolutePath();
+        lastSaveExt = "." + fileInfo.suffix();  // Update the extension (e.g., ".csv" or ".txt")
         return(directoryPath); // successful return, update the lastExportSongHistoryDir in preferences
     } // end of successful open
     return(""); // error return
