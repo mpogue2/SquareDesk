@@ -3635,9 +3635,10 @@ void MainWindow::updateTreeWidget() {
                 }
                 QString relpath = SL[0];
                 QString fullPath = musicRootPath + relpath;
-                QStringList relPathSplit = relpath.split("/");
+                // QStringList relPathSplit = relpath.split("/");
                 // int lastIndex = relPathSplit.size() - 1;
-                QString extraZero = (currentLineNumber < 10 ? "0" : "");
+                QString extraZero = (currentLineNumber < 10 ? "0" : "");   // playlists can contain line numbers up to 99 == 01, 02, ... 10, 11, ... 99
+                extraZero        += (currentLineNumber < 100 ? "0" : "");  // playlists can contain line numbers up to 999 == 001, 002, ... 099, 100, ... 999
                 // relPathSplit[lastIndex] = extraZero + QString::number(currentLineNumber++)  + " - " + relPathSplit[lastIndex];
                 // QString revisedrelpath = relPathSplit.join("/");
                 // QString revisedFullPath = musicRootPath + revisedrelpath;
