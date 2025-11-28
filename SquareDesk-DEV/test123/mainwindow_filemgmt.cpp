@@ -1041,8 +1041,10 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
                     //  In my testing, that seemed about right.  No false drag and drops, but normal drag and drop still works as expected.
                 });
 
-        QIcon playbackIcon = QIcon::fromTheme(QIcon::ThemeIcon::MultimediaPlayer);
-        auditionButton1->setIcon(playbackIcon);
+        // QIcon playbackIcon = QIcon::fromTheme(QIcon::ThemeIcon::MultimediaPlayer);
+
+        auditionButton1->setIcon(QIcon(":/graphics/icons8-square-play-button-100.png"));
+
         // auditionButton1->setIconSize(QSize(26,26));
 
         ui->darkSongTable->setItem(i, kNumberCol, auditionItem);

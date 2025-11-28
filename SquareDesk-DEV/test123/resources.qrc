@@ -21,5 +21,6 @@
         <file>graphics/led_red.png</file>
         <file>graphics/led_grey.png</file>
         <file>graphics/arrow-loop-C.png</file>
+        <file>graphics/icons8-square-play-button-100.png</file>
     </qresource>
 </RCC>
