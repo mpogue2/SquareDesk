@@ -378,6 +378,9 @@ void MainWindow::adjustFontSizes()
     ui->pushButtonSetIntroTime->setFont(currentFont);
     ui->pushButtonSetOutroTime->setFont(currentFont);
 
+    ui->pushButtonTestLoop->setFont(currentFont);
+    ui->pushButtonNewFromTemplate->setFont(currentFont);
+
     unsigned int titleButtonW = (index != -1 ? TitleButtonWidth[index] : TitleButtonWidth[2]); // if error, use something in the middle
     ui->pushButtonClearTaughtCalls->setFixedWidth(static_cast<int>(titleButtonW * 1.5));
 
