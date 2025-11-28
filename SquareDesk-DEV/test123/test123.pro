@@ -10,7 +10,7 @@ unix {
     PRE_TARGETDEPS += $$OUT_PWD/../sdlib/libsdlib.a
 }
 macx {
-    QMAKE_MACOSX_DEPLOYMENT_TARGET = 12.0
+    QMAKE_MACOSX_DEPLOYMENT_TARGET = 13.0
 
     # for BULK operations
     QT += concurrent
@@ -21,8 +21,6 @@ macx {
 
 macx {
   # VARIABLE REFERENCE: https://doc.qt.io/qt-6/qmake-variable-reference.html
-  #
-  # NOTE: Right now, use 14.5 for ARM M1, use 12.1 for Big Sur X86 laptop
   #
   # NOTE:  The QMAKE_MAC_SDK MUST MUST MUST BE ALL LOWER CASE.
   #  otherwise, this command issued by <QtDir>/macos/mkspecs/features/macos/sdk.prf
