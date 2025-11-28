@@ -603,6 +603,8 @@ QMAKE_EXTRA_TARGETS += first installer1 installer2 installer3 installer4 install
 macx {
     # M1MAC: comment this section out on X86 Mac builds
     DEFINES += M1MAC=1
+    # TEMPORARY: turn off complaining when result of file.open() is not looked at
+    DEFINES += QT_NO_USE_NODISCARD_FILE_OPEN
     QT += multimedia
 
     first.depends += copydata1dir copydata0a copydata0b copydata0c copydata0d copydata0e copydata1 copydata2 copydata3 copydata4s copydata5 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
