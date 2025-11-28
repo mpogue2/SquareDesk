@@ -536,7 +536,7 @@ void MainWindow::usePersistentFontSize() {
     int indexToCuesheetZoom[9] = {-4,0,4,8,12,16,20,24,24};
     int index = pointSizeToIndex(newPointSize);
     // qDebug() << "usePersistentFontSize: " << index << totalZoom;
-    if (index == -1) {
+    if (index < 0 || index > 8) {
         totalZoom = 4;
         qDebug() << "ERROR: indexToCuesheetZoom index was -1 at" << __FILE_NAME__ << "," << __LINE__;
     } else {
