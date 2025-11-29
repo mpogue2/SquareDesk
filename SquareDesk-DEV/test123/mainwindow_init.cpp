@@ -1383,6 +1383,13 @@ void MainWindow::initializeMusicSearch() {
     ui->treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customTreeWidgetMenuRequested(QPoint)));
 
+    // Initialize MyTreeWidget for drag and drop support
+    ui->treeWidget->setMainWindow(this);
+    ui->treeWidget->setMusicRootPath(musicRootPath);
+    connect(ui->treeWidget, &MyTreeWidget::statusMessage, this, [this](const QString &message, int timeout) {
+        ui->statusBar->showMessage(message, timeout);
+    });
+
     // SEARCH BOX:
     ui->darkSearch->setToolTip("Search\nFilter songs by specifying Type:Label:Title.\n\nExamples:\nlove = any song where type or label or title contains 'love'\nsing::heart = singing calls where title contains 'heart'\np:riv = patter from Riverboat\netc.");
 

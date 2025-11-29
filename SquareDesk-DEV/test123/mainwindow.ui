@@ -1246,7 +1246,7 @@
              </layout>
             </item>
             <item>
-             <widget class="QTreeWidget" name="treeWidget">
+             <widget class="MyTreeWidget" name="treeWidget">
               <property name="horizontalScrollBarPolicy">
                <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
               </property>
@@ -6273,6 +6273,11 @@
    <class>MyTableWidget</class>
    <extends>QTableWidget</extends>
    <header location="global">mytablewidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>MyTreeWidget</class>
+   <extends>QTreeWidget</extends>
+   <header location="global">mytreewidget.h</header>
   </customwidget>
   <customwidget>
    <class>clickableLabel</class>

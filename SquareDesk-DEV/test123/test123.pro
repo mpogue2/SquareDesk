@@ -102,6 +102,7 @@ SOURCES += main.cpp\
     exportdialog.cpp \
     songhistoryexportdialog.cpp \
     mytablewidget.cpp \
+    mytreewidget.cpp \
     soundtouch/source/SoundTouch/AAFilter.cpp \
     soundtouch/source/SoundTouch/BPMDetect.cpp \
     soundtouch/source/SoundTouch/FIFOSampleBuffer.cpp \
@@ -210,6 +211,8 @@ HEADERS  += mainwindow.h \
     updateid3tagsmanager.h \
     utility.h \
     mytablewidget.h \
+    mytreewidget.h \
+    songdraginfo.h \
     tablenumberitem.h \
     levelmeter.h \
     common_enums.h \

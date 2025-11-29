@@ -33,6 +33,7 @@
 #include "splashscreen.h"
 
 #include "mytablewidget.h"
+#include "songdraginfo.h"
 #include <QtMultimedia/qmediaplayer.h>
 // #include "svgWaveformSlider.h"
 #define NO_TIMING_INFO 1
@@ -455,6 +456,7 @@ public slots:
     void darkAddPlaylistItemsToBottom(int slot);
     void darkAddPlaylistItemToBottom(int whichSlot, QString title, QString thePitch, QString theTempo, QString theFullPath, QString isLoaded);
     void darkAddPlaylistItemAt(int whichSlot, const QString &trackName, const QString &pitch, const QString &tempo, const QString &path, const QString &extra, int insertRow);
+    bool addItemsToPlaylistFile(const QString &playlistRelPath, const QList<SongDragInfo> &songs);
     void darkRevealInFinder();
     void refreshAllPlaylists();  // Issue #1547: refresh indentation after moves
 

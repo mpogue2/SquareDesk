@@ -39,6 +39,7 @@
 #include "songtitlelabel.h"
 #include "playlist_constants.h"
 #include "playlistexport.h"
+#include "mytreewidget.h"
 #include <functional>
 #include <utility>
 
@@ -1839,4 +1840,84 @@ void MainWindow::on_action2paletteSlots_triggered()
 void MainWindow::on_action3paletteSlots_triggered()
 {
     setPaletteSlotVisibility(3);
+}
+
+// ================================================================================
+// Add songs to a playlist file (from tree widget drag & drop)
+// ================================================================================
+bool MainWindow::addItemsToPlaylistFile(const QString &playlistRelPath, const QList<SongDragInfo> &songs)
+{
+    if (songs.isEmpty()) {
+        return false;
+    }
+
+    // Build full path to the playlist file
+    QString playlistFullPath = musicRootPath + "/playlists/" + playlistRelPath + ".csv";
+
+    // qDebug() << "Adding" << songs.count() << "songs to playlist:" << playlistFullPath;
+
+    // Read existing playlist contents
+    QStringList existingLines;
+    QFile readFile(playlistFullPath);
+
+    if (readFile.exists() && readFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in(&readFile);
+        while (!in.atEnd()) {
+            existingLines.append(in.readLine());
+        }
+        readFile.close();
+    } else {
+        // File doesn't exist yet, create header
+        existingLines.append(CSV_HEADER_STRING);
+    }
+
+    // Ensure we have the header
+    if (existingLines.isEmpty() || existingLines.first() != CSV_HEADER_STRING) {
+        existingLines.prepend(CSV_HEADER_STRING);
+    }
+
+    // Append new songs
+    for (const auto &song : songs) {
+        // Convert full path to relative path
+        QString relPath = song.path;
+        relPath = relPath.replace(musicRootPath, "");
+
+        // Escape quotes in path
+        relPath = relPath.replace("\"", "\"\"");
+
+        // Format: "relpath",pitch,tempo
+        QString line = QString("\"%1\",%2,%3").arg(relPath).arg(song.pitch).arg(song.tempo);
+        existingLines.append(line);
+    }
+
+    // Write back to file
+    QFile writeFile(playlistFullPath);
+    if (!writeFile.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
+        qDebug() << "ERROR: Could not open playlist file for writing:" << playlistFullPath;
+        return false;
+    }
+
+    QTextStream out(&writeFile);
+    for (const auto &line : std::as_const(existingLines)) {
+        out << line << ENDL;
+    }
+    writeFile.close();
+
+    // Check if this playlist is currently loaded in any palette slot and refresh it
+    for (int slot = 0; slot < 3; slot++) {
+        QString slotRelPath = relPathInSlot[slot];
+        if (!slotRelPath.isEmpty() && slotRelPath == playlistRelPath) {
+            // This playlist is loaded in a slot, reload it
+            // qDebug() << "Playlist is in slot" << slot << ", reloading...";
+
+            int songCount = 0;
+            loadPlaylistFromFileToPaletteSlot(playlistFullPath, slot, songCount);
+            slotModified[slot] = false; // Mark as not modified since we just saved
+        }
+    }
+
+    // Refresh the tree widget and song table if needed
+    getLocalPlaylists(); // Refresh tree widget
+
+    return true;
 }
