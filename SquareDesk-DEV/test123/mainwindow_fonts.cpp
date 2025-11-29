@@ -119,6 +119,7 @@ void MainWindow::setFontSizes()
     // preferred normal small text
     font.setPointSize(preferredSmallFontSize);
     ui->tabWidget->setFont(font);  // most everything inherits from this one
+    ui->tabWidget->tabBar()->setFont(font);  // explicitly set tab bar font for tab titles
     ui->statusBar->setFont(font);
     micStatusLabel->setFont(font);
     // ui->darkcurrentLocLabel->setFont(font);
@@ -357,6 +358,7 @@ void MainWindow::adjustFontSizes()
     // ui->clearSearchButton->setFixedWidth(static_cast<int>(scaleWidth3 * currentFontPointSize));
 
     ui->tabWidget->setFont(currentFont);  // most everything inherits from this one
+    ui->tabWidget->tabBar()->setFont(currentFont);  // explicitly set tab bar font for tab titles
 
     ui->pushButtonCueSheetEditTitle->setFont(currentFont);
     ui->pushButtonCueSheetEditLabel->setFont(currentFont);
