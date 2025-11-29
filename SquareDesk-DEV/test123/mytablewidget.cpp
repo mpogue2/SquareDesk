@@ -673,8 +673,7 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
         return; // return if haven't moved far enough with L mouse button down
     }
 
-    QDrag *drag = new QDrag(this);
-    QMimeData *mimeData = new QMimeData;
+    // Defer allocations until after we know there's something to drag
 
     int sourceRow = 0; // = itemAt(dragStartPosition)->row();
     QString sourceInfo;
@@ -717,11 +716,14 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
             return;  // we tried to drag "nothing"
         }
 
+        QDrag *drag = new QDrag(this);
+        QMimeData *mimeData = new QMimeData;
         mimeData->setText(sourceInfo);
         drag->setMimeData(mimeData);
 
         Qt::DropAction dropAction = drag->exec(Qt::CopyAction);
         Q_UNUSED(dropAction)
+        delete drag; // QDrag takes ownership of mimeData
     } else {
         // the source is the darkSongTable --------
 
@@ -768,11 +770,14 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
             return; // we tried to drag "nothing"
         }
 
+        QDrag *drag = new QDrag(this);
+        QMimeData *mimeData = new QMimeData;
         mimeData->setText(sourceInfo); // send all the info!
         drag->setMimeData(mimeData);
 
         Qt::DropAction dropAction = drag->exec(Qt::CopyAction);
         Q_UNUSED(dropAction)
+        delete drag; // QDrag takes ownership of mimeData
     }
 }
 
