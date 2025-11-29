@@ -204,6 +204,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
         ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
     });
 
+    // NOTE: Splitter restoration moved to showEvent() to fix Issue #1558
+    splittersRestored = false; // will be set to true when showEvent() restores them
+
     splash->setProgress(90, "Almost there...");
 
     mainWindowReady = true;
@@ -531,18 +534,9 @@ void MainWindow::initializeUI() {
     ui->tabWidget->setCurrentIndex(0); // DARK MODE tab is primary, regardless of last setting in Qt Designer
     on_tabWidget_currentChanged(0);    // update the menu item names
 
-    QSize availableSize = QGuiApplication::screens()[0]->geometry().size();
-    QSize newSize = QSize(availableSize.width()*0.7, availableSize.height()*0.7);
-
-    setGeometry(
-        QStyle::alignedRect(
-            Qt::LeftToRight,
-            Qt::AlignCenter,
-            newSize,
-            QGuiApplication::screens()[0]->geometry()
-
-            )
-        );
+    // NOTE: Initial 70% window sizing removed (Issue #1558)
+    // The window geometry is now restored from saved settings in main.cpp via restoreGeometry()
+    // This allows proper persistence of user-selected window sizes
 
     tipLengthTimerEnabled = prefsManager.GettipLengthTimerEnabled();  // save new settings in MainWindow, too
     tipLength30secEnabled = prefsManager.GettipLength30secEnabled();
@@ -597,47 +591,8 @@ void MainWindow::initializeUI() {
 
     songSettings.setDefaultTagColors( prefsManager.GettagsBackgroundColorString(), prefsManager.GettagsForegroundColorString());
 
-    {
-        // MUSIC TAB VERTICAL SPLITTER IS PERSISTENT ---------
-        QString sizesStr = prefsManager.GetMusicTabVerticalSplitterPosition();
-        //sizesStr = "";  // DEBUG ONLY
-        // qDebug() << "prefsManager Vertical sizes: " << sizesStr;
-        QList<int> sizes;
-        if (!sizesStr.isEmpty())
-        {
-            // override the current sizes with the previously saved sizes
-            for (const QString &sizeStr : sizesStr.split(","))
-            {
-                sizes.append(sizeStr.toInt());
-            }
-        } else {
-            sizes.append(1000);
-            sizes.append(4000);
-        }
-        // qDebug() << "    Music Tab Vertical splitter using: " << sizes;
-        ui->splitterMusicTabVertical->setSizes(sizes);
-    }
-
-    {
-        // MUSIC TAB HORIZONTAL SPLITTER IS PERSISTENT ---------
-        QString sizesStr = prefsManager.GetMusicTabHorizontalSplitterPosition();
-        // sizesStr = "";  // DEBUG ONLY
-        // qDebug() << "prefsManager Horizontal sizes: " << sizesStr;
-        QList<int> sizes;
-        if (!sizesStr.isEmpty())
-        {
-            // override the current sizes with the previously saved sizes
-            for (const QString &sizeStr : sizesStr.split(","))
-            {
-                sizes.append(sizeStr.toInt());
-            }
-        } else {
-            sizes.append(1000);
-            sizes.append(3000);
-        }
-        // qDebug() << "    Music Tab Horizontal splitter using: " << sizes;
-        ui->splitterMusicTabHorizontal->setSizes(sizes);
-    }
+    // NOTE: Music Tab splitter restoration moved to constructor (after window is shown)
+    //       to fix Issue #1558: window resizing problem with large zoom levels
 
     // THEME STUFF -------------
     svgClockStateChanged("UNINITIALIZED");

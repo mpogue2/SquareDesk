@@ -2342,6 +2342,60 @@ bool MainWindow::maybeSavePlaylist(int whichSlot) {
 }
 
 // --------------
+// Issue #1558: Restore splitter sizes after window is shown and layout is fully calculated
+// This ensures that with large fonts, the layout has been properly computed before
+// we apply saved splitter sizes, avoiding minimum size constraint conflicts
+void MainWindow::showEvent(QShowEvent *event)
+{
+    QMainWindow::showEvent(event); // Call base class implementation first
+
+    if (!splittersRestored) {
+        splittersRestored = true;
+
+        // Use singleShot to defer restoration until after the event loop processes the show event
+        // and the layout is fully calculated (Issue #1558)
+        QTimer::singleShot(0, [this]{
+            // MUSIC TAB VERTICAL SPLITTER IS PERSISTENT ---------
+            QString sizesStr = prefsManager.GetMusicTabVerticalSplitterPosition();
+            //sizesStr = "";  // DEBUG ONLY
+            // qDebug() << "prefsManager Vertical sizes: " << sizesStr;
+            QList<int> sizes;
+            if (!sizesStr.isEmpty())
+            {
+                // override the current sizes with the previously saved sizes
+                for (const QString &sizeStr : sizesStr.split(","))
+                {
+                    sizes.append(sizeStr.toInt());
+                }
+            } else {
+                sizes.append(1000);
+                sizes.append(4000);
+            }
+            // qDebug() << "    Music Tab Vertical splitter using: " << sizes;
+            ui->splitterMusicTabVertical->setSizes(sizes);
+
+            // MUSIC TAB HORIZONTAL SPLITTER IS PERSISTENT ---------
+            sizesStr = prefsManager.GetMusicTabHorizontalSplitterPosition();
+            // sizesStr = "";  // DEBUG ONLY
+            // qDebug() << "prefsManager Horizontal sizes: " << sizesStr;
+            sizes.clear();
+            if (!sizesStr.isEmpty())
+            {
+                // override the current sizes with the previously saved sizes
+                for (const QString &sizeStr : sizesStr.split(","))
+                {
+                    sizes.append(sizeStr.toInt());
+                }
+            } else {
+                sizes.append(1000);
+                sizes.append(3000);
+            }
+            // qDebug() << "    Music Tab Horizontal splitter using: " << sizes;
+            ui->splitterMusicTabHorizontal->setSizes(sizes);
+        });
+    }
+}
+
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     // Work around bug: https://codereview.qt-project.org/#/c/125589/

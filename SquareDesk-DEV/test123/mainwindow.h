@@ -476,6 +476,7 @@ protected:
     bool maybeSavePlaylist(int whichSlot);
     bool maybeSaveCuesheet(int optionCount);
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
+    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
     bool eventFilter(QObject *watched, QEvent *event) Q_DECL_OVERRIDE;
     // Protected UI event handlers
     void on_loopButton_toggled(bool checked);
@@ -876,6 +877,7 @@ private:
     // ============================================================================
     QString lastAudioDeviceName;
     bool flashCallsVisible;
+    bool splittersRestored; // Issue #1558: track if splitters have been restored after window shown
     int lastSongTableRowSelected;
     bool doNotCallDarkLoadMusicList;
     unsigned int screensaverSeconds;
