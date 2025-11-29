@@ -1265,7 +1265,7 @@ void MyTableWidget::setOrderFromString(QString s) {
     // sortOperations.clear(); // NO, DON'T clear out the old here, do it only when told in initializeSortOrder() (when resetting)
 
     // string looks like: "c:2,so:0;c:1,so:0;c:3,so:0"
-    QStringList a = s.split(";");
+    const QStringList a = s.split(";");
     for (const auto &q : a) {
         sortOperation so(q);
         sortOperations.append(so);
