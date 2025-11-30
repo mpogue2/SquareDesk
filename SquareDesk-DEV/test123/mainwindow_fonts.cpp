@@ -189,6 +189,7 @@ void MainWindow::adjustFontSizes()
     double tempoFactor = 0.9;
 
     int searchBoxesHeight[8] = {20, 21, 22, 24,  26, 28, 30, 32};
+    int cuesheetButtonHeight[8] = {32, 32, 32, 34,  38, 42, 46, 50};  // Heights for In/Out/Test Loop buttons (min 32 for padding)
     // double scaleWidth1 = 7.75;
     // double scaleWidth2 = 3.25;
     // double scaleWidth3 = 8.5;
@@ -226,6 +227,7 @@ void MainWindow::adjustFontSizes()
     double tempoFactor = 0.0;
 
     int searchBoxesHeight[8] = {22, 26, 30, 34,  38, 42, 46, 50};
+    int cuesheetButtonHeight[8] = {32, 34, 36, 40,  44, 50, 54, 60};  // Heights for In/Out/Test Loop buttons (min 32 for padding)
     double scaleWidth1 = 12.75;
     double scaleWidth2 = 5.25;
     double scaleWidth3 = 10.5;
@@ -261,6 +263,7 @@ void MainWindow::adjustFontSizes()
     double tempoFactor = 0.9;
 
     int searchBoxesHeight[8] = {22, 26, 30, 34,  38, 42, 46, 50};
+    int cuesheetButtonHeight[8] = {32, 34, 36, 40,  44, 50, 54, 60};  // Heights for In/Out/Test Loop buttons (min 32 for padding)
     double scaleWidth1 = 7.75;
     double scaleWidth2 = 3.25;
     double scaleWidth3 = 8.5;
@@ -298,14 +301,20 @@ void MainWindow::adjustFontSizes()
     ui->darkSongTable->setColumnWidth(kTempoCol, static_cast<int>((tempoBase+(sortedSection==kTempoCol?tempoFactor:0.0)+extraWidth)*currentFontPointSize));
 
     int searchBoxHeight = (index != -1 ? searchBoxesHeight[index] : searchBoxesHeight[2]); // if index == -1 because error, use something in the middle
+    int buttonHeight = (index != -1 ? cuesheetButtonHeight[index] : cuesheetButtonHeight[2]); // button height for cuesheet buttons
     // ui->typeSearch->setFixedHeight(searchBoxHeight);
     // ui->labelSearch->setFixedHeight(searchBoxHeight);
     // ui->titleSearch->setFixedHeight(searchBoxHeight);
     ui->darkSearch->setFixedHeight(searchBoxHeight);
     ui->lineEditSDInput->setFixedHeight(searchBoxHeight);
 
-    ui->dateTimeEditIntroTime->setFixedHeight(searchBoxHeight);  // this scales the intro/outro button height, too...
+    ui->dateTimeEditIntroTime->setFixedHeight(searchBoxHeight);
     ui->dateTimeEditOutroTime->setFixedHeight(searchBoxHeight);
+
+    // Scale the intro/outro/test loop button heights with dedicated sizing
+    ui->pushButtonSetIntroTime->setFixedHeight(buttonHeight);
+    ui->pushButtonSetOutroTime->setFixedHeight(buttonHeight);
+    ui->pushButtonTestLoop->setFixedHeight(buttonHeight);
 
 #if defined(Q_OS_MAC)
     // the Mac combobox is not height resizeable.  This styled one is, and it looks fine.
