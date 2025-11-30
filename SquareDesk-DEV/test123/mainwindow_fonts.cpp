@@ -335,9 +335,14 @@ void MainWindow::adjustFontSizes()
     // ui->pitchLabel->setFont(currentFont);
     // ui->volumeLabel->setFont(currentFont);
     // ui->mixLabel->setFont(currentFont);
-    ui->darkTempoLabel->setFont(currentFont);
-    ui->darkPitchLabel->setFont(currentFont);
-    ui->darkVolumeLabel->setFont(currentFont);
+
+    // NOTE: This doesn't take care of the Tempo = 1XX% case, but it handles the typical case of 1XX
+    QFont currentFontMax = currentSongTableFont;
+    currentFontMax.setPointSize((int)fmin(20, currentFont.pointSize()));  // don't allow to get too big
+
+    ui->darkTempoLabel->setFont(currentFontMax);
+    ui->darkPitchLabel->setFont(currentFontMax);
+    ui->darkVolumeLabel->setFont(currentFontMax);
 
     ui->treeWidget->setFont(currentFont);
     // ui->darkStartLoopTime->setFont(currentFont); // this doesn't seem to work. changes field width, but not font
