@@ -211,6 +211,13 @@ QToolButton[theme="Dark"] {
     color: #CCC;
 }
 
+QToolButton#darkLoopToggleButton[theme="Dark"] {
+    qproperty-icon: url(:/graphics/arrow-loop-C-white.png);
+}
+QToolButton#darkLoopToggleButton[theme="Light"] {
+    qproperty-icon: url(:/graphics/arrow-loop-C.png);
+}
+
 QToolButton:hover:!disabled[theme="Dark"]
 {
     background-color: qlineargradient(x1:0 y1:1, x2:0 y2:0, stop:0 #3F3F3F, stop:1 #484848);
@@ -243,11 +250,13 @@ QToolButton:pressed[theme="Light"]
 QToolButton#darkLoopToggleButton:checked[theme="Dark"] {
     background-color: qlineargradient(x1:0 y1:1, x2:0 y2:0, stop:0 #2a5a2a, stop:1 #3a7a3a);
     border: 2px solid #4a9a4a;
+    qproperty-icon: url(:/graphics/arrow-loop-C-white.png);
 }
 
 QToolButton#darkLoopToggleButton:checked[theme="Light"] {
     background-color: #c8e6c8;
     border: 2px solid #4a9a4a;
+    qproperty-icon: url(:/graphics/arrow-loop.png);
 }
 
 /* PUSH BUTTONS ===================== */
