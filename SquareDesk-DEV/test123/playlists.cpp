@@ -302,11 +302,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     else if (songTypeNamesForCalled.contains(cType)) {
         textCol = QColor(calledColorString);
     } else {
-        if (darkmode) { // BUG: I don't think this is set yet by this point
-            textCol = QColor(DEFAULT_UNRECOGNIZED_TYPE_COLOR);  // if not a recognized type, color it white-ish (dark mode!)
-        } else {
-            textCol = QColor(DEFAULT_UNRECOGNIZED_TYPE_COLOR);  // if not a recognized type, color it black (light mode!)
-        }
+        textCol = QColor(extrasColorString);
     }
 
     // darkPaletteSongTitleLabel *title = new darkPaletteSongTitleLabel(this, (MyTableWidget *)whichTable);
