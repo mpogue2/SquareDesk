@@ -396,9 +396,6 @@
                      </item>
                      <item>
                       <widget class="QToolButton" name="darkLoopToggleButton">
-                       <property name="checkable">
-                        <bool>true</bool>
-                       </property>
                        <property name="enabled">
                         <bool>false</bool>
                        </property>
@@ -417,6 +414,9 @@
                          <width>20</width>
                          <height>20</height>
                         </size>
+                       </property>
+                       <property name="checkable">
+                        <bool>true</bool>
                        </property>
                       </widget>
                      </item>
@@ -2819,7 +2819,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>In</string>
+               <string>[</string>
               </property>
              </widget>
             </item>
@@ -2855,7 +2855,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>Out</string>
+               <string>]</string>
               </property>
              </widget>
             </item>
@@ -2881,7 +2881,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>Test Loop</string>
+               <string>Test</string>
               </property>
              </widget>
             </item>
@@ -4354,7 +4354,7 @@
      <x>0</x>
      <y>0</y>
      <width>1233</width>
-     <height>24</height>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
