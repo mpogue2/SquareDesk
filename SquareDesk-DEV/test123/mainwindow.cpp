@@ -7093,19 +7093,25 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
             
             for (const QString &relativePath : recentPlaylists) {
                 if (!relativePath.isEmpty()) {
-                    // Use the relative path as the display name
-                    QString displayName = relativePath;
-                    
-                    recentMenu->addAction(displayName, [this, whichSlot, relativePath]() {
-                        // Reconstruct the full path for loading
-                        QString fullPath = musicRootPath + "/playlists/" + relativePath + ".csv";
-                        
-                        int songCount;
-                        loadPlaylistFromFileToPaletteSlot(fullPath, whichSlot, songCount);
-                        
-                        // Update the recent playlists list
-                        updateRecentPlaylistsList(fullPath);
-                    });
+                    // Reconstruct the full path for checking existence
+                    QString fullPath = musicRootPath + "/playlists/" + relativePath + ".csv";
+
+                    // Only add to menu if the playlist file actually exists
+                    if (QFile::exists(fullPath)) {
+                        // Use the relative path as the display name
+                        QString displayName = relativePath;
+
+                        recentMenu->addAction(displayName, [this, whichSlot, relativePath]() {
+                            // Reconstruct the full path for loading
+                            QString fullPath = musicRootPath + "/playlists/" + relativePath + ".csv";
+
+                            int songCount;
+                            loadPlaylistFromFileToPaletteSlot(fullPath, whichSlot, songCount);
+
+                            // Update the recent playlists list
+                            updateRecentPlaylistsList(fullPath);
+                        });
+                    }
                 }
             }
             
