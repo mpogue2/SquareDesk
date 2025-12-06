@@ -690,6 +690,7 @@ private slots:
     void revealAttachedLyricsFileInFinder();
     void copyIt();
     void pasteIt();
+    void smartPasteIt();
     void cutIt();
     void selectLine();
     bool getSectionLimits(int &sectionStart, int &sectionEnd);

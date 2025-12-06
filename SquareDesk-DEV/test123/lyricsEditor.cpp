@@ -1497,6 +1497,7 @@ void MainWindow::customLyricsMenuRequested(QPoint pos) {
         menu->addAction( "Cut", this, SLOT (cutIt()) );
         menu->addAction( "Copy", this, SLOT (copyIt()) );
         menu->addAction( "Paste", this, SLOT (pasteIt()) );
+        menu->addAction( "Smart Paste", this, SLOT (smartPasteIt()) );
         menu->addSeparator();
         menu->addAction( "Select Line", this, SLOT (selectLine()) );
         menu->addAction( "Select Section", this, SLOT (selectSection()) );
@@ -1537,6 +1538,10 @@ void MainWindow::copyIt(){
 
 void MainWindow::pasteIt() {
     ui->textBrowserCueSheet->paste();
+}
+
+void MainWindow::smartPasteIt() {
+    ui->textBrowserCueSheet->smartPaste();
 }
 
 void MainWindow::cutIt() {
