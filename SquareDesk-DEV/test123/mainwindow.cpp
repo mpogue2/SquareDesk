@@ -4704,6 +4704,123 @@ void MainWindow::darkEditTags()
     }
 }
 
+// Path-based wrapper for playlist context menu --------
+// Helper function to update darkSongTable row if the song is visible there
+void MainWindow::updateDarkSongTableRowForPath(QString pathToMP3) {
+    // Find and update the row in darkSongTable if this song is visible
+    for (int row = 0; row < ui->darkSongTable->rowCount(); row++) {
+        QString rowPath = ui->darkSongTable->item(row, kPathCol)->data(Qt::UserRole).toString();
+        if (rowPath == pathToMP3) {
+            // Found it - update the title column with new tags
+            SongSetting settings;
+            songSettings.loadSettings(pathToMP3, settings);
+
+            QString title1 = getTitleColText(ui->darkSongTable, row);
+            static QRegularExpression re("^<span style=[\"]color: (.*?);");
+            QRegularExpressionMatch match = re.match(title1);
+
+            QString theOriginalColor = "";
+            if (match.hasMatch()) {
+                theOriginalColor = match.captured(1);
+            }
+
+            QString title = getTitleColTitle(ui->darkSongTable, row);
+            QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), theOriginalColor));
+            dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(row, kTitleCol))->setText(titlePlusTags);
+            break;
+        }
+    }
+}
+
+void MainWindow::editTagsForPath(QString pathToMP3) {
+    // Works identically to darkEditTags() but accepts path parameter
+    SongSetting settings;
+    songSettings.loadSettings(pathToMP3, settings);
+    QString tags;
+    bool ok(false);
+
+    if (settings.isSetTags()) {
+        tags = settings.getTags();
+    }
+
+    QString newtags;
+    QInputDialog *dialog = new QInputDialog();
+    setDynamicPropertyRecursive(dialog, "theme", currentThemeString);
+
+    dialog->setWindowTitle("Edit Tags");
+    dialog->setInputMode(QInputDialog::TextInput);
+    dialog->setLabelText("Note: separate tags by spaces.\n");
+    dialog->setTextValue(tags);
+    dialog->resize(500,200);
+    dialog->exec();
+
+    ok = dialog->result();
+
+    if (ok) {
+        newtags = dialog->textValue();
+        songSettings.removeTags(tags);
+        settings.setTags(newtags);
+        songSettings.saveSettings(pathToMP3, settings);
+        songSettings.addTags(newtags);
+
+        // Refresh both playlists and darkSongTable
+        refreshAllPlaylists();
+        updateDarkSongTableRowForPath(pathToMP3);
+    }
+}
+
+void MainWindow::changeTagForPath(QString pathToMP3, QString tag, bool add) {
+    // Works identically to darkChangeTagOnCurrentSongSelection() but accepts path parameter
+    SongSetting settings;
+    songSettings.loadSettings(pathToMP3, settings);
+    QStringList tags;
+    QString oldTags;
+
+    if (settings.isSetTags()) {
+        oldTags = settings.getTags();
+        tags = oldTags.split(" ");
+        songSettings.removeTags(oldTags);
+    }
+
+    if (add && !tags.contains(tag))
+        tags.append(tag);
+    if (!add) {
+        int i = tags.indexOf(tag);
+        if (i >= 0)
+            tags.removeAt(i);
+    }
+
+    settings.setTags(tags.join(" "));
+    songSettings.saveSettings(pathToMP3, settings);
+    songSettings.addTags(tags.join(" "));
+
+    // Refresh both playlists and darkSongTable
+    refreshAllPlaylists();
+    updateDarkSongTableRowForPath(pathToMP3);
+}
+
+void MainWindow::removeAllTagsForPath(QString pathToMP3) {
+    // Works identically to removeAllTagsFromSongRow() but accepts path parameter
+    SongSetting settings;
+    songSettings.loadSettings(pathToMP3, settings);
+    QString oldTags;
+
+    if (settings.isSetTags()) {
+        oldTags = settings.getTags();
+        songSettings.removeTags(oldTags);
+    }
+
+    QString newtags = "";
+    songSettings.removeTags(oldTags);
+    settings.setTags(newtags);
+    songSettings.saveSettings(pathToMP3, settings);
+    songSettings.addTags(newtags);
+
+    // Refresh both playlists and darkSongTable
+    refreshAllPlaylists();
+    updateDarkSongTableRowForPath(pathToMP3);
+}
+
 void MainWindow::revealInFinder()
 {
 }

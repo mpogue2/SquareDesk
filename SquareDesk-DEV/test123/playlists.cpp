@@ -543,6 +543,75 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
                                           RemoveSectionsForThisSong(fullPath);
                                       });
 #endif
+
+                    // TAGS STUFF (all platforms) ============
+                    plMenu->addSeparator();
+                    plMenu->addAction("Edit Tags...",
+                                      [this, fullPath]() {
+                                          editTagsForPath(fullPath);
+                                      });
+
+                    // Load tags to check if song has any (for "Remove all tags" menu item)
+                    SongSetting settingsForRemove;
+                    bool songHasTags = false;
+                    if (songSettings.loadSettings(fullPath, settingsForRemove)) {
+                        if (settingsForRemove.isSetTags()) {
+                            QString tagsString = settingsForRemove.getTags();
+                            QStringList tagsList = tagsString.split(" ", Qt::SkipEmptyParts);
+                            songHasTags = (tagsList.count() > 0 && !(tagsList.count() == 1 && tagsList[0] == ""));
+                        }
+                    }
+
+                    // Add "Remove all tags" menu item if song has tags
+                    if (songHasTags) {
+                        plMenu->addAction("Remove all Tags from this song",
+                                          [this, fullPath]() {
+                                              removeAllTagsForPath(fullPath);
+                                          });
+                    }
+
+                    // Tags submenu with checkable items
+                    QMenu *tagsMenu(new QMenu("Tags", this));
+                    tagsMenu->setProperty("theme", currentThemeString);
+
+                    // Load tags for the selected song
+                    SongSetting settings1;
+                    QString tagsAsString;
+                    if (songSettings.loadSettings(fullPath, settings1)) {
+                        tagsAsString = settings1.getTags();
+                    }
+                    QStringList currentTags = tagsAsString.split(" ", Qt::SkipEmptyParts);
+
+                    // Get all available tags
+                    QHash<QString,QPair<QString,QString>> tagColors(songSettings.getTagColors());
+                    QStringList tags(tagColors.keys());
+                    tags.sort(Qt::CaseInsensitive);
+
+                    // Create checkable menu items
+                    for (const auto &tagUntrimmed : tags) {
+                        QString tag(tagUntrimmed.trimmed());
+                        if (tag.length() <= 0) continue;
+
+                        // Check if this tag is set on current song
+                        bool set = false;
+                        for (const auto &t : currentTags) {
+                            if (t.compare(tag) == 0) {
+                                set = true;
+                                break;
+                            }
+                        }
+
+                        QAction *action(new QAction(tag));
+                        action->setCheckable(true);
+                        action->setChecked(set);
+                        connect(action, &QAction::triggered,
+                                [this, set, tag, fullPath]() {
+                                    changeTagForPath(fullPath, tag, !set);
+                                });
+                        tagsMenu->addAction(action);
+                    }
+                    plMenu->addMenu(tagsMenu);
+
                 } else {
                     // MULTIPLE ROWS SELECTED
 #if defined(Q_OS_MAC)

@@ -336,6 +336,10 @@ public:
     void RemoveSectionsForTheseSongs(QList<int>);
     void EstimateSectionsForThesePaths(QStringList mp3Paths);  // Path-based wrapper for playlists
     void RemoveSectionsForThesePaths(QStringList mp3Paths);    // Path-based wrapper for playlists
+    void editTagsForPath(QString pathToMP3);                    // Path-based wrapper for playlists
+    void changeTagForPath(QString pathToMP3, QString tag, bool add);  // Path-based wrapper for playlists
+    void removeAllTagsForPath(QString pathToMP3);               // Path-based wrapper for playlists
+    void updateDarkSongTableRowForPath(QString pathToMP3);      // Helper to refresh darkSongTable
     int MP3FileSampleRate(QString pathToMP3);
     QString getSongFileIdentifier(QString pathToSong);
 
