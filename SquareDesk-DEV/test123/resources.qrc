@@ -23,5 +23,6 @@
         <file>graphics/arrow-loop-C.png</file>
         <file>graphics/arrow-loop-C-white.png</file>
         <file>graphics/icons8-square-play-button-100.png</file>
+        <file>graphics/dragicon_music.png</file>
     </qresource>
 </RCC>

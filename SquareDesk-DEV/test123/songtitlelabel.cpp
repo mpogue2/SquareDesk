@@ -30,6 +30,7 @@
 
 #include "songtitlelabel.h"
 #include "songlistmodel.h"
+#include "dragicon.h"
 
 void SongTitleLabel::mouseDoubleClickEvent(QMouseEvent *e)
 {
@@ -123,6 +124,11 @@ void darkSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
     mimeData->setText(sourceInfo); // send all the info!
     drag->setMimeData(mimeData);
 
+    // Set custom drag icon with count badge
+    QPixmap dragPixmap = DragIcon::createDragIcon(rowNum);
+    drag->setPixmap(dragPixmap);
+    drag->setHotSpot(QPoint(dragPixmap.width() / 2, dragPixmap.height() / 2));
+
     Qt::DropAction dropAction = drag->exec(Qt::CopyAction);
     Q_UNUSED(dropAction)
 }
@@ -207,6 +213,11 @@ void darkPaletteSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
 
     mimeData->setText(sourceInfo); // send all the info!
     drag->setMimeData(mimeData);
+
+    // Set custom drag icon with count badge
+    QPixmap dragPixmap = DragIcon::createDragIcon(rowNum);
+    drag->setPixmap(dragPixmap);
+    drag->setHotSpot(QPoint(dragPixmap.width() / 2, dragPixmap.height() / 2));
 
     Qt::DropAction dropAction = drag->exec(Qt::CopyAction);
     Q_UNUSED(dropAction)

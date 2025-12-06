@@ -37,6 +37,7 @@
 #include <QPainter>
 #include <QStyleOptionViewItem>
 #include "songtitlelabel.h"
+#include "dragicon.h"
 
 // Disable warning, see: https://github.com/llvm/llvm-project/issues/48757
 #pragma clang diagnostic push
@@ -721,6 +722,11 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
         mimeData->setText(sourceInfo);
         drag->setMimeData(mimeData);
 
+        // Set custom drag icon with count badge
+        QPixmap dragPixmap = DragIcon::createDragIcon(rowNum);
+        drag->setPixmap(dragPixmap);
+        drag->setHotSpot(QPoint(dragPixmap.width() / 2, dragPixmap.height() / 2));
+
         Qt::DropAction dropAction = drag->exec(Qt::CopyAction);
         Q_UNUSED(dropAction)
         delete drag; // QDrag takes ownership of mimeData
@@ -774,6 +780,11 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
         QMimeData *mimeData = new QMimeData;
         mimeData->setText(sourceInfo); // send all the info!
         drag->setMimeData(mimeData);
+
+        // Set custom drag icon with count badge
+        QPixmap dragPixmap = DragIcon::createDragIcon(rowNum);
+        drag->setPixmap(dragPixmap);
+        drag->setHotSpot(QPoint(dragPixmap.width() / 2, dragPixmap.height() / 2));
 
         Qt::DropAction dropAction = drag->exec(Qt::CopyAction);
         Q_UNUSED(dropAction)
