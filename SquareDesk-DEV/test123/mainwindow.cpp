@@ -3925,7 +3925,7 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
     addToProgramsAndWriteTextFile(programs, outputDir, "010.basic1.txt",    danceprogram_basic1);
     addToProgramsAndWriteTextFile(programs, outputDir, "020.basic2.txt",    danceprogram_basic2);
     addToProgramsAndWriteTextFile(programs, outputDir, "025.SSD.txt",       danceprogram_SSD);
-    addToProgramsAndWriteTextFile(programs, outputDir, "027.NEWmainstream.txt", danceprogram_NEWmainstream);
+    addToProgramsAndWriteTextFile(programs, outputDir, "028.NEW mainstream teaching order.txt", danceprogram_NEWmainstream);
     addToProgramsAndWriteTextFile(programs, outputDir, "030.mainstream.txt", danceprogram_mainstream);
     addToProgramsAndWriteTextFile(programs, outputDir, "040.plus.txt",      danceprogram_plus);
     addToProgramsAndWriteTextFile(programs, outputDir, "050.a1.txt",        danceprogram_a1);

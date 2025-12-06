@@ -429,7 +429,7 @@ void MainWindow::adjustFontSizes()
 
 //    qDebug() << "setting font to: " << currentFont;
 
-    ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,static_cast<int>(32*(currentMacPointSize/13.0)));
+    ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,static_cast<int>(36*(currentMacPointSize/13.0)));
     ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, static_cast<int>(24*(currentMacPointSize/13.0)));
     ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, static_cast<int>(75*(currentMacPointSize/13.0)));
     ui->tableWidgetCallList->setColumnWidth(kCallListTimingCol, static_cast<int>(200*(currentMacPointSize/13.0)));
