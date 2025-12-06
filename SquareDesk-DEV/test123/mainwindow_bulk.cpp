@@ -585,6 +585,76 @@ void MainWindow::RemoveSectionsForTheseSongs(QList<int> rows) {
     }
 }
 
+// Path-based wrapper for playlist context menu --------
+void MainWindow::EstimateSectionsForThesePaths(QStringList mp3Paths) {
+    // qDebug() << "Estimate Sections for these paths: " << mp3Paths;
+
+    QMessageBox msgBox;
+    msgBox.setText("Calculating section info can take about 30 seconds per song.  You can keep working while it runs.");
+    msgBox.setInformativeText("OK to start it now?");
+    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    int ret = msgBox.exec();
+
+    if (ret == QMessageBox::No) {
+        return;
+    }
+
+    mp3FilenamesToProcess.clear();
+    mp3ResultsLock.lock();
+    mp3Results.clear();
+    mp3ResultsLock.unlock();
+
+    // Validate and filter paths - only patter/test files
+    for (const auto &path : std::as_const(mp3Paths)) {
+        QString theCategory = filepath2SongCategoryName(path);
+        if (theCategory == "patter" || theCategory == "test") {
+            mp3FilenamesToProcess.append(path);
+        }
+    }
+
+    // Show error if no valid files
+    if (mp3FilenamesToProcess.isEmpty()) {
+        QMessageBox errorBox;
+        errorBox.setText("Only patter files are supported right now.");
+        errorBox.exec();
+        return;
+    }
+
+    processFiles(mp3FilenamesToProcess);
+}
+
+void MainWindow::RemoveSectionsForThesePaths(QStringList mp3Paths) {
+    // qDebug() << "Remove Sections for these paths: " << mp3Paths;
+
+    QMessageBox msgBox;
+    msgBox.setText("Removing section info for these songs cannot be undone.");
+    msgBox.setInformativeText("OK to proceed?");
+    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    int ret = msgBox.exec();
+
+    if (ret == QMessageBox::No) {
+        return;
+    }
+
+    for (const auto &filenameToRemove : std::as_const(mp3Paths)) {
+        if (filenameToRemove.endsWith(".mp3", Qt::CaseInsensitive)) {
+            QString resultsFilename = filenameToRemove;
+            QString bulkDirname = musicRootPath + "/.squaredesk/bulk";
+            resultsFilename.replace(musicRootPath, bulkDirname);
+            resultsFilename = resultsFilename + ".results.txt";
+
+            QFile::remove(resultsFilename);
+
+            if (filenameToRemove == currentMP3filenameWithPath) {
+                // if we just cleared the section info for the currently loaded song, get rid of the coloring in the waveform display
+                ui->darkSeekBar->updateBgPixmap((float*)1, 1);
+            }
+        }
+    }
+}
+
 
 void MainWindow::EstimateSectionsForThisSong(QString mp3Filename) {
     // qDebug() << "EstimateSections for" << mp3Filename;

@@ -530,6 +530,44 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
                                               );
                         }
                     }
+
+#if defined(Q_OS_MAC)
+                    // SECTIONS STUFF (single row) ============
+                    plMenu->addSeparator();
+                    plMenu->addAction("Calculate Section Info for this song...",
+                                      [this, fullPath]() {
+                                          EstimateSectionsForThisSong(fullPath);
+                                      });
+                    plMenu->addAction("Remove Section info for this song....",
+                                      [this, fullPath]() {
+                                          RemoveSectionsForThisSong(fullPath);
+                                      });
+#endif
+                } else {
+                    // MULTIPLE ROWS SELECTED
+#if defined(Q_OS_MAC)
+                    // Extract all selected file paths
+                    QStringList selectedPaths;
+                    QItemSelectionModel *selectionModel = whichTable->selectionModel();
+                    QModelIndexList selected = selectionModel->selectedRows();
+
+                    for (const auto &index : selected) {
+                        int row = index.row();
+                        QString path = whichTable->item(row, COLUMN_PATH)->text();
+                        selectedPaths.append(path);
+                    }
+
+                    // SECTIONS STUFF (multiple rows) ============
+                    plMenu->addSeparator();
+                    plMenu->addAction("Calculate Section Info for these " + QString::number(rowCount) + " songs...",
+                                      [this, selectedPaths]() {
+                                          EstimateSectionsForThesePaths(selectedPaths);
+                                      });
+                    plMenu->addAction("Remove Section info for these " + QString::number(rowCount) + " songs....",
+                                      [this, selectedPaths]() {
+                                          RemoveSectionsForThesePaths(selectedPaths);
+                                      });
+#endif
                 } // if there's just one row in the selection
 
                 plMenu->popup(QCursor::pos());

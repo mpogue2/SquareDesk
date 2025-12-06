@@ -334,6 +334,8 @@ public:
     void EstimateSectionsForTheseSongs(QList<int> rowNumbers);
     void RemoveSectionsForThisSong(QString pathToMP3);
     void RemoveSectionsForTheseSongs(QList<int>);
+    void EstimateSectionsForThesePaths(QStringList mp3Paths);  // Path-based wrapper for playlists
+    void RemoveSectionsForThesePaths(QStringList mp3Paths);    // Path-based wrapper for playlists
     int MP3FileSampleRate(QString pathToMP3);
     QString getSongFileIdentifier(QString pathToSong);
 
