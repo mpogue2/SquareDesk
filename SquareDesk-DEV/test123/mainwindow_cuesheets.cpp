@@ -930,6 +930,14 @@ void MainWindow::betterFindPossibleCuesheets(const QString &MP3Filename, QString
         delete cswr;
     }
 
+    // if the MP3 file contains lyrics in its ID3V2 section, add it to the list:
+    QString mp3Lyrics = loadLyrics(MP3Filename);
+    // qDebug() << "betterFindPossibleCuesheets mp3Lyrics:" << mp3Lyrics;
+    if (mp3Lyrics.length())
+    {
+        possibleCuesheets.append(MP3Filename);
+    }
+
     // qDebug() << "betterFindPossibleCuesheets:" << possibleCuesheets;
 }
 
@@ -1932,12 +1940,13 @@ QString MainWindow::loadLyrics(QString MP3FileName)
     ID3v2::FrameList::ConstIterator it = id3v2tag->frameList().begin();
     for (; it != id3v2tag->frameList().end(); it++)
     {
+        // qDebug() << "FRAME FOUND: " << (*it)->frameID().data();
         if ((*it)->frameID() == "SYLT")
         {
 //            qDebug() << "LOAD LYRICS -- found an SYLT frame!";
         }
 
-        if ((*it)->frameID() == "USLT")
+        if ((*it)->frameID() == "USLT" || (*it)->frameID() == "ULT") // ULT == id3V2.2, USLT >= id3V2.3
         {
 //            qDebug() << "LOAD LYRICS -- found a USLT frame!";
 
