@@ -455,16 +455,24 @@ void MainWindow::fileWatcherDisabledTriggered() {
 
 void MainWindow::musicRootModified(QString s)
 {
-//    qDebug() << "musicRootModified() = " << s;
+    // qDebug() << "musicRootModified() = " << s;
+
+    if (!prefsManager.GetenableFileWatcher()) {
+        // in the Preference UI, this is called "Rescan Music Directory when new songs are added"
+        // qDebug() << "filewatcher is INTENTIONALLY disabled by User Preference, skipping the re-scan of songTable....";
+        return;
+    }
 
     if (filewatcherIsTemporarilyDisabled) {
-//        qDebug() << "filewatcher is disabled, skipping the re-scan of songTable....";
+        // qDebug() << "filewatcher is TEMPORARILY disabled, skipping the re-scan of songTable....";
         return;
     }
 
     if (s != "DONE") {
-//        qDebug() << "(Re)triggering File Watcher for 3 seconds...";
-        fileWatcherTimer->start(std::chrono::milliseconds(500)); // wait 500ms for things to settle
+        // qDebug() << "(Re)triggering File Watcher for 2 seconds...";
+        fileWatcherTimer->start(std::chrono::milliseconds(2000)); // wait 2000ms for things (like iCloud replication) to settle down
+        // this timeout means that after a couple of seconds, after iCloud replication has happened,
+        //  SquareDesk will rescan and pick up the new songs.  If we use 500ms, we actually end up rescanning 3 times.
         return;
     }
 
