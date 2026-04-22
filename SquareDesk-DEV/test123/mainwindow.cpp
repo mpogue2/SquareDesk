@@ -1103,10 +1103,11 @@ MainWindow::~MainWindow()
 // ----------------------------------------------------------------------
 void MainWindow::updateSongTableColumnView()
 {
+    ui->darkSongTable->setColumnHidden(kLabelCol, !prefsManager.GetshowLabelColumn());
     ui->darkSongTable->setColumnHidden(kRecentCol,!prefsManager.GetshowRecentColumn());
-    ui->darkSongTable->setColumnHidden(kAgeCol,!prefsManager.GetshowAgeColumn());
+    ui->darkSongTable->setColumnHidden(kAgeCol,   !prefsManager.GetshowAgeColumn());
+    ui->darkSongTable->setColumnHidden(kPitchCol, !prefsManager.GetshowPitchColumn());
 
-    ui->darkSongTable->setColumnHidden(kPitchCol,!prefsManager.GetshowPitchColumn());
     ui->playlist1Table->horizontalHeader()->setSectionHidden(2, !prefsManager.GetshowPitchColumn()); // as the View > Columns > Pitch changes
     ui->playlist2Table->horizontalHeader()->setSectionHidden(2, !prefsManager.GetshowPitchColumn()); //   so does visibility of the pitch column in the playlists
     ui->playlist3Table->horizontalHeader()->setSectionHidden(2, !prefsManager.GetshowPitchColumn());
@@ -6001,6 +6002,16 @@ void MainWindow::on_actionViewTags_toggled(bool checked)
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+void MainWindow::on_actionLabel_toggled(bool checked)
+{
+    ui->actionLabel->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showRecentColumn setting is persistent across restarts of the application
+    prefsManager.SetshowLabelColumn(checked);
+
+    updateSongTableColumnView();
+}
+
 void MainWindow::on_actionRecent_toggled(bool checked)
 {
     ui->actionRecent->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark

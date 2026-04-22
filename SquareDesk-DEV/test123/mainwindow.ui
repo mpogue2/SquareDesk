@@ -4602,6 +4602,7 @@
      <property name="title">
       <string>Columns</string>
      </property>
+     <addaction name="actionLabel"/>
      <addaction name="actionRecent"/>
      <addaction name="actionAge"/>
      <addaction name="actionPitch"/>
@@ -6229,6 +6230,14 @@
   <action name="actionReset_Patter_Timer">
    <property name="text">
     <string>Reset Patter Timer</string>
+   </property>
+  </action>
+  <action name="actionLabel">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Label</string>
    </property>
   </action>
  </widget>

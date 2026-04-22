@@ -1449,6 +1449,7 @@ void MainWindow::initializeMusicSongTable() {
 
     updateSongTableColumnView(); // update the actual view of Age/Pitch/Tempo in the songTable view
 
+    on_actionLabel_toggled(prefsManager.GetshowLabelColumn());
     on_actionRecent_toggled(prefsManager.GetshowRecentColumn());
     on_actionAge_toggled(prefsManager.GetshowAgeColumn());
     on_actionPitch_toggled(prefsManager.GetshowPitchColumn());
