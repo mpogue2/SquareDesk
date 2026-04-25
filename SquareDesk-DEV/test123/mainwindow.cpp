@@ -3617,22 +3617,25 @@ void MainWindow::updateTreeWidget() {
 
     playlists.sort(Qt::CaseInsensitive);
 
-    // qDebug() << "playlists before:" << playlists;
+    if (prefsManager.GetenableAppleMusic()) {
+        // if Syncing with Apple Music is allowed, then add these playlist names to the treeWidget
+        // qDebug() << "playlists before:" << playlists;
 
-    QStringList AppleMusicPlaylistNames;
-    foreach (const QStringList &list, allAppleMusicPlaylists) {
-        if (!list.isEmpty()) {
-            AppleMusicPlaylistNames.append(QString("") + list.first()); // first item of each QStringList is the playlist name (and we pre-pend with  here)
+        QStringList AppleMusicPlaylistNames;
+        foreach (const QStringList &list, allAppleMusicPlaylists) {
+            if (!list.isEmpty()) {
+                AppleMusicPlaylistNames.append(QString("") + list.first()); // first item of each QStringList is the playlist name (and we pre-pend with  here)
+            }
         }
+
+        AppleMusicPlaylistNames.removeDuplicates();
+
+        // qDebug() << "AppleMusicPlaylistNames:" << AppleMusicPlaylistNames;
+        playlists << AppleMusicPlaylistNames; // append to the main list
+
+        playlists.sort(Qt::CaseInsensitive); // sort it again (FIX THIS)
+        // qDebug() << "playlists after:" << playlists;
     }
-
-    AppleMusicPlaylistNames.removeDuplicates();
-
-    // qDebug() << "AppleMusicPlaylistNames:" << AppleMusicPlaylistNames;
-    playlists << AppleMusicPlaylistNames; // append to the main list
-
-    playlists.sort(Qt::CaseInsensitive); // sort it again (FIX THIS)
-    // qDebug() << "playlists after:" << playlists;
 
     // top level Playlists item with icon
     QTreeWidgetItem *playlistsItem = new QTreeWidgetItem();
