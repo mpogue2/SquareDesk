@@ -1674,9 +1674,27 @@ void MainWindow::getAppleMusicInfo() {
 
     qDebug() << tracks.size() << " tracks found.";
 
+    // start PLAYLISTS from nothing -----------------
+    pathStackApplePlaylists->clear();
+    allAppleMusicPlaylists.clear();
+    allAppleMusicPlaylistNames.clear();
+
     qDebug() << "type,name,itemnumber,title,artist,title,genre,BPM,rating,year,grouping,work,modifiedDate";
     int trackCount = 0;
     for (const PlaylistTrack &t : tracks) {
+
+        // skip static/Library tracks = all tracks
+        if (t.playlistType == "static" && (t.playlistName == "Library" || t.playlistName == "Purchased")) {
+            trackCount = 0;
+            continue;
+        }
+
+        // skip smart/Music tracks = all tracks
+        if (t.playlistType == "smart" && t.playlistName == "Music") {
+            trackCount = 0;
+            continue;
+        }
+
         trackCount++;
         qDebug() << t.playlistType
                  << "," << t.playlistName
@@ -1691,10 +1709,55 @@ void MainWindow::getAppleMusicInfo() {
                  << "," << t.work
                  << "," << t.modifiedDate;
         if (trackCount > 10) {
-            break;  // FIX: only show the first 10 lines for now
+            trackCount = 0;
+            // break;  // FIX: only show the first 10 lines for now
+        }
+
+        bool playlistEntry = (t.playlistType == "static");
+        bool trackFilterEntry = !playlistEntry;
+
+        if (playlistEntry) {
+            // APPLE PLAYLIST ENTRY looks like:    "Type$!$currentItemNumber$!$Title#!#AbsolutePath"
+            //   and goes into:                     allAppleMusicPlaylists.append(entryString);
+            //   and the playlistName goes into:    pathStackApplePlaylists->append(playlistName);
+            QString playlistName      = t.playlistName.c_str();
+            QStringList playlistParts = playlistName.split("/");
+            playlistName = playlistParts.last();
+
+            QString type              = t.genre.c_str();
+
+            int curItemNumInt = t.itemNumber;
+            QString currentItemNumber = "";
+            if (curItemNumInt >= 100) {
+                currentItemNumber += "!"; // 3-digit numbers look like "foo !100" (Yes, this is a kludge for now)
+            }
+            if (curItemNumInt < 10) {
+                currentItemNumber += "0"; // numbers < 100 look like 2 digit with leading zero, "foo 03"
+            }
+            currentItemNumber += QString::number(t.itemNumber);
+
+            QString title             = t.title.c_str();
+            QString absPath           = t.absolutePath.c_str();
+
+            QString playlistEntryString = playlistName + "$!$" + currentItemNumber + "$!$" + title + "#!#" + absPath;
+
+            allAppleMusicPlaylistNames.append(playlistName);
+            pathStackApplePlaylists->append(playlistEntryString);
+
+            QStringList strList;
+            strList << playlistName << title << absPath;
+            allAppleMusicPlaylists.append(strList); // needed to load Apple Music playlist into a slot
+
+        } else if (trackFilterEntry) {
+            // FIX FIX FIX
         }
     }
 
+    allAppleMusicPlaylistNames.sort(Qt::CaseInsensitive);   // Sort (case INsensitive)
+    allAppleMusicPlaylistNames.removeDuplicates();          // Remove duplicates
+
+    qDebug() << "allAppleMusicPlaylistNames =========\n" << allAppleMusicPlaylistNames;
+    qDebug() << "allAppleMusicPlaylists =============\n" << allAppleMusicPlaylists;
 }
 #endif
 
@@ -1783,8 +1846,8 @@ void MainWindow::getAppleMusicPlaylists() {
     allAppleMusicPlaylistNames.removeDuplicates();          // Remove duplicates
     allAppleMusicPlaylistNames.sort(Qt::CaseInsensitive);   // Sort (case INsensitive)
 
-    // qDebug() << "allAppleMusicPlaylistNames" << allAppleMusicPlaylistNames;
-    // qDebug() << "allAppleMusicPlaylists" << allAppleMusicPlaylists;
+    qDebug() << "allAppleMusicPlaylistNames" << allAppleMusicPlaylistNames;
+    qDebug() << "allAppleMusicPlaylists" << allAppleMusicPlaylists;
 
     p.waitForFinished();
 }
