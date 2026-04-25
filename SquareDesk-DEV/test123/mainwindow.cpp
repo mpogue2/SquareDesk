@@ -7677,27 +7677,31 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
                     twMenu->actions()[2]->setEnabled(false);
                 }
 
-                // Add separator before reveal action
-                twMenu->addSeparator();
+                if (!PlaylistFileName.contains("\uF8FF")) {
+                    // if this is NOT an Apple Music playlist in the Playlists section, then:
 
-                // Add "Reveal Playlist in Finder"
-                twMenu->addAction("Reveal Playlist in Finder",
-                                  [this, PlaylistFileName](){
-                                      QString pathToReveal = PlaylistFileName;
-                                      QFileInfo fileInfo(pathToReveal);
+                    // Add separator before reveal action
+                    twMenu->addSeparator();
 
-                                      // If .csv doesn't exist, reveal the folder instead
-                                      if (!fileInfo.exists()) {
-                                          pathToReveal = fileInfo.absolutePath();
+                    // Add "Reveal Playlist in Finder"
+                    twMenu->addAction("Reveal Playlist in Finder",
+                                      [this, PlaylistFileName](){
+                                          QString pathToReveal = PlaylistFileName;
+                                          QFileInfo fileInfo(pathToReveal);
+
+                                          // If .csv doesn't exist, reveal the folder instead
+                                          if (!fileInfo.exists()) {
+                                              pathToReveal = fileInfo.absolutePath();
+                                          }
+
+                                          QFileInfo finalFileInfo(pathToReveal);
+
+                                          if (finalFileInfo.exists()) {
+                                              showInFinderOrExplorer(pathToReveal);
+                                          }
                                       }
-
-                                      QFileInfo finalFileInfo(pathToReveal);
-
-                                      if (finalFileInfo.exists()) {
-                                          showInFinderOrExplorer(pathToReveal);
-                                      }
-                                  }
-                                  );
+                                      );
+                }
             } else {
                 // NON-LEAF node: this is a folder containing playlists
                 QString folderPath = musicRootPath + "/playlists/" + relativePath;
