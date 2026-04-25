@@ -1663,7 +1663,7 @@ void MainWindow::refreshAllPlaylists() {
 #ifdef NEWAPPLEMUSICINTEGRATION
 void MainWindow::getAppleMusicInfo() {
     // This is the new integration with Apple Music (much faster, more powerful)
-    qDebug() << "getAppleMusicInfo =============";
+    // qDebug() << "getAppleMusicInfo =============";
 
     std::string error;
     const std::vector<PlaylistTrack> tracks = readAllPlaylists(error); // get all the info
@@ -1672,46 +1672,46 @@ void MainWindow::getAppleMusicInfo() {
         qDebug() << "Error in readAllPlaylists: " << error << "\n";
     }
 
-    qDebug() << tracks.size() << " tracks found.";
+    // qDebug() << tracks.size() << " tracks found.";
 
     // start PLAYLISTS from nothing -----------------
     pathStackApplePlaylists->clear();
     allAppleMusicPlaylists.clear();
     allAppleMusicPlaylistNames.clear();
 
-    qDebug() << "type,name,itemnumber,title,artist,title,genre,BPM,rating,year,grouping,work,modifiedDate";
-    int trackCount = 0;
+    // qDebug() << "type,name,itemnumber,title,artist,title,genre,BPM,rating,year,grouping,work,modifiedDate";
+    // int trackCount = 0;
     for (const PlaylistTrack &t : tracks) {
 
         // skip static/Library tracks = all tracks
         if (t.playlistType == "static" && (t.playlistName == "Library" || t.playlistName == "Purchased")) {
-            trackCount = 0;
+            // trackCount = 0;
             continue;
         }
 
         // skip smart/Music tracks = all tracks
         if (t.playlistType == "smart" && t.playlistName == "Music") {
-            trackCount = 0;
+            // trackCount = 0;
             continue;
         }
 
-        trackCount++;
-        qDebug() << t.playlistType
-                 << "," << t.playlistName
-                 << "," << t.itemNumber
-                 << "," << t.title
-                 << "," << t.artist
-                 << "," << t.genre
-                 << "," << t.beatsPerMinute
-                 << "," << t.rating
-                 << "," << t.year
-                 << "," << t.grouping
-                 << "," << t.work
-                 << "," << t.modifiedDate;
-        if (trackCount > 10) {
-            trackCount = 0;
-            // break;  // FIX: only show the first 10 lines for now
-        }
+        // trackCount++;
+        // qDebug() << t.playlistType
+        //          << "," << t.playlistName
+        //          << "," << t.itemNumber
+        //          << "," << t.title
+        //          << "," << t.artist
+        //          << "," << t.genre
+        //          << "," << t.beatsPerMinute
+        //          << "," << t.rating
+        //          << "," << t.year
+        //          << "," << t.grouping
+        //          << "," << t.work
+        //          << "," << t.modifiedDate;
+        // if (trackCount > 10) {
+        //     trackCount = 0;
+        //     // break;  // FIX: only show the first 10 lines for now
+        // }
 
         bool playlistEntry = (t.playlistType == "static");
         bool trackFilterEntry = !playlistEntry;
@@ -1756,8 +1756,8 @@ void MainWindow::getAppleMusicInfo() {
     allAppleMusicPlaylistNames.sort(Qt::CaseInsensitive);   // Sort (case INsensitive)
     allAppleMusicPlaylistNames.removeDuplicates();          // Remove duplicates
 
-    qDebug() << "allAppleMusicPlaylistNames =========\n" << allAppleMusicPlaylistNames;
-    qDebug() << "allAppleMusicPlaylists =============\n" << allAppleMusicPlaylists;
+    // qDebug() << "allAppleMusicPlaylistNames =========\n" << allAppleMusicPlaylistNames;
+    // qDebug() << "allAppleMusicPlaylists =============\n" << allAppleMusicPlaylists;
 }
 #endif
 
@@ -1846,8 +1846,8 @@ void MainWindow::getAppleMusicPlaylists() {
     allAppleMusicPlaylistNames.removeDuplicates();          // Remove duplicates
     allAppleMusicPlaylistNames.sort(Qt::CaseInsensitive);   // Sort (case INsensitive)
 
-    qDebug() << "allAppleMusicPlaylistNames" << allAppleMusicPlaylistNames;
-    qDebug() << "allAppleMusicPlaylists" << allAppleMusicPlaylists;
+    // qDebug() << "allAppleMusicPlaylistNames" << allAppleMusicPlaylistNames;
+    // qDebug() << "allAppleMusicPlaylists" << allAppleMusicPlaylists;
 
     p.waitForFinished();
 }
