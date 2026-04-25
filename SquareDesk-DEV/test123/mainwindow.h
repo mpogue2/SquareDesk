@@ -951,7 +951,12 @@ private:
     void loadPlaylistFromFileToSlot(int whichSlot);
     void printPlaylistFromSlot(int whichSlot);
     void updateRecentPlaylistsList(const QString &playlistPath);
+#ifdef OLDAPPLEMUSICPLAYLISTS
     void getAppleMusicPlaylists();
+#endif
+#ifdef NEWAPPLEMUSICINTEGRATION
+    void getAppleMusicInfo(); // gets both Apple Music Track Filters AND Apple Music Playlists
+#endif
     void getLocalPlaylists();
     QList<QStringList> allAppleMusicPlaylists;
     QStringList allAppleMusicPlaylistNames;

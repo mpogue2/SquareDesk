@@ -15,7 +15,7 @@ std::vector<PlaylistTrack> readAllPlaylists(std::string &errorOut)
             NSString *msg = error ? error.localizedDescription : @"unknown error";
             errorOut = std::string(msg.UTF8String)
                 + "\n\nIf this is a permissions error, grant \"Media & Apple Music\" access"
-                  " to your terminal app in:\n"
+                  " to SquareDesk in:\n"
                   "  System Settings > Privacy & Security > Media & Apple Music";
             return result;
         }

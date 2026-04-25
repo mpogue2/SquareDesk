@@ -7393,7 +7393,12 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
                                       Q_UNUSED(this)
                                       // qDebug() << "Update Apple Music List from Apple Music" << whichSlot;
                                       if (prefsManager.GetenableAppleMusic()) {
+#ifdef OLDAPPLEMUSICPLAYLISTS
                                           getAppleMusicPlaylists(); // update from Apple Music
+#endif
+#ifdef NEWAPPLEMUSICINTEGRATION
+                                          getAppleMusicInfo(); // update from Apple Music
+#endif
                                       }
                                       // saveSlotAsPlaylist(whichSlot);
                                       // now filter into the table

@@ -51,4 +51,8 @@ private: \
 // to debug the svgClock, define this
 // #define DEBUGCLOCK
 
+// Uncomment just ONE of the following:
+// #define OLDAPPLEMUSICPLAYLISTS
+#define NEWAPPLEMUSICINTEGRATION
+
 #endif // GLOBALDEFINES_H

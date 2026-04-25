@@ -39,6 +39,8 @@
 	<string>Copyright (c) 2025 Michael Pogue and Dan Lyke</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>SquareDesk reads your Apple Music library to import playlists and track metadata.</string>
 	<key>NSQuitAlwaysKeepsWindows</key>
 	<false/>
 	<key>QtWebEngineAllowFileAccess</key>

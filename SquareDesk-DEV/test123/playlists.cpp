@@ -40,6 +40,7 @@
 #include "playlist_constants.h"
 #include "playlistexport.h"
 #include "mytreewidget.h"
+#include "mainwindow_applemusic.h"
 #include <functional>
 #include <utility>
 
@@ -1659,6 +1660,45 @@ void MainWindow::refreshAllPlaylists() {
     }
 }
 
+#ifdef NEWAPPLEMUSICINTEGRATION
+void MainWindow::getAppleMusicInfo() {
+    // This is the new integration with Apple Music (much faster, more powerful)
+    qDebug() << "getAppleMusicInfo =============";
+
+    std::string error;
+    const std::vector<PlaylistTrack> tracks = readAllPlaylists(error); // get all the info
+
+    if (!error.empty()) {
+        qDebug() << "Error in readAllPlaylists: " << error << "\n";
+    }
+
+    qDebug() << tracks.size() << " tracks found.";
+
+    qDebug() << "type,name,itemnumber,title,artist,title,genre,BPM,rating,year,grouping,work,modifiedDate";
+    int trackCount = 0;
+    for (const PlaylistTrack &t : tracks) {
+        trackCount++;
+        qDebug() << t.playlistType
+                 << "," << t.playlistName
+                 << "," << t.itemNumber
+                 << "," << t.title
+                 << "," << t.artist
+                 << "," << t.genre
+                 << "," << t.beatsPerMinute
+                 << "," << t.rating
+                 << "," << t.year
+                 << "," << t.grouping
+                 << "," << t.work
+                 << "," << t.modifiedDate;
+        if (trackCount > 10) {
+            break;  // FIX: only show the first 10 lines for now
+        }
+    }
+
+}
+#endif
+
+#ifdef OLDAPPLEMUSICPLAYLISTS
 void MainWindow::getAppleMusicPlaylists() {
     // qDebug() << "getAppleMusicPlaylists ==================";
 
@@ -1720,6 +1760,7 @@ void MainWindow::getAppleMusicPlaylists() {
 
         // append an entry to the pathStack for Apple Music playlist items, that looks like
         //   "Christmas$!$currentItemNumber$!$Use This Title#!#/Users/mpogue/foo/bar/baz/Use This Title.mp3"
+        //   => "Type$!$currentItemNumber$!$Title#!#AbsolutePath"
         QString AppleMusicPathStackEntry(playlistName); // type == AppleMusicPlaylistName, e.g. "Christmas"
         AppleMusicPathStackEntry += "$!$";
         if (currentItemNumber >= 100) {
@@ -1747,6 +1788,7 @@ void MainWindow::getAppleMusicPlaylists() {
 
     p.waitForFinished();
 }
+#endif
 
 void MainWindow::getLocalPlaylists() {
     // qDebug() << "getLocalPlaylists ==================";

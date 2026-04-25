@@ -496,7 +496,12 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
 
     // APPLE MUSIC ------------
     if (prefsManager.GetenableAppleMusic()) {
+#ifdef OLDAPPLEMUSICPLAYLISTS
         getAppleMusicPlaylists(); // and add them to the pathStackPlaylists, with newType == "AppleMusicPlaylistName$!$AppleMusicTitle", and fullPath = path to MP3 file on disk
+#endif
+#ifdef NEWAPPLEMUSICINTEGRATION
+        getAppleMusicInfo(); // and add them to the pathStack and pathStackPlaylists, with newType == "AppleMusicPlaylistName$!$AppleMusicTitle", and fullPath = path to MP3 file on disk
+#endif
     }
 
     t.elapsed(__LINE__);

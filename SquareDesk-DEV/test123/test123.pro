@@ -726,6 +726,28 @@ macx {
 #    export(copydata1v.commands)
 #    export(copydata2v.commands)
 #    QMAKE_EXTRA_TARGETS += copydata1v copydata2v
+
+    # Re-sign the app bundle with Apple Music entitlement after each build --------
+    # This is required so that macOS grants (and remembers) Media & Apple Music permission.
+    # Using a named Developer certificate keeps the TCC permission grant stable across rebuilds.
+    # Ad-hoc signing (--sign -) works but macOS treats each re-sign as a new app and re-prompts every build.
+    #
+    # To find your certificate name, run:  security find-identity -v -p codesigning | grep "Apple Development"
+    # Then replace the name below with your own, keeping the escaped single quotes around it.
+    #
+    # After your first build, go to System Settings > Privacy & Security > Media & Apple Music,
+    # remove any old SquareDesk entry, run SquareDesk, and grant permission once.
+    # Subsequent rebuilds will keep the grant as long as you use the same certificate.
+    #
+    #    QMAKE_POST_LINK += codesign --force --sign \'Apple Development: Your Name (XXXXXXXXXX)\' --entitlements $$PWD/SquareDesk.entitlements $$OUT_PWD/SquareDesk.app ;
+    #
+    # If you don't have an Apple Developer account / certificate, use ad-hoc signing (--sign -)
+    # instead. Ad-hoc signing works but macOS will re-prompt for Media & Apple Music permission
+    # after every build (because each ad-hoc signature is unique and TCC treats it as a new app).
+    # Just click Allow each time, or create a free Apple Developer account to get a proper cert.
+    #
+    #    QMAKE_POST_LINK += codesign --force --sign - --entitlements $$PWD/SquareDesk.entitlements $$OUT_PWD/SquareDesk.app ;
+    QMAKE_POST_LINK += codesign --force --sign \'Apple Development: Michael Pogue (6K9PD3928V)\' --entitlements $$PWD/SquareDesk.entitlements $$OUT_PWD/SquareDesk.app ;
 }
 
 # USE THIS ONE FOR STUFF THAT IS FOR NON-M1 (i.e. X86_64) MACS ONLY *********
@@ -1045,6 +1067,7 @@ OBJECTIVE_SOURCES += \
     mainwindow_applemusic.mm
 
 DISTFILES += \
+    SquareDesk.entitlements \
     ../../README.md \
     ../juce-install \
     CurrentKeyAssignments.txt \
