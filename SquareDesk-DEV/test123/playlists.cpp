@@ -1676,6 +1676,7 @@ void MainWindow::getAppleMusicInfo() {
 
     // start PLAYLISTS from nothing -----------------
     pathStackApplePlaylists->clear();
+    pathStackNewApplePlaylists->clear();
     allAppleMusicPlaylists.clear();
     allAppleMusicPlaylistNames.clear();
 
@@ -1720,9 +1721,9 @@ void MainWindow::getAppleMusicInfo() {
             // APPLE PLAYLIST ENTRY looks like:    "Type$!$currentItemNumber$!$Title#!#AbsolutePath"
             //   and goes into:                     allAppleMusicPlaylists.append(entryString);
             //   and the playlistName goes into:    pathStackApplePlaylists->append(playlistName);
-            QString playlistName      = t.playlistName.c_str();
-            QStringList playlistParts = playlistName.split("/");
-            playlistName = playlistParts.last();
+            QString hierPlaylistName  = t.playlistName.c_str();
+            QStringList playlistParts = hierPlaylistName.split("/");
+            QString playlistName      = playlistParts.last();
 
             QString type              = t.genre.c_str();
 
@@ -1745,8 +1746,18 @@ void MainWindow::getAppleMusicInfo() {
             pathStackApplePlaylists->append(playlistEntryString);
 
             QStringList strList;
-            strList << playlistName << title << absPath;
+            strList << hierPlaylistName << title << absPath;
             allAppleMusicPlaylists.append(strList); // needed to load Apple Music playlist into a slot
+
+            // ------------------------------------------------------
+            // new treeWidget integration into PLAYLISTS instead of APPLE MUSIC
+
+            // NOTE: playlistName is NOT hierarchical, hierPlaylistName is hierarchical
+            // Item should look like: "SquareDeskPlaylistName%!%pitch,tempo,currentPlaylistLineNumber#!#FullPathname"
+            QString newPlaylistItem = hierPlaylistName + "%!%" + "0" + "," + QString::number(t.beatsPerMinute) + "," + currentItemNumber + "#!#" + absPath;
+            // qDebug() << "newItem:" << newPlaylistItem;
+            pathStackPlaylists->append(newPlaylistItem);
+            pathStackNewApplePlaylists->append(QString("") + newPlaylistItem); // when Apple Music playlists are in the Playlists section of treeWidget
 
         } else if (trackFilterEntry) {
             // FIX FIX FIX

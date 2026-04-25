@@ -1066,6 +1066,9 @@ MainWindow::~MainWindow()
     if (pathStackApplePlaylists) {
         delete pathStackApplePlaylists;
     }
+    if (pathStackNewApplePlaylists) {
+        delete pathStackNewApplePlaylists; // new Apple track info for playlists
+    }
 
     delete darkStopIcon;
     delete darkPlayIcon;
@@ -3550,6 +3553,7 @@ void MainWindow::updateTreeWidget() {
 
     // updateTreeWidget always rescans for playlists, so we need to clear pathStackPlaylists here.
     pathStackPlaylists->clear();
+    // but do NOT clear pathStackNewApplePlaylists, which has a cache of the tracks from new Apple Music playlists
 
     // GET LIST OF TYPES AND POPULATE TREEWIDGET > TRACKS -------------
     QListIterator<QString> iter(*pathStack); // Tracks = search thru music (MP3, M4A) files
@@ -3613,7 +3617,22 @@ void MainWindow::updateTreeWidget() {
 
     playlists.sort(Qt::CaseInsensitive);
 
-    // qDebug() << "playlists:" << playlists;
+    // qDebug() << "playlists before:" << playlists;
+
+    QStringList AppleMusicPlaylistNames;
+    foreach (const QStringList &list, allAppleMusicPlaylists) {
+        if (!list.isEmpty()) {
+            AppleMusicPlaylistNames.append(QString("") + list.first()); // first item of each QStringList is the playlist name (and we pre-pend with  here)
+        }
+    }
+
+    AppleMusicPlaylistNames.removeDuplicates();
+
+    // qDebug() << "AppleMusicPlaylistNames:" << AppleMusicPlaylistNames;
+    playlists << AppleMusicPlaylistNames; // append to the main list
+
+    playlists.sort(Qt::CaseInsensitive); // sort it again (FIX THIS)
+    // qDebug() << "playlists after:" << playlists;
 
     // top level Playlists item with icon
     QTreeWidgetItem *playlistsItem = new QTreeWidgetItem();
@@ -3719,6 +3738,13 @@ void MainWindow::updateTreeWidget() {
         }
 
     }
+
+    // now that we have rescanned the playlist directory, add in the cached AppleMusic tracks that are in Playlists
+    //   these are needed so that when we click on an Apple Playlist, it will show the items in that Apple Music playlist
+
+    // qDebug() << "***** BEFORE: " << pathStackPlaylists->count() << pathStackNewApplePlaylists->count();
+    pathStackPlaylists->append(*pathStackNewApplePlaylists);
+    // qDebug() << "***** AFTER: " << pathStackPlaylists->count() << pathStackNewApplePlaylists->count();
 
     // --------------------------------------------------------------------
     // GET LIST OF PLAYLISTS AND POPULATE TREEWIDGET > APPLE MUSIC ----------

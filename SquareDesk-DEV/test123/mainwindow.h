@@ -1116,6 +1116,7 @@ private:
     QList<QString> *pathStack;
     QList<QString> *pathStackCuesheets;
     QList<QString> *pathStackPlaylists;
+    QList<QString> *pathStackNewApplePlaylists;
     QList<QString> *pathStackApplePlaylists;
     QList<QString> *pathStackReference;
     QList<QString> *currentlyShowingPathStack;

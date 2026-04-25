@@ -395,6 +395,7 @@ void MainWindow::initializeUI() {
     pathStack = new QList<QString>();
     pathStackCuesheets      = new QList<QString>();
     pathStackPlaylists      = new QList<QString>();
+    pathStackNewApplePlaylists = new QList<QString>();
     pathStackApplePlaylists = new QList<QString>();
     pathStackReference      = new QList<QString>();
     currentlyShowingPathStack = nullptr; // nothing is showing yet
