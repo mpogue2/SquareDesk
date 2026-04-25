@@ -220,6 +220,7 @@ HEADERS  += mainwindow.h \
     prefsmanager.h \
     default_colors.h \
     macUtils.h \
+    mainwindow_applemusic.h \
     clickablelabel.h \
     typetracker.h \
     console.h \
@@ -418,6 +419,7 @@ LIBS += -framework Accelerate
 LIBS += -framework WebKit
 LIBS += -framework AudioToolbox
 LIBS += -framework CoreAudioKit
+LIBS += -framework iTunesLibrary
 
 # KFR for filters -----------------------------------
 
@@ -1039,7 +1041,8 @@ RESOURCES += startupwizard.qrc
 #    README.txt
 
 OBJECTIVE_SOURCES += \
-    macUtils.mm
+    macUtils.mm \
+    mainwindow_applemusic.mm
 
 DISTFILES += \
     ../../README.md \
