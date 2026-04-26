@@ -421,14 +421,20 @@ void MainWindow::initializeUI() {
     //    // let's watch for changes in the musicDir
     //    QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
     QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot);
-    static QRegularExpression ignoreTheseDirs("/(reference|choreography|notes|playlists|sd|soundfx|lyrics)");
+    // static QRegularExpression ignoreTheseDirs("/(reference|choreography|notes|playlists|sd|soundfx|lyrics)");
+    static QRegularExpression ignoreTheseDirs(R"((reference|choreography|notes|playlists|sd|soundfx|lyrics)$)"); // ignored ones END with this regex
+
     while (it.hasNext()) {
         QString aPath = it.next();
-        //        if (ignoreTheseDirs.indexIn(aPath) == -1) {
-        if (aPath.indexOf(ignoreTheseDirs) == -1) {
+        // qDebug() << "aPath:" << aPath;
+        // if (aPath.indexOf(ignoreTheseDirs) == -1) {
+        if (!ignoreTheseDirs.match(aPath).hasMatch()) {
             musicRootWatcher.addPath(aPath); // watch for add/deletes to musicDir and interesting subdirs
-            // qDebug() << "adding to musicRootWatcher: " << aPath;
+            // qDebug() << "ADDING: " << aPath;
         }
+        // else {
+        //     qDebug() << "IGNORING: " << aPath;
+        // }
     }
 
     // musicRootWatcher.addPath(musicRootPath); // watch for add/deletes to musicDir, too
