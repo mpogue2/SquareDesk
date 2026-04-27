@@ -494,6 +494,9 @@ void MainWindow::musicRootModified(QString s)
         darkFilterMusic();   // and redo the filtering (NOTE: might still scroll the darkSongTable)
         // ui->darkSongTable->horizontalHeader()->setSortIndicator(sortSection, sortOrder);
 
+        refreshAllPlaylists(); // re-check file existence so deleted songs go red/strikethrough (#1589)
+        adjustFontSizes(); // and make sure the playlist fonts don't change size
+
         // update the status message ------
         QString msg1 = QString("Songs found: %1")
                 .arg(QString::number(pathStack->size()));
