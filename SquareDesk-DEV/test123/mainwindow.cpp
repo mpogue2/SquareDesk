@@ -3752,28 +3752,30 @@ void MainWindow::updateTreeWidget() {
 
     // --------------------------------------------------------------------
     // GET LIST OF PLAYLISTS AND POPULATE TREEWIDGET > APPLE MUSIC ----------
+    // NOTE: Apple Music playlists now appear under Playlists (Type 2), so the
+    //       separate top-level Apple Music item is no longer needed.
 
-    if (prefsManager.GetenableAppleMusic()) {
-        // if (allAppleMusicPlaylistNames.size() == 0) {
-        //     return; // if no Apple Music playlists
-        // }
-
-        // qDebug() << "***** APPLE MUSIC";
-
-        // top level Apple Music item with icon
-        QTreeWidgetItem *appleMusicItem = new QTreeWidgetItem();
-        appleMusicItem->setText(0, "Apple Music");
-        appleMusicItem->setIcon(0, QIcon(":/graphics/icons8-apple-48.png"));
-
-        for (const auto &playlistName : std::as_const(allAppleMusicPlaylistNames)) {
-                    // qDebug() << "playlistName: " << playlistName;
-                    QTreeWidgetItem *childItem2 = new QTreeWidgetItem(appleMusicItem);
-                    childItem2->setText(0, playlistName);
-        }
-
-        ui->treeWidget->addTopLevelItem(appleMusicItem);  // add this one to the tree
-        appleMusicItem->setExpanded(false);
-    }
+//    if (prefsManager.GetenableAppleMusic()) {
+//        // if (allAppleMusicPlaylistNames.size() == 0) {
+//        //     return; // if no Apple Music playlists
+//        // }
+//
+//        // qDebug() << "***** APPLE MUSIC";
+//
+//        // top level Apple Music item with icon
+//        QTreeWidgetItem *appleMusicItem = new QTreeWidgetItem();
+//        appleMusicItem->setText(0, "Apple Music");
+//        appleMusicItem->setIcon(0, QIcon(":/graphics/icons8-apple-48.png"));
+//
+//        for (const auto &playlistName : std::as_const(allAppleMusicPlaylistNames)) {
+//                    // qDebug() << "playlistName: " << playlistName;
+//                    QTreeWidgetItem *childItem2 = new QTreeWidgetItem(appleMusicItem);
+//                    childItem2->setText(0, playlistName);
+//        }
+//
+//        ui->treeWidget->addTopLevelItem(appleMusicItem);  // add this one to the tree
+//        appleMusicItem->setExpanded(false);
+//    }
 }
 
 void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
@@ -7015,9 +7017,10 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
                 if (theText == kCharStarStringTracks) {
                     darkLoadMusicList(pathStack, kCharStarStringTracks, true, false);  // show MUSIC
                     return;
-                } else if (theText == "Apple Music") {
-                    darkLoadMusicList(pathStackApplePlaylists, "Apple Music", true, false);  // show APPLE MUSIC playlists
-                    return;
+                // NOTE: "Apple Music" top-level item removed; Type 1 playlists now shown under Playlists (Type 2)
+                // } else if (theText == "Apple Music") {
+                //     darkLoadMusicList(pathStackApplePlaylists, "Apple Music", true, false);  // show APPLE MUSIC playlists
+                //     return;
                 } else if (theText == "Playlists") {
                     darkLoadMusicList(pathStackPlaylists, "Playlists", true, false);  // show PLAYLISTS
                     return;
@@ -7064,8 +7067,9 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
                     darkLoadMusicList(pathStack, shortTreePath, true, false);  // show MUSIC TRACKS
                 } else if (treePath.startsWith("Playlists")) {
                     darkLoadMusicList(pathStackPlaylists, shortTreePath, true, false);  // show MUSIC TRACKS
-                } else if (treePath.startsWith("Apple Music")) {
-                    darkLoadMusicList(pathStackApplePlaylists, shortTreePath, true, false);  // show MUSIC TRACKS
+                // NOTE: "Apple Music" top-level item removed; no longer reachable
+                // } else if (treePath.startsWith("Apple Music")) {
+                //     darkLoadMusicList(pathStackApplePlaylists, shortTreePath, true, false);  // show MUSIC TRACKS
                 } else {
                 }
             }
@@ -7629,11 +7633,13 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
     bool isLeafNode = (treeItem->childCount() == 0);
 
     // Handle based on the section
-    if (topLevelCategory == "Apple Music") {
-        // Apple Music items: no reveal actions at all
-        // Don't add any menu items for Apple Music, just return
-        return;
-    } else if (topLevelCategory == "Playlists") {
+    // NOTE: "Apple Music" top-level item removed; context menu branch no longer reachable
+    // if (topLevelCategory == "Apple Music") {
+    //     // Apple Music items: no reveal actions at all
+    //     // Don't add any menu items for Apple Music, just return
+    //     return;
+    // } else
+    if (topLevelCategory == "Playlists") {
         // Playlists section
         if (!isTopLevel) {
             // Remove "Playlists/" prefix to get relative path
