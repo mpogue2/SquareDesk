@@ -7641,29 +7641,40 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
             relativePath.remove(0, QString("Playlists/").length());
 
             if (isLeafNode) {
-                // LEAF node: this is an actual playlist file (.csv)
-                QString PlaylistFileName = musicRootPath + "/playlists/" + relativePath + ".csv";
+                // Detect Type 2 Apple Music playlists: their path contains \uF8FF (apple char)
+                // prepended to the hierarchical folder name (e.g. "\uF8FFFlor/Christmas")
+                bool isAppleMusicItem = relativePath.contains(QChar(0xF8FF));
+
+                QString PlaylistFileName;
+                if (isAppleMusicItem) {
+                    // Build a fake /Apple Music/ path so the dispatcher routes to loadAppleMusicPlaylistToSlot
+                    QString cleanHierName = relativePath;
+                    cleanHierName.remove(QChar(0xF8FF));
+                    PlaylistFileName = musicRootPath + "/Apple Music/" + cleanHierName + ".csv";
+                } else {
+                    PlaylistFileName = musicRootPath + "/playlists/" + relativePath + ".csv";
+                }
 
                 // Add palette slot menu items
                 twMenu->addAction("Show in palette slot #1",
-                                  [this, PlaylistFileName](){
+                                  [this, PlaylistFileName, isAppleMusicItem](){
                                       int songCount;
                                       loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 0, songCount);
-                                      updateRecentPlaylistsList(PlaylistFileName);
+                                      if (!isAppleMusicItem) updateRecentPlaylistsList(PlaylistFileName);
                                   }
                                   );
                 twMenu->addAction("Show in palette slot #2",
-                                  [this, PlaylistFileName](){
+                                  [this, PlaylistFileName, isAppleMusicItem](){
                                       int songCount;
                                       loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 1, songCount);
-                                      updateRecentPlaylistsList(PlaylistFileName);
+                                      if (!isAppleMusicItem) updateRecentPlaylistsList(PlaylistFileName);
                                   }
                                   );
                 twMenu->addAction("Show in palette slot #3",
-                                  [this, PlaylistFileName](){
+                                  [this, PlaylistFileName, isAppleMusicItem](){
                                       int songCount;
                                       loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 2, songCount);
-                                      updateRecentPlaylistsList(PlaylistFileName);
+                                      if (!isAppleMusicItem) updateRecentPlaylistsList(PlaylistFileName);
                                   }
                                   );
 
@@ -7678,7 +7689,7 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
                     twMenu->actions()[2]->setEnabled(false);
                 }
 
-                if (!PlaylistFileName.contains("\uF8FF")) {
+                if (!isAppleMusicItem) {
                     // if this is NOT an Apple Music playlist in the Playlists section, then:
 
                     // Add separator before reveal action
