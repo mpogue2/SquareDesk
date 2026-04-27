@@ -489,6 +489,7 @@ void MainWindow::adjustFontSizes()
                     table->item(j, COLUMN_TEMPO)->setFont(cf);
                 }
             }
+            table->resizeColumnToContents(COLUMN_NUMBER);
         }
     }
 
