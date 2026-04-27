@@ -62,14 +62,17 @@ static void outputString(QTextStream &stream, const QString &str, bool quote)
 
 void SongHistoryExportDialog::populateOptions(SongSettings &songSettings)
 {
-    QDateTime now = QDateTime::currentDateTime();
-    QDateTime yesterday = now.addDays(-1);
-    
-    ui->dateTimeEditEnd->setDateTime(now);
-    // ui->dateTimeEditEnd->setDisplayFormat("MM/dd/yyyy HH:mm ap"); // work around bug: changing 25 to 24 results in 1924
+    QDateTime fromDT = QDate::currentDate().addDays(-1).startOfDay().addSecs(18 * 3600);        // yesterday @ 6:00 PM
+    QDateTime toDT   = QDate::currentDate().addDays(-1).startOfDay().addSecs(23 * 3600 + 59 * 60 + 59); // yesterday @ 11:59:59 PM
 
-    ui->dateTimeEditStart->setDateTime(yesterday);
-    // ui->dateTimeEditStart->setDisplayFormat("MM/dd/yyyy HH:mm ap"); // work around bug: changing 25 to 24 results in 1924
+    ui->dateTimeEditStart->setDateTime(fromDT);
+    ui->dateTimeEditEnd->setDateTime(toDT);
+
+    connect(ui->dateTimeEditStart, &QDateTimeEdit::dateTimeChanged,
+            this, [this](const QDateTime &newFrom) {
+                QDateTime newTo = newFrom.date().startOfDay().addSecs(23 * 3600 + 59 * 60 + 59);
+                ui->dateTimeEditEnd->setDateTime(newTo);
+            });
 
     // -------------------
     // Get the current system locale
