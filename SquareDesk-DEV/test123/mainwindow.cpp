@@ -8681,3 +8681,17 @@ void MainWindow::on_actionReset_Patter_Timer_triggered()
 {
     on_darkWarningLabel_clicked();
 }
+
+void MainWindow::on_actionResync_to_Apple_Music_triggered()
+{
+    ui->statusBar->showMessage("Resyncing to Apple Music...");
+    qApp->processEvents();
+    findMusic(musicRootPath, true);
+    darkLoadMusicList(nullptr, currentTypeFilter, true, true);
+    darkFilterMusic();
+    refreshAllPlaylists();
+    adjustFontSizes();
+    QString msg1 = QString("Songs found: %1").arg(QString::number(pathStack->size()));
+    ui->statusBar->showMessage(msg1);
+}
+
