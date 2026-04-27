@@ -7728,6 +7728,43 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
 
             QString folderPath = musicRootPath + "/" + relativePath;
 
+            if (isLeafNode) {
+                // Track Filter leaf: use the fake path that identifies this filter
+                QString TrackFilterFileName = musicRootPath + "/" + fullPathToLeaf + ".csv";
+
+                twMenu->addAction("Show in palette slot #1",
+                                  [this, TrackFilterFileName](){
+                                      int songCount;
+                                      loadPlaylistFromFileToPaletteSlot(TrackFilterFileName, 0, songCount);
+                                  }
+                                  );
+                twMenu->addAction("Show in palette slot #2",
+                                  [this, TrackFilterFileName](){
+                                      int songCount;
+                                      loadPlaylistFromFileToPaletteSlot(TrackFilterFileName, 1, songCount);
+                                  }
+                                  );
+                twMenu->addAction("Show in palette slot #3",
+                                  [this, TrackFilterFileName](){
+                                      int songCount;
+                                      loadPlaylistFromFileToPaletteSlot(TrackFilterFileName, 2, songCount);
+                                  }
+                                  );
+
+                if (ui->action0paletteSlots->isChecked()) {
+                    twMenu->actions()[0]->setEnabled(false);
+                    twMenu->actions()[1]->setEnabled(false);
+                    twMenu->actions()[2]->setEnabled(false);
+                } else if (ui->action1paletteSlots->isChecked()) {
+                    twMenu->actions()[1]->setEnabled(false);
+                    twMenu->actions()[2]->setEnabled(false);
+                } else if (ui->action2paletteSlots->isChecked()) {
+                    twMenu->actions()[2]->setEnabled(false);
+                }
+
+                twMenu->addSeparator();
+            }
+
             // Add "Reveal Folder in Finder"
             twMenu->addAction("Reveal Folder in Finder",
                               [this, folderPath](){
