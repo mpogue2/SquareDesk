@@ -861,6 +861,7 @@ void MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString 
             // TITLE column
             QString appleSymbol = QChar(APPLE_SYMBOL_UNICODE); // TODO: factor into global?
             QString shortTitle = sl[1];
+            shortTitle.replace("/", "_"); // '/' is a path separator in setTitleField; use '_' like the filesystem does
             shortTitle = appleSymbol + " " + shortTitle;
 
             // Determine if this row is a marker and if it should be indented (issue #1547)

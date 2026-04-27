@@ -931,6 +931,19 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
             // title = lineNumber + " - " + title; // use the default SquareDesk name (from the FullPathname), but prepend the line number and a dash
             shortTitle = title;
 
+            // For Type 2 Apple Music items (playlistName starts with \uF8FF), override the
+            // filename-derived title with the actual Apple Music title (no track number, has colons).
+            if (playlistName.startsWith(QChar(0xF8FF))) {
+                for (const auto& sl : std::as_const(allAppleMusicPlaylists)) {
+                    if (sl[2] == origPath) {
+                        title = sl[1];
+                        title.replace("/", "_"); // '/' not valid in filenames; use '_' for consistency with palette slot
+                        shortTitle = title;
+                        break;
+                    }
+                }
+            }
+
             QString GreekXi = QChar(0x039E);  // use GREEK XI for Local Playlists (sorts almost at the bottom, and looks like a playlist!)
             type = GreekXi + " " + type; // this is tricky.  Leading GREEK XI will force sort to almost bottom for "<GREEKXI> SquareDesk Playlist Name".
             // labelnum = "";
