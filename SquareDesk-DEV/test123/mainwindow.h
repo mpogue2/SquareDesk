@@ -438,6 +438,8 @@ public:
     static void customMessageOutputQt(QtMsgType type, const QMessageLogContext &context, const QString &msg);
     static QString logFilePath;
 
+    void adjustFontSizes();
+
 public slots:
     // ============================================================================
     // UI EVENT SLOTS
@@ -974,7 +976,6 @@ private:
     int pointSizeToIndex(int pointSize);
     int indexToPointSize(int index);
     void setFontSizes();
-    void adjustFontSizes();
     void usePersistentFontSize();
     void persistNewFontSize(int points);
     void zoomInOut(int increment);
