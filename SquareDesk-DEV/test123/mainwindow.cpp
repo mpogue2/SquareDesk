@@ -8684,7 +8684,7 @@ void MainWindow::on_actionReset_Patter_Timer_triggered()
 
 void MainWindow::on_actionResync_to_Apple_Music_triggered()
 {
-    ui->statusBar->showMessage("Resyncing to Apple Music...");
+    ui->statusBar->showMessage("Getting playlist info from Apple Music...");
     qApp->processEvents();
     findMusic(musicRootPath, true);
     darkLoadMusicList(nullptr, currentTypeFilter, true, true);
