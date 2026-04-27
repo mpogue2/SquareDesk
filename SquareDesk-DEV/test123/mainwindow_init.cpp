@@ -416,18 +416,18 @@ void MainWindow::initializeUI() {
 //#define DISABLEFILEWATCHER 1
 #ifndef DISABLEFILEWATCHER
     PerfTimer t2("filewatcher init", __LINE__);
+    t2.start(__LINE__);
 
     // ---------------------------------------
-    //    // let's watch for changes in the musicDir
-    //    QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
-    QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot);
-    // static QRegularExpression ignoreTheseDirs("/(reference|choreography|notes|playlists|sd|soundfx|lyrics)");
-    static QRegularExpression ignoreTheseDirs(R"((reference|choreography|notes|playlists|sd|soundfx|lyrics)$)"); // ignored ones END with this regex
+    // let's watch for changes in the musicDir, not only in its direct sub-folders, but recursively all the way down
+    QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    // qDebug() << "musicRootPath:" << musicRootPath;
+
+    static QRegularExpression ignoreTheseDirs(musicRootPath + "/(reference|choreography|notes|playlists|sd|soundfx|lyrics)"); // and their children folders
 
     while (it.hasNext()) {
         QString aPath = it.next();
         // qDebug() << "aPath:" << aPath;
-        // if (aPath.indexOf(ignoreTheseDirs) == -1) {
         if (!ignoreTheseDirs.match(aPath).hasMatch()) {
             musicRootWatcher.addPath(aPath); // watch for add/deletes to musicDir and interesting subdirs
             // qDebug() << "ADDING: " << aPath;
@@ -440,6 +440,7 @@ void MainWindow::initializeUI() {
     // musicRootWatcher.addPath(musicRootPath); // watch for add/deletes to musicDir, too
     // qDebug() << "Also adding to musicRootWatcher: " << musicRootPath;
 
+    t2.elapsed(__LINE__); // how much time did it take to initialize the filewatcher?
 
     fileWatcherTimer = new QTimer();            // Retriggerable timer for file watcher events
     QObject::connect(fileWatcherTimer, SIGNAL(timeout()), this, SLOT(fileWatcherTriggered())); // this calls musicRootModified again (one last time!)

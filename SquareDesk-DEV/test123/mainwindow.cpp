@@ -472,7 +472,8 @@ void MainWindow::musicRootModified(QString s)
         // qDebug() << "(Re)triggering File Watcher for 2 seconds...";
         fileWatcherTimer->start(std::chrono::milliseconds(2000)); // wait 2000ms for things (like iCloud replication) to settle down
         // this timeout means that after a couple of seconds, after iCloud replication has happened,
-        //  SquareDesk will rescan and pick up the new songs.  If we use 500ms, we actually end up rescanning 3 times.
+        //  SquareDesk will rescan and pick up the new songs.  NOTE: If we use a shorter timeout, like 500ms, we actually end up
+        //  the MusicDirectory rescanning 3 times, which wastes a lot of time.
         return;
     }
 
