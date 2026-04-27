@@ -859,6 +859,8 @@ private slots:
 
     void on_actionReset_Patter_Timer_triggered();
 
+    void on_actionResync_to_Apple_Music_triggered();
+
 private:
     // ============================================================================
     // INITIALIZATION METHODS (REFACTORED FROM CONSTRUCTOR)

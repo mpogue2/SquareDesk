@@ -4377,6 +4377,7 @@
     <addaction name="actionMake_Flash_Drive_Wizard"/>
     <addaction name="actionDownload_Cuesheets"/>
     <addaction name="separator"/>
+    <addaction name="actionResync_to_Apple_Music"/>
    </widget>
    <widget class="QMenu" name="menuMusic">
     <property name="title">
@@ -6246,6 +6247,11 @@
    </property>
    <property name="text">
     <string>Label</string>
+   </property>
+  </action>
+  <action name="actionResync_to_Apple_Music">
+   <property name="text">
+    <string>Resync with Apple Music</string>
    </property>
   </action>
  </widget>
