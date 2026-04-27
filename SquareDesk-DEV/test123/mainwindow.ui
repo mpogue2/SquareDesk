@@ -4371,12 +4371,11 @@
     <addaction name="actionExport_Current_Song_List"/>
     <addaction name="separator"/>
     <addaction name="actionPreferences"/>
+    <addaction name="actionCheck_for_Updates"/>
     <addaction name="separator"/>
     <addaction name="actionStartup_Wizard"/>
     <addaction name="actionMake_Flash_Drive_Wizard"/>
     <addaction name="actionDownload_Cuesheets"/>
-    <addaction name="separator"/>
-    <addaction name="actionCheck_for_Updates"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuMusic">
@@ -4983,7 +4982,10 @@
   </action>
   <action name="actionPreferences">
    <property name="text">
-    <string>Preferences...</string>
+    <string>Settings...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::ApplicationSpecificRole</enum>
    </property>
   </action>
   <action name="actionContinuous_Play">
@@ -5197,6 +5199,9 @@
   <action name="actionCheck_for_Updates">
    <property name="text">
     <string>Check for Updates...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::ApplicationSpecificRole</enum>
    </property>
   </action>
   <action name="action_4">
