@@ -1986,6 +1986,17 @@ void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, 
 
     QString theCanonicalRelativePath = makeCanonicalRelativePath(theRelativePath);
 
+    // For Apple Music files, look up the actual title (no track number, has colons)
+    // instead of deriving it from the filename.
+    for (const auto& sl : std::as_const(allAppleMusicPlaylists)) {
+        if (sl[2] == absPath) {
+            QString appleTitle = sl[1];
+            appleTitle.replace("/", "_"); // consistent with songTable and palette slot display
+            theCanonicalRelativePath = "/xtras/" + appleTitle; // fake path; setTitleField takes .last() component
+            break;
+        }
+    }
+
     // First set the PATH column so shouldIndentPlaylistRow() can check it
     // PATH column (set early for indentation calculation)
     QTableWidgetItem *tempPath = new QTableWidgetItem(absPath);
