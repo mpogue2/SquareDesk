@@ -1635,6 +1635,13 @@ void MainWindow::refreshAllPlaylists() {
 
     for (int i = 0; i < 3; i++) {
         // qDebug() << "LOOK AT SLOT:" << i;
+
+        // Apple Music slots store absolute paths outside musicRootPath; re-deriving titles from
+        // filenames would overwrite the Apple Music titles (with track numbers, no colons). Skip them.
+        if (relPathInSlot[i].startsWith(APPLE_MUSIC_PATH_PREFIX)) {
+            continue;
+        }
+
         QTableWidget *theTable = playlistTables[i];
 
         for (int j = 0; j < theTable->rowCount(); j++) {
