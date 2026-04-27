@@ -942,6 +942,11 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
                         break;
                     }
                 }
+                // For hierarchical playlists, the last path component loses the \uF8FF prefix.
+                // Re-add it so the Type field shows "XI APPLEICON PlaylistName XX" consistently.
+                if (!type.startsWith(QChar(0xF8FF))) {
+                    type = QString(QChar(0xF8FF)) + " " + type;
+                }
             }
 
             QString GreekXi = QChar(0x039E);  // use GREEK XI for Local Playlists (sorts almost at the bottom, and looks like a playlist!)
