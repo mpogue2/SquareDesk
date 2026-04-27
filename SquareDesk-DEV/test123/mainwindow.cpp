@@ -5404,10 +5404,17 @@ void MainWindow::microphoneStatusUpdate() {
 
     QString kybdStatus;
 
-    if (currentSessionName == "Practice") {
+    int currentTabNumber = ui->tabWidget->currentIndex();           // what tab are we on?
+    QString tabTitle = ui->tabWidget->tabText(currentTabNumber);    // what's its title?
+    if (tabTitle.contains("SD")) // if we are on the SD tab
+    {
         kybdStatus = "SD (Level: " + currentSDKeyboardLevel + ", Dance: " + frameName + "), Audio: " + lastAudioDeviceName;
     } else {
-        kybdStatus = "Session: " + currentSessionName + ", SD (Level: " + currentSDKeyboardLevel + ", Dance: " + frameName + "), Audio: " + lastAudioDeviceName;
+        kybdStatus = "Audio: " + lastAudioDeviceName; // not in SD tab, don't show SD status info
+    }
+
+    if (currentSessionName != "Practice") {
+        kybdStatus = "Session: " + currentSessionName + ", " + kybdStatus; // prepend the Session name
     }
 
 #ifndef DEBUG_LIGHT_MODE
