@@ -217,7 +217,7 @@ QString SongHistoryExportDialog::exportSongPlayData(SongSettings &settings, QStr
         // get path to directory and extension of file user selected
         QFileInfo fileInfo(filename);
         QString directoryPath = fileInfo.absolutePath();
-        lastSaveExt = "." + fileInfo.suffix();  // Update the extension (e.g., ".csv" or ".txt")
+        lastSaveExt = "." + fileInfo.suffix().right(3);  // Update the extension (e.g., ".csv" or ".txt"), max 3 chars
         return(directoryPath); // successful return, update the lastExportSongHistoryDir in preferences
     } // end of successful open
     return(""); // error return
