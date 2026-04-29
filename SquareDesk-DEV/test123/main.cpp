@@ -53,6 +53,10 @@ int main(int argc, char *argv[])
 
     t.elapsed(__LINE__);
 
+    // Force Chromium to skip Graphite and use the stable Ganesh backend (see #1600)
+    // Suggested by Claude...
+    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--disable-features=SkiaGraphite");
+
     QApplication a(argc, argv);
     a.setApplicationName("SquareDesk");
     a.setOrganizationName("Zenstar Software");
