@@ -88,7 +88,8 @@ void MacUtils::disableWindowTabbing() {
 
 // C callback function pointers
 static void (*g_playCallback)() = nullptr;
-static void (*g_pauseCallback)() = nullptr;  
+static void (*g_pauseCallback)() = nullptr;
+static void (*g_stopCallback)() = nullptr;
 static void (*g_nextCallback)() = nullptr;
 static void (*g_prevCallback)() = nullptr;
 static void (*g_seekCallback)(double) = nullptr;
@@ -135,6 +136,14 @@ static void (*g_seekCallback)(double) = nullptr;
         return MPRemoteCommandHandlerStatusSuccess;
     }
     // printf("ERROR: No play callback set for toggle\n");
+    return MPRemoteCommandHandlerStatusCommandFailed;
+}
+
+- (MPRemoteCommandHandlerStatus)handleStopCommand:(MPRemoteCommandEvent *)event {
+    if (g_stopCallback) {
+        g_stopCallback();
+        return MPRemoteCommandHandlerStatusSuccess;
+    }
     return MPRemoteCommandHandlerStatusCommandFailed;
 }
 
@@ -201,7 +210,7 @@ extern "C" {
         commandCenter.nextTrackCommand.enabled = NO;
         commandCenter.previousTrackCommand.enabled = NO;
         commandCenter.changePlaybackPositionCommand.enabled = NO;
-        commandCenter.stopCommand.enabled = NO;
+        commandCenter.stopCommand.enabled = YES;
         commandCenter.skipBackwardCommand.enabled = NO;
         commandCenter.skipForwardCommand.enabled = NO;
         
@@ -220,6 +229,9 @@ extern "C" {
         [commandCenter.togglePlayPauseCommand addTarget:[[MPNowPlayingTarget alloc] init] action:@selector(handleTogglePlayPauseCommand:)];
         // printf("Toggle play/pause command enabled\n");
         
+        // Enable stop command
+        [commandCenter.stopCommand addTarget:[[MPNowPlayingTarget alloc] init] action:@selector(handleStopCommand:)];
+
         // Enable next track command
         commandCenter.nextTrackCommand.enabled = YES;
         [commandCenter.nextTrackCommand addTarget:[[MPNowPlayingTarget alloc] init] action:@selector(handleNextTrackCommand:)];
@@ -412,12 +424,14 @@ extern "C" {
         // printf("Now playing info with artwork set successfully\n");
     }
     
-    void setNowPlayingCallbacks(void (*playCallback)(), void (*pauseCallback)(), 
+    void setNowPlayingCallbacks(void (*playCallback)(), void (*pauseCallback)(),
+                               void (*stopCallback)(),
                                void (*nextCallback)(), void (*prevCallback)(),
                                void (*seekCallback)(double)) {
         // printf("setNowPlayingCallbacks() called\n");
         g_playCallback = playCallback;
         g_pauseCallback = pauseCallback;
+        g_stopCallback = stopCallback;
         g_nextCallback = nextCallback;
         g_prevCallback = prevCallback;
         g_seekCallback = seekCallback;

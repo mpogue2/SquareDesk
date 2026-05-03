@@ -44,7 +44,8 @@ extern "C" {
                              double duration, double currentTime, bool isPlaying);
     void updateNowPlayingInfoWithArtwork(const char* title, const char* artist, const char* album, 
                                         double duration, double currentTime, bool isPlaying, const char* artworkPath);
-    void setNowPlayingCallbacks(void (*playCallback)(), void (*pauseCallback)(), 
+    void setNowPlayingCallbacks(void (*playCallback)(), void (*pauseCallback)(),
+                               void (*stopCallback)(),
                                void (*nextCallback)(), void (*prevCallback)(),
                                void (*seekCallback)(double));
 }
@@ -71,6 +72,12 @@ static void pauseCallback() {
         // printf("g_mainWindow->nowPlayingPause() completed\n");
     } else {
         // printf("ERROR: g_mainWindow is null!\n");
+    }
+}
+
+static void stopCallback() {
+    if (g_mainWindow) {
+        g_mainWindow->nowPlayingStop();
     }
 }
 
@@ -106,7 +113,7 @@ void MainWindow::setupNowPlaying() {
     // printf("setupMediaRemoteCommands() completed\n");
     
     // Set callback functions
-    setNowPlayingCallbacks(playCallback, pauseCallback, nextCallback, prevCallback, seekCallback);
+    setNowPlayingCallbacks(playCallback, pauseCallback, stopCallback, nextCallback, prevCallback, seekCallback);
     // printf("setNowPlayingCallbacks() completed\n");
     
     // Try to register immediately as a media app by setting some basic Now Playing info
@@ -402,6 +409,10 @@ void MainWindow::nowPlayingPrevious() {
         // printf("Now Playing updated after F7 skip backward (15 seconds)\n");
     });
     // }
+}
+
+void MainWindow::nowPlayingStop() {
+    ui->darkStopButton->click();
 }
 
 void MainWindow::nowPlayingSeek(double timeInSeconds) {

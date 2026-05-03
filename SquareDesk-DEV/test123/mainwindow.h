@@ -354,6 +354,7 @@ public:
     void updateNowPlayingMetadata();
     void nowPlayingPlay();
     void nowPlayingPause();
+    void nowPlayingStop();
     void nowPlayingNext();
     void nowPlayingPrevious();
     void nowPlayingSeek(double timeInSeconds);
