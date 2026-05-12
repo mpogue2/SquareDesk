@@ -28,21 +28,21 @@ macx {
   #   we'll get an error message like: "Could not resolve SDK SDKVersion for 'MacOSX14.0' using --show-sdk-version"
   #
   # To fix this, make the QMAKE_MAC_SDK number match the latest SDK version in:
-  #   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs
+  #   ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs
   #
   # NOTE: We can't just say "macosx14", it has to be something like "macosx14.4", fully spelled out.
   #
   contains(QMAKE_HOST.arch, x86_64) {
     message("X86_64 BUILD MACHINE DETECTED!")
     ARCHDIR = "x86_64"
-    QMAKE_MAC_SDK = macosx26.4
+    QMAKE_MAC_SDK = macosx26.5
     set(CMAKE_C_STANDARD 99)
     set(CMAKE_CXX_FLAGS "-std=c++17 -stdlib=libc++")
   }
   contains(QMAKE_HOST.arch, arm64) {
     message("ARM64 BUILD MACHINE DETECTED!")
     ARCHDIR = "arm64"
-    QMAKE_MAC_SDK = macosx26.4
+    QMAKE_MAC_SDK = macosx26.5
   }
   message("ARCHDIR = " $${ARCHDIR} ", QMAKE_MAC_SDK = " $${QMAKE_MAC_SDK})
 }
