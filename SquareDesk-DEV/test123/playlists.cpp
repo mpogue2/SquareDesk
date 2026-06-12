@@ -1666,6 +1666,10 @@ void MainWindow::refreshAllPlaylists() {
         }
 
     }
+
+    // setTitleField() replaces each title label with a new default-font one, so
+    //   restore the user's font size here, where no caller can forget it (issues #1588, #1630)
+    adjustFontSizes();
 }
 
 #ifdef NEWAPPLEMUSICINTEGRATION

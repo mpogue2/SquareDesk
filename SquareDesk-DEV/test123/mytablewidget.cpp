@@ -1025,7 +1025,6 @@ void MyTableWidget::dropEvent(QDropEvent *event)
 
         // Refresh indentation after internal move (issue #1547)
         ((MainWindow *)mw)->refreshAllPlaylists();
-        ((MainWindow *)mw)->adjustFontSizes();
 
         return;
     }
@@ -1172,7 +1171,6 @@ void MyTableWidget::dropEvent(QDropEvent *event)
     // This handles cases where adding/moving items affects indentation of other rows
     if (mw != nullptr && itemNumber > 0) {
         ((MainWindow *)mw)->refreshAllPlaylists();
-        ((MainWindow *)mw)->adjustFontSizes();
     }
 }
 
