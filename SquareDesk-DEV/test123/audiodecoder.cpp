@@ -476,7 +476,8 @@ public:
 
         newFilterNeeded = true;
 
-        EQdisabled = bassBoost_dB == 0.0 && midBoost_dB == 0.0 && trebleBoost_dB == 0.0;
+        EQdisabled = bassBoost_dB == 0.0 && midBoost_dB == 0.0 && trebleBoost_dB == 0.0
+                     && !(intelligibilityBoost_enabled && intelligibilityBoost_dB != 0.0);
         // qDebug() << "\tbiquad's are updated: ("<< bassBoost_dB << midBoost_dB << trebleBoost_dB << intelligibilityBoost_dB << EQdisabled << ")";
     }
 
