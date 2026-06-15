@@ -7276,36 +7276,34 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
     QString recentPlaylistsString = prefsManager.GetlastNPlaylistsLoaded();
     if (!recentPlaylistsString.isEmpty()) {
         QStringList recentPlaylists = recentPlaylistsString.split(";", Qt::SkipEmptyParts);
-        if (!recentPlaylists.isEmpty()) {
+
+        // Prune entries whose files no longer exist (issue #1584)
+        QStringList existingPlaylists;
+        for (const QString &relativePath : recentPlaylists) {
+            if (!relativePath.isEmpty()) {
+                QString fullPath = musicRootPath + "/playlists/" + relativePath + ".csv";
+                if (QFile::exists(fullPath))
+                    existingPlaylists.append(relativePath);
+            }
+        }
+        if (existingPlaylists.size() < recentPlaylists.size())
+            prefsManager.SetlastNPlaylistsLoaded(existingPlaylists.join(";"));
+
+        if (!existingPlaylists.isEmpty()) {
             QMenu *recentMenu = new QMenu("Load Recent Playlist", this);
             recentMenu->setProperty("theme", currentThemeString);
-            
-            for (const QString &relativePath : recentPlaylists) {
-                if (!relativePath.isEmpty()) {
-                    // Reconstruct the full path for checking existence
+
+            for (const QString &relativePath : existingPlaylists) {
+                recentMenu->addAction(relativePath, [this, whichSlot, relativePath]() {
                     QString fullPath = musicRootPath + "/playlists/" + relativePath + ".csv";
-
-                    // Only add to menu if the playlist file actually exists
-                    if (QFile::exists(fullPath)) {
-                        // Use the relative path as the display name
-                        QString displayName = relativePath;
-
-                        recentMenu->addAction(displayName, [this, whichSlot, relativePath]() {
-                            // Reconstruct the full path for loading
-                            QString fullPath = musicRootPath + "/playlists/" + relativePath + ".csv";
-
-                            int songCount;
-                            loadPlaylistFromFileToPaletteSlot(fullPath, whichSlot, songCount);
-
-                            // Update the recent playlists list
-                            updateRecentPlaylistsList(fullPath);
-                        });
-                    }
-                }
+                    int songCount;
+                    loadPlaylistFromFileToPaletteSlot(fullPath, whichSlot, songCount);
+                    updateRecentPlaylistsList(fullPath);
+                });
             }
-            
+
             plMenu->addMenu(recentMenu);
-            
+
             // Add "Clear Recent Playlists" menu item (only when there are recent playlists)
             plMenu->addAction(QString("Clear Recent Playlists"), [this]() {
                 prefsManager.SetlastNPlaylistsLoaded("");
