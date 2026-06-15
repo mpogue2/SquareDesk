@@ -860,6 +860,8 @@ private slots:
 
     void on_actionResync_to_Apple_Music_triggered();
 
+    void on_actionRescan_Music_Directory_triggered();
+
 private:
     // ============================================================================
     // INITIALIZATION METHODS (REFACTORED FROM CONSTRUCTOR)

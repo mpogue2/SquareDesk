@@ -457,29 +457,32 @@ void MainWindow::musicRootModified(QString s)
 {
     // qDebug() << "musicRootModified() = " << s;
 
-    if (!prefsManager.GetenableFileWatcher()) {
-        // in the Preference UI, this is called "Rescan Music Directory when new songs are added"
-        // qDebug() << "filewatcher is INTENTIONALLY disabled by User Preference, skipping the re-scan of songTable....";
-        return;
+    if (s != "MANUAL_RESCAN") {
+        if (!prefsManager.GetenableFileWatcher()) {
+            // in the Preference UI, this is called "Rescan Music Directory when new songs are added"
+            // qDebug() << "filewatcher is INTENTIONALLY disabled by User Preference, skipping the re-scan of songTable....";
+            return;
+        }
+
+        if (filewatcherIsTemporarilyDisabled) {
+            // qDebug() << "filewatcher is TEMPORARILY disabled, skipping the re-scan of songTable....";
+            return;
+        }
+
+        if (s != "DONE") {
+            // qDebug() << "(Re)triggering File Watcher for 2 seconds...";
+            fileWatcherTimer->start(std::chrono::milliseconds(2000)); // wait 2000ms for things (like iCloud replication) to settle down
+            // this timeout means that after a couple of seconds, after iCloud replication has happened,
+            //  SquareDesk will rescan and pick up the new songs.  NOTE: If we use a shorter timeout, like 500ms, we actually end up
+            //  the MusicDirectory rescanning 3 times, which wastes a lot of time.
+            return;
+        }
+
+        fileWatcherTimer->stop();  // 500ms expired, so we don't need to be notified again.
     }
 
-    if (filewatcherIsTemporarilyDisabled) {
-        // qDebug() << "filewatcher is TEMPORARILY disabled, skipping the re-scan of songTable....";
-        return;
-    }
 
-    if (s != "DONE") {
-        // qDebug() << "(Re)triggering File Watcher for 2 seconds...";
-        fileWatcherTimer->start(std::chrono::milliseconds(2000)); // wait 2000ms for things (like iCloud replication) to settle down
-        // this timeout means that after a couple of seconds, after iCloud replication has happened,
-        //  SquareDesk will rescan and pick up the new songs.  NOTE: If we use a shorter timeout, like 500ms, we actually end up
-        //  the MusicDirectory rescanning 3 times, which wastes a lot of time.
-        return;
-    }
-
-    fileWatcherTimer->stop();  // 500ms expired, so we don't need to be notified again.
-
-   // qDebug() << "Music root modified (File Watcher awakened for real!): " << s;
+    // qDebug() << "Music root modified (File Watcher awakened for real!): " << s;
     if (!filewatcherShouldIgnoreOneFileSave) { // yes, we need this here, too...because root watcher watches playlists (don't ask me!)
         // qDebug() << "*** File watcher awakens!!!";
         // Qt::SortOrder sortOrder(ui->songTable->horizontalHeader()->sortIndicatorOrder());
@@ -487,6 +490,11 @@ void MainWindow::musicRootModified(QString s)
         // reload the musicTable.  Note that it will switch to default sort order.
         //   TODO: At some point, this probably should save the sort order, and then restore it.
 //        qDebug() << "WE ARE RELOADING THE SONG TABLE NOW ------";
+
+        // STATUS MESSAGE: START
+        ui->statusBar->showMessage("Scanning Music Directory....");
+        QCoreApplication::processEvents(); // show the message
+
         findMusic(musicRootPath, true);  // get the filenames from the user's directories
         // loadMusicList(); // and filter them into the songTable
         // if (darkmode) {
@@ -497,6 +505,7 @@ void MainWindow::musicRootModified(QString s)
         refreshAllPlaylists(); // re-check file existence so deleted songs go red/strikethrough (#1589)
         adjustFontSizes(); // and make sure the playlist fonts don't change size
 
+        // STATUS MESSAGE: END
         // update the status message ------
         QString msg1 = QString("Songs found: %1")
                 .arg(QString::number(pathStack->size()));
@@ -8693,5 +8702,12 @@ void MainWindow::on_actionResync_to_Apple_Music_triggered()
     adjustFontSizes();
     QString msg1 = QString("Songs found: %1").arg(QString::number(pathStack->size()));
     ui->statusBar->showMessage(msg1);
+}
+
+
+void MainWindow::on_actionRescan_Music_Directory_triggered()
+{
+    // qDebug() << "on_actionRescan_Music_Directory_triggered";
+    musicRootModified(QString("MANUAL_RESCAN"));
 }
 

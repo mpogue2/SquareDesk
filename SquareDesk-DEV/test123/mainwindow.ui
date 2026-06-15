@@ -4378,6 +4378,7 @@
     <addaction name="actionDownload_Cuesheets"/>
     <addaction name="separator"/>
     <addaction name="actionResync_to_Apple_Music"/>
+    <addaction name="actionRescan_Music_Directory"/>
    </widget>
    <widget class="QMenu" name="menuMusic">
     <property name="title">
@@ -4989,7 +4990,7 @@
     <string>Ctrl+,</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::ApplicationSpecificRole</enum>
+    <enum>QAction::MenuRole::ApplicationSpecificRole</enum>
    </property>
   </action>
   <action name="actionContinuous_Play">
@@ -5205,7 +5206,7 @@
     <string>Check for Updates...</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::ApplicationSpecificRole</enum>
+    <enum>QAction::MenuRole::ApplicationSpecificRole</enum>
    </property>
   </action>
   <action name="action_4">
@@ -6252,6 +6253,11 @@
   <action name="actionResync_to_Apple_Music">
    <property name="text">
     <string>Resync with Apple Music</string>
+   </property>
+  </action>
+  <action name="actionRescan_Music_Directory">
+   <property name="text">
+    <string>Rescan Music Directory</string>
    </property>
   </action>
  </widget>
