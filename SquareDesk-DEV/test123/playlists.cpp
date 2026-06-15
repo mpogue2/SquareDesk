@@ -1661,6 +1661,23 @@ void MainWindow::refreshAllPlaylists() {
 
                 // this is what we want: "/patter/RIV 1180 - Sea Chanty.mp3" "/Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/playlists/Jokers/2024/Jokers_2024.06.05.csv"
                 setTitleField(theTable, j, relativePath, true, PlaylistFileName, relativePath, shouldIndent);
+
+                // Re-apply loaded-song highlighting (bold+italic) if setTitleField() just replaced it (issue #1601)
+                if (theTable->item(j, COLUMN_LOADED) && theTable->item(j, COLUMN_LOADED)->text() == "1") {
+                    QLabel *titleLabel = dynamic_cast<QLabel*>(theTable->cellWidget(j, COLUMN_TITLE));
+                    if (titleLabel) {
+                        QString html = titleLabel->text();
+                        html.replace(QRegularExpression("</?b>"), "");
+                        html.replace(QRegularExpression("</?i>"), "");
+                        titleLabel->setText("<b><i>" + html + "</i></b>");
+                    }
+                    QFont boldItalic;
+                    boldItalic.setBold(true);
+                    boldItalic.setItalic(true);
+                    if (theTable->item(j, COLUMN_NUMBER)) theTable->item(j, COLUMN_NUMBER)->setFont(boldItalic);
+                    if (theTable->item(j, COLUMN_PITCH))  theTable->item(j, COLUMN_PITCH)->setFont(boldItalic);
+                    if (theTable->item(j, COLUMN_TEMPO))  theTable->item(j, COLUMN_TEMPO)->setFont(boldItalic);
+                }
             }
 
         }
