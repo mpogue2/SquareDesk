@@ -7501,7 +7501,7 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
     plMenu->addSeparator();
 
     // Add "New From Template" submenu (issue #1629)
-    QMenu *newFromTemplateMenu = new QMenu("New From Template", this);
+    QMenu *newFromTemplateMenu = new QMenu("New Playlist From Template", this);
     newFromTemplateMenu->setProperty("theme", currentThemeString);
 
     QString templatesDirPath = musicRootPath + "/playlists/templates";
@@ -7525,7 +7525,7 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
     plMenu->addMenu(newFromTemplateMenu);
 
     // Add "Save As Template..." action (issue #1629)
-    QAction *saveAsTemplateAction = plMenu->addAction(QString("Save As Template..."), [whichSlot, this]() {
+    QAction *saveAsTemplateAction = plMenu->addAction(QString("Save Playlist As Template..."), [whichSlot, this]() {
         saveSlotAsTemplate(whichSlot);
     });
     saveAsTemplateAction->setEnabled(theTableWidget->rowCount() > 0);
