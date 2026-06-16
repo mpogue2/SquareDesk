@@ -953,7 +953,7 @@ private:
     QString lastSavedPlaylist;
     QString lastFlashcardsUserFile;
     QString lastFlashcardsUserDirectory;
-    void loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount);
+    bool loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount);
     void loadTrackFilterToSlot(QString PlaylistFileName, QString relativePath, int slotNumber, int &songCount);
     void loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString relativePath, int slotNumber, int &songCount);
     void loadRegularPlaylistToSlot(QString PlaylistFileName, QString relativePath, int slotNumber, int &songCount);

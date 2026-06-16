@@ -648,7 +648,8 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
 
 // ============================================================================================================
 // updates the songCount as it goes (1 return value via reference)
-void MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount) {
+// returns false if the user cancelled (because the slot held an unsaved Untitled playlist), true otherwise
+bool MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount) {
 
     // qDebug() << "===== loadPlaylistFromFileToPaletteSlot: " << PlaylistFileName << slotNumber << songCount;
 
@@ -662,10 +663,19 @@ void MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int
     //  e.g. "/Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/Apple Music/Mike's playlist.csv" // FAKE APPLE MUSIC
 
     if (slotModified[slotNumber]) {
-        // if the current resident of the slot has been modified, and the playlistSlotWatcherTimer
-        //   has gone off yet, and so that playlist hasn't been saved yet, save it now, before we
-        //   overwrite the slot.
-        saveSlotNow(slotNumber);
+        if (relPathInSlot[slotNumber] == "") {
+            // it's an unsaved Untitled playlist -- ask the user whether to save it before we overwrite the slot
+            //   (same prompt as quitting with an unsaved Untitled playlist)
+            if (!maybeSavePlaylist(slotNumber)) {
+                songCount = 0;
+                return false; // user cancelled, so don't load anything
+            }
+        } else {
+            // if the current resident of the slot has been modified, and the playlistSlotWatcherTimer
+            //   hasn't gone off yet, and so that playlist hasn't been saved yet, save it now, before we
+            //   overwrite the slot.
+            saveSlotNow(slotNumber);
+        }
     }
 
     QString relativePath = PlaylistFileName;
@@ -681,6 +691,8 @@ void MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int
     else {
         loadRegularPlaylistToSlot(PlaylistFileName, relativePath, slotNumber, songCount);
     }
+
+    return true;
 }
 
 // ============================================================================================================
@@ -1341,7 +1353,9 @@ void MainWindow::saveSlotAsTemplate(int whichSlot)  // slots 0 - 2
 void MainWindow::loadTemplateToSlot(QString templateFullPath, int whichSlot)
 {
     int songCount;
-    loadPlaylistFromFileToPaletteSlot(templateFullPath, whichSlot, songCount);
+    if (!loadPlaylistFromFileToPaletteSlot(templateFullPath, whichSlot, songCount)) {
+        return; // user cancelled (slot held an unsaved Untitled playlist), so leave the slot untouched
+    }
 
     auto [theTableWidget, theLabel] = getSlotWidgets(whichSlot);
     Q_UNUSED(theTableWidget)
@@ -1514,12 +1528,14 @@ void MainWindow::loadPlaylistFromFileToSlot(int whichSlot)
     prefsManager.Setdefault_playlist_dir(fInfo.absolutePath());
 
     int songCount;
-    loadPlaylistFromFileToPaletteSlot(PlaylistFileName, whichSlot, songCount);
-    
+    if (!loadPlaylistFromFileToPaletteSlot(PlaylistFileName, whichSlot, songCount)) {
+        return; // user cancelled (slot held an unsaved Untitled playlist)
+    }
+
     // Update the recent playlists list with the newly loaded playlist
     // Only update for real playlist files (not track filters or Apple Music playlists)
-    if (PlaylistFileName.endsWith(CSV_FILE_EXTENSION) && 
-        !PlaylistFileName.contains("/Tracks/") && 
+    if (PlaylistFileName.endsWith(CSV_FILE_EXTENSION) &&
+        !PlaylistFileName.contains("/Tracks/") &&
         !PlaylistFileName.contains(APPLE_MUSIC_PATH_PREFIX)) {
         updateRecentPlaylistsList(PlaylistFileName);
     }

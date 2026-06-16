@@ -7298,8 +7298,9 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
                 recentMenu->addAction(relativePath, [this, whichSlot, relativePath]() {
                     QString fullPath = musicRootPath + "/playlists/" + relativePath + ".csv";
                     int songCount;
-                    loadPlaylistFromFileToPaletteSlot(fullPath, whichSlot, songCount);
-                    updateRecentPlaylistsList(fullPath);
+                    if (loadPlaylistFromFileToPaletteSlot(fullPath, whichSlot, songCount)) {
+                        updateRecentPlaylistsList(fullPath);
+                    }
                 });
             }
 
