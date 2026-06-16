@@ -894,6 +894,31 @@ static QChar levelNameToCategory(const QString &levelName) {
     return QChar();
 }
 
+// Extracts the first 1-5 digit run from a filename (e.g. "426" from "RIV 426 - Lion
+// Sleeps Tonight"), normalized as an int (so leading zeros don't matter), for use as
+// a cheap pre-filter before calling the much more expensive
+// MP3FilenameVsCuesheetnameScore(). Returns -1 if no digit run is found.
+static int quickExtractCatalogNumber(const QString &completeBaseName) {
+    static const QRegularExpression numRegex("\\d{1,5}");
+    QRegularExpressionMatch match = numRegex.match(completeBaseName);
+    if (!match.hasMatch()) {
+        return -1;
+    }
+    return match.captured(0).toInt();
+}
+
+// Cheap (non-fuzzy) word set for a filename, used only to decide whether the
+// expensive scorer is worth calling -- see computeSongLevels().
+static QSet<QString> quickWordSet(const QString &completeBaseName) {
+    QSet<QString> words;
+    for (const QString &w : completeBaseName.split(QRegularExpression("[^A-Za-z0-9]+"), Qt::SkipEmptyParts)) {
+        if (w.length() > 2) {
+            words.insert(w.toLower());
+        }
+    }
+    return words;
+}
+
 // Computes songLevelsByPath: for every song that has at least one matching cuesheet
 // with a detected dance level, maps its origPath to a string containing some subset
 // of "MPAC" (in that fixed order), one character per supported level category.
@@ -901,7 +926,14 @@ static QChar levelNameToCategory(const QString &levelName) {
 // cuesheets), and each is fuzzy-matched against every song using the same
 // MP3FilenameVsCuesheetnameScore() scoring used elsewhere to decide cuesheet/song
 // matches, so this stays consistent with what "available cuesheets for this song"
-// means throughout the rest of the app.
+// means throughout the rest of the app. Before calling that (expensive) scorer, a
+// cheap pre-filter skips pairs that can't plausibly match: if both names have a
+// parseable catalog number and they differ, AND the names don't share even one
+// word in common, there's no way the full fuzzy scorer's containment or
+// label+number paths could succeed, so the expensive comparison is skipped.
+// Sharing a word is enough to fall through to the full scorer, so this can't drop
+// any real match (the scorer's title-containment path itself requires the names to
+// share words).
 void MainWindow::computeSongLevels() {
     songLevelsByPath.clear();
 
@@ -909,6 +941,8 @@ void MainWindow::computeSongLevels() {
         QString completeBaseName;
         QString type;
         QChar category;
+        int catalogNumber;
+        QSet<QString> words;
     };
     QList<LeveledCuesheet> leveledCuesheets;
 
@@ -922,7 +956,8 @@ void MainWindow::computeSongLevels() {
             continue;
         }
         QFileInfo fi(parts[1]);
-        leveledCuesheets.append({fi.completeBaseName(), parts[0], category});
+        QString completeBaseName = fi.completeBaseName();
+        leveledCuesheets.append({completeBaseName, parts[0], category, quickExtractCatalogNumber(completeBaseName), quickWordSet(completeBaseName)});
     }
 
     if (leveledCuesheets.isEmpty()) {
@@ -939,6 +974,8 @@ void MainWindow::computeSongLevels() {
         bool fileCategoryIsPatter = (fileCategory == "patter");
 
         QString mp3CompleteBaseName = QFileInfo(origPath).completeBaseName();
+        int mp3CatalogNumber = quickExtractCatalogNumber(mp3CompleteBaseName);
+        QSet<QString> mp3Words = quickWordSet(mp3CompleteBaseName);
 
         QString levelsFound; // chars accumulate in "MPAC" order, since leveledCuesheets has no fixed order
         for (const auto &lc : leveledCuesheets) {
@@ -948,6 +985,10 @@ void MainWindow::computeSongLevels() {
             if (fileCategoryIsPatter && lc.type == "lyrics") {
                 // if it's a patter MP3, don't match it against anything in the lyrics folder
                 continue;
+            }
+            if (mp3CatalogNumber != -1 && lc.catalogNumber != -1 && mp3CatalogNumber != lc.catalogNumber &&
+                !mp3Words.intersects(lc.words)) {
+                continue; // cheap pre-filter: numbers differ and no shared words, so the full scorer can't succeed
             }
             if (MP3FilenameVsCuesheetnameScore(mp3CompleteBaseName, lc.completeBaseName) > 0) {
                 levelsFound.append(lc.category);
