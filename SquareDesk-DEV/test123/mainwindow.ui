@@ -4637,6 +4637,7 @@
       <string>Columns</string>
      </property>
      <addaction name="actionLabel"/>
+     <addaction name="actionLevels"/>
      <addaction name="actionRecent"/>
      <addaction name="actionAge"/>
      <addaction name="actionPitch"/>
@@ -6281,6 +6282,14 @@
    </property>
    <property name="text">
     <string>Label</string>
+   </property>
+  </action>
+  <action name="actionLevels">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Levels</string>
    </property>
   </action>
   <action name="actionResync_to_Apple_Music">

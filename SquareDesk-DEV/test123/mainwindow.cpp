@@ -1121,6 +1121,11 @@ MainWindow::~MainWindow()
 void MainWindow::updateSongTableColumnView()
 {
     ui->darkSongTable->setColumnHidden(kLabelCol, !prefsManager.GetshowLabelColumn());
+    ui->darkSongTable->setColumnHidden(kLevelsCol,!prefsManager.GetshowLevelsColumn());
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(COLUMN_LEVELS, !prefsManager.GetshowLevelsColumn()); // as the View > Columns > Levels changes
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(COLUMN_LEVELS, !prefsManager.GetshowLevelsColumn()); //   so does visibility of the levels column in the playlists
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(COLUMN_LEVELS, !prefsManager.GetshowLevelsColumn());
+
     ui->darkSongTable->setColumnHidden(kRecentCol,!prefsManager.GetshowRecentColumn());
     ui->darkSongTable->setColumnHidden(kAgeCol,   !prefsManager.GetshowAgeColumn());
     ui->darkSongTable->setColumnHidden(kPitchCol, !prefsManager.GetshowPitchColumn());
@@ -6062,6 +6067,16 @@ void MainWindow::on_actionLabel_toggled(bool checked)
 
     // the showRecentColumn setting is persistent across restarts of the application
     prefsManager.SetshowLabelColumn(checked);
+
+    updateSongTableColumnView();
+}
+
+void MainWindow::on_actionLevels_toggled(bool checked)
+{
+    ui->actionLevels->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showLevelsColumn setting is persistent across restarts of the application
+    prefsManager.SetshowLevelsColumn(checked);
 
     updateSongTableColumnView();
 }

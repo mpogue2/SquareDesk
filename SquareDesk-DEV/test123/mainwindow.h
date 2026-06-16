@@ -733,6 +733,7 @@ private slots:
     // ============================================================================
     void on_actionViewTags_toggled(bool);
     void on_actionLabel_toggled(bool arg1);
+    void on_actionLevels_toggled(bool arg1);
     void on_actionRecent_toggled(bool arg1);
     void on_actionAge_toggled(bool arg1);
     void on_actionPitch_toggled(bool arg1);

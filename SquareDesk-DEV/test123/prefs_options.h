@@ -132,6 +132,7 @@ CONFIG_ATTRIBUTE_BOOLEAN(enableFileWatcherCheckBox, enableFileWatcher, true); //
 
 //CONFIG_ATTRIBUTE_BOOLEAN(enableAutoMicsOffCheckbox, enableAutoMicsOff, false)
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showLabelColumn, true);
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showLevelsColumn, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showRecentColumn, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showAgeColumn, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showPitchColumn, true);
