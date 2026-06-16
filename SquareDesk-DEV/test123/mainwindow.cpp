@@ -3623,7 +3623,7 @@ void MainWindow::updateTreeWidget() {
 
         if (theType == "playlists") {
             QString thePath2 = thePath.replace("playlists/", "");
-            if (thePath2.endsWith("csv")) {
+            if (thePath2.endsWith("csv") && !thePath2.startsWith("templates/")) {
                 playlists.append(thePath2.replace(".csv", ""));
             }
         }
