@@ -384,8 +384,11 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
 }
 
-// Scans the first 25 lines of a cuesheet file for an "L:<levelName>" tag, and returns
-// levelName if found (e.g. "Plus"), or "" if not found or the file can't be opened.
+// Scans a cuesheet file for an "L:<levelName>" tag, and returns levelName if found
+// (e.g. "Plus"), or "" if not found or the file can't be opened.
+// As a startup-time optimization, only cuesheets that were edited by SquareDesk
+// (marked with a "squaredesk:version" comment within the first 5 lines) are scanned
+// any further, since hand-authored cuesheets are very unlikely to contain an "L:" tag.
 static QString detectCuesheetLevel(const QString &absoluteFilePath)
 {
     QFile file(absoluteFilePath);
@@ -393,14 +396,37 @@ static QString detectCuesheetLevel(const QString &absoluteFilePath)
         return "";
     }
 
+    static const QRegularExpression levelRegex("(^|\\s+|>)(L|LEVEL):(.*?)([a-zA-Z]:|,|;|<|$)",
+                                                 QRegularExpression::CaseInsensitiveOption);
+
     QTextStream in(&file);
-    int lineCount = 0;
+    QStringList firstLines;
+    bool isSquareDeskCuesheet = false;
+
+    while (!in.atEnd() && firstLines.size() < 5) {
+        QString line = in.readLine();
+        firstLines.append(line);
+        if (line.contains("squaredesk:version")) {
+            isSquareDeskCuesheet = true;
+        }
+    }
+
+    if (!isSquareDeskCuesheet) {
+        return ""; // not a SquareDesk cuesheet, so skip further scanning
+    }
+
+    for (const QString &line : firstLines) {
+        QRegularExpressionMatch match = levelRegex.match(line);
+        if (match.hasMatch()) {
+            return match.captured(3).simplified();
+        }
+    }
+
+    int lineCount = firstLines.size();
     while (!in.atEnd() && lineCount < 25) {
         QString line = in.readLine();
         lineCount++;
 
-        QRegularExpression levelRegex("(^|\\s+|>)(L|LEVEL):(.*?)([a-zA-Z]:|,|;|<|$)",
-                                      QRegularExpression::CaseInsensitiveOption);
         QRegularExpressionMatch match = levelRegex.match(line);
         if (match.hasMatch()) {
             return match.captured(3).simplified();
