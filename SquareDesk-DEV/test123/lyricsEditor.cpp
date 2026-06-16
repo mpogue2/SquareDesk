@@ -1288,6 +1288,8 @@ void MainWindow::saveLyrics()
 
         ui->actionPrint_Cuesheet->setEnabled(hasLyrics); // we can Cuesheet > Print Cuesheet if there are lyrics
 
+        qApp->processEvents();  // repaint the button changes above now, before the potentially-slow write/level-recompute below
+
         filewatcherShouldIgnoreOneFileSave = true;  // set flag
         writeCuesheet(cuesheetFilename);            // this will NOT trigger FileWatcher (one time)
 

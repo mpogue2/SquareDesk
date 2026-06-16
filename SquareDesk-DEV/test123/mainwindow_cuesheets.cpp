@@ -1039,17 +1039,22 @@ void MainWindow::refreshLevelsColumnDisplay() {
 
 // Re-detects the level for a single cuesheet that was just saved (new or edited), and
 // updates its entry in pathStackCuesheets (or appends one, if this is a brand new
-// cuesheet). Then, if the Levels column has been used at all this session, the whole
-// Levels computation is refreshed, since a level change can affect more than one
-// song's Levels string (e.g. if there are multiple matching cuesheets for a song).
+// cuesheet). Then, if the Levels column has been used at all this session AND the
+// level actually changed, the whole Levels computation is refreshed, since a level
+// change can affect more than one song's Levels string (e.g. if there are multiple
+// matching cuesheets for a song). Most saves don't change the level, so this check
+// avoids the costly recompute on every save.
 void MainWindow::updateCuesheetLevelInPathStack(const QString &absoluteFilePath) {
     QString levelName = detectCuesheetLevel(absoluteFilePath);
 
     for (int i = 0; i < pathStackCuesheets->size(); i++) {
         QStringList parts = (*pathStackCuesheets)[i].split("#!#");
         if (parts.size() >= 2 && parts[1] == absoluteFilePath) {
+            QString oldLevelName = parts.size() >= 3 ? parts[2] : QString();
             (*pathStackCuesheets)[i] = parts[0] + "#!#" + absoluteFilePath + "#!#" + levelName;
-            recomputeLevelsIfNeeded();
+            if (levelName != oldLevelName) {
+                recomputeLevelsIfNeeded();
+            }
             return;
         }
     }
@@ -1065,8 +1070,14 @@ void MainWindow::updateCuesheetLevelInPathStack(const QString &absoluteFilePath)
 
 void MainWindow::recomputeLevelsIfNeeded() {
     if (songLevelsComputed) {
+        QString previousStatusMessage = ui->statusBar->currentMessage();
+        ui->statusBar->showMessage("Saving...");
+        qApp->processEvents();  // make the "Saving..." message visible before the recompute below
+
         computeSongLevels();
         refreshLevelsColumnDisplay();
+
+        ui->statusBar->showMessage(previousStatusMessage);
     }
 }
 
