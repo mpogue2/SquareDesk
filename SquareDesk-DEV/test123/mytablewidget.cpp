@@ -700,9 +700,9 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
             QString sourceName = objectName();
 
             QString sourceTrackName = title; // e.g. "ESP 1234 - Ricochet"
-            QString sourcePitch = item(sourceRow, 2)->text();
-            QString sourceTempo = item(sourceRow, 3)->text();
-            QString sourcePath = item(sourceRow, 4)->text();
+            QString sourcePitch = item(sourceRow, COLUMN_PITCH)->text();
+            QString sourceTempo = item(sourceRow, COLUMN_TEMPO)->text();
+            QString sourcePath = item(sourceRow, COLUMN_PATH)->text();
             QString sourceInfoForThisRow = (rowNum++ > 0 ? "!!&!!" : "") +  // row separator
                           sourceTrackName + "                                    !#!" + // the spaces are so that the visible drag text is just the track name (hack!)
                           sourceName + "!#!" +

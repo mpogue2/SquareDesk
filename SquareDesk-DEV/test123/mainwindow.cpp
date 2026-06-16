@@ -1125,14 +1125,14 @@ void MainWindow::updateSongTableColumnView()
     ui->darkSongTable->setColumnHidden(kAgeCol,   !prefsManager.GetshowAgeColumn());
     ui->darkSongTable->setColumnHidden(kPitchCol, !prefsManager.GetshowPitchColumn());
 
-    ui->playlist1Table->horizontalHeader()->setSectionHidden(2, !prefsManager.GetshowPitchColumn()); // as the View > Columns > Pitch changes
-    ui->playlist2Table->horizontalHeader()->setSectionHidden(2, !prefsManager.GetshowPitchColumn()); //   so does visibility of the pitch column in the playlists
-    ui->playlist3Table->horizontalHeader()->setSectionHidden(2, !prefsManager.GetshowPitchColumn());
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(COLUMN_PITCH, !prefsManager.GetshowPitchColumn()); // as the View > Columns > Pitch changes
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(COLUMN_PITCH, !prefsManager.GetshowPitchColumn()); //   so does visibility of the pitch column in the playlists
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(COLUMN_PITCH, !prefsManager.GetshowPitchColumn());
 
     ui->darkSongTable->setColumnHidden(kTempoCol,!prefsManager.GetshowTempoColumn());
-    ui->playlist1Table->horizontalHeader()->setSectionHidden(3, !prefsManager.GetshowTempoColumn()); // as the View > Columns > Tempo changes
-    ui->playlist2Table->horizontalHeader()->setSectionHidden(3, !prefsManager.GetshowTempoColumn()); //   so does visibility of the tempo column in the playlists
-    ui->playlist3Table->horizontalHeader()->setSectionHidden(3, !prefsManager.GetshowTempoColumn());
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn()); // as the View > Columns > Tempo changes
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn()); //   so does visibility of the tempo column in the playlists
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn());
 
     // http://www.qtcentre.org/threads/3417-QTableWidget-stretch-a-column-other-than-the-last-one
     QHeaderView *darkHeaderView = ui->darkSongTable->horizontalHeader();
@@ -1141,6 +1141,7 @@ void MainWindow::updateSongTableColumnView()
     darkHeaderView->setSectionResizeMode(kLabelCol, QHeaderView::Interactive);
     darkHeaderView->setSectionResizeMode(kTitleCol, QHeaderView::Stretch);
 
+    darkHeaderView->setSectionResizeMode(kLevelsCol, QHeaderView::Fixed);
     darkHeaderView->setSectionResizeMode(kRecentCol, QHeaderView::Fixed);
     darkHeaderView->setSectionResizeMode(kAgeCol, QHeaderView::Fixed);
     darkHeaderView->setSectionResizeMode(kPitchCol, QHeaderView::Fixed);
@@ -1148,6 +1149,7 @@ void MainWindow::updateSongTableColumnView()
     darkHeaderView->setStretchLastSection(false);
 
     ui->darkSongTable->horizontalHeaderItem(kNumberCol)->setTextAlignment( Qt::AlignCenter );
+    ui->darkSongTable->horizontalHeaderItem(kLevelsCol)->setTextAlignment( Qt::AlignCenter );
     ui->darkSongTable->horizontalHeaderItem(kRecentCol)->setTextAlignment( Qt::AlignCenter );
     ui->darkSongTable->horizontalHeaderItem(kAgeCol)->setTextAlignment( Qt::AlignCenter );
     ui->darkSongTable->horizontalHeaderItem(kPitchCol)->setTextAlignment( Qt::AlignCenter );
@@ -8613,13 +8615,13 @@ void MainWindow::auditionByKeyPress(void) {
         auditionSongFilePath = this->ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
     } else if (rowsPaletteSlot1.count() >= 1) {
         int row = list1.at(0).row();
-        auditionSongFilePath = ui->playlist1Table->item(row,4)->text();
+        auditionSongFilePath = ui->playlist1Table->item(row,COLUMN_PATH)->text();
     } else if (rowsPaletteSlot2.count() >= 1) {
         int row = list2.at(0).row();
-        auditionSongFilePath = ui->playlist2Table->item(row,4)->text();
+        auditionSongFilePath = ui->playlist2Table->item(row,COLUMN_PATH)->text();
     } else if (rowsPaletteSlot3.count() >= 1) {
         int row = list3.at(0).row();
-        auditionSongFilePath = ui->playlist3Table->item(row,4)->text();
+        auditionSongFilePath = ui->playlist3Table->item(row,COLUMN_PATH)->text();
     } else {
         return;  // nothing was selected, so nothing to do
     }

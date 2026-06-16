@@ -82,10 +82,11 @@ enum Order
 // Table column indices for playlist tables
 constexpr int COLUMN_NUMBER = 0;
 constexpr int COLUMN_TITLE = 1;
-constexpr int COLUMN_PITCH = 2;
-constexpr int COLUMN_TEMPO = 3;
-constexpr int COLUMN_PATH = 4;
-constexpr int COLUMN_LOADED = 5;
+constexpr int COLUMN_LEVELS = 2;
+constexpr int COLUMN_PITCH = 3;
+constexpr int COLUMN_TEMPO = 4;
+constexpr int COLUMN_PATH = 5;
+constexpr int COLUMN_LOADED = 6;
 
 // Playlist slot numbers
 constexpr int MAX_PLAYLIST_SLOTS = 3;

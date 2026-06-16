@@ -836,10 +836,10 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
     // clear out the table
     ui->darkSongTable->setRowCount(0);
-    ui->darkSongTable->setColumnCount(8);
+    ui->darkSongTable->setColumnCount(9);
 
     QStringList m_TableHeader;
-    m_TableHeader << "" << "Type" << "Label" << "Title" << "Recent" << "Age" << "Pitch" << "Tempo";
+    m_TableHeader << "" << "Type" << "Label" << "Title" << "Levels" << "Recent" << "Age" << "Pitch" << "Tempo";
     ui->darkSongTable->setHorizontalHeaderLabels(m_TableHeader);
     ui->darkSongTable->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
     ui->darkSongTable->horizontalHeader()->setVisible(true);
@@ -1160,6 +1160,13 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         titleLabel->setFont(darkSongTableFont);
 
         ui->darkSongTable->setCellWidget(i, kTitleCol, titleLabel);
+
+        // LEVELS FIELD ----- (content computed from cuesheet levels; placeholder for now)
+        QTableWidgetItem *twiLevels = new QTableWidgetItem("");
+        twiLevels->setForeground(textBrush);
+        twiLevels->setTextAlignment(Qt::AlignCenter);
+        twiLevels->setFlags(twiLevels->flags() & ~Qt::ItemIsEditable);      // not editable
+        ui->darkSongTable->setItem(i, kLevelsCol, twiLevels);
 
         // AGE FIELD -----
         QString ageString = songSettings.getSongAge(fi.completeBaseName(), origPath, show_all_ages);

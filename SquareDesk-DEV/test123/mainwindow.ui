@@ -1546,6 +1546,17 @@
                  </column>
                  <column>
                   <property name="text">
+                   <string>Levels</string>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Avenir Next</family>
+                    <stylestrategy>PreferAntialias</stylestrategy>
+                   </font>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
                    <string>Pitch</string>
                   </property>
                   <property name="font">
@@ -1779,6 +1790,17 @@
                  </column>
                  <column>
                   <property name="text">
+                   <string>Levels</string>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Avenir Next</family>
+                    <stylestrategy>PreferAntialias</stylestrategy>
+                   </font>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
                    <string>Pitch</string>
                   </property>
                  </column>
@@ -1994,6 +2016,17 @@
                   </property>
                   <property name="textAlignment">
                    <set>AlignLeading|AlignVCenter</set>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                   <string>Levels</string>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Avenir Next</family>
+                    <stylestrategy>PreferAntialias</stylestrategy>
+                   </font>
                   </property>
                  </column>
                  <column>

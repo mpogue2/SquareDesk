@@ -936,19 +936,22 @@ void MainWindow::initializeMusicPlaylists() {
     ui->playlist1Table->setMainWindow(this);
     ui->playlist1Table->resizeColumnToContents(COLUMN_NUMBER); // number
     ui->playlist1Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
-    ui->playlist1Table->setColumnWidth(2,20); // pitch
-    ui->playlist1Table->setColumnWidth(3,45); // tempo
+    ui->playlist1Table->setColumnWidth(COLUMN_LEVELS,40); // levels
+    ui->playlist1Table->setColumnWidth(COLUMN_PITCH,20); // pitch
+    ui->playlist1Table->setColumnWidth(COLUMN_TEMPO,45); // tempo
     ui->playlist1Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
     ui->playlist1Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter);
-    ui->playlist1Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter);
-    ui->playlist1Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter);
+    ui->playlist1Table->horizontalHeaderItem(COLUMN_LEVELS)->setTextAlignment( Qt::AlignCenter);
+    ui->playlist1Table->horizontalHeaderItem(COLUMN_PITCH)->setTextAlignment( Qt::AlignCenter);
+    ui->playlist1Table->horizontalHeaderItem(COLUMN_TEMPO)->setTextAlignment( Qt::AlignCenter);
     ui->playlist1Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist1Table->verticalHeader()->setMaximumSectionSize(28);
 
-    ui->playlist1Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
-    ui->playlist1Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
-    ui->playlist1Table->horizontalHeader()->setSectionHidden(2, false); // hide pitch
-    ui->playlist1Table->horizontalHeader()->setSectionHidden(3, false); // hide tempo
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(COLUMN_PATH, true); // hide fullpath
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(COLUMN_LOADED, true); // hide loaded
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(COLUMN_LEVELS, true); // levels column starts out hidden
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(COLUMN_PITCH, false); // hide pitch
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, false); // hide tempo
 
     // WARNING: THIS CODE IS ONLY FOR THE NUMBERS COLUMN OF PLAYLIST TABLES.
     //  THE NORMAL CONTEXT MENU IS IN PLAYLISTS.CPP SOURCE FILE.
@@ -990,7 +993,7 @@ void MainWindow::initializeMusicPlaylists() {
                 if (rowCount == 1) {
                     // Reveal Audio File and Cuesheet in Finder
                     plMenu->addSeparator();
-                    QString fullPath = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
+                    QString fullPath = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), COLUMN_PATH)->text();
                     QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
                     //                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
 
@@ -1034,7 +1037,7 @@ void MainWindow::initializeMusicPlaylists() {
                                       });
 
                     // if the current song has a cuesheet, offer to show it to the user -----
-                    QString fullMP3Path = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
+                    QString fullMP3Path = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), COLUMN_PATH)->text();
                     QString cuesheetPath;
 
                     SongSetting settings1;
@@ -1078,19 +1081,22 @@ void MainWindow::initializeMusicPlaylists() {
     ui->playlist2Table->setMainWindow(this);
     ui->playlist2Table->resizeColumnToContents(COLUMN_NUMBER); // number
     ui->playlist2Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
-    ui->playlist2Table->setColumnWidth(2,20); // pitch
-    ui->playlist2Table->setColumnWidth(3,45); // tempo
+    ui->playlist2Table->setColumnWidth(COLUMN_LEVELS,40); // levels
+    ui->playlist2Table->setColumnWidth(COLUMN_PITCH,20); // pitch
+    ui->playlist2Table->setColumnWidth(COLUMN_TEMPO,45); // tempo
     ui->playlist2Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
     ui->playlist2Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter );
-    ui->playlist2Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter );
-    ui->playlist2Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter );
+    ui->playlist2Table->horizontalHeaderItem(COLUMN_LEVELS)->setTextAlignment( Qt::AlignCenter );
+    ui->playlist2Table->horizontalHeaderItem(COLUMN_PITCH)->setTextAlignment( Qt::AlignCenter );
+    ui->playlist2Table->horizontalHeaderItem(COLUMN_TEMPO)->setTextAlignment( Qt::AlignCenter );
     ui->playlist2Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist2Table->verticalHeader()->setMaximumSectionSize(28);
 
-    ui->playlist2Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
-    ui->playlist2Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
-    ui->playlist2Table->horizontalHeader()->setSectionHidden(2, false); // hide pitch
-    ui->playlist2Table->horizontalHeader()->setSectionHidden(3, false); // hide tempo
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(COLUMN_PATH, true); // hide fullpath
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(COLUMN_LOADED, true); // hide loaded
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(COLUMN_LEVELS, true); // levels column starts out hidden
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(COLUMN_PITCH, false); // hide pitch
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, false); // hide tempo
 
     // WARNING: THIS CODE IS ONLY FOR THE NUMBERS COLUMN OF PLAYLIST TABLES.
     //  THE NORMAL CONTEXT MENU IS IN PLAYLISTS.CPP SOURCE FILE.
@@ -1130,7 +1136,7 @@ void MainWindow::initializeMusicPlaylists() {
                 if (rowCount == 1) {
                     // Reveal Audio File and Cuesheet in Finder
                     plMenu->addSeparator();
-                    QString fullPath = this->ui->playlist2Table->item(this->ui->playlist2Table->itemAt(q)->row(), 4)->text();
+                    QString fullPath = this->ui->playlist2Table->item(this->ui->playlist2Table->itemAt(q)->row(), COLUMN_PATH)->text();
                     QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
                     //                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
 
@@ -1174,7 +1180,7 @@ void MainWindow::initializeMusicPlaylists() {
                                       });
 
                     // if the current song has a cuesheet, offer to show it to the user -----
-                    QString fullMP3Path = this->ui->playlist2Table->item(this->ui->playlist2Table->itemAt(q)->row(), 4)->text();
+                    QString fullMP3Path = this->ui->playlist2Table->item(this->ui->playlist2Table->itemAt(q)->row(), COLUMN_PATH)->text();
                     QString cuesheetPath;
 
                     SongSetting settings1;
@@ -1218,19 +1224,22 @@ void MainWindow::initializeMusicPlaylists() {
 
     ui->playlist3Table->resizeColumnToContents(COLUMN_NUMBER); // number
     ui->playlist3Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
-    ui->playlist3Table->setColumnWidth(2,20); // pitch
-    ui->playlist3Table->setColumnWidth(3,45); // tempo
+    ui->playlist3Table->setColumnWidth(COLUMN_LEVELS,40); // levels
+    ui->playlist3Table->setColumnWidth(COLUMN_PITCH,20); // pitch
+    ui->playlist3Table->setColumnWidth(COLUMN_TEMPO,45); // tempo
     ui->playlist3Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
     ui->playlist3Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter );
-    ui->playlist3Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter );
-    ui->playlist3Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter );
+    ui->playlist3Table->horizontalHeaderItem(COLUMN_LEVELS)->setTextAlignment( Qt::AlignCenter );
+    ui->playlist3Table->horizontalHeaderItem(COLUMN_PITCH)->setTextAlignment( Qt::AlignCenter );
+    ui->playlist3Table->horizontalHeaderItem(COLUMN_TEMPO)->setTextAlignment( Qt::AlignCenter );
     ui->playlist3Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist3Table->verticalHeader()->setMaximumSectionSize(28);
 
-    ui->playlist3Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
-    ui->playlist3Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
-    ui->playlist3Table->horizontalHeader()->setSectionHidden(2, false); // hide pitch
-    ui->playlist3Table->horizontalHeader()->setSectionHidden(3, false); // hide tempo
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(COLUMN_PATH, true); // hide fullpath
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(COLUMN_LOADED, true); // hide loaded
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(COLUMN_LEVELS, true); // levels column starts out hidden
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(COLUMN_PITCH, false); // hide pitch
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, false); // hide tempo
 
     // WARNING: THIS CODE IS ONLY FOR THE NUMBERS COLUMN OF PLAYLIST TABLES.
     //  THE NORMAL CONTEXT MENU IS IN PLAYLISTS.CPP SOURCE FILE.
@@ -1270,7 +1279,7 @@ void MainWindow::initializeMusicPlaylists() {
                 if (rowCount == 1) {
                     // Reveal Audio File and Cuesheet in Finder
                     plMenu->addSeparator();
-                    QString fullPath = this->ui->playlist3Table->item(this->ui->playlist3Table->itemAt(q)->row(), 4)->text();
+                    QString fullPath = this->ui->playlist3Table->item(this->ui->playlist3Table->itemAt(q)->row(), COLUMN_PATH)->text();
                     QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
                     //                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
 
@@ -1313,7 +1322,7 @@ void MainWindow::initializeMusicPlaylists() {
 
                                       });
             // if the current song has a cuesheet, offer to show it to the user -----
-            QString fullMP3Path = this->ui->playlist3Table->item(this->ui->playlist3Table->itemAt(q)->row(), 4)->text();
+            QString fullMP3Path = this->ui->playlist3Table->item(this->ui->playlist3Table->itemAt(q)->row(), COLUMN_PATH)->text();
             QString cuesheetPath;
 
             SongSetting settings1;
@@ -1423,10 +1432,13 @@ void MainWindow::initializeMusicSongTable() {
     ui->darkSongTable->setColumnWidth(kTitleCol,350);
     //  TODO: kTitleCol should be always expandable, so don't set width here
 
+    ui->darkSongTable->setColumnWidth(kLevelsCol, 60);
     ui->darkSongTable->setColumnWidth(kRecentCol, 70);
     ui->darkSongTable->setColumnWidth(kAgeCol, 60);
     ui->darkSongTable->setColumnWidth(kPitchCol,60);
     ui->darkSongTable->setColumnWidth(kTempoCol,60);
+
+    ui->darkSongTable->setColumnHidden(kLevelsCol, true); // levels column starts out hidden, same as the playlist Levels column
 
     zoomInOut(0);  // trigger reloading of all fonts, including horizontalHeader of songTable()
 

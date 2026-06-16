@@ -44,10 +44,11 @@
 #define kTitleCol 3
 
 // POSSIBLY hidden columns:
-#define kRecentCol 4
-#define kAgeCol   5
-#define kPitchCol 6
-#define kTempoCol 7
+#define kLevelsCol 4
+#define kRecentCol 5
+#define kAgeCol   6
+#define kPitchCol 7
+#define kTempoCol 8
 
 class SongRow : public SongSetting
 {
