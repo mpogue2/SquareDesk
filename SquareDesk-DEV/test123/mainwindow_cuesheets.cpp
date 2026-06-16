@@ -26,6 +26,7 @@
 #include "downloadmanager.h"
 #include "perftimer.h"
 #include "songlistmodel.h"
+#include "mytablewidget.h"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Welaborated-enum-base"
 #include "mainwindow.h"
@@ -1006,6 +1007,32 @@ void MainWindow::computeSongLevels() {
             if (levelsFound.contains('A')) orderedLevels += 'A';
             if (levelsFound.contains('C')) orderedLevels += 'C';
             songLevelsByPath.insert(origPath, orderedLevels);
+        }
+    }
+}
+
+// Updates the Levels column cell text in darkSongTable and all 3 playlist tables
+// from the already-computed songLevelsByPath, without doing a full table reload.
+// Used when the user toggles the Levels column on for the first time in a session
+// (computeSongLevels() runs lazily at that point, rather than at every startup).
+void MainWindow::refreshLevelsColumnDisplay() {
+    for (int row = 0; row < ui->darkSongTable->rowCount(); row++) {
+        QTableWidgetItem *pathItem = ui->darkSongTable->item(row, kPathCol);
+        QTableWidgetItem *levelsItem = ui->darkSongTable->item(row, kLevelsCol);
+        if (pathItem && levelsItem) {
+            QString origPath = pathItem->data(Qt::UserRole).toString();
+            levelsItem->setText(songLevelsByPath.value(origPath, ""));
+        }
+    }
+
+    MyTableWidget *playlistTables[3] = { ui->playlist1Table, ui->playlist2Table, ui->playlist3Table };
+    for (MyTableWidget *table : playlistTables) {
+        for (int row = 0; row < table->rowCount(); row++) {
+            QTableWidgetItem *pathItem = table->item(row, COLUMN_PATH);
+            QTableWidgetItem *levelsItem = table->item(row, COLUMN_LEVELS);
+            if (pathItem && levelsItem) {
+                levelsItem->setText(songLevelsByPath.value(pathItem->text(), ""));
+            }
         }
     }
 }

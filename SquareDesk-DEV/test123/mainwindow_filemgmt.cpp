@@ -547,7 +547,15 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
 
     t.elapsed(__LINE__);
 
-    computeSongLevels(); // figure out which songs have cuesheets at which dance levels, for the Levels column
+    // Only pay the cost of computing the Levels column if it's actually visible (or was already
+    // computed this session, e.g. the user toggled it on then off again) -- this is the dominant
+    // cost of a rescan, so most users (who never enable the Levels column) skip it entirely.
+    if (prefsManager.GetshowLevelsColumn() || songLevelsComputed) {
+        computeSongLevels(); // figure out which songs have cuesheets at which dance levels, for the Levels column
+        songLevelsComputed = true;
+    } else {
+        songLevelsByPath.clear();
+    }
 
     t.elapsed(__LINE__);
 

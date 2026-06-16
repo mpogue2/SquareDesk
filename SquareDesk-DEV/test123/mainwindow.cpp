@@ -6078,6 +6078,13 @@ void MainWindow::on_actionLevels_toggled(bool checked)
     // the showLevelsColumn setting is persistent across restarts of the application
     prefsManager.SetshowLevelsColumn(checked);
 
+    if (checked && !songLevelsComputed) {
+        // first time Levels has been turned on this session -- pay the (one-time) cost now
+        computeSongLevels();
+        songLevelsComputed = true;
+        refreshLevelsColumnDisplay();
+    }
+
     updateSongTableColumnView();
 }
 
