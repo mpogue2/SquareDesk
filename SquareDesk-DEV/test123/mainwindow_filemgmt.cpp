@@ -547,6 +547,10 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
 
     t.elapsed(__LINE__);
 
+    computeSongLevels(); // figure out which songs have cuesheets at which dance levels, for the Levels column
+
+    t.elapsed(__LINE__);
+
     // APPLE MUSIC ------------
     if (prefsManager.GetenableAppleMusic()) {
 #ifdef OLDAPPLEMUSICPLAYLISTS
@@ -1161,8 +1165,8 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
         ui->darkSongTable->setCellWidget(i, kTitleCol, titleLabel);
 
-        // LEVELS FIELD ----- (content computed from cuesheet levels; placeholder for now)
-        QTableWidgetItem *twiLevels = new QTableWidgetItem("");
+        // LEVELS FIELD -----
+        QTableWidgetItem *twiLevels = new QTableWidgetItem(songLevelsByPath.value(origPath, ""));
         twiLevels->setForeground(textBrush);
         twiLevels->setTextAlignment(Qt::AlignCenter);
         twiLevels->setFlags(twiLevels->flags() & ~Qt::ItemIsEditable);      // not editable

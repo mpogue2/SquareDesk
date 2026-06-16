@@ -796,6 +796,12 @@ void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativ
 
             setTitleField(theTableWidget, songCount-1, fakePath, false, PlaylistFileName, "", shouldIndent); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
 
+            // LEVELS column
+            QString levels = ui->darkSongTable->item(i, kLevelsCol)->text();
+            QTableWidgetItem *lev = new QTableWidgetItem(levels);
+            lev->setTextAlignment(Qt::AlignCenter);
+            theTableWidget->setItem(songCount-1, COLUMN_LEVELS, lev);
+
             // PITCH column
             QTableWidgetItem *pit = new QTableWidgetItem(pitch);
             theTableWidget->setItem(songCount-1, COLUMN_PITCH, pit);
@@ -889,6 +895,11 @@ void MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString 
             }
 
             setTitleField(theTableWidget, songCount-1, "/xtras/" + shortTitle, false, sl[1], "", shouldIndent); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
+
+            // LEVELS column
+            QTableWidgetItem *lev = new QTableWidgetItem(songLevelsByPath.value(sl[2], ""));
+            lev->setTextAlignment(Qt::AlignCenter);
+            theTableWidget->setItem(songCount-1, COLUMN_LEVELS, lev);
 
             // PITCH column
             QTableWidgetItem *pit = new QTableWidgetItem("0"); // defaults to no pitch change
@@ -1017,6 +1028,11 @@ void MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString rel
                     }
 
                     setTitleField(theTableWidget, songCount-1, theFakePath, true, PlaylistFileName, list1[0], shouldIndent); // list1[0] points at the file, theFakePath might have been reversed, e.g. Foo - RIV123.mp3
+
+                    // LEVELS column
+                    QTableWidgetItem *lev = new QTableWidgetItem(songLevelsByPath.value(absPath, ""));
+                    lev->setTextAlignment(Qt::AlignCenter);
+                    theTableWidget->setItem(songCount-1, COLUMN_LEVELS, lev);
 
                     // PITCH column
                     QTableWidgetItem *pit = new QTableWidgetItem(list1[1]);
@@ -2106,6 +2122,11 @@ void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, 
     bool shouldIndent = shouldIndentPlaylistRow(destTableWidget, insertRowNum);
 
     setTitleField(destTableWidget, insertRowNum, theCanonicalRelativePath, true, PlaylistFileName, theRelativePath, shouldIndent); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
+
+    // LEVELS column
+    QTableWidgetItem *lev = new QTableWidgetItem(songLevelsByPath.value(absPath, ""));
+    lev->setTextAlignment(Qt::AlignCenter);
+    destTableWidget->setItem(insertRowNum, COLUMN_LEVELS, lev);
 
     // PITCH column
     QTableWidgetItem *pit = new QTableWidgetItem(thePitch);

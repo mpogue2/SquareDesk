@@ -48,6 +48,7 @@
 #include <QFileDialog>
 #include <QDir>
 #include <QDirIterator>
+#include <QHash>
 #include <QList>
 #include <QListIterator>
 #include <QListWidget>
@@ -1074,6 +1075,7 @@ private:
     bool breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &labenum_extra,
                                 QString &title, QString &shortTitle);
     int MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit *debugOut = nullptr);
+    void computeSongLevels();
 
     // Music library management
     void findMusic(QString mainRootDir, bool refreshDatabase);
@@ -1124,6 +1126,7 @@ private:
     // ============================================================================
     QList<QString> *pathStack;
     QList<QString> *pathStackCuesheets;
+    QHash<QString, QString> songLevelsByPath; // origPath -> up to 4-char "Levels" string (M/P/A/C), computed by computeSongLevels()
     QList<QString> *pathStackPlaylists;
     QList<QString> *pathStackNewApplePlaylists;
     QList<QString> *pathStackApplePlaylists;

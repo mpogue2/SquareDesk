@@ -875,6 +875,100 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
     return score;
 }
 
+// Maps a detected cuesheet "L:<levelName>" string to one of the 4 Levels-column
+// categories ('M'=Mainstream/SSD/Class, 'P'=Plus, 'A'=A1/A2, 'C'=any Challenge level),
+// or a null QChar if levelName doesn't match any known category.
+// NOTE: "Class" must be checked before the generic Challenge "starts with C" check,
+// since "Class ..." also starts with the letter C.
+static QChar levelNameToCategory(const QString &levelName) {
+    if (levelName.compare("SSD", Qt::CaseInsensitive) == 0 || levelName.compare("MS", Qt::CaseInsensitive) == 0 ||
+        levelName.startsWith("Class", Qt::CaseInsensitive)) {
+        return QChar('M');
+    } else if (levelName.compare("Plus", Qt::CaseInsensitive) == 0) {
+        return QChar('P');
+    } else if (levelName.compare("A1", Qt::CaseInsensitive) == 0 || levelName.compare("A2", Qt::CaseInsensitive) == 0) {
+        return QChar('A');
+    } else if (levelName.startsWith("C", Qt::CaseInsensitive)) {
+        return QChar('C');
+    }
+    return QChar();
+}
+
+// Computes songLevelsByPath: for every song that has at least one matching cuesheet
+// with a detected dance level, maps its origPath to a string containing some subset
+// of "MPAC" (in that fixed order), one character per supported level category.
+// Only cuesheets with a detected level are considered (a small subset of all
+// cuesheets), and each is fuzzy-matched against every song using the same
+// MP3FilenameVsCuesheetnameScore() scoring used elsewhere to decide cuesheet/song
+// matches, so this stays consistent with what "available cuesheets for this song"
+// means throughout the rest of the app.
+void MainWindow::computeSongLevels() {
+    songLevelsByPath.clear();
+
+    struct LeveledCuesheet {
+        QString completeBaseName;
+        QString type;
+        QChar category;
+    };
+    QList<LeveledCuesheet> leveledCuesheets;
+
+    for (const QString &s : *pathStackCuesheets) {
+        QStringList parts = s.split("#!#");
+        if (parts.size() < 3 || parts[2].isEmpty()) {
+            continue;
+        }
+        QChar category = levelNameToCategory(parts[2]);
+        if (category.isNull()) {
+            continue;
+        }
+        QFileInfo fi(parts[1]);
+        leveledCuesheets.append({fi.completeBaseName(), parts[0], category});
+    }
+
+    if (leveledCuesheets.isEmpty()) {
+        return;
+    }
+
+    for (const QString &s : *pathStack) {
+        QStringList parts = s.split("#!#");
+        if (parts.size() < 2) {
+            continue;
+        }
+        QString origPath = parts[1];
+        QString fileCategory = filepath2SongCategoryName(origPath);
+        bool fileCategoryIsPatter = (fileCategory == "patter");
+
+        QString mp3CompleteBaseName = QFileInfo(origPath).completeBaseName();
+
+        QString levelsFound; // chars accumulate in "MPAC" order, since leveledCuesheets has no fixed order
+        for (const auto &lc : leveledCuesheets) {
+            if (levelsFound.contains(lc.category)) {
+                continue; // already found this category for this song
+            }
+            if (fileCategoryIsPatter && lc.type == "lyrics") {
+                // if it's a patter MP3, don't match it against anything in the lyrics folder
+                continue;
+            }
+            if (MP3FilenameVsCuesheetnameScore(mp3CompleteBaseName, lc.completeBaseName) > 0) {
+                levelsFound.append(lc.category);
+            }
+            if (levelsFound.length() == 4) {
+                break; // found all 4 categories, no need to keep checking
+            }
+        }
+
+        if (!levelsFound.isEmpty()) {
+            // put the chars found into the canonical "MPAC" order
+            QString orderedLevels;
+            if (levelsFound.contains('M')) orderedLevels += 'M';
+            if (levelsFound.contains('P')) orderedLevels += 'P';
+            if (levelsFound.contains('A')) orderedLevels += 'A';
+            if (levelsFound.contains('C')) orderedLevels += 'C';
+            songLevelsByPath.insert(origPath, orderedLevels);
+        }
+    }
+}
+
 void MainWindow::betterFindPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets) {
 
     // if it's a patter MP3, then do NOT match it against anything in the lyrics folder
