@@ -1561,7 +1561,7 @@ void MainWindow::dropEvent(QDropEvent *event)
     for (const QString &path : allFilePaths) {
         QFileInfo fileInfo(path);
         QString fileName = fileInfo.fileName();
-        QString baseName = fileInfo.completeBaseName().simplified();
+        QString baseName = fileInfo.completeBaseName().replace("%20", " ").simplified();
         QString extension = fileInfo.suffix();
 
         QStringList badExtensions;
