@@ -692,6 +692,8 @@ bool MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int
         loadRegularPlaylistToSlot(PlaylistFileName, relativePath, slotNumber, songCount);
     }
 
+    adjustFontSizes(); // restore user's font size for the newly-built title labels (issue #1630)
+
     return true;
 }
 
