@@ -23,6 +23,7 @@
 **
 ****************************************************************************/
 #include "globaldefines.h"
+#include "playlist_constants.h"
 
 #include <QActionGroup>
 #include <QColorDialog>
@@ -7496,6 +7497,38 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
         }
     }
 
+    plMenu->addSeparator();
+
+    // Add "New From Template" submenu (issue #1629)
+    QMenu *newFromTemplateMenu = new QMenu("New From Template", this);
+    newFromTemplateMenu->setProperty("theme", currentThemeString);
+
+    QString templatesDirPath = musicRootPath + "/playlists/templates";
+    QDir templatesDir(templatesDirPath);
+    QStringList templateFiles = templatesDir.entryList(QStringList("*.csv"), QDir::Files | QDir::NoSymLinks, QDir::Name);
+
+    if (templateFiles.isEmpty()) {
+        QAction *noTemplatesAction = newFromTemplateMenu->addAction("(no templates found)");
+        noTemplatesAction->setEnabled(false);
+    } else {
+        for (const QString &templateFile : templateFiles) {
+            QString templateName = templateFile;
+            templateName.replace(CSV_FILE_EXTENSION, "");
+            QString templateFullPath = templatesDirPath + "/" + templateFile;
+            newFromTemplateMenu->addAction(templateName, [this, whichSlot, templateFullPath]() {
+                loadTemplateToSlot(templateFullPath, whichSlot);
+            });
+        }
+    }
+
+    plMenu->addMenu(newFromTemplateMenu);
+
+    // Add "Save As Template..." action (issue #1629)
+    QAction *saveAsTemplateAction = plMenu->addAction(QString("Save As Template..."), [whichSlot, this]() {
+        saveSlotAsTemplate(whichSlot);
+    });
+    saveAsTemplateAction->setEnabled(theTableWidget->rowCount() > 0);
+
     plMenu->popup(QCursor::pos());
     plMenu->exec();
 
@@ -8403,6 +8436,7 @@ void MainWindow::maybeMakeAllRequiredFolders() {
     maybeMakeRequiredFolder("lyrics/templates");
     maybeMakeRequiredFolder("patter");
     maybeMakeRequiredFolder("playlists");
+    maybeMakeRequiredFolder("playlists/templates");
     maybeMakeRequiredFolder("reference");
     maybeMakeRequiredFolder("sd");
     maybeMakeRequiredFolder("sd/dances");

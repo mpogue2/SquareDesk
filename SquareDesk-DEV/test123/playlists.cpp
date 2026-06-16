@@ -1186,9 +1186,23 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
 
 
 // ========================
+// Shared CSV row writer, used by saveSlotAsPlaylist, saveSlotNow, and saveSlotAsTemplate
+void MainWindow::writePlaylistRowsToStream(QTextStream &stream, QTableWidget *theTableWidget) {
+    stream << CSV_HEADER_STRING << ENDL;  // NOTE: This is a RELATIVE PATH, and "relpath" is used to detect that.
+
+    for (int i = 0; i < theTableWidget->rowCount(); i++) {
+        QString path = theTableWidget->item(i, COLUMN_PATH)->text();
+        path = path.replace(musicRootPath,"").replace("\"","\"\""); // if path contains a QUOTE, it needs to be changed to DOUBLE QUOTE in CSV
+
+        QString pitch = theTableWidget->item(i, COLUMN_PITCH)->text();
+        QString tempo = theTableWidget->item(i, COLUMN_TEMPO)->text();
+        // qDebug() << path + "," + pitch + "," + tempo;
+        stream << "\"" + path + "\"," + pitch + "," + tempo << ENDL; // relative path with quotes, then pitch then tempo (% or bpm)
+    }
+}
+
+// ========================
 // DARK MODE: file dialog to ask for a file name, then save slot to that file
-// TODO: much of this code is same as saveSlotAsPlaylist(whichSlot), which just opens a file dialog
-//   so this should be factored.
 void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
 {
     auto [theTableWidget, theLabel] = getSlotWidgets(whichSlot);
@@ -1249,18 +1263,7 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
 
     if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         QTextStream stream(&file);
-
-        stream << CSV_HEADER_STRING << ENDL;  // NOTE: This is now a RELATIVE PATH, and "relpath" is used to detect that.
-
-        for (int i = 0; i < theTableWidget->rowCount(); i++) {
-            QString path = theTableWidget->item(i, COLUMN_PATH)->text();
-            path = path.replace(musicRootPath,"").replace("\"","\"\""); // if path contains a QUOTE, it needs to be changed to DOUBLE QUOTE in CSV
-
-            QString pitch = theTableWidget->item(i, COLUMN_PITCH)->text();
-            QString tempo = theTableWidget->item(i, COLUMN_TEMPO)->text();
-            // qDebug() << path + "," + pitch + "," + tempo;
-            stream << "\"" + path + "\"," + pitch + "," + tempo << ENDL; // relative path with quotes, then pitch then tempo (% or bpm)
-        }
+        writePlaylistRowsToStream(stream, theTableWidget);
 
         file.close(); // OK, we're done saving the file, so...
         slotModified[whichSlot] = false;
@@ -1286,6 +1289,68 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
         ui->statusBar->showMessage(QString("ERROR: could not save playlist to CSV file."));
     }
 
+}
+
+// ========================
+// Save the current contents of a slot out to the playlist templates folder, as a named template.
+// Unlike saveSlotAsPlaylist, this does NOT change the slot's saved/unsaved state (issue #1629).
+void MainWindow::saveSlotAsTemplate(int whichSlot)  // slots 0 - 2
+{
+    auto [theTableWidget, theLabel] = getSlotWidgets(whichSlot);
+    Q_UNUSED(theLabel)
+
+    QString templatesDirPath = musicRootPath + "/playlists/templates";
+    QString startHere = templatesDirPath + "/";
+
+    QString preferred("CSV files (*.csv)");
+    trapKeypresses = false;
+
+    QString templateFileName =
+        QFileDialog::getSaveFileName(this,
+                                     tr("Save Playlist As Template"),
+                                     startHere,
+                                     tr("CSV files (*.csv)"),
+                                     &preferred);  // CSV required now
+    trapKeypresses = true;
+    if (templateFileName.isNull()) {
+        return;  // user cancelled...so don't do anything, just return
+    }
+
+    if (!templateFileName.endsWith(CSV_FILE_EXTENSION, Qt::CaseInsensitive)) {
+        templateFileName = templateFileName + CSV_FILE_EXTENSION;
+    }
+
+    filewatcherShouldIgnoreOneFileSave = true;  // rootDir is being watched, which causes this to be needed.
+
+    QFile file(templateFileName);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        QTextStream stream(&file);
+        writePlaylistRowsToStream(stream, theTableWidget);
+        file.close();
+
+        QString templateShortName = templateFileName.split('/').last().replace(CSV_FILE_EXTENSION,"");
+        ui->statusBar->showMessage(QString("Saved Template %1").arg(templateShortName));
+    } else {
+        ui->statusBar->showMessage(QString("ERROR: could not save template to CSV file."));
+    }
+}
+
+// ========================
+// Load a playlist template (from musicRootPath/playlists/templates) into a slot as an
+// UNTITLED playlist, so the user is forced to choose a name when they later save it (issue #1629).
+void MainWindow::loadTemplateToSlot(QString templateFullPath, int whichSlot)
+{
+    int songCount;
+    loadPlaylistFromFileToPaletteSlot(templateFullPath, whichSlot, songCount);
+
+    auto [theTableWidget, theLabel] = getSlotWidgets(whichSlot);
+    Q_UNUSED(theTableWidget)
+
+    relPathInSlot[whichSlot] = "";
+    slotModified[whichSlot] = true; // unsaved content, so quit/close should prompt to save it
+    setLastPlaylistLoaded(whichSlot, "");
+
+    theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"%1\" height=\"%2\">Untitled playlist").arg(PLAYLIST_ICON_WIDTH).arg(PLAYLIST_ICON_HEIGHT));
 }
 
 // -----------
@@ -1344,18 +1409,7 @@ void MainWindow::saveSlotNow(int whichSlot) {
 
     if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         QTextStream stream(&file);
-
-        stream << CSV_HEADER_STRING << ENDL;  // NOTE: This is a RELATIVE PATH, and "relpath" is used to detect that.
-
-        for (int i = 0; i < theTableWidget->rowCount(); i++) {
-            QString path = theTableWidget->item(i, COLUMN_PATH)->text();
-            path = path.replace(musicRootPath,"").replace("\"","\"\""); // if path contains a QUOTE, it needs to be changed to DOUBLE QUOTE in CSV
-
-            QString pitch = theTableWidget->item(i, COLUMN_PITCH)->text();
-            QString tempo = theTableWidget->item(i, COLUMN_TEMPO)->text();
-            // qDebug() << path + "," + pitch + "," + tempo;
-            stream << "\"" + path + "\"," + pitch + "," + tempo << ENDL; // relative path with quotes, then pitch then tempo (% or bpm)
-        }
+        writePlaylistRowsToStream(stream, theTableWidget);
 
         file.close(); // OK, we're done saving the file, so...
         slotModified[whichSlot] = false;

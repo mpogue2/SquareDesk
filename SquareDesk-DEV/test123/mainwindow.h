@@ -66,6 +66,7 @@
 #include <QStack>
 #include <QTableWidgetItem>
 #include <QTextEdit>
+#include <QTextStream>
 #include <QToolTip>
 #include <QVariant>
 #include <QVector>
@@ -844,6 +845,9 @@ private slots:
     QString expandAbbreviations(QString s);
     void reloadPaletteSlots();
     void saveSlotAsPlaylist(int whichSlot);
+    void saveSlotAsTemplate(int whichSlot);
+    void loadTemplateToSlot(QString templateFullPath, int whichSlot);
+    void writePlaylistRowsToStream(QTextStream &stream, QTableWidget *theTableWidget);
     void clearSlot(int whichSlot);
     void showInFinderOrExplorer(QString s);
     void on_pushButtonClearTaughtCalls_clicked();
