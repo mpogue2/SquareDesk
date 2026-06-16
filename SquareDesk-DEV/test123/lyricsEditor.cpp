@@ -1320,26 +1320,31 @@ void MainWindow::saveLyricsAs()
 
     // qDebug() << "loadedCuesheetNameWithPath: " << loadedCuesheetNameWithPath;
 
-    if (fi2.exists() || fi3.exists()) {
-        // qDebug() << "fi2 (HTML) or fi3 (HTM) exists!";
+    // choose the next name in the series (this won't be done, if we came from a template)
+    QString cuesheetBase = loadedCuesheetNameWithPath
+            .replace(QRegularExpression("\\.html$"),"")        // remove extension, e.g. ".html"
+            .replace(QRegularExpression("\\(.*\\)"),"")        // remove parens, e.g. AAA 123 - Foo Bar (NM).mp3
+            .simplified();                                     // trim and consolidate whitespace
 
-        // choose the next name in the series (this won't be done, if we came from a template)
-        QString cuesheetExt = loadedCuesheetNameWithPath.split(".").last();
-        QString cuesheetBase = loadedCuesheetNameWithPath
-                .replace(QRegularExpression(cuesheetExt + "$"),"") // remove extension, e.g. ".html"
-                .replace(QRegularExpression("[0-9]+\\.$"),"")      // remove .<number>, e.g. ".2"
-                .replace(QRegularExpression("\\(.*\\)"),"")        // remove parens, e.g. AAA 123 - Foo Bar (NM).mp3
-                .simplified();                                     // trim and consolidate whitespace
-
-        // find an appropriate not-already-used filename to save to
-        bool done = false;
-        int which = 2;  // I suppose we could be smarter than this at some point.
-        while (!done) {
-            maybeFilename = cuesheetBase + QString::number(which) + "." + cuesheetExt;
-            QFileInfo maybeFile(maybeFilename);
-            done = !maybeFile.exists();  // keep going until a proposed filename does not exist (don't worry -- it won't spin forever)
-            which++;
+    // find the highest-numbered "<base>.<N>.htm[l]" file already on disk, regardless of whether
+    // the unnumbered "<base>.htm[l]" file exists (it might not, if only numbered versions remain)
+    QFileInfo baseFi(cuesheetBase);
+    QDir dir(baseFi.absolutePath());
+    QRegularExpression numberedRegExp("^" + QRegularExpression::escape(baseFi.fileName()) + "\\.([0-9]+)\\.html?$",
+                                       QRegularExpression::CaseInsensitiveOption);
+    int highestN = 0;
+    const QStringList existingFiles = dir.entryList(QDir::Files);
+    for (const QString &existingFile : existingFiles) {
+        QRegularExpressionMatch m = numberedRegExp.match(existingFile);
+        if (m.hasMatch()) {
+            highestN = qMax(highestN, m.captured(1).toInt());
         }
+    }
+
+    if (highestN > 0) {
+        maybeFilename = cuesheetBase + "." + QString::number(highestN + 1) + ".html";
+    } else if (fi2.exists() || fi3.exists()) {
+        maybeFilename = cuesheetBase + ".2.html";
     }
 
     QString filename = QFileDialog::getSaveFileName(this,
