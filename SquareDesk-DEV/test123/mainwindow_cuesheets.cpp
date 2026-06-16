@@ -1037,6 +1037,39 @@ void MainWindow::refreshLevelsColumnDisplay() {
     }
 }
 
+// Re-detects the level for a single cuesheet that was just saved (new or edited), and
+// updates its entry in pathStackCuesheets (or appends one, if this is a brand new
+// cuesheet). Then, if the Levels column has been used at all this session, the whole
+// Levels computation is refreshed, since a level change can affect more than one
+// song's Levels string (e.g. if there are multiple matching cuesheets for a song).
+void MainWindow::updateCuesheetLevelInPathStack(const QString &absoluteFilePath) {
+    QString levelName = detectCuesheetLevel(absoluteFilePath);
+
+    for (int i = 0; i < pathStackCuesheets->size(); i++) {
+        QStringList parts = (*pathStackCuesheets)[i].split("#!#");
+        if (parts.size() >= 2 && parts[1] == absoluteFilePath) {
+            (*pathStackCuesheets)[i] = parts[0] + "#!#" + absoluteFilePath + "#!#" + levelName;
+            recomputeLevelsIfNeeded();
+            return;
+        }
+    }
+
+    // not found -- this is a brand new cuesheet, so add it
+    QFileInfo fi(absoluteFilePath);
+    QStringList section = fi.path().split("/");
+    QString type = section[section.length() - 1]; // must be the last item in the path
+    pathStackCuesheets->append(type + "#!#" + absoluteFilePath + "#!#" + levelName);
+
+    recomputeLevelsIfNeeded();
+}
+
+void MainWindow::recomputeLevelsIfNeeded() {
+    if (songLevelsComputed) {
+        computeSongLevels();
+        refreshLevelsColumnDisplay();
+    }
+}
+
 void MainWindow::betterFindPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets) {
 
     // if it's a patter MP3, then do NOT match it against anything in the lyrics folder

@@ -155,6 +155,9 @@ namespace Ui
     class MainWindow;
 }
 
+// Scans a cuesheet file for an "L:<levelName>" tag (see mainwindow_filemgmt.cpp for details).
+QString detectCuesheetLevel(const QString &absoluteFilePath);
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -1078,6 +1081,8 @@ private:
     int MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit *debugOut = nullptr);
     void computeSongLevels();
     void refreshLevelsColumnDisplay();
+    void updateCuesheetLevelInPathStack(const QString &absoluteFilePath);
+    void recomputeLevelsIfNeeded();
 
     // Music library management
     void findMusic(QString mainRootDir, bool refreshDatabase);

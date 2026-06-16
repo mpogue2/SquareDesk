@@ -512,20 +512,6 @@ void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextChar
 
 
 
-static bool isFileInPathStack(QList<QString> *pathStack, const QString &checkFilename)
-{
-    QListIterator<QString> iter(*pathStack);
-    while (iter.hasNext()) {
-        QString s = iter.next();
-        QStringList sl1 = s.split("#!#");
-        QString type = sl1[0];  // the type (of original pathname, before following aliases)
-        QString filename = sl1[1];  // everything else
-        if (filename == checkFilename)
-            return true;
-    }
-    return false;
-}
-
 // This function is called to write out the tidied/semantically-processed HTML to a file.
 // If SAVE or SAVE AS..., then the file is read in again from disk, in case there are round-trip problems.
 //
@@ -584,14 +570,7 @@ void MainWindow::writeCuesheet(QString filename)
         QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
         cursor.movePosition(QTextCursor::Start);  // move cursor to the start of the file after a save
 
-        if (!isFileInPathStack(pathStackCuesheets, filename))
-        {
-            QFileInfo fi(filename);
-            QStringList section = fi.path().split("/");
-            QString type = section[section.length()-1];  // must be the last item in the path
-//            qDebug() << "writeCuesheet() adding " + type + "#!#" + filename + " to pathStackCuesheets";
-            pathStackCuesheets->append(type + "#!#" + filename + "#!#");  // levelName will be picked up on the next full rescan
-        }
+        updateCuesheetLevelInPathStack(filename); // (re-)detect this cuesheet's level, update/add its pathStackCuesheets entry, and refresh the Levels column if it's in use
     }
 #else
                 qDebug() << "************** SAVE FILE ***************";

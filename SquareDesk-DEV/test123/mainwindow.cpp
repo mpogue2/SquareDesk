@@ -305,32 +305,8 @@ void MainWindow::newFromTemplate() {
 
         QFile::copy(fromFilename, toFilename);
 
-        // is it in the pathstack?
-        QListIterator<QString> iter(*pathStackCuesheets); // search thru known cuesheets
-        bool foundInPathStack = false;
-        while (iter.hasNext()) {
-            QString s = iter.next();
-            // qDebug() << "looking at: " << s;
-            QStringList sl1 = s.split("#!#");
-            //QString type = sl1[0];  // the type (of original pathname, before following aliases)
-            QString filename = sl1[1];  // everything else
-            if (filename == toFilename) {
-                // qDebug() << "FOUND IT IN PATHSTACK: " << toFilename;
-                foundInPathStack = true;
-            }
-
-        }
-
-        // if not already in there, stick it into the pathstackCuesheets, so it will be found at loadCuesheets time
-        if (!foundInPathStack)
-        {
-            // qDebug() << "NOT FOUND. So, adding it to the pathStack: " << toFilename;
-            QFileInfo fi(filename);
-            QStringList section = fi.path().split("/");
-            QString type = section[section.length()-1];  // must be the last item in the path
-            // qDebug() << "    Adding " + type + "#!#" + filename + " to pathStack";
-            pathStackCuesheets->append(type + "#!#" + filename + "#!#");  // levelName unknown for a freshly-copied template
-        }
+        // (re-)detect this cuesheet's level, update/add its pathStackCuesheets entry, and refresh the Levels column if it's in use
+        updateCuesheetLevelInPathStack(toFilename);
 
         // and reload the cuesheets, to pick up the new one from the updated pathStack
         loadCuesheets(currentMP3filenameWithPath, filename); // ignoring return value

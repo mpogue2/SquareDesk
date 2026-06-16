@@ -389,7 +389,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 // As a startup-time optimization, only cuesheets that were edited by SquareDesk
 // (marked with a "squaredesk:version" comment within the first 5 lines) are scanned
 // any further, since hand-authored cuesheets are very unlikely to contain an "L:" tag.
-static QString detectCuesheetLevel(const QString &absoluteFilePath)
+QString detectCuesheetLevel(const QString &absoluteFilePath)
 {
     QFile file(absoluteFilePath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
