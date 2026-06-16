@@ -384,6 +384,32 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
 }
 
+// Scans the first 25 lines of a cuesheet file for an "L:<levelName>" tag, and returns
+// levelName if found (e.g. "Plus"), or "" if not found or the file can't be opened.
+static QString detectCuesheetLevel(const QString &absoluteFilePath)
+{
+    QFile file(absoluteFilePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return "";
+    }
+
+    QTextStream in(&file);
+    int lineCount = 0;
+    while (!in.atEnd() && lineCount < 25) {
+        QString line = in.readLine();
+        lineCount++;
+
+        QRegularExpression levelRegex("(^|\\s+|>)(L|LEVEL):(.*?)([a-zA-Z]:|,|;|<|$)",
+                                      QRegularExpression::CaseInsensitiveOption);
+        QRegularExpressionMatch match = levelRegex.match(line);
+        if (match.hasMatch()) {
+            return match.captured(3).simplified();
+        }
+    }
+
+    return "";
+}
+
 // ======================================================================
 void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QList<QString> *pathStackCuesheets, QList<QString> *pathStackReference, QString suffix, Ui::MainWindow *ui, QMap<int, QString> *soundFXarray, QMap<int, QString> *soundFXname)
 {
@@ -416,7 +442,8 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QList<QString
                 pathStackReference->append(newType + "#!#" + resolvedFilePath);
             } else if (newType != "sd" && newType != "choreography") {
                 if (newType == "lyrics" || resolvedFilePath.endsWith(".html") || resolvedFilePath.endsWith(".htm")) {
-                    pathStackCuesheets->append(newType + "#!#" + resolvedFilePath);
+                    QString levelName = detectCuesheetLevel(resolvedFilePath);
+                    pathStackCuesheets->append(newType + "#!#" + resolvedFilePath + "#!#" + levelName);
                 } else {
                     pathStack->append(newType + "#!#" + resolvedFilePath);
                 }

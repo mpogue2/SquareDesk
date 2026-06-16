@@ -590,7 +590,7 @@ void MainWindow::writeCuesheet(QString filename)
             QStringList section = fi.path().split("/");
             QString type = section[section.length()-1];  // must be the last item in the path
 //            qDebug() << "writeCuesheet() adding " + type + "#!#" + filename + " to pathStackCuesheets";
-            pathStackCuesheets->append(type + "#!#" + filename);
+            pathStackCuesheets->append(type + "#!#" + filename + "#!#");  // levelName will be picked up on the next full rescan
         }
     }
 #else

@@ -329,7 +329,7 @@ void MainWindow::newFromTemplate() {
             QStringList section = fi.path().split("/");
             QString type = section[section.length()-1];  // must be the last item in the path
             // qDebug() << "    Adding " + type + "#!#" + filename + " to pathStack";
-            pathStackCuesheets->append(type + "#!#" + filename);
+            pathStackCuesheets->append(type + "#!#" + filename + "#!#");  // levelName unknown for a freshly-copied template
         }
 
         // and reload the cuesheets, to pick up the new one from the updated pathStack

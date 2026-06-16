@@ -985,21 +985,21 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 
         QString s = iter.next();
 
+        QStringList sl1 = s.split("#!#");
+        QString type = sl1[0];  // the type (of original pathname, before following aliases)
+        QString filename = sl1[1];  // everything else
+
         int extensionIndex = 0;
 
-        if (s.endsWith("htm", Qt::CaseInsensitive)) {
+        if (filename.endsWith("htm", Qt::CaseInsensitive)) {
             // nothing
-        } else if (s.endsWith("html", Qt::CaseInsensitive)) {
+        } else if (filename.endsWith("html", Qt::CaseInsensitive)) {
             extensionIndex = 1;
-        } else if (s.endsWith("txt", Qt::CaseInsensitive)) {
+        } else if (filename.endsWith("txt", Qt::CaseInsensitive)) {
             extensionIndex = 2;
         } else {
             continue;
         }
-
-        QStringList sl1 = s.split("#!#");
-        QString type = sl1[0];  // the type (of original pathname, before following aliases)
-        QString filename = sl1[1];  // everything else
 
         if (filename.contains("patter.template")) {
             // qDebug() << "found patter template:" << filename;
