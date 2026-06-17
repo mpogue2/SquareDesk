@@ -1276,9 +1276,9 @@ void MainWindow::on_darkPitchSlider_valueChanged(int value)
         // source was one of the playlists, so we just update this one playlist
         // first, find which playlist entry is the one that is loaded
         for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
-            if (sourceForLoadedSong->item(i, 5)->text() == "1") {
+            if (sourceForLoadedSong->item(i, COLUMN_LOADED)->text() == "1") {
                 // second, update the pitch in the playlist
-                sourceForLoadedSong->item(i,2)->setText(QString::number(currentPitch));
+                sourceForLoadedSong->item(i, COLUMN_PITCH)->setText(QString::number(currentPitch));
 
                 // and mark the playlist modified ---------------
                 int whichSlot = 0;
@@ -1322,8 +1322,8 @@ void MainWindow::on_darkPitchSlider_valueChanged(int value)
             if (rPath.contains("/tracks/") &&
                 currentMP3filenameWithPath.contains(rPath2)) {
                 for (int j = 0; j < theTable->rowCount(); j++) {
-                      if (theTable->item(j, 4)->text() == currentMP3filenameWithPath) {
-                        theTable->item(j, 2)->setText(QString::number(currentPitch)); // update pitch in palette slot table
+                      if (theTable->item(j, COLUMN_PATH)->text() == currentMP3filenameWithPath) {
+                        theTable->item(j, COLUMN_PITCH)->setText(QString::number(currentPitch)); // update pitch in palette slot table
                         break; // no need to look further, because only one item can match per track filter
                       }
                 }
@@ -1467,9 +1467,9 @@ void MainWindow::on_darkTempoSlider_valueChanged(int value)
         // source was one of the playlists, so we just update this one playlist
         // first, find which playlist entry is the one that is loaded
         for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
-            if (sourceForLoadedSong->item(i, 5)->text() == "1") {
-                // second, update the pitch in the playlist
-                sourceForLoadedSong->item(i,3)->setText(tempoText);
+            if (sourceForLoadedSong->item(i, COLUMN_LOADED)->text() == "1") {
+                // second, update the tempo in the playlist
+                sourceForLoadedSong->item(i, COLUMN_TEMPO)->setText(tempoText);
 
                 // and mark the playlist modified ---------------
                 int whichSlot = 0;
@@ -1515,8 +1515,8 @@ void MainWindow::on_darkTempoSlider_valueChanged(int value)
             if (rPath.contains("/tracks/") &&
                 currentMP3filenameWithPath.contains(rPath2)) {
                 for (int j = 0; j < theTable->rowCount(); j++) {
-                      if (theTable->item(j, 4)->text() == currentMP3filenameWithPath) {
-                        theTable->item(j, 3)->setText(tempoText); // update tempo in palette slot table
+                      if (theTable->item(j, COLUMN_PATH)->text() == currentMP3filenameWithPath) {
+                        theTable->item(j, COLUMN_TEMPO)->setText(tempoText); // update tempo in palette slot table
                         break; // no need to look further, because only one item can match per track filter
                       }
                 }
@@ -7142,7 +7142,7 @@ void MainWindow::on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item)
         MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
         MyTableWidget *table = tables[slot];
         for (int i = 0; i < table->rowCount(); i++) {
-            if (table->item(i, 5)->text() == "1") {
+            if (table->item(i, COLUMN_LOADED)->text() == "1") {
                 // clear the arrows out of the other tables
                 QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrowStart, "");
                 table->item(i, 1)->setText(currentTitleTextWithoutArrow);
@@ -7162,10 +7162,10 @@ void MainWindow::on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item)
                     html.replace(QRegularExpression("</?i>"), "");
                     titleLabel->setText(html);
                 }
-                table->item(i, 2)->setFont(currentFont);
-                table->item(i, 3)->setFont(currentFont);
+                table->item(i, COLUMN_PITCH)->setFont(currentFont);
+                table->item(i, COLUMN_TEMPO)->setFont(currentFont);
             }
-            table->item(i, 5)->setText(""); // clear out the old table
+            table->item(i, COLUMN_LOADED)->setText(""); // clear out the old table
         }
     }
 
@@ -8208,23 +8208,28 @@ void MainWindow::darkAddPlaylistItemsToBottom(int whichSlot) { // slot is 0 - 2
         theRelativePath.replace(musicRootPath, "");
         setTitleField(theTableWidget, songCount-1, theRelativePath, true, PlaylistFileName); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
 
+        // LEVELS column
+        QTableWidgetItem *lev = new QTableWidgetItem(songLevelsByPath.value(absPath, ""));
+        lev->setTextAlignment(Qt::AlignCenter);
+        theTableWidget->setItem(songCount-1, COLUMN_LEVELS, lev);
+
         // PITCH column
         QString thePitch = ui->darkSongTable->item(row, kPitchCol)->text();
         QTableWidgetItem *pit = new QTableWidgetItem(thePitch);
-        theTableWidget->setItem(songCount-1, 2, pit);
+        theTableWidget->setItem(songCount-1, COLUMN_PITCH, pit);
 
         // TEMPO column
         QString theTempo = ui->darkSongTable->item(row, kTempoCol)->text();
         QTableWidgetItem *tem = new QTableWidgetItem(theTempo);
-        theTableWidget->setItem(songCount-1, 3, tem);
+        theTableWidget->setItem(songCount-1, COLUMN_TEMPO, tem);
 
         // PATH column
         QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
-        theTableWidget->setItem(songCount-1, 4, fullPath);
+        theTableWidget->setItem(songCount-1, COLUMN_PATH, fullPath);
 
         // LOADED column
         QTableWidgetItem *loaded = new QTableWidgetItem("");
-        theTableWidget->setItem(songCount-1, 5, loaded);
+        theTableWidget->setItem(songCount-1, COLUMN_LOADED, loaded);
 
         theTableWidget->resizeColumnToContents(COLUMN_NUMBER); // FIX: perhaps only if this is the first row?
     //    theTableWidget->resizeColumnToContents(COLUMN_PITCH);
@@ -8281,21 +8286,26 @@ void MainWindow::darkAddPlaylistItemToBottom(int whichSlot, QString title, QStri
     theRelativePath.replace(musicRootPath, "");
     setTitleField(theTableWidget, songCount-1, theRelativePath, true, PlaylistFileName, theRelativePath); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
 
+    // LEVELS column
+    QTableWidgetItem *lev2 = new QTableWidgetItem(songLevelsByPath.value(absPath, ""));
+    lev2->setTextAlignment(Qt::AlignCenter);
+    theTableWidget->setItem(songCount-1, COLUMN_LEVELS, lev2);
+
     // PITCH column
     QTableWidgetItem *pit = new QTableWidgetItem(thePitch);
-    theTableWidget->setItem(songCount-1, 2, pit);
+    theTableWidget->setItem(songCount-1, COLUMN_PITCH, pit);
 
     // TEMPO column
     QTableWidgetItem *tem = new QTableWidgetItem(theTempo);
-    theTableWidget->setItem(songCount-1, 3, tem);
+    theTableWidget->setItem(songCount-1, COLUMN_TEMPO, tem);
 
     // PATH column
     QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
-    theTableWidget->setItem(songCount-1, 4, fullPath);
+    theTableWidget->setItem(songCount-1, COLUMN_PATH, fullPath);
 
     // LOADED column
     QTableWidgetItem *loaded = new QTableWidgetItem("");
-    theTableWidget->setItem(songCount-1, 5, loaded);
+    theTableWidget->setItem(songCount-1, COLUMN_LOADED, loaded);
 
     theTableWidget->resizeColumnToContents(COLUMN_NUMBER); // FIX: perhaps only if this is the first row?
 //    theTableWidget->resizeColumnToContents(COLUMN_PITCH);
