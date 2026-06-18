@@ -196,9 +196,9 @@ void darkPaletteSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
         QString sourceName = theTable->objectName();
 
         QString sourceTrackName = title; // e.g. "ESP 1234 - Ricochet"
-        QString sourcePitch = theTable->item(sourceRow, 2)->text();
-        QString sourceTempo = theTable->item(sourceRow, 3)->text();
-        QString sourcePath = theTable->item(sourceRow, 4)->text();
+        QString sourcePitch = theTable->item(sourceRow, COLUMN_PITCH)->text();
+        QString sourceTempo = theTable->item(sourceRow, COLUMN_TEMPO)->text();
+        QString sourcePath = theTable->item(sourceRow, COLUMN_PATH)->text();
 
         QString sourceInfoForThisRow = (rowNum++ > 0 ? "!!&!!" : "") +
                                        sourceTrackName + "                                    !#!" + // the spaces are so that the visible drag text is just the track name (hack!)
