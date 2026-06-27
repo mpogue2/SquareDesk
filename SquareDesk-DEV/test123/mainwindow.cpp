@@ -1418,6 +1418,7 @@ void MainWindow::on_darkTempoSlider_valueChanged(int value)
         cBass->SetTempo(newBASStempo);
         // ui->darkTempoLabel->setText(QString::number(value) + " BPM (" + QString::number(newBASStempo) + "%)");
         ui->darkTempoLabel->setText(QString::number(value));
+        fitTempoLabelFont();
     }
     else {
         double basePercent = 100.0;                      // original detected percent
@@ -1425,6 +1426,7 @@ void MainWindow::on_darkTempoSlider_valueChanged(int value)
         int newBASStempo = static_cast<int>(round(100.0*desiredPercent/basePercent));
         cBass->SetTempo(newBASStempo);
         ui->darkTempoLabel->setText(QString::number(value) + "%");
+        fitTempoLabelFont();
     }
 
     saveCurrentSongSettings();
@@ -1525,6 +1527,7 @@ void MainWindow::on_darkTempoSlider_valueChanged(int value)
     }
 
     ui->darkTempoLabel->setText(tempoText);
+    fitTempoLabelFont();
 
     QString msg1 = QString("Tempo:") + ui->darkTempoLabel->text() + ", Pitch:" + ui->darkPitchLabel->text();
     ui->statusBar->showMessage(msg1);

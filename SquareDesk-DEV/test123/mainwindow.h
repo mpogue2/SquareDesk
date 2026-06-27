@@ -989,6 +989,7 @@ private:
     int indexToPointSize(int index);
     void setFontSizes();
     void adjustFontSizes();
+    void fitTempoLabelFont();
     void usePersistentFontSize();
     void persistNewFontSize(int points);
     void zoomInOut(int increment);

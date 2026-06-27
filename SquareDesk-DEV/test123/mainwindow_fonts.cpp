@@ -336,11 +336,10 @@ void MainWindow::adjustFontSizes()
     // ui->volumeLabel->setFont(currentFont);
     // ui->mixLabel->setFont(currentFont);
 
-    // NOTE: This doesn't take care of the Tempo = 1XX% case, but it handles the typical case of 1XX
     QFont currentFontMax = currentSongTableFont;
     currentFontMax.setPointSize((int)fmin(20, currentFont.pointSize()));  // don't allow to get too big
 
-    ui->darkTempoLabel->setFont(currentFontMax);
+    fitTempoLabelFont();
     ui->darkPitchLabel->setFont(currentFontMax);
     ui->darkVolumeLabel->setFont(currentFontMax);
 
@@ -681,4 +680,21 @@ void MainWindow::on_actionReset_triggered()
 
     zoomInOut(6); // zoom from level 0 to level 4 out of 8 when CMD-ZERO is pressed to reset to something reasonable that's in the middle
     // qDebug() << "on_actionReset_triggered = currentMacPointSize:" << currentMacPointSize << ", totalZoom:" << totalZoom;
+}
+
+void MainWindow::fitTempoLabelFont() {
+    QFont font = currentSongTableFont;
+    int maxPts = (int)fmin(20.0, (double)font.pointSize());
+
+    // Lock the label to the full-size font height so vertical centering always
+    // places the text at the same y coordinate as darkPitchLabel, regardless of
+    // whether we shrink the font below for the "%" case.
+    font.setPointSize(maxPts);
+    ui->darkTempoLabel->setMinimumHeight(QFontMetrics(font).height());
+
+    if (ui->darkTempoLabel->text().endsWith("%")) {
+        maxPts = (int)(maxPts * 0.80);  // "125%" is ~33% wider than "125"
+        font.setPointSize(maxPts);
+    }
+    ui->darkTempoLabel->setFont(font);
 }
