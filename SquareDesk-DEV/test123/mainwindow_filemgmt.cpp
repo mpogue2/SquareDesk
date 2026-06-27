@@ -1426,6 +1426,13 @@ QString MainWindow::proposeCanonicalName(QString baseName, bool withLabelNumExtr
         theLabelNumExtra = "";
     }
 
+    // If title contains "vocal" (case-insensitive, optionally in parens), remove it and suffix label num with "v"
+    static QRegularExpression vocalRegex("\\s*\\(?\\bvocal\\b\\)?\\s*", QRegularExpression::CaseInsensitiveOption);
+    if (theTitle.contains(vocalRegex)) {
+        theTitle.remove(vocalRegex);
+        theLabelNumExtra = "v";
+    }
+
     theTitle = toTitleCase(theTitle); // "foo bar" --> "Foo Bar"
     theLabel = theLabel.toUpper();    // "riv" --> "RIV"
 
@@ -1561,7 +1568,7 @@ void MainWindow::dropEvent(QDropEvent *event)
     for (const QString &path : allFilePaths) {
         QFileInfo fileInfo(path);
         QString fileName = fileInfo.fileName();
-        QString baseName = fileInfo.completeBaseName().replace("%20", " ").simplified();
+        QString baseName = fileInfo.completeBaseName().replace("%20", " ").replace("_", " ").simplified();
         QString extension = fileInfo.suffix();
 
         QStringList badExtensions;
@@ -1614,7 +1621,7 @@ void MainWindow::dropEvent(QDropEvent *event)
             // destCombo->setCurrentText("singing");
             destCombo->setCurrentText(defaultLyricsFolderName);
             // these will have destination LYRICS, but will default to NO COPY
-        } else if (baseName.toLower().contains(vocalPattern)) {
+        } else if (baseName.toLower().contains(vocalPattern) || proposedBaseName.contains(vocalPattern)) {
             // destCombo->setCurrentText("vocals");
             destCombo->setCurrentText(defaultVocalsFolderName);
         } else if (htmlBasenames.contains(baseName.toLower())) {
