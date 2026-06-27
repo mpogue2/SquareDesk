@@ -882,14 +882,16 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
 // NOTE: "Class" must be checked before the generic Challenge "starts with C" check,
 // since "Class ..." also starts with the letter C.
 static QChar levelNameToCategory(const QString &levelName) {
-    if (levelName.compare("SSD", Qt::CaseInsensitive) == 0 || levelName.compare("MS", Qt::CaseInsensitive) == 0 ||
-        levelName.startsWith("Class", Qt::CaseInsensitive)) {
+    QString firstWord = levelName.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts).value(0);
+    if (firstWord.startsWith("Class", Qt::CaseInsensitive) || firstWord.compare("SSD", Qt::CaseInsensitive) == 0) {
+        return QChar('S');
+    } else if (firstWord.compare("MS", Qt::CaseInsensitive) == 0) {
         return QChar('M');
-    } else if (levelName.compare("Plus", Qt::CaseInsensitive) == 0) {
+    } else if (firstWord.compare("Plus", Qt::CaseInsensitive) == 0) {
         return QChar('P');
-    } else if (levelName.compare("A1", Qt::CaseInsensitive) == 0 || levelName.compare("A2", Qt::CaseInsensitive) == 0) {
+    } else if (firstWord.compare("A1", Qt::CaseInsensitive) == 0 || firstWord.compare("A2", Qt::CaseInsensitive) == 0) {
         return QChar('A');
-    } else if (levelName.startsWith("C", Qt::CaseInsensitive)) {
+    } else if (firstWord.startsWith("C", Qt::CaseInsensitive)) {
         return QChar('C');
     }
     return QChar();
@@ -994,14 +996,15 @@ void MainWindow::computeSongLevels() {
             if (MP3FilenameVsCuesheetnameScore(mp3CompleteBaseName, lc.completeBaseName) > 0) {
                 levelsFound.append(lc.category);
             }
-            if (levelsFound.length() == 4) {
-                break; // found all 4 categories, no need to keep checking
+            if (levelsFound.length() == 5) {
+                break; // found all 5 categories, no need to keep checking
             }
         }
 
         if (!levelsFound.isEmpty()) {
-            // put the chars found into the canonical "MPAC" order
+            // put the chars found into the canonical "SMPAC" order
             QString orderedLevels;
+            if (levelsFound.contains('S')) orderedLevels += 'S';
             if (levelsFound.contains('M')) orderedLevels += 'M';
             if (levelsFound.contains('P')) orderedLevels += 'P';
             if (levelsFound.contains('A')) orderedLevels += 'A';
