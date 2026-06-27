@@ -482,6 +482,9 @@ void MainWindow::adjustFontSizes()
                         lbl->setFont(cf);
                     }
                 }
+                if (table->item(j,COLUMN_LEVELS) != nullptr) {
+                    table->item(j, COLUMN_LEVELS)->setFont(cf);
+                }
                 if (table->item(j,COLUMN_PITCH) != nullptr) {
                     table->item(j, COLUMN_PITCH)->setFont(cf);
                 }

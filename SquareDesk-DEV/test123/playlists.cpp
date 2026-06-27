@@ -1151,7 +1151,7 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
         MyTableWidget *table = tables[i];
         for (int j = 0; j < table->rowCount(); j++) {
             if (table->item(j, COLUMN_LOADED)->text() == "1") {
-                QFont currentFont = table->item(j, COLUMN_TITLE)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
+                QFont currentFont = table->item(j, COLUMN_NUMBER)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
                 currentFont.setBold(false);
                 currentFont.setItalic(false);
                 table->item(j, COLUMN_NUMBER)->setFont(currentFont);
@@ -1164,6 +1164,7 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
                     html.replace(QRegularExpression("</?i>"), "");
                     titleLabel->setText(html);
                 }
+                if (table->item(j, COLUMN_LEVELS)) table->item(j, COLUMN_LEVELS)->setFont(currentFont);
                 table->item(j, COLUMN_PITCH)->setFont(currentFont);
                 table->item(j, COLUMN_TEMPO)->setFont(currentFont);
             }
@@ -1175,7 +1176,7 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
 
     for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
         if (i == row) {
-            QFont currentFont = sourceForLoadedSong->item(i, COLUMN_TITLE)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
+            QFont currentFont = sourceForLoadedSong->item(i, COLUMN_NUMBER)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
             currentFont.setBold(true);
             currentFont.setItalic(true);
             sourceForLoadedSong->item(i, COLUMN_NUMBER)->setFont(currentFont);
@@ -1190,6 +1191,7 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
                 html = "<b><i>" + html + "</i></b>";
                 titleLabel->setText(html);
             }
+            if (sourceForLoadedSong->item(i, COLUMN_LEVELS)) sourceForLoadedSong->item(i, COLUMN_LEVELS)->setFont(currentFont);
             sourceForLoadedSong->item(i, COLUMN_PITCH)->setFont(currentFont);
             sourceForLoadedSong->item(i, COLUMN_TEMPO)->setFont(currentFont);
         }

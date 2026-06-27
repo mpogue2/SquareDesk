@@ -7147,12 +7147,11 @@ void MainWindow::on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item)
                 QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrowStart, "");
                 table->item(i, 1)->setText(currentTitleTextWithoutArrow);
 
-                QFont currentFont = table->item(i, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
+                QFont currentFont = table->item(i, COLUMN_NUMBER)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
                 currentFont.setBold(false);
                 currentFont.setItalic(false);
 //                    currentFont.setPointSize(currentFont.pointSize() - 1);
-                table->item(i, 0)->setFont(currentFont);
-                table->item(i, 1)->setFont(currentFont);
+                table->item(i, COLUMN_NUMBER)->setFont(currentFont);
                 // For COLUMN_TITLE, we need to modify the QLabel widget's HTML (issue #1547)
                 QLabel *titleLabel = dynamic_cast<QLabel*>(table->cellWidget(i, COLUMN_TITLE));
                 if (titleLabel) {
@@ -7162,6 +7161,7 @@ void MainWindow::on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item)
                     html.replace(QRegularExpression("</?i>"), "");
                     titleLabel->setText(html);
                 }
+                if (table->item(i, COLUMN_LEVELS)) table->item(i, COLUMN_LEVELS)->setFont(currentFont);
                 table->item(i, COLUMN_PITCH)->setFont(currentFont);
                 table->item(i, COLUMN_TEMPO)->setFont(currentFont);
             }
