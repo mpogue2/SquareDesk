@@ -883,11 +883,15 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
 // since "Class ..." also starts with the letter C.
 static QChar levelNameToCategory(const QString &levelName) {
     QString firstWord = levelName.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts).value(0);
+    // Some cuesheets append the program's revision year (e.g. "MS26", "Plus26"); treat those
+    // the same as the bare program name.
+    static const QRegularExpression msRegex("^MS\\d*$", QRegularExpression::CaseInsensitiveOption);
+    static const QRegularExpression plusRegex("^Plus\\d*$", QRegularExpression::CaseInsensitiveOption);
     if (firstWord.startsWith("Class", Qt::CaseInsensitive) || firstWord.compare("SSD", Qt::CaseInsensitive) == 0) {
         return QChar('S');
-    } else if (firstWord.compare("MS", Qt::CaseInsensitive) == 0) {
+    } else if (msRegex.match(firstWord).hasMatch()) {
         return QChar('M');
-    } else if (firstWord.compare("Plus", Qt::CaseInsensitive) == 0) {
+    } else if (plusRegex.match(firstWord).hasMatch()) {
         return QChar('P');
     } else if (firstWord.compare("A1", Qt::CaseInsensitive) == 0 || firstWord.compare("A2", Qt::CaseInsensitive) == 0) {
         return QChar('A');
