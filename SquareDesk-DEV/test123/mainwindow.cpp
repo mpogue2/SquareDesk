@@ -6601,8 +6601,9 @@ void MainWindow::handleDurationBPM() {
 
 // If the MP3 file has an embedded TBPM frame in the ID3 tag, then it overrides the libbass auto-detect of BPM
     double songBPM_ID3 = getID3BPM(currentMP3filenameWithPath);  // returns 0.0, if not found or not understandable
+    bool songBPM_fromID3tag = (songBPM_ID3 != 0.0);
 
-    if (songBPM_ID3 != 0.0) {
+    if (songBPM_fromID3tag) {
         // qDebug() << "handleDurationBPM: file has ID3v2 TBPM, so slider center set to:" << songBPM;
         songBPM = static_cast<int>(songBPM_ID3);
         tempoIsBPM = true;  // this song's tempo is BPM, not %
@@ -6612,10 +6613,14 @@ void MainWindow::handleDurationBPM() {
 
     // Intentionally compare against a narrower range here than BPM detection, because BPM detection
     //   returns a number at the limits, when it's actually out of range.
+    // An explicit ID3 TBPM tag is trusted by the user, so it gets a much wider sanity range
+    //   than libbass's auto-detected BPM (which is unreliable near its limits).
     // Also, turn off BPM for xtras (they are all over the place, including round dance cues, which have no BPM at all).
     //
     // TODO: make the types for turning off BPM detection a preference
-    if ((songBPM>=125-15) && (songBPM<=125+15) && currentSongCategoryName != "extras") {
+    bool songBPMinRange = songBPM_fromID3tag ? (songBPM >= 60 && songBPM <= 300)
+                                              : (songBPM >= 125-15 && songBPM <= 125+15);
+    if (songBPMinRange && currentSongCategoryName != "extras") {
         tempoIsBPM = true;
         // ui->currentTempoLabel->setText(QString::number(songBPM) + " BPM (100%)"); // initial load always at 100%
 
