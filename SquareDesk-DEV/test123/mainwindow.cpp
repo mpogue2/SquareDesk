@@ -574,7 +574,8 @@ void MainWindow::musicRootModified(QString s)
 
 
     // qDebug() << "Music root modified (File Watcher awakened for real!): " << s;
-    if (!filewatcherShouldIgnoreOneFileSave) { // yes, we need this here, too...because root watcher watches playlists (don't ask me!)
+    if (s == "MANUAL_RESCAN" || !filewatcherShouldIgnoreOneFileSave) { // yes, we need this here, too...because root watcher watches playlists (don't ask me!)
+        // NOTE: a MANUAL_RESCAN must never be suppressed by a stale filewatcherShouldIgnoreOneFileSave flag (#1648)
         // qDebug() << "*** File watcher awakens!!!";
         // Qt::SortOrder sortOrder(ui->songTable->horizontalHeader()->sortIndicatorOrder());
         // int sortSection(ui->songTable->horizontalHeader()->sortIndicatorSection());
