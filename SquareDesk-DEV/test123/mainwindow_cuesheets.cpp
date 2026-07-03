@@ -926,31 +926,83 @@ static QSet<QString> quickWordSet(const QString &completeBaseName) {
     return words;
 }
 
+// Everything the match predicate needs to know about one leveled cuesheet,
+// precomputed once so repeated matching stays cheap.
+struct LeveledCuesheet {
+    QString absoluteFilePath;
+    QString completeBaseName;
+    QString type;
+    QChar category;
+    int catalogNumber;
+    QSet<QString> words;
+};
+
+static LeveledCuesheet makeLeveledCuesheet(const QString &type, const QString &absoluteFilePath, QChar category) {
+    QString completeBaseName = QFileInfo(absoluteFilePath).completeBaseName();
+    return {absoluteFilePath, completeBaseName, type, category,
+            quickExtractCatalogNumber(completeBaseName), quickWordSet(completeBaseName)};
+}
+
+// Same idea, for the song side of the comparison.
+struct SongMatchInfo {
+    QString origPath;
+    bool isPatter;
+    QString completeBaseName;
+    int catalogNumber;
+    QSet<QString> words;
+};
+
+SongMatchInfo MainWindow::makeSongMatchInfo(const QString &origPath) {
+    QString completeBaseName = QFileInfo(origPath).completeBaseName();
+    bool isPatter = (filepath2SongCategoryName(origPath) == "patter");
+    return {origPath, isPatter, completeBaseName,
+            quickExtractCatalogNumber(completeBaseName), quickWordSet(completeBaseName)};
+}
+
+// Single source of truth for "does this cuesheet fuzzy-match this song?", shared by
+// the full computeSongLevels() pass and the incremental single-cuesheet update in
+// updateSongLevelsForOneCuesheet(), so the two can never disagree. Before calling
+// the (expensive) fuzzy scorer, a cheap pre-filter skips pairs that can't plausibly
+// match: if both names have a parseable catalog number and they differ, AND the
+// names don't share even one word in common, there's no way the full fuzzy scorer's
+// containment or label+number paths could succeed, so the expensive comparison is
+// skipped. Sharing a word is enough to fall through to the full scorer, so this
+// can't drop any real match (the scorer's title-containment path itself requires
+// the names to share words).
+bool MainWindow::cuesheetMatchesSong(const SongMatchInfo &song, const LeveledCuesheet &cuesheet) {
+    if (song.isPatter && cuesheet.type == "lyrics") {
+        // if it's a patter MP3, don't match it against anything in the lyrics folder
+        return false;
+    }
+    if (song.catalogNumber != -1 && cuesheet.catalogNumber != -1 && song.catalogNumber != cuesheet.catalogNumber &&
+        !song.words.intersects(cuesheet.words)) {
+        return false; // cheap pre-filter: numbers differ and no shared words, so the full scorer can't succeed
+    }
+    return MP3FilenameVsCuesheetnameScore(song.completeBaseName, cuesheet.completeBaseName) > 0;
+}
+
+// Returns the categories present in levelsFound, in the canonical "SMPAC" order.
+static QString orderCategories(const QString &levelsFound) {
+    QString orderedLevels;
+    for (QChar c : QString("SMPAC")) {
+        if (levelsFound.contains(c)) {
+            orderedLevels += c;
+        }
+    }
+    return orderedLevels;
+}
+
 // Computes songLevelsByPath: for every song that has at least one matching cuesheet
 // with a detected dance level, maps its origPath to a string containing some subset
 // of "MPAC" (in that fixed order), one character per supported level category.
 // Only cuesheets with a detected level are considered (a small subset of all
 // cuesheets), and each is fuzzy-matched against every song using the same
 // MP3FilenameVsCuesheetnameScore() scoring used elsewhere to decide cuesheet/song
-// matches, so this stays consistent with what "available cuesheets for this song"
-// means throughout the rest of the app. Before calling that (expensive) scorer, a
-// cheap pre-filter skips pairs that can't plausibly match: if both names have a
-// parseable catalog number and they differ, AND the names don't share even one
-// word in common, there's no way the full fuzzy scorer's containment or
-// label+number paths could succeed, so the expensive comparison is skipped.
-// Sharing a word is enough to fall through to the full scorer, so this can't drop
-// any real match (the scorer's title-containment path itself requires the names to
-// share words).
+// matches (see cuesheetMatchesSong()), so this stays consistent with what
+// "available cuesheets for this song" means throughout the rest of the app.
 void MainWindow::computeSongLevels() {
     songLevelsByPath.clear();
 
-    struct LeveledCuesheet {
-        QString completeBaseName;
-        QString type;
-        QChar category;
-        int catalogNumber;
-        QSet<QString> words;
-    };
     QList<LeveledCuesheet> leveledCuesheets;
 
     for (const QString &s : *pathStackCuesheets) {
@@ -962,9 +1014,7 @@ void MainWindow::computeSongLevels() {
         if (category.isNull()) {
             continue;
         }
-        QFileInfo fi(parts[1]);
-        QString completeBaseName = fi.completeBaseName();
-        leveledCuesheets.append({completeBaseName, parts[0], category, quickExtractCatalogNumber(completeBaseName), quickWordSet(completeBaseName)});
+        leveledCuesheets.append(makeLeveledCuesheet(parts[0], parts[1], category));
     }
 
     if (leveledCuesheets.isEmpty()) {
@@ -976,28 +1026,14 @@ void MainWindow::computeSongLevels() {
         if (parts.size() < 2) {
             continue;
         }
-        QString origPath = parts[1];
-        QString fileCategory = filepath2SongCategoryName(origPath);
-        bool fileCategoryIsPatter = (fileCategory == "patter");
+        SongMatchInfo song = makeSongMatchInfo(parts[1]);
 
-        QString mp3CompleteBaseName = QFileInfo(origPath).completeBaseName();
-        int mp3CatalogNumber = quickExtractCatalogNumber(mp3CompleteBaseName);
-        QSet<QString> mp3Words = quickWordSet(mp3CompleteBaseName);
-
-        QString levelsFound; // chars accumulate in "MPAC" order, since leveledCuesheets has no fixed order
+        QString levelsFound; // chars accumulate in no fixed order, since leveledCuesheets has no fixed order
         for (const auto &lc : leveledCuesheets) {
             if (levelsFound.contains(lc.category)) {
                 continue; // already found this category for this song
             }
-            if (fileCategoryIsPatter && lc.type == "lyrics") {
-                // if it's a patter MP3, don't match it against anything in the lyrics folder
-                continue;
-            }
-            if (mp3CatalogNumber != -1 && lc.catalogNumber != -1 && mp3CatalogNumber != lc.catalogNumber &&
-                !mp3Words.intersects(lc.words)) {
-                continue; // cheap pre-filter: numbers differ and no shared words, so the full scorer can't succeed
-            }
-            if (MP3FilenameVsCuesheetnameScore(mp3CompleteBaseName, lc.completeBaseName) > 0) {
+            if (cuesheetMatchesSong(song, lc)) {
                 levelsFound.append(lc.category);
             }
             if (levelsFound.length() == 5) {
@@ -1006,14 +1042,7 @@ void MainWindow::computeSongLevels() {
         }
 
         if (!levelsFound.isEmpty()) {
-            // put the chars found into the canonical "SMPAC" order
-            QString orderedLevels;
-            if (levelsFound.contains('S')) orderedLevels += 'S';
-            if (levelsFound.contains('M')) orderedLevels += 'M';
-            if (levelsFound.contains('P')) orderedLevels += 'P';
-            if (levelsFound.contains('A')) orderedLevels += 'A';
-            if (levelsFound.contains('C')) orderedLevels += 'C';
-            songLevelsByPath.insert(origPath, orderedLevels);
+            songLevelsByPath.insert(song.origPath, orderCategories(levelsFound));
         }
     }
 }
@@ -1046,11 +1075,10 @@ void MainWindow::refreshLevelsColumnDisplay() {
 
 // Re-detects the level for a single cuesheet that was just saved (new or edited), and
 // updates its entry in pathStackCuesheets (or appends one, if this is a brand new
-// cuesheet). Then, if the Levels column has been used at all this session AND the
-// level actually changed, the whole Levels computation is refreshed, since a level
-// change can affect more than one song's Levels string (e.g. if there are multiple
-// matching cuesheets for a song). Most saves don't change the level, so this check
-// avoids the costly recompute on every save.
+// cuesheet created via Save As or New from Template). Then incrementally updates the
+// Levels strings of just the songs that this one cuesheet can affect (see
+// updateSongLevelsForOneCuesheet()), rather than recomputing all song levels from
+// scratch (which takes several seconds on a large library).
 void MainWindow::updateCuesheetLevelInPathStack(const QString &absoluteFilePath) {
     QString levelName = detectCuesheetLevel(absoluteFilePath);
 
@@ -1059,9 +1087,7 @@ void MainWindow::updateCuesheetLevelInPathStack(const QString &absoluteFilePath)
         if (parts.size() >= 2 && parts[1] == absoluteFilePath) {
             QString oldLevelName = parts.size() >= 3 ? parts[2] : QString();
             (*pathStackCuesheets)[i] = parts[0] + "#!#" + absoluteFilePath + "#!#" + levelName;
-            if (levelName != oldLevelName) {
-                recomputeLevelsIfNeeded();
-            }
+            updateSongLevelsForOneCuesheet(absoluteFilePath, parts[0], oldLevelName, levelName);
             return;
         }
     }
@@ -1072,19 +1098,92 @@ void MainWindow::updateCuesheetLevelInPathStack(const QString &absoluteFilePath)
     QString type = section[section.length() - 1]; // must be the last item in the path
     pathStackCuesheets->append(type + "#!#" + absoluteFilePath + "#!#" + levelName);
 
-    recomputeLevelsIfNeeded();
+    updateSongLevelsForOneCuesheet(absoluteFilePath, type, QString(), levelName);
 }
 
-void MainWindow::recomputeLevelsIfNeeded() {
-    if (songLevelsComputed) {
-        QString previousStatusMessage = ui->statusBar->currentMessage();
-        ui->statusBar->showMessage("Saving...");
-        qApp->processEvents();  // make the "Saving..." message visible before the recompute below
+// Incrementally updates songLevelsByPath (and the visible Levels columns) after a
+// single cuesheet's level changed from oldLevelName to newLevelName. A single
+// cuesheet save can only change the Levels strings of the songs that fuzzy-match
+// that one cuesheet, so this matches just that cuesheet against every song -- O(S)
+// scorer calls -- instead of the full computeSongLevels() pass over every
+// song x every leveled cuesheet, which takes several seconds on a large library.
+// For each matched song: the new category is added, and the old category is removed
+// only if no OTHER cuesheet of that same category still matches the song (checked
+// against just the cuesheets in that one category). The just-saved cuesheet's own
+// pathStackCuesheets entry already carries the new level, so it is excluded from
+// that removal check by file path.
+void MainWindow::updateSongLevelsForOneCuesheet(const QString &absoluteFilePath, const QString &type,
+                                                const QString &oldLevelName, const QString &newLevelName) {
+    if (!songLevelsComputed) {
+        return; // Levels column has never been used this session, nothing to update
+    }
 
-        computeSongLevels();
-        refreshLevelsColumnDisplay();
+    QChar oldCategory = levelNameToCategory(oldLevelName);
+    QChar newCategory = levelNameToCategory(newLevelName);
+    if (oldCategory == newCategory) {
+        return; // includes both-null (e.g. Save As of a cuesheet with no L: line) and same-category renames (e.g. "Plus26" -> "Plus")
+    }
 
-        ui->statusBar->showMessage(previousStatusMessage);
+    LeveledCuesheet savedCuesheet = makeLeveledCuesheet(type, absoluteFilePath, newCategory);
+
+    // The other cuesheets in the OLD category, needed to decide whether a matched
+    // song keeps that category via some other cuesheet.
+    QList<LeveledCuesheet> oldCategoryCuesheets;
+    if (!oldCategory.isNull()) {
+        for (const QString &s : *pathStackCuesheets) {
+            QStringList parts = s.split("#!#");
+            if (parts.size() < 3 || parts[2].isEmpty() || parts[1] == absoluteFilePath) {
+                continue;
+            }
+            if (levelNameToCategory(parts[2]) == oldCategory) {
+                oldCategoryCuesheets.append(makeLeveledCuesheet(parts[0], parts[1], oldCategory));
+            }
+        }
+    }
+
+    bool anyChanged = false;
+    for (const QString &s : *pathStack) {
+        QStringList parts = s.split("#!#");
+        if (parts.size() < 2) {
+            continue;
+        }
+        SongMatchInfo song = makeSongMatchInfo(parts[1]);
+        if (!cuesheetMatchesSong(song, savedCuesheet)) {
+            continue;
+        }
+
+        QString oldLevels = songLevelsByPath.value(song.origPath, "");
+        QString newLevels = oldLevels;
+
+        if (!newCategory.isNull() && !newLevels.contains(newCategory)) {
+            newLevels = orderCategories(newLevels + newCategory);
+        }
+
+        if (!oldCategory.isNull() && newLevels.contains(oldCategory)) {
+            bool stillHasOldCategory = false;
+            for (const auto &lc : oldCategoryCuesheets) {
+                if (cuesheetMatchesSong(song, lc)) {
+                    stillHasOldCategory = true;
+                    break;
+                }
+            }
+            if (!stillHasOldCategory) {
+                newLevels.remove(oldCategory);
+            }
+        }
+
+        if (newLevels != oldLevels) {
+            if (newLevels.isEmpty()) {
+                songLevelsByPath.remove(song.origPath);
+            } else {
+                songLevelsByPath.insert(song.origPath, newLevels);
+            }
+            anyChanged = true;
+        }
+    }
+
+    if (anyChanged) {
+        refreshLevelsColumnDisplay(); // updates darkSongTable and all 3 palette slot tables (cheap: no I/O, no scoring)
     }
 }
 

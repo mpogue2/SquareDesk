@@ -103,6 +103,10 @@
 // Forward declaration for debug dialog
 class CuesheetMatchingDebugDialog;
 
+// Precomputed song/cuesheet info for Levels-column fuzzy matching (defined in mainwindow_cuesheets.cpp)
+struct LeveledCuesheet;
+struct SongMatchInfo;
+
 #if defined(Q_OS_MAC)
 #include "macUtils.h"
 #include <stdio.h>
@@ -1083,7 +1087,10 @@ private:
     void computeSongLevels();
     void refreshLevelsColumnDisplay();
     void updateCuesheetLevelInPathStack(const QString &absoluteFilePath);
-    void recomputeLevelsIfNeeded();
+    void updateSongLevelsForOneCuesheet(const QString &absoluteFilePath, const QString &type,
+                                        const QString &oldLevelName, const QString &newLevelName);
+    SongMatchInfo makeSongMatchInfo(const QString &origPath);
+    bool cuesheetMatchesSong(const SongMatchInfo &song, const LeveledCuesheet &cuesheet);
 
     // Music library management
     void findMusic(QString mainRootDir, bool refreshDatabase);
