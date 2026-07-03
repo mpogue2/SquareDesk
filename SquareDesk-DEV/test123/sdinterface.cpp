@@ -43,6 +43,14 @@ typedef unsigned int uint32;
 
 static int numberOfSDThreadsActive = 0;
 
+// Thrown out of SquareDesk_iofull::wait_for_input() when SDThread::requestShutdown()
+// has been called; it unwinds the SD thread all the way out of sdmain() (caught in
+// SDThread::run()), so the thread ends without QThread::terminate().  Killing the
+// thread with terminate() while it is blocked in QWaitCondition::wait() leaves the
+// wait condition's internal pthread mutex busy forever, which is what caused the
+// "QWaitCondition: mutex destroy failure (Resource busy)" messages at quit (#1649).
+class SDThreadShutdownRequest {};
+
 class SquareDesk_iofull : public iobase {
 public:
     SquareDesk_iofull(SDThread *thread, MainWindow *mw, QWaitCondition *waitCondSDAwaitingInput, QMutex *mutex,
@@ -335,8 +343,25 @@ void SquareDesk_iofull::UpdateStatusBar(const char *s)
 
 void SquareDesk_iofull::wait_for_input()
 {
+    // Checked both before and after the wait: we hold mutexSDAwaitingInput from
+    // here until wait() atomically releases it, so a requestShutdown() that sets
+    // the flag while SD is busy computing is seen here, and one that arrives
+    // during the wait gets the lock and its wakeAll() is seen below.  Either
+    // way the wakeup cannot be lost.
+    if (sdthread->isShutdownRequested())
+    {
+        throw SDThreadShutdownRequest();
+    }
+
     emit sdthread->on_sd_awaiting_input();
     waitCondSDAwaitingInput->wait(mutexSDAwaitingInput);
+
+    if (sdthread->isShutdownRequested())
+    {
+        // Do NOT ack: the shutdown requester is not blocked in do_user_input().
+        // This unwinds out of sdmain(), and is caught in SDThread::run().
+        throw SDThreadShutdownRequest();
+    }
 
     if (1)
     {
@@ -1015,6 +1040,7 @@ SDThread::SDThread(MainWindow *mw, dance_level dance_program, QString dance_prog
       mutexSDAwaitingInput(),
       mutexThreadRunning(),
       mutexIOFullAccess(),
+      shutdownRequested(false),
       abort(false)
 {
     // return SD to its original glory
@@ -1161,6 +1187,9 @@ void SDThread::resetAndExecute(QStringList &commands)
 
 }
 
+// NOTE: currently unused; superseded by requestShutdown() (#1649), which shuts
+//   the SD thread down without having to feed it fake input.  Kept around in
+//   case the cooperative shutdown turns out to need the old behavior.
 void SDThread::finishAndShutdownSD()
 {
     resetSDState();
@@ -1174,38 +1203,41 @@ void SDThread::finishAndShutdownSD()
     do_user_input("quit");
 }
 
+void SDThread::requestShutdown()
+{
+    shutdownRequested = true;
+
+    // The SD thread holds mutexSDAwaitingInput whenever it is NOT parked in
+    // waitCondSDAwaitingInput.wait(), so if we get the lock here, the SD thread
+    // is guaranteed to be in the wait (or about to check the flag), and the
+    // wakeup cannot be lost.
+    if (mutexSDAwaitingInput.tryLock(1000)) {
+        waitCondSDAwaitingInput.wakeAll();
+        mutexSDAwaitingInput.unlock();
+    } else {
+        // Couldn't get the lock (SD is busy or wedged); wake best-effort anyway.
+        waitCondSDAwaitingInput.wakeAll();
+    }
+}
+
 SDThread::~SDThread()
 {
-    mutexSDAwaitingInput.tryLock();
-    // One of two things just happened:
-    // Either it was already unlocked, and now we locked it again, so it's now OK to unlock now
-    // or, we were unable to get the lock because it was already locked, so again it's OK to unlock here
-    mutexSDAwaitingInput.unlock();
-
-    mutexAckToMainThread.tryLock();
-    // One of two things just happened:
-    // Either it was already unlocked, and now we locked it again, so it's now OK to unlock now
-    // or, we were unable to get the lock because it was already locked, so again it's OK to unlock here
-    mutexAckToMainThread.unlock();
-
-    // NOTE: we should NOT try to acquire this lock, because we might not be able to get it here,
-    //   because SD is in a bad state, and trying to get the lock will cause a hang at shutdown time.
-    // QMutexLocker locker(&mutexThreadRunning);
-
-    mutexThreadRunning.tryLock();
-    // One of two things just happened:
-    // Either it was already unlocked, and now we locked it again, so it's now OK to unlock now
-    // or, we were unable to get the lock because it was already locked, so again it's OK to unlock here
-    mutexThreadRunning.unlock();
-
-    // Instead, if the thread is running, we'll wait 250ms, and then terminate it.
     if (isRunning()) {
-        if (!wait(250))
+        requestShutdown();  // wakes the SD thread, which unwinds out of sdmain() and ends run()
+        if (!wait(3000))
         {
-            qWarning() << "SD thread has not stopped after 250ms, will attempt to terminate().";
+            // Last resort only: terminate() of a thread blocked in QWaitCondition::wait()
+            // is what caused the "mutex destroy failure" messages at quit (#1649).
+            qWarning() << "SD thread has not stopped after 3000ms, will attempt to terminate().";
             terminate();
+            wait(1000);
         }
     }
+
+    // The constructor locked this on the main thread, which is also the thread
+    // running this destructor, so it is ours to unlock.
+    mutexAckToMainThread.unlock();
+
     numberOfSDThreadsActive--;
 }
 
@@ -1262,11 +1294,21 @@ void SDThread::run()
                     levelString,
                     nullptr};
 
-    sdmain(sizeof(argv) / sizeof(*argv) - 1, argv, ggg);  // note: manually set argc to match number of argv arguments...
+    try {
+        sdmain(sizeof(argv) / sizeof(*argv) - 1, argv, ggg);  // note: manually set argc to match number of argv arguments...
+    } catch (SDThreadShutdownRequest &) {
+        // requestShutdown() was called; we just unwound out of sdmain(),
+        // and this thread now ends normally (no terminate() needed).
+    }
     {
         QMutexLocker locker(&mutexIOFullAccess);
         iofull = nullptr;
     }
+
+    // This thread holds mutexSDAwaitingInput whenever it is not parked in the
+    // wait condition (on both the normal and the shutdown path), so release it
+    // before the thread ends; the SDThread destructor destroys it.
+    mutexSDAwaitingInput.unlock();
 }
 
 void SDThread::unlock()

@@ -1136,20 +1136,23 @@ MainWindow::~MainWindow()
     colorDlg.setOption(QColorDialog::NoButtons);
     colorDlg.setCurrentColor(Qt::white);
 
+    if (sdthread)
+    {
+        // Shut down the SD thread BEFORE 'delete ui', because the SD thread can
+        // still emit signals into MainWindow slots that dereference ui (#1519).
+        // ~SDThread does a cooperative shutdown (no terminate(), which is what
+        // caused the "QWaitCondition: mutex destroy failure" messages, #1649).
+        delete sdthread;
+        sdthread = nullptr;
+    }
+
     delete ui;
     delete sd_redo_stack;
-    
+
     // Clean up debug dialog
     if (cuesheetDebugDialog) {
         delete cuesheetDebugDialog;
         cuesheetDebugDialog = nullptr;
-    }
-
-    if (sdthread)
-    {
-        // sdthread->finishAndShutdownSD(); // try to kill it nicely
-        sdthread->terminate();
-        delete sdthread; // call the destructor explicitly, which will terminate the thread, if it is not stopped in 250ms
     }
 //    if (ps) {
 //        ps->kill();

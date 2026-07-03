@@ -2321,8 +2321,8 @@ void MainWindow::restartSDThread(dance_level dance_program)
 {
     if (sdthread)
     {
-        sdthread->finishAndShutdownSD();
-        sdthread->wait(250);
+        // ~SDThread does a cooperative shutdown of the SD engine and waits for
+        // the thread to actually finish before destroying its mutexes (#1649).
         delete sdthread;
         sdthread = nullptr; // NULL;
     }

@@ -26,6 +26,7 @@
 #ifndef SDINTERFACE_H_INCLUDED
 #define SDINTERFACE_H_INCLUDED
 #include <functional>
+#include <atomic>
 #include <QThread>
 #include <QWaitCondition>
 #include <QMutex>
@@ -62,6 +63,8 @@ public:
 
 public:
     void finishAndShutdownSD();
+    void requestShutdown();
+    bool isShutdownRequested() const { return shutdownRequested; }
     void unlock();
 
     enum CurrentInputState {
@@ -108,6 +111,7 @@ private:
 
     QMutex mutexThreadRunning;
     QMutex mutexIOFullAccess;
+    std::atomic<bool> shutdownRequested;
     bool abort;
     SquareDesk_iofull *iofull;    
 
