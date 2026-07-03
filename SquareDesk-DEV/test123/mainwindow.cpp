@@ -208,6 +208,120 @@ void MainWindow::SetKeyMappings(const QHash<QString, KeyAction *> &hotkeyMapping
         }
     }
     
+// Returns all key sequences currently bound to a hotkey action (menu shortcut plus
+//   Hotkeys-tab shortcuts), rendered as native text (e.g. "u", "⌘U"), shortest first.
+QStringList MainWindow::hotkeySequencesForAction(const QString &actionName)
+{
+    QStringList keys;
+
+    if (keybindingActionToMenuAction.contains(actionName)) {
+        QAction *menuAction = keybindingActionToMenuAction[actionName];
+        if (menuAction && !menuAction->shortcut().isEmpty()) {
+            keys.append(menuAction->shortcut().toString(QKeySequence::NativeText));
+        }
+    }
+
+    if (hotkeyShortcuts.contains(actionName)) {
+        const QVector<QShortcut *> &shortcuts = hotkeyShortcuts[actionName];
+        for (QShortcut *shortcut : shortcuts) {
+            if (shortcut->isEnabled() && !shortcut->key().isEmpty()) {
+                keys.append(shortcut->key().toString(QKeySequence::NativeText));
+            }
+        }
+    }
+
+    keys.removeDuplicates();
+    std::sort(keys.begin(), keys.end(), [](const QString &a, const QString &b) {
+        return (a.length() != b.length()) ? (a.length() < b.length()) : (a < b);
+    });
+    return keys;
+}
+
+// Rebuilds the tooltips that mention keyboard shortcuts, using the actual current
+//   key bindings (issue #1644).  Called at startup and whenever the user changes
+//   hotkeys in the Preferences dialog.
+void MainWindow::updateHotkeyTooltips()
+{
+    // START LOOP: plain keys set Start; Shift-variant keys (e.g. "{") set Start AND End
+    QStringList startKeys = hotkeySequencesForAction(keyActionName_StartLoop);
+    QStringList plainStartKeys, shiftStartKeys;
+    for (const QString &k : startKeys) {
+        if (k.contains("Shift+") || k.contains(QChar(0x21e7)) || k == "{") {
+            shiftStartKeys.append(k);
+        } else {
+            plainStartKeys.append(k);
+        }
+    }
+    QString startTip("Sets start point of a loop (Patter) or Intro point (Singing Call)");
+    QStringList startParts;
+    if (!plainStartKeys.isEmpty()) {
+        startParts.append("set Start " + plainStartKeys.join(","));
+    }
+    if (!shiftStartKeys.isEmpty()) {
+        startParts.append("set Start and End: " + shiftStartKeys.join(","));
+    }
+    if (!startParts.isEmpty()) {
+        startTip += "\n\nShortcuts: " + startParts.join(", ");
+    }
+    ui->darkStartLoopButton->setToolTip(startTip);
+
+    // END LOOP
+    QStringList endKeys = hotkeySequencesForAction(keyActionName_EndLoop);
+    QString endTip("Sets end point of a loop (Patter) or Outro point (Singing Call)");
+    if (!endKeys.isEmpty()) {
+        endTip += "\n\nShortcuts: set End " + endKeys.join(",");
+    }
+    ui->darkEndLoopButton->setToolTip(endTip);
+
+    // VOLUME
+    QStringList volumeUpKeys   = hotkeySequencesForAction(keyActionName_VolumePlus);
+    QStringList volumeDownKeys = hotkeySequencesForAction(keyActionName_VolumeMinus);
+    QString volumeTip("Volume (in %)\nControls the loudness of this song.");
+    QStringList volumeParts;
+    if (!volumeUpKeys.isEmpty()) {
+        volumeParts.append("volume up " + volumeUpKeys.join(","));
+    }
+    if (!volumeDownKeys.isEmpty()) {
+        volumeParts.append("volume down " + volumeDownKeys.join(","));
+    }
+    if (!volumeParts.isEmpty()) {
+        volumeTip += "\n\nShortcuts: " + volumeParts.join(", ");
+    }
+    ui->darkVolumeSlider->setToolTip(volumeTip);
+
+    // TEMPO
+    QStringList tempoUpKeys   = hotkeySequencesForAction(keyActionName_TempoPlus);
+    QStringList tempoDownKeys = hotkeySequencesForAction(keyActionName_TempoMinus);
+    QString tempoTip("Tempo (in BPM)\nControls the tempo of this song (independent from Pitch).");
+    QStringList tempoParts;
+    if (!tempoUpKeys.isEmpty()) {
+        tempoParts.append("faster " + tempoUpKeys.join(","));
+    }
+    if (!tempoDownKeys.isEmpty()) {
+        tempoParts.append("slower " + tempoDownKeys.join(","));
+    }
+    if (!tempoParts.isEmpty()) {
+        tempoTip += "\n\nShortcuts: " + tempoParts.join(", ");
+    }
+    ui->darkTempoSlider->setToolTip(tempoTip);
+
+    // PITCH
+    QStringList pitchUpKeys   = hotkeySequencesForAction(keyActionName_PitchPlus);
+    QStringList pitchDownKeys = hotkeySequencesForAction(keyActionName_PitchMinus);
+    QString pitchTip("Pitch (in semitones)\nControls the pitch of this song (relative to song's original pitch).");
+    QStringList pitchParts;
+    if (!pitchUpKeys.isEmpty()) {
+        pitchParts.append("pitch up " + pitchUpKeys.join(","));
+    }
+    if (!pitchDownKeys.isEmpty()) {
+        pitchParts.append("pitch down " + pitchDownKeys.join(","));
+    }
+    if (!pitchParts.isEmpty()) {
+        pitchTip += "\n\nShortcuts: " + pitchParts.join(", ");
+    }
+    ui->darkPitchSlider->setToolTip(pitchTip);
+}
+
 void MainWindow::LyricsCopyAvailable(bool yes) {
     lyricsCopyIsAvailable = yes;
 }
@@ -4261,6 +4375,7 @@ void MainWindow::on_actionPreferences_triggered()
         songSettings.setTagColors(prefsManager.getTagColors());
         QHash<QString, KeyAction *> hotkeyMappings = prefsManager.GetHotkeyMappings();
         SetKeyMappings(hotkeyMappings, hotkeyShortcuts);
+        updateHotkeyTooltips(); // tooltips reflect the actual current key bindings (issue #1644)
         songSettings.setDefaultTagColors( prefsManager.GettagsBackgroundColorString(), prefsManager.GettagsForegroundColorString());
 
         QString newMusicRootPath = prefsManager.GetmusicPath();

@@ -369,6 +369,7 @@ void MainWindow::initializeUI() {
     }
 
     SetKeyMappings(hotkeyMappings, hotkeyShortcuts);
+    updateHotkeyTooltips(); // tooltips reflect the actual current key bindings (issue #1644)
 
 #if !defined(Q_OS_MAC)
     // disable this menu item for WIN and LINUX, until
@@ -757,8 +758,7 @@ void MainWindow::initializeMusicPlaybackControls() {
     ui->songLengthLabel2->setToolTip("Shows Length-of-Song in MM:SS.");
 
     // LOOP CONTROLS =========
-    ui->darkStartLoopButton->setToolTip(QString("Sets start point of a loop (Patter) or Intro point (Singing Call)\n\nShortcuts: set Start [, set Start and End: %1[").arg(QChar(0x21e7)));
-    ui->darkEndLoopButton->setToolTip(QString("Sets end point of a loop (Patter) or Outro point (Singing Call)\n\nShortcuts: set End ]"));
+    // NOTE: darkStartLoopButton/darkEndLoopButton tooltips are set dynamically by updateHotkeyTooltips()
 
     // Install event filter to handle hover on darkEndLoopButton
     ui->darkEndLoopButton->installEventFilter(this);
@@ -794,7 +794,7 @@ void MainWindow::initializeMusicPlaybackControls() {
     ui->darkVolumeSlider->setDefaultValue(100.0);
     ui->darkVolumeSlider->setIncrement(1.0);
     ui->darkVolumeSlider->setCenterVeinType(false);
-    ui->darkVolumeSlider->setToolTip(QString("Volume (in %)\nControls the loudness of this song.\n\nShortcuts: volume up %1%2, volume down %1%3").arg(QChar(0x2318)).arg(QChar(0x2191)).arg(QChar(0x2193)));
+    // NOTE: darkVolumeSlider tooltip is set dynamically by updateHotkeyTooltips()
 
 #ifndef DEBUG_LIGHT_MODE
     ui->darkVolumeLabel->setStyleSheet("color: " + darkTextColor);
@@ -807,7 +807,7 @@ void MainWindow::initializeMusicPlaybackControls() {
     ui->darkTempoSlider->setDefaultValue(0.0);
     ui->darkTempoSlider->setIncrement(1.0);
     ui->darkTempoSlider->setCenterVeinType(true);
-    ui->darkTempoSlider->setToolTip(QString("Tempo (in BPM)\nControls the tempo of this song (independent from Pitch).\n\nShortcuts: faster %1+, slower %1-").arg(QChar(0x2318)));
+    // NOTE: darkTempoSlider tooltip is set dynamically by updateHotkeyTooltips()
 
     // Connect tempo slider +/- buttons to actions
     connect(ui->darkTempoSlider, &svgSlider::incrementRequested, ui->actionSpeed_Up, &QAction::trigger);
@@ -824,7 +824,7 @@ void MainWindow::initializeMusicPlaybackControls() {
     ui->darkPitchSlider->setDefaultValue(0.0);
     ui->darkPitchSlider->setIncrement(1.0);
     ui->darkPitchSlider->setCenterVeinType(true);
-    ui->darkPitchSlider->setToolTip(QString("Pitch (in semitones)\nControls the pitch of this song (relative to song's original pitch).\n\nShortcuts: pitch up %1u, pitch down %1d").arg(QChar(0x2318)));
+    // NOTE: darkPitchSlider tooltip is set dynamically by updateHotkeyTooltips()
 
     // Connect pitch slider +/- buttons to actions
     connect(ui->darkPitchSlider, &svgSlider::incrementRequested, ui->actionPitch_Up, &QAction::trigger);
