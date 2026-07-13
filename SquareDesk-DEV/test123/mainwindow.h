@@ -969,6 +969,7 @@ private:
     void loadPlaylistFromFileToSlot(int whichSlot);
     void printPlaylistFromSlot(int whichSlot);
     void updateRecentPlaylistsList(const QString &playlistPath);
+    void removeFromRecentPlaylistsList(const QString &playlistPath);
 #ifdef OLDAPPLEMUSICPLAYLISTS
     void getAppleMusicPlaylists();
 #endif

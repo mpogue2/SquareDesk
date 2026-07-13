@@ -7897,6 +7897,44 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
                                           }
                                       }
                                       );
+
+                    twMenu->addSeparator();
+
+                    // Add "Move Playlist to Trash"
+                    twMenu->addAction("Move Playlist to Trash",
+                                      [this, PlaylistFileName, relativePath](){
+                                          QMessageBox msgBox;
+                                          msgBox.setText("Playlist \"" + relativePath + "\" will be moved to the Trash.\nThis operation cannot be undone.");
+                                          msgBox.setIcon(QMessageBox::Question);
+                                          msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+                                          msgBox.setDefaultButton(QMessageBox::No);
+                                          int ret = msgBox.exec();
+
+                                          if (ret != QMessageBox::Yes) {
+                                              return;
+                                          }
+
+                                          // If this playlist is loaded in a palette slot, save any pending
+                                          //  modifications first (so the trashed file is fully recoverable),
+                                          //  then clear that slot.
+                                          clearDuplicateSlots(relativePath);
+
+                                          if (QFile::moveToTrash(PlaylistFileName)) {
+                                              removeFromRecentPlaylistsList(PlaylistFileName);
+                                              updateTreeWidget();
+
+                                              // the darkSongTable may be showing the contents of the now-deleted
+                                              //  playlist (right-click selected it), so go back to showing all Tracks,
+                                              //  like at app-start time
+                                              currentTreePath = "Tracks/";
+                                              ui->treeWidget->setCurrentItem(treeWidgetTrackItem()); // triggers reload of darkSongTable
+
+                                              ui->statusBar->showMessage(QString("Moved playlist \"%1\" to the Trash").arg(relativePath));
+                                          } else {
+                                              ui->statusBar->showMessage(QString("ERROR: could not move playlist \"%1\" to the Trash").arg(relativePath));
+                                          }
+                                      }
+                                      );
                 }
             } else {
                 // NON-LEAF node: this is a folder containing playlists

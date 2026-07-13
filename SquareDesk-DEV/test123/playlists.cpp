@@ -1599,6 +1599,28 @@ void MainWindow::updateRecentPlaylistsList(const QString &playlistPath)
     prefsManager.SetlastNPlaylistsLoaded(updatedList);
 }
 
+// Remove a playlist from the "recently-used playlists" menu, e.g. when it has been moved to the Trash
+void MainWindow::removeFromRecentPlaylistsList(const QString &playlistPath)
+{
+    // Convert full path to relative path for storage
+    QString relativePath = playlistPath;
+    QString playlistsPrefix = musicRootPath + PLAYLISTS_PATH_PREFIX;
+
+    if (relativePath.startsWith(playlistsPrefix)) {
+        relativePath = relativePath.mid(playlistsPrefix.length());
+    }
+    if (relativePath.endsWith(CSV_FILE_EXTENSION)) {
+        relativePath = relativePath.left(relativePath.length() - 4);
+    }
+
+    QString currentList = prefsManager.GetlastNPlaylistsLoaded();
+    QStringList recentPlaylists = currentList.split(";", Qt::SkipEmptyParts);
+
+    recentPlaylists.removeAll(relativePath);
+
+    prefsManager.SetlastNPlaylistsLoaded(recentPlaylists.join(";"));
+}
+
 // ----------------------------
 void MainWindow::printPlaylistFromSlot(int whichSlot)
 {
