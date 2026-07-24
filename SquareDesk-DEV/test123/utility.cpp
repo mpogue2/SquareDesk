@@ -24,6 +24,7 @@
 ****************************************************************************/
 
 #include "utility.h"
+#include <QDialogButtonBox>
 #include <QStringList>
 
 QString doubleToTime(double t)
@@ -51,6 +52,11 @@ double timeToDouble(QString t)
 //   the qss can then use darkmode and !darkmode
 void setDynamicPropertyRecursive(QWidget* widget, const QString& propertyName, const QVariant& value) {
     if (widget) {
+        // Dialog button boxes (e.g. OK/Cancel) should keep their native system
+        // appearance rather than being themed, so skip them and their children.
+        if (qobject_cast<QDialogButtonBox*>(widget)) {
+            return;
+        }
         widget->setProperty(propertyName.toStdString().c_str(), value);
         widget->style()->unpolish(widget);
         widget->style()->polish(widget);
