@@ -59,6 +59,8 @@ private slots:
 
     void on_checkBoxOmitEnd_stateChanged(int arg1);
 
+    void on_todayPushButton_clicked();
+
 private:
     Ui::SongHistoryExportDialog *ui;
 };

@@ -232,3 +232,10 @@ void SongHistoryExportDialog::on_checkBoxOmitEnd_stateChanged(int newState)
 {
     ui->dateTimeEditEnd->setEnabled(newState == Qt::Unchecked);
 }
+
+void SongHistoryExportDialog::on_todayPushButton_clicked()
+{
+    QDateTime fromDT = QDate::currentDate().startOfDay().addSecs(18 * 3600);        // today @ 6:00 PM
+    ui->dateTimeEditStart->setDateTime(fromDT);
+}
+
