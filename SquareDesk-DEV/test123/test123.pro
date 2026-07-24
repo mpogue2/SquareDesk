@@ -362,7 +362,7 @@ win32:CONFIG(debug, debug|release): {
     # Copy the lyrics.template.html and patter.template.html files to the right place
     copydata0a.commands = xcopy /q /y  $$shell_path($$PWD/lyrics.template.html) $$shell_path($$OUT_PWD\debug)
     copydata0b.commands = xcopy /q /y  $$shell_path($$PWD/cuesheet2.css)        $$shell_path($$OUT_PWD\debug)
-    copydata0c.commands = xcopy /q /y  $$shell_path($$PWD/patter.template.html) $$shell_path($$OUT_PWD\debug)
+    #copydata0c.commands = xcopy /q /y  $$shell_path($$PWD/patter.template.html) $$shell_path($$OUT_PWD\debug)
     first.depends += $(first) copydata0a copydata0b copydata0c
     export(copydata0a.commands)
     export(copydata0b.commands)
@@ -383,10 +383,10 @@ win32:CONFIG(release, debug|release): {
     QMAKE_EXTRA_TARGETS += first copydata copydata3 copydata30
 
     # LYRICS AND PATTER TEMPLATES --------------------------------------------
-    # Copy the lyrics.template.html and patter.template.html files to the right place
+    # Copy the lyrics.template.html files to the right place
     copydata0a.commands = xcopy /q /y  $$shell_path($$PWD/lyrics.template.html) $$shell_path($$OUT_PWD\release)
     copydata0b.commands = xcopy /q /y  $$shell_path($$PWD/cuesheet2.css)        $$shell_path($$OUT_PWD\release)
-    copydata0c.commands = xcopy /q /y  $$shell_path($$PWD/patter.template.html) $$shell_path($$OUT_PWD\release)
+    #copydata0c.commands = xcopy /q /y  $$shell_path($$PWD/patter.template.html) $$shell_path($$OUT_PWD\release)
     first.depends += $(first) copydata0a copydata0b copydata0c
     export(copydata0a.commands)
     export(copydata0b.commands)
@@ -510,10 +510,10 @@ DISTFILES += $$PWD/allcalls.csv  # RESOURCE: list of calls, and which level they
 # "If using Qt Creator, you have to uncheck the Add build library search path to DYLD_LIBRARY_PATH and DYLD_FRAMEWORK_PATH option from the Run section in the Projects tab:"
 
 # LYRICS AND PATTER TEMPLATES --------------------------------------------
-# Copy the lyrics.template.html and patter.template.html files to the right place
+# Copy the lyrics.template*.html files to the right place
 copydata0a.commands = $(COPY) $$PWD/lyrics.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata0b.commands = $(COPY) $$PWD/cuesheet2.css        $$OUT_PWD/SquareDesk.app/Contents/Resources
-copydata0c.commands = $(COPY) $$PWD/patter.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
+#copydata0c.commands = $(COPY) $$PWD/patter.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata0d.commands = $(COPY) $$PWD/lyrics.template.2col.html $$OUT_PWD/SquareDesk.app/Contents/Resources
 
 # THEMES ----------------------------------------

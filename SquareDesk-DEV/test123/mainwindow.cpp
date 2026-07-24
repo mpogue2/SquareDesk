@@ -8629,7 +8629,7 @@ void MainWindow::maybeInstallTemplates() {
         QString pathFromAppDirPathToResources = "/../Resources";
         QString templatesDir = musicRootPath + "/lyrics/templates";
 
-        QStringList templateNames = {"lyrics.template.html", "lyrics.template.2col.html", "patter.template.html"};
+        QStringList templateNames = {"lyrics.template.html", "lyrics.template.2col.html"};
 
         for (const auto &templateName : std::as_const(templateNames))
         {

@@ -325,7 +325,7 @@ public:
     // Reference documentation
     QList<QWebEngineView*> webViews;
     QTabWidget *documentsTab;
-    QStringList patterTemplateCuesheets;
+    // QStringList patterTemplateCuesheets;
     QStringList lyricsTemplateCuesheets;
 
     // ============================================================================
