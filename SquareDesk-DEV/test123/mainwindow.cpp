@@ -587,7 +587,9 @@ void MainWindow::musicRootModified(QString s)
         ui->statusBar->showMessage("Scanning Music Directory....");
         QCoreApplication::processEvents(); // show the message
 
-        findMusic(musicRootPath, true);  // get the filenames from the user's directories
+        findMusic(musicRootPath, true, s == "MANUAL_RESCAN");  // get the filenames from the user's directories
+                                                               // (a MANUAL_RESCAN bypasses the pathStack cache, so it's the
+                                                               //  escape hatch if the cache ever goes stale -- Issue #1669)
         // loadMusicList(); // and filter them into the songTable
         // if (darkmode) {
         darkLoadMusicList(nullptr, currentTypeFilter, true, true); // also filter them into the darkSongTable

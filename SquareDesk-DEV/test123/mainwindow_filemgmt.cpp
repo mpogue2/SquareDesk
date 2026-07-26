@@ -506,7 +506,200 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QList<QString
         }
 }
 
-void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
+// ============================================================================
+// PATHSTACK CACHE (Issue #1669)
+//
+// findFilesRecursively() -- a full QDirIterator walk of the music directory,
+// including opening every cuesheet to detect its dance level -- is a large
+// chunk of startup time (~1.3s on a large iCloud library), but its results only
+// change when the music directory changes, which is rare. So we persist its
+// outputs (pathStack, pathStackCuesheets incl. detected levels,
+// pathStackReference, and the soundfx maps) to a key/value cache file, along
+// with the mtime of EVERY directory in the tree. At startup, we just stat that
+// flat list of directories (a few hundred stats, ~10-30ms) instead of walking
+// the whole tree: adding/deleting/renaming any file or subdirectory updates its
+// parent directory's mtime, and a deleted directory fails its stat, so any
+// structural change forces a normal full rescan (which then rewrites the cache).
+//
+// Known accepted staleness: an EXTERNAL editor rewriting a cuesheet in place
+// (parent dir mtime unchanged) won't be noticed, so its detected dance level
+// may be stale until the next real rescan. Cuesheets edited within SquareDesk
+// are fine (updateCuesheetLevelInPathStack() handles those in-session).
+// The escape hatch is Menu > Rescan Music Directory, which forces a full scan.
+
+static const char *kPathStackCacheVersion = "2"; // bump if the cache file format or scan semantics change
+
+// "type#!#<absolute path>[#!#level]" -> "type#!#<path relative to root>[#!#level]",
+// or "" if the path isn't under root (shouldn't happen for scanned entries)
+static QString relativizePathStackEntry(const QString &entry, const QString &root) {
+    QStringList parts = entry.split("#!#");
+    if (parts.size() < 2 || !parts[1].startsWith(root + "/")) {
+        return QString();
+    }
+    parts[1] = parts[1].mid(root.length());
+    return parts.join("#!#");
+}
+
+// inverse of relativizePathStackEntry()
+static QString absolutizePathStackEntry(const QString &entry, const QString &root) {
+    QStringList parts = entry.split("#!#");
+    if (parts.size() < 2) {
+        return QString();
+    }
+    parts[1] = root + parts[1];
+    return parts.join("#!#");
+}
+
+// Writes the results of a just-completed findFilesRecursively() scan to
+// <musicDir>/.squaredesk/cache/pathStack.cache. Line format (tab-separated):
+//   version=N
+//   E <entryName>                        -- one per non-hidden entry directly in the music root
+//   D <relativeDirPath> <mtimeMsecs>     -- one per directory BELOW the music root
+//   P <type#!#relativePath>              -- pathStack entry
+//   Q <type#!#relativePath#!#level>      -- pathStackCuesheets entry
+//   R <type#!#relativePath>              -- pathStackReference entry
+//   S <index> <name> <relativePath>      -- soundfx entry
+// The music root itself is validated by its entry LISTING (E records), not its mtime:
+// transient files that the app / macOS / iCloud briefly create directly in the root
+// bump the root's mtime on every session (which made an mtime check ALWAYS fail),
+// but the scan only cares about which entries currently exist there.
+// Must be called BEFORE Apple Music / playlist entries get appended to the stacks.
+void MainWindow::savePathStackCache()
+{
+    QDir().mkpath(musicRootPath + "/.squaredesk/cache");
+
+    QFile file(musicRootPath + "/.squaredesk/cache/pathStack.cache");
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        return; // not writable -- no cache, but no harm either (we'll just rescan next time)
+    }
+    QTextStream out(&file);
+    out << "version=" << kPathStackCacheVersion << "\n";
+
+    // E records: the current (sorted) non-hidden entries directly in the music root
+    const QStringList rootEntries = QDir(musicRootPath).entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
+    for (const QString &name : rootEntries) {
+        out << "E\t" << name << "\n";
+    }
+
+    // D records: every directory below the music root. Hidden dirs (including our
+    // own .squaredesk, whose cache/DB writes must not self-invalidate this cache)
+    // are excluded, matching what findFilesRecursively() scans.
+    QDirIterator dirIt(musicRootPath, QDir::Dirs | QDir::NoDotAndDotDot,
+                       QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
+    while (dirIt.hasNext()) {
+        dirIt.next();
+        QFileInfo fi = dirIt.fileInfo();
+        out << "D\t" << QStringView(fi.filePath()).mid(musicRootPath.length())
+            << "\t" << fi.lastModified().toMSecsSinceEpoch() << "\n";
+    }
+
+    for (const QString &e : *pathStack) {
+        QString rel = relativizePathStackEntry(e, musicRootPath);
+        if (!rel.isEmpty()) { out << "P\t" << rel << "\n"; }
+    }
+    for (const QString &e : *pathStackCuesheets) {
+        QString rel = relativizePathStackEntry(e, musicRootPath);
+        if (!rel.isEmpty()) { out << "Q\t" << rel << "\n"; }
+    }
+    for (const QString &e : *pathStackReference) {
+        QString rel = relativizePathStackEntry(e, musicRootPath);
+        if (!rel.isEmpty()) { out << "R\t" << rel << "\n"; }
+    }
+
+    for (auto it = soundFXfilenames.constBegin(); it != soundFXfilenames.constEnd(); ++it) {
+        QString path = it.value();
+        if (path.startsWith(musicRootPath + "/")) {
+            out << "S\t" << it.key() << "\t" << soundFXname.value(it.key())
+                << "\t" << QStringView(path).mid(musicRootPath.length()) << "\n";
+        }
+    }
+}
+
+// If pathStack.cache exists and every directory mtime in it still matches the
+// filesystem, appends the cached scan results to the pathStacks/soundfx maps
+// (exactly what findFilesRecursively() would have produced) and returns true.
+// Any mismatch, missing directory, or parse problem returns false, and the
+// caller does a normal full rescan.
+bool MainWindow::loadPathStackCacheIfValid()
+{
+    QFile file(musicRootPath + "/.squaredesk/cache/pathStack.cache");
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return false; // no cache yet
+    }
+    QTextStream in(&file);
+    if (in.readLine() != QString("version=") + kPathStackCacheVersion) {
+        return false;
+    }
+
+    // parse (and validate D records) into locals first, so a mid-file mismatch
+    // can't leave the real pathStacks half-populated
+    QList<QString> newPathStack, newPathStackCuesheets, newPathStackReference;
+    QMap<int, QString> newSoundFXpaths, newSoundFXnames;
+    QStringList cachedRootEntries;
+    int dirCount = 0;
+
+    while (!in.atEnd()) {
+        QString line = in.readLine();
+        QStringList fields = line.split('\t');
+
+        if (fields[0] == "E" && fields.size() == 2) {
+            cachedRootEntries.append(fields[1]);
+        } else if (fields[0] == "D" && fields.size() == 3) {
+            QFileInfo fi(musicRootPath + fields[1]);
+            if (!fi.exists() || fi.lastModified().toMSecsSinceEpoch() != fields[2].toLongLong()) {
+                return false; // this directory changed (or is gone) -> full rescan needed
+            }
+            dirCount++;
+        } else if ((fields[0] == "P" || fields[0] == "Q" || fields[0] == "R") && fields.size() == 2) {
+            QString abs = absolutizePathStackEntry(fields[1], musicRootPath);
+            if (abs.isEmpty()) {
+                return false; // corrupt entry
+            }
+            if      (fields[0] == "P") { newPathStack.append(abs); }
+            else if (fields[0] == "Q") { newPathStackCuesheets.append(abs); }
+            else                       { newPathStackReference.append(abs); }
+        } else if (fields[0] == "S" && fields.size() == 4) {
+            newSoundFXnames.insert(fields[1].toInt(), fields[2]);
+            newSoundFXpaths.insert(fields[1].toInt(), musicRootPath + fields[3]);
+        } else {
+            return false; // corrupt line
+        }
+    }
+
+    if (dirCount == 0 && cachedRootEntries.isEmpty()) {
+        return false; // no directory/root-entry records at all -- don't trust it
+    }
+
+    // The music root is validated by comparing its current entry listing against the
+    // cached one (both sorted by name), NOT by mtime -- see savePathStackCache().
+    if (QDir(musicRootPath).entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot, QDir::Name) != cachedRootEntries) {
+        return false; // something was added/removed/renamed directly in the music root
+    }
+
+    // root listing and all subdirectory mtimes match: commit, mirroring what findFilesRecursively() appends
+    pathStack->append(newPathStack);
+    pathStackCuesheets->append(newPathStackCuesheets);
+    pathStackReference->append(newPathStackReference);
+
+    for (auto it = newSoundFXpaths.constBegin(); it != newSoundFXpaths.constEnd(); ++it) {
+        soundFXfilenames.insert(it.key(), it.value());
+    }
+    for (auto it = newSoundFXnames.constBegin(); it != newSoundFXnames.constEnd(); ++it) {
+        soundFXname.insert(it.key(), it.value());
+        switch (it.key() + 1) { // same 1-based numbering as findFilesRecursively()
+        case 1: ui->action_1->setText(it.value()); break;
+        case 2: ui->action_2->setText(it.value()); break;
+        case 3: ui->action_3->setText(it.value()); break;
+        case 4: ui->action_4->setText(it.value()); break;
+        case 5: ui->action_5->setText(it.value()); break;
+        case 6: ui->action_6->setText(it.value()); break;
+        default: break; // ignore all but the first 6 soundfx
+        }
+    }
+    return true;
+}
+
+void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase, bool forceRescan)
 {
     // qDebug() << "***** findMusic";
     PerfTimer t("findMusic", __LINE__);
@@ -544,7 +737,13 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
 
     t.elapsed(__LINE__);
 
-    findFilesRecursively(rootDir1, pathStack, pathStackCuesheets, pathStackReference, "", ui, &soundFXfilenames, &soundFXname);  // appends to the pathstack
+    // If nothing in the music directory changed since the last scan (checked via
+    // directory mtimes), load the scan results from the pathStack cache instead of
+    // walking the whole tree (Issue #1669). A MANUAL_RESCAN bypasses the cache.
+    if (forceRescan || !loadPathStackCacheIfValid()) {
+        findFilesRecursively(rootDir1, pathStack, pathStackCuesheets, pathStackReference, "", ui, &soundFXfilenames, &soundFXname);  // appends to the pathstack
+        savePathStackCache(); // must happen BEFORE Apple Music / playlist entries get appended below
+    }
 
     t.elapsed(__LINE__);
 

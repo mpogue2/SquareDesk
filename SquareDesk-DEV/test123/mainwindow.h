@@ -1098,7 +1098,9 @@ private:
     bool cuesheetMatchesSong(const SongMatchInfo &song, const LeveledCuesheet &cuesheet);
 
     // Music library management
-    void findMusic(QString mainRootDir, bool refreshDatabase);
+    void findMusic(QString mainRootDir, bool refreshDatabase, bool forceRescan = false);
+    bool loadPathStackCacheIfValid();
+    void savePathStackCache();
     void updateTreeWidget();
     void filterMusic();
     void loadMusicList();
