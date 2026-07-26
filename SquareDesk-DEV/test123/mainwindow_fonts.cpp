@@ -530,6 +530,8 @@ void MainWindow::adjustFontSizes()
 
 void MainWindow::usePersistentFontSize() {
     PerfTimer t("usePersistentFontSize", __LINE__);
+    t.start(__LINE__);
+
     int newPointSize = prefsManager.GetsongTableFontSize(); // gets the persisted value
     if (newPointSize == 0) {
         newPointSize = 13;  // default backstop, if not set properly
@@ -598,6 +600,7 @@ void MainWindow::persistNewFontSize(int currentMacPointSize) {
 void MainWindow::zoomInOut(int increment) {
     Q_UNUSED(increment)
     PerfTimer t("zoomInOut", __LINE__);
+    t.start(__LINE__);
 
     // QFont currentFont = ui->songTable->font();
 

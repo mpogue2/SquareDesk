@@ -183,6 +183,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->actionUpdate_ID3_Tags->setEnabled(MP3FileName.endsWith(".mp3", Qt::CaseInsensitive));
 
     PerfTimer t("loadMP3File", __LINE__);
+    t.start(__LINE__);
 
     // ***** NO. We decided that the first part after the musicRootPath is the type, and that's the songType passed in to us in loadMP3File.
     // // override songType, and just look at the path now
@@ -581,7 +582,7 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
     // updateTreeWidget() now clears the pathStackPlaylists, because it always reloads it
     updateTreeWidget(); // this will also show the Apple Music playlists, found just now
     t.elapsed(__LINE__);
-    t.stop();
+    t.stop(__LINE__);
 
     // // DEBUG DEBUG DEBUG =========
     // for (const auto &a : *pathStack) {
@@ -735,7 +736,7 @@ void MainWindow::darkFilterMusic()
     }
     ui->darkSearch->setFocus();  // restore focus after selectRow
 
-    t.stop();
+    t.stop(__LINE__);
 
 //    ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
 }
@@ -1344,7 +1345,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         }
     }
 
-    t.stop();
+    t.stop(__LINE__);
 
     if (aPathStack != nullptr) {
         currentlyShowingPathStack = aPathStack; // we're showing either the one we were given (pathStack, pathStackPlaylists), or we just refreshed the currently showing one

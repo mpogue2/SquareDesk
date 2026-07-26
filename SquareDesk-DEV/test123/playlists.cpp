@@ -1091,6 +1091,7 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
     }
 
     PerfTimer t("on_playlistTable_itemDoubleClicked", __LINE__);
+    t.start(__LINE__);
 
     on_darkStopButton_clicked();  // if we're loading a new MP3 file, stop current playback
     saveCurrentSongSettings();

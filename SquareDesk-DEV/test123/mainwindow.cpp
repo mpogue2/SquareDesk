@@ -658,6 +658,8 @@ void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent colu
 {
     // qDebug() << "================ reloadSongAges" << show_all_ages << songSettings.getCurrentSession();
     PerfTimer t("reloadSongAges", __LINE__);
+    t.start(__LINE__);
+
     QHash<QString,QString> ages;
     songSettings.getSongAges(ages, show_all_ages);
 
@@ -6939,6 +6941,8 @@ void MainWindow::on_darkStopButton_clicked()
 void MainWindow::on_darkPlayButton_clicked()
 {
     PerfTimer t("MainWindow::on_playButtonClicked", __LINE__);
+    t.start(__LINE__);
+
     if (!songLoaded) {
         return;  // if there is no song loaded, no point in toggling anything.
     }
@@ -6958,6 +6962,7 @@ void MainWindow::on_darkPlayButton_clicked()
         if (firstTimeSongIsPlayed)
         {
             PerfTimer t("MainWindow::on_playButtonClicked firstTimeSongIsPlayed", __LINE__);
+            t.start(__LINE__);
 
             firstTimeSongIsPlayed = false;
             saveCurrentSongSettings();
@@ -7229,6 +7234,7 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
 void MainWindow::on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item)
 {
     PerfTimer t("on_darkSongTable_itemDoubleClicked", __LINE__);
+    t.start(__LINE__);
 
     on_darkStopButton_clicked();  // if we're loading a new MP3 file, stop current playback
     saveCurrentSongSettings();

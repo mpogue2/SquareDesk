@@ -27,7 +27,7 @@
 #include <QDebug>
 
 // comment this out, if you don't want timing info
-//#define ENABLEPERFTIMER 1
+#define ENABLEPERFTIMER 1
 
 int PerfTimer::indentLevel = 0;  // static
 
@@ -71,15 +71,18 @@ void PerfTimer::elapsed(int lineNumber)
 #endif
 }
 
-void PerfTimer::stop()
+void PerfTimer::stop(int lineNumber)
 {
 #ifdef ENABLEPERFTIMER
     if (!stopped)
     {
         stopped = true;  // note that QElapsedTimers do not need to be manually stopped
-        qint64 elapsed = timer.elapsed();
+        qint64 elapsed_ms = timer.elapsed();
+        // qDebug().noquote() << QString("  ").repeated(indentLevel) <<
+        //                       "*** Timer " << name << " stopped:" << elapsed << "ms";
         qDebug().noquote() << QString("  ").repeated(indentLevel) <<
-                              "*** Timer " << name << " stopped:" << elapsed << "ms";
+            "*** Timer " << name << "[line" << lineNumber << "], STOPPED:" << elapsed_ms <<
+            "ms (delta_ms:" << elapsed_ms - lastElapsedTime_ms << ")";
         indentLevel--;
     }
 #else
@@ -90,7 +93,7 @@ void PerfTimer::stop()
 PerfTimer::~PerfTimer()
 {
 #ifdef ENABLEPERFTIMER
-    stop();
+    stop(__LINE__);
 #endif
 }
 

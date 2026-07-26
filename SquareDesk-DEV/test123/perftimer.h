@@ -39,7 +39,7 @@ public:
     virtual ~PerfTimer();
     void start(int lineNumber);
     void elapsed(int lineNumber);
-    void stop();
+    void stop(int lineNumber);
 };
 
 #endif /* ifndef PERFTIMER_H_INCLUDED */

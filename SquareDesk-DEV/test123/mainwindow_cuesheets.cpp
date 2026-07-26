@@ -1258,6 +1258,7 @@ void MainWindow::betterFindPossibleCuesheets(const QString &MP3Filename, QString
 void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets)
 {
     PerfTimer t("findPossibleCuesheets", __LINE__);
+    t.start(__LINE__);
 
     QString fileCategory = filepath2SongCategoryName(MP3Filename); // get the CATEGORY name
     bool fileCategoryIsPatter = (fileCategory == "patter");
