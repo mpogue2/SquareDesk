@@ -583,9 +583,9 @@ void MainWindow::musicRootModified(QString s)
         //   TODO: At some point, this probably should save the sort order, and then restore it.
 //        qDebug() << "WE ARE RELOADING THE SONG TABLE NOW ------";
 
-        // STATUS MESSAGE: START
-        ui->statusBar->showMessage("Scanning Music Directory....");
-        QCoreApplication::processEvents(); // show the message
+        // // STATUS MESSAGE: START
+        // ui->statusBar->showMessage("Scanning Music Directory....");
+        // QCoreApplication::processEvents(); // show the message
 
         bool musicDirChanged = findMusic(musicRootPath, true, s == "MANUAL_RESCAN");  // get the filenames from the user's directories
                                                                // (a MANUAL_RESCAN bypasses the pathStack cache, so it's the

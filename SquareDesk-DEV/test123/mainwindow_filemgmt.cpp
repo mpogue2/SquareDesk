@@ -745,6 +745,11 @@ bool MainWindow::findMusic(QString mainRootDir, bool refreshDatabase, bool force
     // walking the whole tree (Issue #1669). A MANUAL_RESCAN bypasses the cache.
     bool didFullScan = forceRescan || !loadPathStackCacheIfValid();
     if (didFullScan) {
+
+        // STATUS MESSAGE: START
+        ui->statusBar->showMessage("Scanning Music Directory....");
+        QCoreApplication::processEvents(); // show the message
+
         findFilesRecursively(rootDir1, pathStack, pathStackCuesheets, pathStackReference, "", ui, &soundFXfilenames, &soundFXname);  // appends to the pathstack
         savePathStackCache(); // must happen BEFORE Apple Music / playlist entries get appended below
     }
