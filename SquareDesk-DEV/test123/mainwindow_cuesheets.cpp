@@ -35,6 +35,7 @@
 
 #include "ui_mainwindow.h"
 #include "utility.h"
+#include <QCryptographicHash>
 #include <QGraphicsItemGroup>
 #include <QGraphicsTextItem>
 #include <QCoreApplication>
@@ -992,6 +993,101 @@ static QString orderCategories(const QString &levelsFound) {
     return orderedLevels;
 }
 
+// ============================================================================
+// SONG LEVELS CACHE (Issue #1669)
+//
+// computeSongLevels() is the single most expensive step of a music rescan
+// (several seconds on a large library), but its output is a pure function of
+// two inputs: the song filenames (pathStack) and the leveled-cuesheet entries
+// (pathStackCuesheets, whose entries already carry the detected level name).
+// Since the music directory rarely changes, we persist songLevelsByPath to a
+// key/value cache file, tagged with a fingerprint (hash) of those two inputs.
+// At startup, if the fingerprint still matches, we load the map from the cache
+// file (milliseconds) instead of recomputing it (seconds). Any change to the
+// music library or to a cuesheet's level line changes the fingerprint, so a
+// stale cache can never be used -- worst case is a full recompute, which then
+// rewrites the cache.
+
+static const char *kSongLevelsCacheVersion = "2"; // bump if the cache file format or the level-matching algorithm changes
+
+QString MainWindow::songLevelsCacheFilename() {
+    return musicRootPath + "/.squaredesk/cache/songLevels.cache";
+}
+
+// Hash of everything the computed song levels depend on. Entries are sorted
+// first, so that filesystem iteration order doesn't matter, and the music
+// directory prefix is stripped, so that (like the relative paths stored in the
+// cache file itself) the fingerprint survives the music directory being
+// moved/renamed (e.g. local vs iCloud).
+QString MainWindow::songLevelsCacheFingerprint() {
+    QStringList entries;
+    entries.reserve(pathStack->size() + pathStackCuesheets->size());
+    entries << *pathStack << *pathStackCuesheets;
+    entries.sort();
+
+    QCryptographicHash hash(QCryptographicHash::Sha1);
+    hash.addData(QByteArrayView(kSongLevelsCacheVersion));
+    for (QString e : entries) {
+        e.replace(musicRootPath, "");
+        hash.addData(e.toUtf8());
+        hash.addData(QByteArrayView("\n"));
+    }
+    return QString(hash.result().toHex());
+}
+
+// Loads songLevelsByPath from the cache file, iff the file exists and its
+// fingerprint matches the current pathStack/pathStackCuesheets contents.
+// Returns true if the cache was valid and loaded.
+bool MainWindow::loadSongLevelsCacheIfValid() {
+    QFile file(songLevelsCacheFilename());
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return false; // no cache yet
+    }
+
+    QTextStream in(&file);
+    if (in.readLine() != QString("fingerprint=") + songLevelsCacheFingerprint()) {
+        return false; // music library or cuesheet levels changed since the cache was written
+    }
+
+    songLevelsByPath.clear();
+    while (!in.atEnd()) {
+        // "<pathRelativeToMusicDir>\t<levels>" -- split at the LAST tab, since
+        // the levels string never contains one but a pathname theoretically could
+        QString line = in.readLine();
+        int tabIndex = line.lastIndexOf('\t');
+        if (tabIndex <= 0) {
+            continue;
+        }
+        songLevelsByPath.insert(musicRootPath + line.left(tabIndex), line.mid(tabIndex + 1));
+    }
+    return true;
+}
+
+// Writes songLevelsByPath (plus the fingerprint of the inputs it was computed
+// from) to the cache file, creating <musicDir>/.squaredesk/cache if needed.
+void MainWindow::saveSongLevelsCache() {
+    QDir().mkpath(musicRootPath + "/.squaredesk/cache");
+
+    QFile file(songLevelsCacheFilename());
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        return; // not writable -- no cache, but no harm either (we'll just recompute next time)
+    }
+
+    QTextStream out(&file);
+    out << "fingerprint=" << songLevelsCacheFingerprint() << "\n";
+    for (auto it = songLevelsByPath.constBegin(); it != songLevelsByPath.constEnd(); ++it) {
+        // Paths are stored relative to the music directory (e.g. "/singing/SSR 416 - Perhaps.mp3"),
+        // so the cache survives the music directory being moved/renamed. Songs that live OUTSIDE
+        // the music directory (Apple Music songs, present only if levels were computed after Apple
+        // Music loaded) can't be stored relative, so they are skipped -- worst case, those few rows
+        // just show no level letters when that cache is loaded.
+        if (!it.key().startsWith(musicRootPath + "/")) {
+            continue;
+        }
+        out << QStringView(it.key()).mid(musicRootPath.length()) << "\t" << it.value() << "\n";
+    }
+}
+
 // Computes songLevelsByPath: for every song that has at least one matching cuesheet
 // with a detected dance level, maps its origPath to a string containing some subset
 // of "MPAC" (in that fixed order), one character per supported level category.
@@ -1000,7 +1096,12 @@ static QString orderCategories(const QString &levelsFound) {
 // MP3FilenameVsCuesheetnameScore() scoring used elsewhere to decide cuesheet/song
 // matches (see cuesheetMatchesSong()), so this stays consistent with what
 // "available cuesheets for this song" means throughout the rest of the app.
+// Results are cached on disk across runs (see loadSongLevelsCacheIfValid() above).
 void MainWindow::computeSongLevels() {
+    if (loadSongLevelsCacheIfValid()) {
+        return; // music library unchanged since last run -- skip the expensive matching pass
+    }
+
     songLevelsByPath.clear();
 
     QList<LeveledCuesheet> leveledCuesheets;
@@ -1018,6 +1119,7 @@ void MainWindow::computeSongLevels() {
     }
 
     if (leveledCuesheets.isEmpty()) {
+        saveSongLevelsCache(); // cache the (empty) result, so the next startup skips even the cuesheet parse above
         return;
     }
 
@@ -1045,6 +1147,8 @@ void MainWindow::computeSongLevels() {
             songLevelsByPath.insert(song.origPath, orderCategories(levelsFound));
         }
     }
+
+    saveSongLevelsCache();
 }
 
 // Updates the Levels column cell text in darkSongTable and all 3 playlist tables
@@ -1088,6 +1192,9 @@ void MainWindow::updateCuesheetLevelInPathStack(const QString &absoluteFilePath)
             QString oldLevelName = parts.size() >= 3 ? parts[2] : QString();
             (*pathStackCuesheets)[i] = parts[0] + "#!#" + absoluteFilePath + "#!#" + levelName;
             updateSongLevelsForOneCuesheet(absoluteFilePath, parts[0], oldLevelName, levelName);
+            if (songLevelsComputed && oldLevelName != levelName) {
+                saveSongLevelsCache(); // pathStackCuesheets entry changed, so re-save under the new fingerprint
+            }
             return;
         }
     }
@@ -1099,6 +1206,9 @@ void MainWindow::updateCuesheetLevelInPathStack(const QString &absoluteFilePath)
     pathStackCuesheets->append(type + "#!#" + absoluteFilePath + "#!#" + levelName);
 
     updateSongLevelsForOneCuesheet(absoluteFilePath, type, QString(), levelName);
+    if (songLevelsComputed) {
+        saveSongLevelsCache(); // pathStackCuesheets gained an entry, so re-save under the new fingerprint
+    }
 }
 
 // Incrementally updates songLevelsByPath (and the visible Levels columns) after a

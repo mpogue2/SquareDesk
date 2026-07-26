@@ -1086,6 +1086,10 @@ private:
                                 QString &title, QString &shortTitle);
     int MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit *debugOut = nullptr);
     void computeSongLevels();
+    QString songLevelsCacheFilename();
+    QString songLevelsCacheFingerprint();
+    bool loadSongLevelsCacheIfValid();
+    void saveSongLevelsCache();
     void refreshLevelsColumnDisplay();
     void updateCuesheetLevelInPathStack(const QString &absoluteFilePath);
     void updateSongLevelsForOneCuesheet(const QString &absoluteFilePath, const QString &type,
