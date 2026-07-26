@@ -416,32 +416,13 @@ void MainWindow::initializeUI() {
 
 //#define DISABLEFILEWATCHER 1
 #ifndef DISABLEFILEWATCHER
-    PerfTimer t2("filewatcher init", __LINE__);
-    t2.start(__LINE__);
-
-    // ---------------------------------------
-    // let's watch for changes in the musicDir, not only in its direct sub-folders, but recursively all the way down
-    QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
-    // qDebug() << "musicRootPath:" << musicRootPath;
-
-    static QRegularExpression ignoreTheseDirs(musicRootPath + "/(reference|choreography|notes|playlists|sd|soundfx|lyrics)"); // and their children folders
-
-    while (it.hasNext()) {
-        QString aPath = it.next();
-        // qDebug() << "aPath:" << aPath;
-        if (!ignoreTheseDirs.match(aPath).hasMatch()) {
-            musicRootWatcher.addPath(aPath); // watch for add/deletes to musicDir and interesting subdirs
-            // qDebug() << "ADDING: " << aPath;
-        }
-        // else {
-        //     qDebug() << "IGNORING: " << aPath;
-        // }
+    // Only pay the cost of registering all the watch paths (~300ms on a large library)
+    // if the FileWatcher is actually enabled ("Rescan Music Directory when new songs are
+    // added" in Preferences > Experimental). If the user enables it later, the paths get
+    // registered at that time (see the Preferences handling). (Issue #1669)
+    if (prefsManager.GetenableFileWatcher()) {
+        initializeMusicRootWatcher();
     }
-
-    // musicRootWatcher.addPath(musicRootPath); // watch for add/deletes to musicDir, too
-    // qDebug() << "Also adding to musicRootWatcher: " << musicRootPath;
-
-    t2.elapsed(__LINE__); // how much time did it take to initialize the filewatcher?
 
     fileWatcherTimer = new QTimer();            // Retriggerable timer for file watcher events
     QObject::connect(fileWatcherTimer, SIGNAL(timeout()), this, SLOT(fileWatcherTriggered())); // this calls musicRootModified again (one last time!)
@@ -2154,6 +2135,39 @@ void MainWindow::initializeAudioEngine() {
                 // auditionPlayer->pause();
             }
         });
+}
+
+// Registers the music directory (and all interesting subdirectories, recursively) with
+// musicRootWatcher, so that external changes trigger a rescan (musicRootModified()).
+// This costs ~300ms on a large library, so it is only called when the FileWatcher is
+// enabled: at startup, or when the user turns it on in Preferences (Issue #1669).
+void MainWindow::initializeMusicRootWatcher() {
+    PerfTimer t2("filewatcher init", __LINE__);
+    t2.start(__LINE__);
+
+    // ---------------------------------------
+    // let's watch for changes in the musicDir, not only in its direct sub-folders, but recursively all the way down
+    QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    // qDebug() << "musicRootPath:" << musicRootPath;
+
+    static QRegularExpression ignoreTheseDirs(musicRootPath + "/(reference|choreography|notes|playlists|sd|soundfx|lyrics)"); // and their children folders
+
+    while (it.hasNext()) {
+        QString aPath = it.next();
+        // qDebug() << "aPath:" << aPath;
+        if (!ignoreTheseDirs.match(aPath).hasMatch()) {
+            musicRootWatcher.addPath(aPath); // watch for add/deletes to musicDir and interesting subdirs
+            // qDebug() << "ADDING: " << aPath;
+        }
+        // else {
+        //     qDebug() << "IGNORING: " << aPath;
+        // }
+    }
+
+    // musicRootWatcher.addPath(musicRootPath); // watch for add/deletes to musicDir, too
+    // qDebug() << "Also adding to musicRootWatcher: " << musicRootPath;
+
+    t2.elapsed(__LINE__); // how much time did it take to initialize the filewatcher?
 }
 
 void MainWindow::initializeLightDarkTheme() {

@@ -1098,7 +1098,8 @@ private:
     bool cuesheetMatchesSong(const SongMatchInfo &song, const LeveledCuesheet &cuesheet);
 
     // Music library management
-    void findMusic(QString mainRootDir, bool refreshDatabase, bool forceRescan = false);
+    void initializeMusicRootWatcher();
+    bool findMusic(QString mainRootDir, bool refreshDatabase, bool forceRescan = false); // returns true iff a full scan ran (false = pathStack cache hit, nothing changed on disk)
     bool loadPathStackCacheIfValid();
     void savePathStackCache();
     void updateTreeWidget();

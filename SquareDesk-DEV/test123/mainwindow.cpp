@@ -587,17 +587,26 @@ void MainWindow::musicRootModified(QString s)
         ui->statusBar->showMessage("Scanning Music Directory....");
         QCoreApplication::processEvents(); // show the message
 
-        findMusic(musicRootPath, true, s == "MANUAL_RESCAN");  // get the filenames from the user's directories
+        bool musicDirChanged = findMusic(musicRootPath, true, s == "MANUAL_RESCAN");  // get the filenames from the user's directories
                                                                // (a MANUAL_RESCAN bypasses the pathStack cache, so it's the
                                                                //  escape hatch if the cache ever goes stale -- Issue #1669)
-        // loadMusicList(); // and filter them into the songTable
-        // if (darkmode) {
-        darkLoadMusicList(nullptr, currentTypeFilter, true, true); // also filter them into the darkSongTable
-        darkFilterMusic();   // and redo the filtering (NOTE: might still scroll the darkSongTable)
-        // ui->darkSongTable->horizontalHeader()->setSortIndicator(sortSection, sortOrder);
 
-        refreshAllPlaylists(); // re-check file existence so deleted songs go red/strikethrough (#1589)
-        adjustFontSizes(); // and make sure the playlist fonts don't change size
+        // Only reload the UI if the music directory actually changed (= a full scan ran).
+        // A FileWatcher wakeup with a pathStack cache hit means nothing changed on disk --
+        // e.g. iCloud's bird daemon updating extended attributes in a folder several
+        // seconds AFTER a file was dropped in (and already rescanned) fires a second
+        // directoryChanged event, which used to cause a second (identical) ~1s table
+        // reload. Now that spurious wakeup is a ~50ms no-op with no table flicker. (Issue #1669)
+        if (musicDirChanged) {
+            // loadMusicList(); // and filter them into the songTable
+            // if (darkmode) {
+            darkLoadMusicList(nullptr, currentTypeFilter, true, true); // also filter them into the darkSongTable
+            darkFilterMusic();   // and redo the filtering (NOTE: might still scroll the darkSongTable)
+            // ui->darkSongTable->horizontalHeader()->setSortIndicator(sortSection, sortOrder);
+
+            refreshAllPlaylists(); // re-check file existence so deleted songs go red/strikethrough (#1589)
+            adjustFontSizes(); // and make sure the playlist fonts don't change size
+        }
 
         // STATUS MESSAGE: END
         // update the status message ------
@@ -4444,6 +4453,19 @@ void MainWindow::on_actionPreferences_triggered()
 
         findMusic(musicRootPath, true); // always refresh the songTable after the Prefs dialog returns with OK
         switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
+
+        // FileWatcher on/off (Issue #1669): watch paths are only registered while the
+        // "Rescan Music Directory when new songs are added" pref is ON (registering them
+        // costs ~300ms on a large library, so startup skips it when the pref is OFF).
+        if (prefsManager.GetenableFileWatcher()) {
+            if (musicRootWatcher.directories().isEmpty()) {
+                initializeMusicRootWatcher(); // user just turned it ON -- register the watch paths now
+            }
+        } else {
+            if (!musicRootWatcher.directories().isEmpty()) {
+                musicRootWatcher.removePaths(musicRootWatcher.directories()); // user just turned it OFF
+            }
+        }
 
         // Save the new value for music type colors --------
         patterColorString = prefsManager.GetpatterColorString();

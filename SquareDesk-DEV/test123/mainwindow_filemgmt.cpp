@@ -699,7 +699,10 @@ bool MainWindow::loadPathStackCacheIfValid()
     return true;
 }
 
-void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase, bool forceRescan)
+// Returns true iff a full findFilesRecursively() scan actually ran; false means the
+// pathStack cache was valid (nothing changed in the music directory), which callers
+// like musicRootModified() can use to skip reloading the UI (Issue #1669).
+bool MainWindow::findMusic(QString mainRootDir, bool refreshDatabase, bool forceRescan)
 {
     // qDebug() << "***** findMusic";
     PerfTimer t("findMusic", __LINE__);
@@ -740,7 +743,8 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase, bool force
     // If nothing in the music directory changed since the last scan (checked via
     // directory mtimes), load the scan results from the pathStack cache instead of
     // walking the whole tree (Issue #1669). A MANUAL_RESCAN bypasses the cache.
-    if (forceRescan || !loadPathStackCacheIfValid()) {
+    bool didFullScan = forceRescan || !loadPathStackCacheIfValid();
+    if (didFullScan) {
         findFilesRecursively(rootDir1, pathStack, pathStackCuesheets, pathStackReference, "", ui, &soundFXfilenames, &soundFXname);  // appends to the pathstack
         savePathStackCache(); // must happen BEFORE Apple Music / playlist entries get appended below
     }
@@ -782,6 +786,8 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase, bool force
     updateTreeWidget(); // this will also show the Apple Music playlists, found just now
     t.elapsed(__LINE__);
     t.stop(__LINE__);
+
+    return didFullScan;
 
     // // DEBUG DEBUG DEBUG =========
     // for (const auto &a : *pathStack) {
