@@ -1120,6 +1120,26 @@ bool SongSettings::loadSettings(const QString &filenameWithPath,
     return foundResults;
 }
 
+// Batch version of loadSettings(): loads the settings rows for ALL songs in one
+// query, keyed by the songs.filename column (normally the path relative to the
+// music root dir -- see removeRootDirs()). Used at startup by darkLoadMusicList(),
+// where one big SELECT is much faster than one SELECT per song (Issue #1669).
+// Unlike loadSettings(), this does NOT call addTags() -- the caller already does.
+void SongSettings::loadSettingsForAllSongs(QHash<QString, SongSetting> &settingsByFilename)
+{
+    // Adding a new per-song setting?  Update this SELECT along with the one in loadSettings()
+    // (the column order here must stay in sync, for setSongSettingFromSQLQuery()).
+    QSqlQuery q(m_db);
+    q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags, VSTsettings FROM songs");
+    exec("loadSettingsForAllSongs", q);
+    while (q.next())
+    {
+        SongSetting settings;
+        setSongSettingFromSQLQuery(q, settings);
+        settingsByFilename.insert(q.value(0).toString(), settings);
+    }
+}
+
 void SongSettings::closeDatabase()
 {
     if (databaseOpened)

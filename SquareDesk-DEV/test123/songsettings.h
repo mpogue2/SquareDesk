@@ -83,6 +83,7 @@ public:
                       const SongSetting &settings);
     bool loadSettings(const QString &filenameWithPath,
                       SongSetting &settings);
+    void loadSettingsForAllSongs(QHash<QString, SongSetting> &settingsByFilename);
 
     void setCurrentSession(int id) { current_session_id = id; }
     int getCurrentSession() { return current_session_id; }

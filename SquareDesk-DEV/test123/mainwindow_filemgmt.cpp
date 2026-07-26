@@ -916,6 +916,18 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
     ui->darkSongTable->setRowCount(justMusic.length()); // make all the rows at once for speed
     t.elapsed(__LINE__);
 
+    // Batch-fetch the SQLITE data for all songs up front in just 2 queries (Issue #1669),
+    // instead of ~3 single-row queries per song inside the loop below (SQLite is much
+    // faster at one big SELECT than at thousands of small ones). The loop then does
+    // cheap hash lookups, keyed by the music-root-relative path (see removeRootDirs()).
+    QHash<QString, SongSetting> settingsByFilename;
+    songSettings.loadSettingsForAllSongs(settingsByFilename);
+
+    QHash<QString, QString> agesByFilename;
+    songSettings.getSongAges(agesByFilename, show_all_ages);
+
+    t.elapsed(__LINE__);
+
     // The font that we'll use for the QLabels that are used to implement the Title-with-Tags field
     QFont darkSongTableFont("Avenir Next");
     darkSongTableFont.setPointSize(20);
@@ -923,6 +935,13 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
     // int totalNumberOfSquareDeskSongs = 0;
     // int totalNumberOfAppleSongs = 0;
+
+    // The audition button icon, decoded from the PNG resource ONCE, rather than once per row (Issue #1669)
+    QIcon auditionIcon(":/graphics/icons8-square-play-button-100.png");
+
+    // canonicalPath() is a filesystem call (realpath), so don't make it once per SONG, just
+    // once per DIRECTORY (many songs share a directory), cached here (Issue #1669)
+    QHash<QString, bool> dirIsMusicRoot; // fi.path() -> (canonicalPath of that dir == musicRootPath)
 
     int i = 0;
     for (const auto &s : justMusic) {
@@ -940,8 +959,13 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         QString typeFromPath = filepath2SongCategoryName(origPath);
 
         QFileInfo fi(origPath);
-        if (fi.canonicalPath() == musicRootPath) {
-            typeFromPath = "";
+        QString dirPath = fi.path();
+        auto dirIter = dirIsMusicRoot.constFind(dirPath);
+        if (dirIter == dirIsMusicRoot.constEnd()) {
+            dirIter = dirIsMusicRoot.insert(dirPath, QFileInfo(dirPath).canonicalFilePath() == musicRootPath);
+        }
+        if (dirIter.value()) {
+            typeFromPath = ""; // song lives directly in the music root dir, so it has no type
         }
 
         // qDebug() << "origPath: " << origPath;
@@ -1132,7 +1156,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
         // QIcon playbackIcon = QIcon::fromTheme(QIcon::ThemeIcon::MultimediaPlayer);
 
-        auditionButton1->setIcon(QIcon(":/graphics/icons8-square-play-button-100.png"));
+        auditionButton1->setIcon(auditionIcon); // shared QIcon, decoded once before the loop (Issue #1669)
 
         // auditionButton1->setIconSize(QSize(26,26));
 
@@ -1158,8 +1182,8 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         ui->darkSongTable->setItem(i, kTitleCol, titleItem);
 
         // TITLE WIDGET (WITH TAGS) -----
-        SongSetting settings;
-        songSettings.loadSettings(origPath, settings);  // get settings from the SQLITE DB --
+        QString normalizedPath = songSettings.removeRootDirs(origPath);
+        SongSetting settings = settingsByFilename.value(normalizedPath); // batch-fetched above (default SongSetting, if not in the DB)
         if (settings.isSetTags()) {
             songSettings.addTags(settings.getTags());
         }
@@ -1182,7 +1206,12 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         ui->darkSongTable->setItem(i, kLevelsCol, twiLevels);
 
         // AGE FIELD -----
-        QString ageString = songSettings.getSongAge(fi.completeBaseName(), origPath, show_all_ages);
+        QString ageString = agesByFilename.value(normalizedPath); // batch-fetched above
+        if (ageString.isEmpty()) {
+            // fallback for legacy DB rows keyed by base filename instead of relative path
+            // (same fallback order as getSongAge())
+            ageString = agesByFilename.value(fi.completeBaseName());
+        }
         QString ageAsIntString = ageToIntString(ageString);
         QTableWidgetItem *twi4 = new TableNumberItem(ageAsIntString); // TableNumberItem so it's numerically sortable
         twi4->setForeground(textBrush);
