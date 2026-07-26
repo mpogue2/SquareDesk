@@ -53,8 +53,11 @@ double timeToDouble(QString t)
 void setDynamicPropertyRecursive(QWidget* widget, const QString& propertyName, const QVariant& value) {
     if (widget) {
         // Dialog button boxes (e.g. OK/Cancel) should keep their native system
-        // appearance rather than being themed, so skip them and their children.
-        if (qobject_cast<QDialogButtonBox*>(widget)) {
+        // appearance in light mode, so skip them and their children there. In dark
+        // mode, native buttons are unreadable on the themed dark dialog background,
+        // so let them still pick up the "theme" property (and the existing
+        // QPushButton[theme="Dark"] rule in Themes.qss).
+        if (qobject_cast<QDialogButtonBox*>(widget) && value.toString() != "Dark") {
             return;
         }
         widget->setProperty(propertyName.toStdString().c_str(), value);

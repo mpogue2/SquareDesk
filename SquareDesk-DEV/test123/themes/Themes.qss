@@ -268,6 +268,16 @@ QPushButton[theme="Dark"] {
     color: #d2d2d2;
 }
 
+/* OK/Cancel buttons in dialogs: give them more native-looking proportions
+   (rounder corners, a bit more padding) than the flat rectangle used for
+   other themed push buttons elsewhere in the app. No min-width/min-height
+   here: some dialogs (e.g. SongHistoryExportDialog) lay out their button
+   box with a fixed pixel size, and forcing a minimum size overflows it. */
+QDialogButtonBox QPushButton[theme="Dark"] {
+    padding: 2px 10px;
+    border-radius: 6px;
+}
+
 QPushButton[theme="Light"] {
     /* all types of push button */
     background-color: #f2f2f5;
