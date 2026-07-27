@@ -1216,10 +1216,11 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
     t.elapsed(__LINE__);
 
-    // The font that we'll use for the QLabels that are used to implement the Title-with-Tags field
-    QFont darkSongTableFont("Avenir Next");
-    darkSongTableFont.setPointSize(20);
-    darkSongTableFont.setWeight(QFont::Medium);
+    // The font that we'll use for the QLabels that are used to implement the Title-with-Tags field.
+    // Use the current zoomed font (kept up-to-date by setSongTableFont), so that the Title column
+    //   reflects the current zoom level when the table is repopulated, e.g. by clicking in the
+    //   treeWidget (Issue #1654).
+    QFont darkSongTableFont = currentSongTableFont;
 
     // int totalNumberOfSquareDeskSongs = 0;
     // int totalNumberOfAppleSongs = 0;
