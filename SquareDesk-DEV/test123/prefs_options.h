@@ -62,6 +62,7 @@ CONFIG_ATTRIBUTE_STRING(musicPath, musicPath, QDir::homePath() + "/squareDeskMus
 // These need to be up here...
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(darkMode, true);
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(activeTheme, "Light"); // currently 2 values: {Light, Dark}
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(cuesheetColumnMode, "1"); // cuesheet viewer columns: {1, 2}, set via toolbuttons above the cuesheet
 
 // These are the new GUI colors for themes OTHER THAN the Light Theme.
 // Format example: "Dark:#123456;Mike:#765432"

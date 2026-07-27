@@ -25,6 +25,7 @@
 #include "globaldefines.h"
 
 #include <QActionGroup>
+#include <QButtonGroup>
 #include <QColorDialog>
 #include <QCoreApplication>
 #include <QDateTime>
@@ -1575,6 +1576,24 @@ void MainWindow::initializeCuesheetTab() {
     ui->textBrowserCueSheet->setFocusPolicy(Qt::NoFocus);  // lyrics editor can't get focus until unlocked
 
     lockForEditing();
+
+    // 1-column vs 2-column cuesheet view buttons (#1650) ---------
+    //   (icons are set per-theme in Themes.qss, these are the fallback if no QSS is active)
+    cuesheetIsTwoColumnRendered = false;
+    ui->toolButtonCuesheet1Col->setIcon(QIcon(":/graphics/one_column.svg"));
+    ui->toolButtonCuesheet2Col->setIcon(QIcon(":/graphics/two_column.svg"));
+
+    QButtonGroup *columnModeGroup = new QButtonGroup(this);
+    columnModeGroup->setExclusive(true);
+    columnModeGroup->addButton(ui->toolButtonCuesheet1Col, 1);  // id = number of columns
+    columnModeGroup->addButton(ui->toolButtonCuesheet2Col, 2);
+
+    bool twoColumnMode = (prefsManager.GetcuesheetColumnMode() == "2");
+    ui->toolButtonCuesheet1Col->setChecked(!twoColumnMode);
+    ui->toolButtonCuesheet2Col->setChecked(twoColumnMode);
+
+    connect(columnModeGroup, &QButtonGroup::idClicked,
+            this, [this](int nColumns) { setCuesheetColumnMode(nColumns); });
 
     connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
             this, SLOT(LyricsCopyAvailable(bool)));

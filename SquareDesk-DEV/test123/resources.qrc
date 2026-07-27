@@ -24,5 +24,9 @@
         <file>graphics/arrow-loop-C-white.png</file>
         <file>graphics/icons8-square-play-button-100.png</file>
         <file>graphics/dragicon_music.png</file>
+        <file>graphics/one_column.svg</file>
+        <file>graphics/one_column_white.svg</file>
+        <file>graphics/two_column.svg</file>
+        <file>graphics/two_column_white.svg</file>
     </qresource>
 </RCC>

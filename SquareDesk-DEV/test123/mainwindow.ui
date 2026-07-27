@@ -3168,6 +3168,60 @@
              </widget>
             </item>
             <item>
+             <widget class="Line" name="lineColumnMode">
+              <property name="orientation">
+               <enum>Qt::Orientation::Vertical</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="toolButtonCuesheet1Col">
+              <property name="minimumSize">
+               <size>
+                <width>32</width>
+                <height>26</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>1-column cuesheet view</string>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>18</width>
+                <height>18</height>
+               </size>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="toolButtonCuesheet2Col">
+              <property name="minimumSize">
+               <size>
+                <width>32</width>
+                <height>26</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>2-column cuesheet view</string>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>18</width>
+                <height>18</height>
+               </size>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="horizontalSpacer">
               <property name="orientation">
                <enum>Qt::Orientation::Horizontal</enum>

@@ -927,6 +927,17 @@ private:
     QString loadedCuesheetNameWithPath;
     QString lastCuesheetSavePath;
 
+    // 1-column vs 2-column cuesheet view (issue #1650)
+    //   2-column mode is a display-only transform; the real cuesheet HTML is
+    //   kept in cuesheetOneColumnHTML while the widget shows the 2-column table
+    bool cuesheetIsTwoColumnRendered;
+    QString cuesheetOneColumnHTML;
+    void setCuesheetColumnMode(int nColumns);           // toolbutton handler; saves pref + re-renders
+    void applyCuesheetColumnModeToView();               // render per pref (only when locked for editing)
+    void renderCuesheetTwoColumns();
+    void restoreCuesheetOneColumn();
+    int findCuesheetColumnSplitPosition(QTextDocument *doc);
+
     QString cuesheetSquareDeskVersion;
     enum charsType { TitleChars=1, LabelChars=96, ArtistChars=255, HeaderChars=2, LyricsChars=3, NoneChars=0};
     charsType FG_BG_to_type(QColor fg, QColor bg);

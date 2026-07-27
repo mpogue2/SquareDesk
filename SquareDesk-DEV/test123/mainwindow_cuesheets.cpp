@@ -1727,6 +1727,7 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
 //              qDebug() << "patterTemplate: " << patterTemplate;
                 if (true || patterTemplate.isEmpty()) {
                     ui->textBrowserCueSheet->setHtml("No cuesheet for this patter song.");
+                    cuesheetIsTwoColumnRendered = false; // placeholder replaced any 2-column view
                     loadedCuesheetNameWithPath = "";
                 } else {
                 }
@@ -1746,6 +1747,7 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
 //            qDebug() << "lyricsTemplate: " << lyricsTemplate;
             if (true || lyricsTemplate.isEmpty()) {
                 ui->textBrowserCueSheet->setHtml("No cuesheet found for this song.");
+                cuesheetIsTwoColumnRendered = false; // placeholder replaced any 2-column view
                 loadedCuesheetNameWithPath = "";
             } else {
                 // ui->textBrowserCueSheet->setHtml(lyricsTemplate);
@@ -2217,7 +2219,14 @@ void MainWindow::on_actionPrint_Cuesheet_triggered()
         return;
     }
 
-    ui->textBrowserCueSheet->print(&printer);
+    if (cuesheetIsTwoColumnRendered) {
+        // print the real 1-column cuesheet, not the on-screen 2-column table
+        QTextDocument printDoc;
+        printDoc.setHtml(cuesheetOneColumnHTML);
+        printDoc.print(&printer);
+    } else {
+        ui->textBrowserCueSheet->print(&printer);
+    }
 }
 
 void MainWindow::on_pushButtonRevertEdits_clicked()

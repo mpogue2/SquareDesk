@@ -259,6 +259,31 @@ QToolButton#darkLoopToggleButton:checked[theme="Light"] {
     qproperty-icon: url(:/graphics/arrow-loop.png);
 }
 
+/* Cuesheet 1-column/2-column view buttons (#1650) */
+QToolButton#toolButtonCuesheet1Col[theme="Dark"] {
+    qproperty-icon: url(:/graphics/one_column_white.svg);
+}
+QToolButton#toolButtonCuesheet1Col[theme="Light"] {
+    qproperty-icon: url(:/graphics/one_column.svg);
+}
+QToolButton#toolButtonCuesheet2Col[theme="Dark"] {
+    qproperty-icon: url(:/graphics/two_column_white.svg);
+}
+QToolButton#toolButtonCuesheet2Col[theme="Light"] {
+    qproperty-icon: url(:/graphics/two_column.svg);
+}
+
+QToolButton#toolButtonCuesheet1Col:checked[theme="Dark"],
+QToolButton#toolButtonCuesheet2Col:checked[theme="Dark"] {
+    background-color: qlineargradient(x1:0 y1:1, x2:0 y2:0, stop:0 #2a5a2a, stop:1 #3a7a3a);
+    border: 2px solid #4a9a4a;
+}
+QToolButton#toolButtonCuesheet1Col:checked[theme="Light"],
+QToolButton#toolButtonCuesheet2Col:checked[theme="Light"] {
+    background-color: #c8e6c8;
+    border: 2px solid #4a9a4a;
+}
+
 /* PUSH BUTTONS ===================== */
 QPushButton[theme="Dark"] {
     /* all types of push button */

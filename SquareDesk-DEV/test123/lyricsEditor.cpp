@@ -34,6 +34,11 @@
 #include "selectionretainer.h"
 
 #include <QTextDocument>
+#include <QTextDocumentFragment>
+#include <QTextBlock>
+#include <QTextTable>
+#include <QScrollBar>
+#include <climits>
 
 // START LYRICS EDITOR STUFF
 
@@ -202,6 +207,8 @@ void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
 
     if (checked) {
 
+        restoreCuesheetOneColumn();  // editing is always done in the real 1-column document
+
         cuesheetIsUnlockedForEditing = true;
         ui->comboBoxCuesheetSelector->setDisabled(true); // when we are editing, cannot change the cuesheet!
 
@@ -230,6 +237,8 @@ void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
     } else {
         ui->textBrowserCueSheet->clearFocus();  // if the user locks the editor, remove focus
         ui->textBrowserCueSheet->setFocusPolicy(Qt::NoFocus);  // and don't allow it to get focus
+
+        applyCuesheetColumnModeToView();  // back to 2-column view (with any unsaved edits), if that mode is selected
     }
 
     setInOutButtonState();
@@ -561,7 +570,10 @@ void MainWindow::writeCuesheet(QString filename)
         // Make sure the destructor gets called before we try to load this file...
         {
             QTextStream stream( &file );
-            QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
+            // if the 2-column view is displayed (e.g. Cuesheet > Save As while locked),
+            //   save the real 1-column HTML, not the 2-column table
+            QString editedCuesheet = cuesheetIsTwoColumnRendered ? cuesheetOneColumnHTML
+                                                                 : ui->textBrowserCueSheet->toHtml();
             QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(editedCuesheet);
             stream << postProcessedCuesheet;
             stream.flush();
@@ -1224,6 +1236,9 @@ void MainWindow::loadCuesheet(const QString cuesheetFilename)
 
     ui->textBrowserCueSheet->document()->setModified(false);
 
+    cuesheetIsTwoColumnRendered = false;  // fresh 1-column content was just loaded
+    applyCuesheetColumnModeToView();      // re-render as 2 columns, if that mode is selected
+
 //    qDebug() << "scrolling to top now...";
 //    int minScroll = ui->textBrowserCueSheet->verticalScrollBar()->minimum();
 //    ui->textBrowserCueSheet->verticalScrollBar()->setValue(static_cast<int>(minScroll));
@@ -1242,6 +1257,181 @@ void MainWindow::loadCuesheet(const QString cuesheetFilename)
 
     lockForEditing();
     setInOutButtonState();
+}
+
+// 1-COLUMN VS 2-COLUMN CUESHEET VIEW (#1650) ---------------------------------
+// The 2-column view is a display-only transform: the single-column HTML is
+//   saved in cuesheetOneColumnHTML, and the document in the widget is rebuilt
+//   as a borderless 1-row x 2-column table.  Editing, saving, and printing
+//   always use the single-column HTML, so cuesheets on disk are never 2-column.
+
+void MainWindow::setCuesheetColumnMode(int nColumns) {
+    prefsManager.SetcuesheetColumnMode(nColumns == 2 ? "2" : "1");
+    if (!cuesheetIsUnlockedForEditing) {
+        applyCuesheetColumnModeToView();
+    } // else: editing is always done in 1-column view; new mode applied when the cuesheet is locked again
+}
+
+void MainWindow::applyCuesheetColumnModeToView() {
+    if (prefsManager.GetcuesheetColumnMode() == "2") {
+        renderCuesheetTwoColumns();
+    } else {
+        restoreCuesheetOneColumn();
+    }
+}
+
+// find the position (in the document) of the start of the line where column 2 should begin,
+//   or -1 if this document is too short to be worth splitting
+// NOTE: most cuesheets are <BR>-separated rather than <P>-separated, so a whole cuesheet is
+//   often just one or two QTextBlocks; each <BR> becomes a U+2028 line separator WITHIN a
+//   block, so we must consider line boundaries, not just block boundaries
+int MainWindow::findCuesheetColumnSplitPosition(QTextDocument *doc) {
+    int totalChars = doc->characterCount();
+    if (totalChars < 400) {
+        return -1;
+    }
+
+    int target = totalChars / 2;
+    const QChar lineSep(0x2028); // what <BR> turns into inside a QTextBlock
+
+    // section headers (OPENER, MIDDLE BREAK, CLOSER, etc.) are red text in
+    //   SquareDesk cuesheets (class "hdr"); prefer to start column 2 at one of those
+    int totalLines = 0;
+    int bestHeaderPos = -1;
+    int bestHeaderDist = INT_MAX;
+    int bestLinePos = -1;
+    int bestLineDist = INT_MAX;
+
+    for (QTextBlock block = doc->begin(); block != doc->end(); block = block.next()) {
+        QString text = block.text();
+
+        // find the red ("hdr") fragment ranges within this block, as [start, end) offsets
+        QList<QPair<int, int>> redRanges;
+        for (QTextBlock::iterator it = block.begin(); !it.atEnd(); ++it) {
+            QTextFragment frag = it.fragment();
+            QColor fg = frag.charFormat().foreground().color();
+            if (fg.red() >= 180 && fg.green() < 100 && fg.blue() < 100) {
+                int s = frag.position() - block.position();
+                redRanges.append(qMakePair(s, s + frag.length()));
+            }
+        }
+
+        // candidate split points: the start of this block, plus the start of
+        //   every <BR>-separated line within this block
+        QList<int> lineStarts;
+        lineStarts.append(0);
+        for (int i = 0; i < text.length(); i++) {
+            if (text.at(i) == lineSep) {
+                lineStarts.append(i + 1);
+            }
+        }
+        totalLines += lineStarts.count();
+
+        for (const int ls : lineStarts) {
+            int pos = block.position() + ls;
+            if (pos == 0) {
+                continue; // never split before the first line of the document
+            }
+            int dist = qAbs(pos - target);
+            if (dist < bestLineDist) {
+                bestLineDist = dist;
+                bestLinePos = pos;
+            }
+
+            // find the first non-whitespace character of this line, to see if the line starts with red text
+            int firstChar = ls;
+            while (firstChar < text.length() && text.at(firstChar).isSpace() && text.at(firstChar) != lineSep) {
+                firstChar++;
+            }
+            if (firstChar >= text.length() || text.at(firstChar) == lineSep) {
+                continue; // empty line, can't be a header
+            }
+            for (const auto &redRange : redRanges) {
+                if (firstChar >= redRange.first && firstChar < redRange.second) {
+                    if (dist < bestHeaderDist) {
+                        bestHeaderDist = dist;
+                        bestHeaderPos = pos;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    if (totalLines < 8) {
+        return -1; // too short to be worth splitting
+    }
+
+    // use a section header boundary if there's one reasonably close to the midpoint,
+    //   else just use the line boundary closest to the midpoint
+    if (bestHeaderPos > 0 && bestHeaderDist <= totalChars / 4) {
+        return bestHeaderPos;
+    }
+    return bestLinePos;
+}
+
+void MainWindow::renderCuesheetTwoColumns() {
+    if (cuesheetIsTwoColumnRendered) {
+        return; // already showing 2 columns
+    }
+    if (!cueSheetLoaded) {
+        return; // "No cuesheet..." placeholder, nothing to split
+    }
+
+    QTextDocument *doc = ui->textBrowserCueSheet->document();
+    int splitPos = findCuesheetColumnSplitPosition(doc);
+    if (splitPos <= 0) {
+        return;
+    }
+
+    cuesheetOneColumnHTML = ui->textBrowserCueSheet->toHtml(); // for restore/save/print
+
+    QTextCursor a(doc);
+    a.setPosition(0);
+    a.setPosition(splitPos - 1, QTextCursor::KeepAnchor); // up to (not including) the block separator
+    QTextDocumentFragment leftColumn(a);
+
+    QTextCursor b(doc);
+    b.setPosition(splitPos);
+    b.movePosition(QTextCursor::End, QTextCursor::KeepAnchor);
+    QTextDocumentFragment rightColumn(b);
+
+    QTextCursor c(doc);
+    c.beginEditBlock();
+    c.select(QTextCursor::Document);
+    c.removeSelectedText();
+
+    QTextTableFormat tf;
+    tf.setBorder(0);
+    tf.setBorderStyle(QTextFrameFormat::BorderStyle_None);
+    tf.setCellSpacing(0);
+    tf.setCellPadding(12);
+    tf.setWidth(QTextLength(QTextLength::PercentageLength, 100));
+    tf.setColumnWidthConstraints(QList<QTextLength>()
+                                 << QTextLength(QTextLength::PercentageLength, 50)
+                                 << QTextLength(QTextLength::PercentageLength, 50));
+    QTextTable *table = c.insertTable(1, 2, tf);
+    table->cellAt(0, 0).firstCursorPosition().insertFragment(leftColumn);
+    table->cellAt(0, 1).firstCursorPosition().insertFragment(rightColumn);
+    c.endEditBlock();
+
+    doc->clearUndoRedoStacks();
+    doc->setModified(false);
+    ui->textBrowserCueSheet->moveCursor(QTextCursor::Start);
+    ui->textBrowserCueSheet->verticalScrollBar()->setValue(0);
+
+    cuesheetIsTwoColumnRendered = true;
+}
+
+void MainWindow::restoreCuesheetOneColumn() {
+    if (!cuesheetIsTwoColumnRendered) {
+        return; // already showing the real 1-column document
+    }
+    ui->textBrowserCueSheet->setHtml(cuesheetOneColumnHTML);
+    ui->textBrowserCueSheet->document()->setModified(false);
+    ui->textBrowserCueSheet->moveCursor(QTextCursor::Start);
+    ui->textBrowserCueSheet->verticalScrollBar()->setValue(0);
+    cuesheetIsTwoColumnRendered = false;
 }
 
 // SAVE LYRICS ------------------------------
