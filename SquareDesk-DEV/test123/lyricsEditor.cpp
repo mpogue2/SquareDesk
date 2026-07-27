@@ -1280,27 +1280,20 @@ void MainWindow::applyCuesheetColumnModeToView() {
     }
 }
 
-// find the position (in the document) of the start of the line where column 2 should begin,
-//   or -1 if this document is too short to be worth splitting
+// one <BR>- or paragraph-separated line of a cuesheet
+struct CuesheetLine {
+    int pos;         // absolute document position of the start of the line
+    QString text;    // text of the line, trimmed
+    bool isHeader;   // line starts with red (class "hdr") text
+};
+
+// split the document into its <BR>- and paragraph-separated lines
 // NOTE: most cuesheets are <BR>-separated rather than <P>-separated, so a whole cuesheet is
 //   often just one or two QTextBlocks; each <BR> becomes a U+2028 line separator WITHIN a
 //   block, so we must consider line boundaries, not just block boundaries
-int MainWindow::findCuesheetColumnSplitPosition(QTextDocument *doc) {
-    int totalChars = doc->characterCount();
-    if (totalChars < 400) {
-        return -1;
-    }
-
-    int target = totalChars / 2;
+static QList<CuesheetLine> enumerateCuesheetLines(QTextDocument *doc) {
     const QChar lineSep(0x2028); // what <BR> turns into inside a QTextBlock
-
-    // section headers (OPENER, MIDDLE BREAK, CLOSER, etc.) are red text in
-    //   SquareDesk cuesheets (class "hdr"); prefer to start column 2 at one of those
-    int totalLines = 0;
-    int bestHeaderPos = -1;
-    int bestHeaderDist = INT_MAX;
-    int bestLinePos = -1;
-    int bestLineDist = INT_MAX;
+    QList<CuesheetLine> lines;
 
     for (QTextBlock block = doc->begin(); block != doc->end(); block = block.next()) {
         QString text = block.text();
@@ -1316,8 +1309,6 @@ int MainWindow::findCuesheetColumnSplitPosition(QTextDocument *doc) {
             }
         }
 
-        // candidate split points: the start of this block, plus the start of
-        //   every <BR>-separated line within this block
         QList<int> lineStarts;
         lineStarts.append(0);
         for (int i = 0; i < text.length(); i++) {
@@ -1325,41 +1316,70 @@ int MainWindow::findCuesheetColumnSplitPosition(QTextDocument *doc) {
                 lineStarts.append(i + 1);
             }
         }
-        totalLines += lineStarts.count();
 
-        for (const int ls : lineStarts) {
-            int pos = block.position() + ls;
-            if (pos == 0) {
-                continue; // never split before the first line of the document
-            }
-            int dist = qAbs(pos - target);
-            if (dist < bestLineDist) {
-                bestLineDist = dist;
-                bestLinePos = pos;
-            }
+        for (int li = 0; li < lineStarts.count(); li++) {
+            int ls = lineStarts[li];
+            int le = (li + 1 < lineStarts.count()) ? lineStarts[li + 1] - 1 : text.length(); // don't include the line separator
 
-            // find the first non-whitespace character of this line, to see if the line starts with red text
+            CuesheetLine line;
+            line.pos = block.position() + ls;
+            line.text = text.mid(ls, le - ls).trimmed();
+            line.isHeader = false;
+
+            // the line is a header iff its first non-whitespace character is red
             int firstChar = ls;
-            while (firstChar < text.length() && text.at(firstChar).isSpace() && text.at(firstChar) != lineSep) {
+            while (firstChar < le && text.at(firstChar).isSpace()) {
                 firstChar++;
             }
-            if (firstChar >= text.length() || text.at(firstChar) == lineSep) {
-                continue; // empty line, can't be a header
-            }
-            for (const auto &redRange : redRanges) {
-                if (firstChar >= redRange.first && firstChar < redRange.second) {
-                    if (dist < bestHeaderDist) {
-                        bestHeaderDist = dist;
-                        bestHeaderPos = pos;
+            if (firstChar < le) {
+                for (const auto &redRange : redRanges) {
+                    if (firstChar >= redRange.first && firstChar < redRange.second) {
+                        line.isHeader = true;
+                        break;
                     }
-                    break;
                 }
             }
+            lines.append(line);
         }
     }
+    return lines;
+}
 
-    if (totalLines < 8) {
+// find the position (in the document) of the start of the line where column 2 should begin,
+//   or -1 if this document is too short to be worth splitting
+int MainWindow::findCuesheetColumnSplitPosition(QTextDocument *doc) {
+    int totalChars = doc->characterCount();
+    if (totalChars < 400) {
+        return -1;
+    }
+
+    const QList<CuesheetLine> lines = enumerateCuesheetLines(doc);
+    if (lines.count() < 8) {
         return -1; // too short to be worth splitting
+    }
+
+    int target = totalChars / 2;
+
+    // section headers (OPENER, MIDDLE BREAK, CLOSER, etc.) are red text in
+    //   SquareDesk cuesheets (class "hdr"); prefer to start column 2 at one of those
+    int bestHeaderPos = -1;
+    int bestHeaderDist = INT_MAX;
+    int bestLinePos = -1;
+    int bestLineDist = INT_MAX;
+
+    for (const CuesheetLine &line : lines) {
+        if (line.pos == 0) {
+            continue; // never split before the first line of the document
+        }
+        int dist = qAbs(line.pos - target);
+        if (dist < bestLineDist) {
+            bestLineDist = dist;
+            bestLinePos = line.pos;
+        }
+        if (line.isHeader && dist < bestHeaderDist) {
+            bestHeaderDist = dist;
+            bestHeaderPos = line.pos;
+        }
     }
 
     // use a section header boundary if there's one reasonably close to the midpoint,
@@ -1368,6 +1388,75 @@ int MainWindow::findCuesheetColumnSplitPosition(QTextDocument *doc) {
         return bestHeaderPos;
     }
     return bestLinePos;
+}
+
+// if this cuesheet has the canonical singing-call structure -- 7 sections
+//   (OPENER, FIGURE 1, FIGURE 2, MIDDLE BREAK, FIGURE 3, FIGURE 4, CLOSER)
+//   of exactly 8 sung lines each, followed by a TAG section -- return the
+//   position of the FIGURE 3 header, where column 2 must begin so that the
+//   auto-scroll "page turn" can be timed from the intro/outro markers
+//   (Info_Seekbar); else return -1
+int MainWindow::findCanonicalSingerSplitPosition(QTextDocument *doc) {
+    static const char *canonicalHeaders[8] = { "OPENER", "FIGURE 1", "FIGURE 2", "MIDDLE BREAK",
+                                               "FIGURE 3", "FIGURE 4", "CLOSER", "TAG" };
+
+    const QList<CuesheetLine> lines = enumerateCuesheetLines(doc);
+
+    QList<int> headerIndices; // indices (into lines) of the header lines, in document order
+    for (int i = 0; i < lines.count(); i++) {
+        if (lines[i].isHeader) {
+            headerIndices.append(i);
+        }
+    }
+    if (headerIndices.count() != 8) {
+        return -1;
+    }
+    for (int h = 0; h < 8; h++) {
+        if (!lines[headerIndices[h]].text.startsWith(canonicalHeaders[h], Qt::CaseInsensitive)) {
+            return -1;
+        }
+    }
+
+    // each of the 7 sung sections must have exactly 8 sung (non-empty, non-header) lines
+    for (int h = 0; h < 7; h++) {
+        int sungLines = 0;
+        for (int i = headerIndices[h] + 1; i < headerIndices[h + 1]; i++) {
+            if (!lines[i].text.isEmpty()) {
+                sungLines++;
+            }
+        }
+        if (sungLines != 8) {
+            return -1;
+        }
+    }
+
+    return lines[headerIndices[4]].pos; // column 2 begins at FIGURE 3
+}
+
+// estimate the fraction of the SONG at which singing crosses from column 1 into column 2:
+//   singing calls have uniform sections (64 beats each, 8 lines per section), so each sung
+//   line takes roughly equal time; headers, blank lines, and the title/metadata lines take
+//   vertical space but no singing time, so we count only the "sung" lines
+//   (non-empty, not red section headers) before the split vs. in the whole cuesheet
+double MainWindow::computeCuesheetCrossoverFrac(QTextDocument *doc, int splitPos) {
+    int sungLinesBeforeSplit = 0;
+    int sungLinesTotal = 0;
+
+    const QList<CuesheetLine> lines = enumerateCuesheetLines(doc);
+    for (const CuesheetLine &line : lines) {
+        if (line.text.isEmpty() || line.isHeader) {
+            continue; // takes no singing time
+        }
+        sungLinesTotal++;
+        if (line.pos < splitPos) {
+            sungLinesBeforeSplit++;
+        }
+    }
+
+    if (sungLinesTotal == 0) {
+        return 0.5;
+    }
+    return qBound(0.1, static_cast<double>(sungLinesBeforeSplit) / static_cast<double>(sungLinesTotal), 0.9);
 }
 
 void MainWindow::renderCuesheetTwoColumns() {
@@ -1379,12 +1468,49 @@ void MainWindow::renderCuesheetTwoColumns() {
     }
 
     QTextDocument *doc = ui->textBrowserCueSheet->document();
-    int splitPos = findCuesheetColumnSplitPosition(doc);
+
+    // canonical singing calls always split at FIGURE 3 (right after MIDDLE BREAK);
+    //   everything else splits near the midpoint (preferring a section header)
+    int splitPos = findCanonicalSingerSplitPosition(doc);
+    if (splitPos <= 0) {
+        splitPos = findCuesheetColumnSplitPosition(doc);
+    }
     if (splitPos <= 0) {
         return;
     }
 
     cuesheetOneColumnHTML = ui->textBrowserCueSheet->toHtml(); // for restore/save/print
+
+    // section-based timing for the auto-scroll "page turn" (Info_Seekbar): if the split
+    //   landed on a section header, count the 64-beat sections (red headers, excluding
+    //   TAG) before it and in total; if it didn't, leave 0/0 so that auto-scroll uses
+    //   the sung-line estimate instead
+    cuesheetSectionsBeforeSplit = 0;
+    cuesheetTotalSections = 0;
+    {
+        const QList<CuesheetLine> lines = enumerateCuesheetLines(doc);
+        bool splitIsOnSectionHeader = false;
+        int sectionsBefore = 0;
+        int sectionsTotal = 0;
+        for (const CuesheetLine &line : lines) {
+            if (!line.isHeader || line.text.startsWith("TAG", Qt::CaseInsensitive)) {
+                continue; // the TAG is sung in the leftover time after the last section
+            }
+            sectionsTotal++;
+            if (line.pos == splitPos) {
+                splitIsOnSectionHeader = true;
+            }
+            if (line.pos < splitPos) {
+                sectionsBefore++;
+            }
+        }
+        if (splitIsOnSectionHeader && sectionsBefore >= 1 && sectionsBefore < sectionsTotal) {
+            cuesheetSectionsBeforeSplit = sectionsBefore;
+            cuesheetTotalSections = sectionsTotal;
+        }
+    }
+
+    cuesheetTwoColumnCrossoverFrac = computeCuesheetCrossoverFrac(doc, splitPos); // auto-scroll fallback if 0/0 above
 
     QTextCursor a(doc);
     a.setPosition(0);

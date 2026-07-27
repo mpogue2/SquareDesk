@@ -1859,6 +1859,45 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         double fracSeekbar = static_cast<double>(currentPos_i)/static_cast<double>(maxSeekbar);
         double targetScroll = 1.08 * fracSeekbar * (maxScroll - minScroll) + minScroll;  // FIX: this is heuristic and not right yet
 
+        if (cuesheetIsTwoColumnRendered) {
+            // 2-column view (#1650): the two halves of the cuesheet are side by side, so
+            //   scroll down the LEFT column during the first part of the song, then jump
+            //   back to the top when singing crosses into the RIGHT column (a "page turn").
+            //   NOTE: no 1.08 fudge factor here; that would make the page turn too early.
+            double columnFrac = -1.0;
+
+            if (cuesheetTotalSections > 0) {
+                // section-structured cuesheet whose split is on a section header: the n
+                //   64-beat sections span the time between the Intro and Outro markers, and
+                //   column 2 starts at section k+1. Turn the page 2 seconds before that
+                //   section starts, i.e. about halfway through the last sung line of column 1.
+                double introSec = static_cast<double>(ui->darkSeekBar->getIntroFrac()) * cBass->FileLength;
+                double outroSec = static_cast<double>(ui->darkSeekBar->getOutroFrac()) * cBass->FileLength;
+                double k = static_cast<double>(cuesheetSectionsBeforeSplit);
+                double n = static_cast<double>(cuesheetTotalSections);
+                double crossoverSec = introSec + (k/n) * (outroSec - introSec) - 2.0;
+                if (outroSec - introSec > 60.0 &&      // sanity check: the sections never fit in less than a minute
+                    crossoverSec - introSec > 5.0) {   // and column 1 must take a meaningful amount of time
+                    double t = static_cast<double>(currentPos_i);
+                    columnFrac = (t < crossoverSec) ? (t - introSec)    / (crossoverSec - introSec)
+                                                    : (t - crossoverSec) / (outroSec - crossoverSec);
+                    columnFrac = qBound(0.0, columnFrac, 1.0);
+                } // else: bogus intro/outro markers, fall through to the sung-line estimate
+            }
+
+            if (columnFrac < 0.0) {
+                // non-canonical cuesheet: cuesheetTwoColumnCrossoverFrac = the fraction of the
+                //   song at which singing crosses into column 2, estimated by counting sung
+                //   lines (guaranteed to be in [0.1, 0.9], so no divide-by-zero)
+                double F = qBound(0.0, fracSeekbar, 1.0);
+                columnFrac = (F < cuesheetTwoColumnCrossoverFrac)
+                                 ? F / cuesheetTwoColumnCrossoverFrac
+                                 : (F - cuesheetTwoColumnCrossoverFrac) / (1.0 - cuesheetTwoColumnCrossoverFrac);
+            }
+
+            targetScroll = columnFrac * (maxScroll - minScroll) + minScroll;
+        }
+
         // NOTE: only auto-scroll when the lyrics are LOCKED (if not locked, you're probably editing).
         //   AND you must be playing.  If you're not playing, we're not going to override the InfoBar position.
         if (autoScrollLyricsEnabled &&

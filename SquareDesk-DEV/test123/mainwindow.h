@@ -932,6 +932,11 @@ private:
     //   kept in cuesheetOneColumnHTML while the widget shows the 2-column table
     bool cuesheetIsTwoColumnRendered;
     QString cuesheetOneColumnHTML;
+    double cuesheetTwoColumnCrossoverFrac;              // fraction of the SONG at which singing crosses into column 2 (for auto-scroll)
+    int cuesheetSectionsBeforeSplit;                    // if the 2-column split is on a section header: # of 64-beat sections in column 1 (else 0)
+    int cuesheetTotalSections;                          // ...and total # of 64-beat sections (excluding TAG) in the cuesheet (else 0)
+    double computeCuesheetCrossoverFrac(QTextDocument *doc, int splitPos);
+    int findCanonicalSingerSplitPosition(QTextDocument *doc);
     void setCuesheetColumnMode(int nColumns);           // toolbutton handler; saves pref + re-renders
     void applyCuesheetColumnModeToView();               // render per pref (only when locked for editing)
     void renderCuesheetTwoColumns();

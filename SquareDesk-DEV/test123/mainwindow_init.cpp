@@ -1580,6 +1580,9 @@ void MainWindow::initializeCuesheetTab() {
     // 1-column vs 2-column cuesheet view buttons (#1650) ---------
     //   (icons are set per-theme in Themes.qss, these are the fallback if no QSS is active)
     cuesheetIsTwoColumnRendered = false;
+    cuesheetTwoColumnCrossoverFrac = 0.5;
+    cuesheetSectionsBeforeSplit = 0;
+    cuesheetTotalSections = 0;
     ui->toolButtonCuesheet1Col->setIcon(QIcon(":/graphics/one_column.svg"));
     ui->toolButtonCuesheet2Col->setIcon(QIcon(":/graphics/two_column.svg"));
 
