@@ -1102,6 +1102,8 @@ private:
     bool findMusic(QString mainRootDir, bool refreshDatabase, bool forceRescan = false); // returns true iff a full scan ran (false = pathStack cache hit, nothing changed on disk)
     bool loadPathStackCacheIfValid();
     void savePathStackCache();
+    void addFilesToPathStacks(const QStringList &copiedFilePaths); // incremental import, no full rescan needed (Issue #1664)
+    void importFilesFromFinder(const QStringList &droppedPaths);   // deferred from dropEvent so the Finder drag session can finish first (Issue #1664)
     void updateTreeWidget();
     void filterMusic();
     void loadMusicList();

@@ -809,6 +809,84 @@ bool MainWindow::findMusic(QString mainRootDir, bool refreshDatabase, bool force
 }
 
 
+// Incrementally add files that were just copied INTO the music directory (e.g. by
+// drag/drop import from the Finder) to the pathStacks, and refresh the darkSongTable,
+// WITHOUT waiting for the FileWatcher's 2s debounce + full findFilesRecursively()
+// disk walk (Issue #1664). Each entry is built exactly as findFilesRecursively()
+// would have built it, so search/load/cuesheet-matching behave identically.
+void MainWindow::addFilesToPathStacks(const QStringList &copiedFilePaths)
+{
+    for (const QString &finalPath : copiedFilePaths) {
+        QFileInfo fi(finalPath);
+        QString ext = fi.suffix().toLower();
+
+        // mirror the nameFilters that findMusic() applies to the recursive scan
+        bool knownExtension = false;
+        for (size_t i = 0; i < sizeof(music_file_extensions) / sizeof(*music_file_extensions); ++i) {
+            knownExtension = knownExtension || (ext == music_file_extensions[i]);
+        }
+        for (size_t i = 0; i < sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions); ++i) {
+            knownExtension = knownExtension || (ext == cuesheet_file_extensions[i]);
+        }
+        if (!knownExtension) {
+            continue;
+        }
+
+        // same "first sub-folder below the music root is the type" convention as findFilesRecursively()
+        QString newType = (fi.path().replace(musicRootPath + "/", "").split("/"))[0];
+
+        if (newType == "soundfx" || newType == "sd" || newType == "choreography" || newType == "reference") {
+            continue; // never import destinations; findFilesRecursively() keeps these off the song pathStacks
+        }
+
+        if (newType == "lyrics" || finalPath.endsWith(".html") || finalPath.endsWith(".htm")) {
+            QString entry = newType + "#!#" + finalPath + "#!#" + detectCuesheetLevel(finalPath);
+            // a Replace copy re-imports an existing cuesheet, whose detected level may have
+            // changed with the new contents: update the existing entry instead of duplicating it
+            QString prefix = newType + "#!#" + finalPath + "#!#";
+            bool found = false;
+            for (int i = 0; i < pathStackCuesheets->size(); ++i) {
+                if (pathStackCuesheets->at(i).startsWith(prefix)) {
+                    (*pathStackCuesheets)[i] = entry;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                pathStackCuesheets->append(entry);
+            }
+        } else {
+            QString entry = newType + "#!#" + finalPath;
+            if (!pathStack->contains(entry)) { // a Replace copy already has an entry
+                pathStack->append(entry);
+            }
+        }
+    }
+
+    // The steps below run even if the pathStacks did not change (e.g. every copy was a
+    // "Replace" of an existing file): a Replace still bumps directory mtimes (so the
+    // cache must be re-saved) and still sets the NEW tag (so the table must refresh).
+
+    // Keep the startup cache valid: the copies just bumped directory mtimes, which would
+    // otherwise invalidate the pathStack cache and force a full scan at the next launch
+    // (Issue #1669). This also makes any later spurious FileWatcher wakeup (e.g. iCloud's
+    // bird daemon touching xattrs after our 5s disable window) a cheap no-op instead of a
+    // full rescan. Apple Music entries appended to pathStack after the initial scan are
+    // excluded automatically: relativizePathStackEntry() drops paths not under the root.
+    savePathStackCache();
+
+    // same Levels-column policy as findMusic(): only pay for it if it's in use
+    if (prefsManager.GetshowLevelsColumn() || songLevelsComputed) {
+        computeSongLevels();
+        songLevelsComputed = true;
+    }
+
+    darkLoadMusicList(nullptr, currentTypeFilter, true, true); // refresh whichever pathStack is showing
+    darkFilterMusic();                                         // and re-apply the current search filter
+
+    ui->statusBar->showMessage(QString("Songs found: %1").arg(QString::number(pathStack->size())));
+}
+
 void MainWindow::filterMusic()
 {
     // OBSOLETE
@@ -1637,7 +1715,11 @@ static CopyAction currentCopyAction = Ask;
 void MainWindow::dragEnterEvent(QDragEnterEvent *event)
 {
     if (event->mimeData()->hasUrls()) {
-        event->acceptProposedAction();
+        // never accept a MOVE proposed by the Finder -- we only ever COPY the files.
+        // Accepting a move makes the Finder think we took ownership of the originals,
+        // which can leave it waiting on us (beachball) or animating a "put back". (Issue #1664)
+        event->setDropAction(Qt::CopyAction);
+        event->accept();
     }
 }
 
@@ -1696,13 +1778,34 @@ void MainWindow::dropEvent(QDropEvent *event)
         return;
     }
 
+    QStringList droppedPaths;
+    for (const QUrl &url : mimeData->urls()) {
+        droppedPaths.append(url.toLocalFile());
+    }
+
+    // Accept the drop (as a COPY, never a move -- see dragEnterEvent) and return
+    // BEFORE doing any real work: the Finder blocks (beachball, then crash) until
+    // the drop target finishes handling the drag, and it animates the dragged file
+    // flying back ("put back") if the drop is never accepted. The import dialog,
+    // the copies, and the darkSongTable refresh all run from the event loop AFTER
+    // the drag session has completed.
+    event->setDropAction(Qt::CopyAction);
+    event->accept();
+
+    // NOTE: the delay must NOT be 0ms: on macOS, Qt timers also fire in the runloop's
+    // drag-tracking mode, so a 0ms timer can open the modal Import dialog while the
+    // drop is still being torn down, re-blocking the Finder behind our dialog.
+    QTimer::singleShot(500, this, [this, droppedPaths]() { importFilesFromFinder(droppedPaths); });
+}
+
+void MainWindow::importFilesFromFinder(const QStringList &droppedPaths)
+{
     // Dark grey background color for unchecked/strikethrough rows
     const QColor darkGreyBackground("#A0A0A0"); // RGB(160, 160, 160)
 
     // 1. Gather all file paths, recursing into directories
     QStringList allFilePaths;
-    for (const QUrl &url : mimeData->urls()) {
-        QString path = url.toLocalFile();
+    for (const QString &path : droppedPaths) {
         QFileInfo fileInfo(path);
         if (fileInfo.isDir()) {
             QDirIterator it(path, QDir::Files, QDirIterator::Subdirectories);
@@ -2071,12 +2174,20 @@ void MainWindow::dropEvent(QDropEvent *event)
     }
     okButton->setText(tr("Copy %1 Files").arg(initialCheckedCount));
 
-    qDebug() << "pathsInTable" << pathsInTable;
+    // qDebug() << "pathsInTable" << pathsInTable;
 
     // 5. Show the dialog and process the result
     if (dialog.exec() == QDialog::Accepted) {
         // qDebug() << "--- Begin Import Selections ---";
-        bool didAtLeastOneCopy = false;
+
+        // Our own copies must NOT trigger the FileWatcher's debounce + full rescan --
+        // we update the pathStacks and darkSongTable incrementally ourselves below,
+        // which is much faster (Issue #1664). The re-enable timer is started AFTER
+        // the copy loop, because the "File Exists" dialog can hold the loop open
+        // for longer than the timer's 5s window.
+        filewatcherIsTemporarilyDisabled = true;
+
+        QStringList copiedFilePaths; // everything actually copied (music AND cuesheets)
         for (int i = 0; i < table->rowCount(); ++i) {
             QWidget* w = table->cellWidget(i, 4);
             QPushButton* b = w->findChild<QPushButton*>();
@@ -2148,20 +2259,25 @@ void MainWindow::dropEvent(QDropEvent *event)
                     didCopy = true;
                 }
 
+                if (didCopy) {
+                    copiedFilePaths << finalPath;
+                }
+
                 // qDebug() << "FOO:" << didCopy << patterSingingTypes << dest;
                 if (didCopy && (patterSingingTypes.contains(dest))) {
                     // qDebug() << "didCopy, so set the NEW tag on" << finalPath;
                     darkChangeTagOnPathToMP3(finalPath, QString("NEW"), true); // add the NEW tag to the copied file
-                    didAtLeastOneCopy = true;
                 }
             }
         }
         // qDebug() << "--- End Import Selections ---";
 
-        if (didAtLeastOneCopy) {
-            // qDebug() << "******* REFRESH SONGTABLE NEEDED *******";
-            // this is here for future expansion.  Doing the copy already triggers
-            //   a refresh of the darkSongTable, so we don't technically need to do this now.
+        fileWatcherDisabledTimer->start(std::chrono::milliseconds(5000)); // re-enable the FileWatcher after the dust settles
+
+        if (!copiedFilePaths.isEmpty()) {
+            // add the just-copied files to the pathStacks and refresh the darkSongTable right
+            // now, so they are searchable immediately -- no FileWatcher full rescan needed (Issue #1664)
+            addFilesToPathStacks(copiedFilePaths);
         }
     }
     currentCopyAction = Ask; // In all cases, Reset to ASK for next time
