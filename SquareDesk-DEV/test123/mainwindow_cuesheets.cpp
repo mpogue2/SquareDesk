@@ -74,6 +74,10 @@ struct FilenameMatchers {
 struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingType songFilenameFormat)
 {
     static struct FilenameMatchers best_guess_matches[] = {
+        { QRegularExpression("^([A-Za-z]{1,9})[\\- ]?(\\d{3,5}[A-Za-z]{0,3})\\s*-\\s*(.*[^0-9]\\d{1,2})$"), 3, 1, 2, -1, -1}, // e.g. "ARROW 946 - Studio 54.mp3"
+                                                                                                            // ambiguity breaker: LABEL + 3-5 digit number on the left,
+                                                                                                            //   title ending in a 1-2 digit number on the right (numbers
+                                                                                                            //   in titles are short; label numbers are 3+ digits)
         { QRegularExpression("^(.*) - ([A-Za-z]{1,9})[\\- ]?([0-9]{1,5}[A-Za-z]{0,3})$"), 1, 2, 3, -1, -1}, // e.g. "Play It Cool - BS 2534a.mp3"
                                                                                                             // e.g. "Strings Galore - Chaparral 117b.mp3"
         { QRegularExpression("^([Oo][Gg][Rr][Mm][Pp]3\\s*\\d{1,5})\\s*-\\s*(.*)$"), 2, 1, -1, -1, -1 },    // e.g. "OGRMP3 04 - Addam's Family.mp3"
