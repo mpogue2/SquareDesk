@@ -3222,6 +3222,51 @@
              </widget>
             </item>
             <item>
+             <widget class="Line" name="lineFontSize">
+              <property name="orientation">
+               <enum>Qt::Orientation::Vertical</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="toolButtonCuesheetFontBigger">
+              <property name="minimumSize">
+               <size>
+                <width>32</width>
+                <height>26</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Bigger cuesheet text (temporary, until the next cuesheet is loaded)</string>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>18</width>
+                <height>18</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="toolButtonCuesheetFontSmaller">
+              <property name="minimumSize">
+               <size>
+                <width>32</width>
+                <height>26</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Smaller cuesheet text (temporary, until the next cuesheet is loaded)</string>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>18</width>
+                <height>18</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="horizontalSpacer">
               <property name="orientation">
                <enum>Qt::Orientation::Horizontal</enum>

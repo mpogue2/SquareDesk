@@ -937,6 +937,12 @@ private:
     int cuesheetTotalSections;                          // ...and total # of 64-beat sections (excluding TAG) in the cuesheet (else 0)
     double computeCuesheetCrossoverFrac(QTextDocument *doc, int splitPos);
     int findCanonicalSingerSplitPosition(QTextDocument *doc);
+
+    // temporary cuesheet font zoom (#1650): on top of the global View > Zoom (totalZoom),
+    //   NOT persisted, cleared whenever a cuesheet is (re)loaded
+    int cuesheetTempZoom;
+    void adjustCuesheetTempZoom(int delta);             // +2/-2 per font size button press
+    void resetCuesheetTempZoom();                       // back to the global zoom level
     void setCuesheetColumnMode(int nColumns);           // toolbutton handler; saves pref + re-renders
     void applyCuesheetColumnModeToView();               // render per pref (only when locked for editing)
     void renderCuesheetTwoColumns();

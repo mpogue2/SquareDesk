@@ -28,5 +28,9 @@
         <file>graphics/one_column_white.svg</file>
         <file>graphics/two_column.svg</file>
         <file>graphics/two_column_white.svg</file>
+        <file>graphics/font_increase.svg</file>
+        <file>graphics/font_increase_white.svg</file>
+        <file>graphics/font_decrease.svg</file>
+        <file>graphics/font_decrease_white.svg</file>
     </qresource>
 </RCC>

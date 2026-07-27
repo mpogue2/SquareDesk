@@ -1598,6 +1598,17 @@ void MainWindow::initializeCuesheetTab() {
     connect(columnModeGroup, &QButtonGroup::idClicked,
             this, [this](int nColumns) { setCuesheetColumnMode(nColumns); });
 
+    // temporary cuesheet font size buttons (#1650) ---------
+    //   (icons are set per-theme in Themes.qss, these are the fallback if no QSS is active)
+    cuesheetTempZoom = 0;
+    ui->toolButtonCuesheetFontBigger->setIcon(QIcon(":/graphics/font_increase.svg"));
+    ui->toolButtonCuesheetFontSmaller->setIcon(QIcon(":/graphics/font_decrease.svg"));
+
+    connect(ui->toolButtonCuesheetFontBigger,  &QToolButton::clicked,
+            this, [this]() { adjustCuesheetTempZoom(2); });
+    connect(ui->toolButtonCuesheetFontSmaller, &QToolButton::clicked,
+            this, [this]() { adjustCuesheetTempZoom(-2); });
+
     connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
             this, SLOT(LyricsCopyAvailable(bool)));
 

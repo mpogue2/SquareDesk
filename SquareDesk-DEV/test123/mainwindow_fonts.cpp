@@ -673,6 +673,7 @@ void MainWindow::on_actionReset_triggered()
     // ui->songTable->setFont(currentFont);
     ui->darkSongTable->setFont(currentFont);
 
+    resetCuesheetTempZoom();  // undo the (temporary) font size buttons' zoom first (#1650)
     ui->textBrowserCueSheet->zoomOut(totalZoom);  // undo all zooming in the lyrics pane, by zooming OUT
     totalZoom = 0;
 

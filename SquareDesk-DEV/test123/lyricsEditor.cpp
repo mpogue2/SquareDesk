@@ -1236,6 +1236,7 @@ void MainWindow::loadCuesheet(const QString cuesheetFilename)
 
     ui->textBrowserCueSheet->document()->setModified(false);
 
+    resetCuesheetTempZoom();              // the font size buttons' zoom is temporary: back to the global zoom
     cuesheetIsTwoColumnRendered = false;  // fresh 1-column content was just loaded
     applyCuesheetColumnModeToView();      // re-render as 2 columns, if that mode is selected
 
@@ -1558,6 +1559,32 @@ void MainWindow::restoreCuesheetOneColumn() {
     ui->textBrowserCueSheet->moveCursor(QTextCursor::Start);
     ui->textBrowserCueSheet->verticalScrollBar()->setValue(0);
     cuesheetIsTwoColumnRendered = false;
+}
+
+// TEMPORARY CUESHEET FONT ZOOM (#1650) ---------------------------------------
+// The font size buttons zoom only the cuesheet, on top of the global View > Zoom
+//   (which is tracked separately in totalZoom).  This temporary zoom is NOT
+//   persisted: it is cleared whenever a cuesheet is (re)loaded, and by View > Reset.
+//   The zoom lives in the widget's base font, not in the document, so it is never
+//   saved into cuesheet files, and it survives the 1-column/2-column rebuilds.
+
+void MainWindow::adjustCuesheetTempZoom(int delta) {
+    // clamp, so that repeated presses can't make the text absurdly big, or so small
+    //   that Qt refuses to shrink it further (which would break our un-zoom accounting)
+    int newTempZoom = qBound(-8, cuesheetTempZoom + delta, 20);
+    delta = newTempZoom - cuesheetTempZoom;
+    if (delta == 0) {
+        return;
+    }
+    ui->textBrowserCueSheet->zoomIn(delta);
+    cuesheetTempZoom = newTempZoom;
+}
+
+void MainWindow::resetCuesheetTempZoom() {
+    if (cuesheetTempZoom != 0) {
+        ui->textBrowserCueSheet->zoomIn(-cuesheetTempZoom);
+        cuesheetTempZoom = 0;
+    }
 }
 
 // SAVE LYRICS ------------------------------

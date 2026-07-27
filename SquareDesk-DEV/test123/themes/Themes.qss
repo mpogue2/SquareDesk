@@ -284,6 +284,20 @@ QToolButton#toolButtonCuesheet2Col:checked[theme="Light"] {
     border: 2px solid #4a9a4a;
 }
 
+/* Cuesheet temporary font size buttons (#1650) */
+QToolButton#toolButtonCuesheetFontBigger[theme="Dark"] {
+    qproperty-icon: url(:/graphics/font_increase_white.svg);
+}
+QToolButton#toolButtonCuesheetFontBigger[theme="Light"] {
+    qproperty-icon: url(:/graphics/font_increase.svg);
+}
+QToolButton#toolButtonCuesheetFontSmaller[theme="Dark"] {
+    qproperty-icon: url(:/graphics/font_decrease_white.svg);
+}
+QToolButton#toolButtonCuesheetFontSmaller[theme="Light"] {
+    qproperty-icon: url(:/graphics/font_decrease.svg);
+}
+
 /* PUSH BUTTONS ===================== */
 QPushButton[theme="Dark"] {
     /* all types of push button */
