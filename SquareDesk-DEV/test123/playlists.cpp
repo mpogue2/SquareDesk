@@ -1773,7 +1773,8 @@ void MainWindow::refreshAllPlaylists() {
                 bool shouldIndent = shouldIndentPlaylistRow(theTable, j);
 
                 // this is what we want: "/patter/RIV 1180 - Sea Chanty.mp3" "/Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/playlists/Jokers/2024/Jokers_2024.06.05.csv"
-                setTitleField(theTable, j, relativePath, true, PlaylistFileName, relativePath, shouldIndent);
+                QString theCanonicalRelativePath = makeCanonicalRelativePath(relativePath); // display as "LABEL NUM - Title", even if filename is reversed (issue #1665)
+                setTitleField(theTable, j, theCanonicalRelativePath, true, PlaylistFileName, relativePath, shouldIndent);
 
                 // Re-apply loaded-song highlighting (bold+italic) if setTitleField() just replaced it (issue #1601)
                 if (theTable->item(j, COLUMN_LOADED) && theTable->item(j, COLUMN_LOADED)->text() == "1") {
