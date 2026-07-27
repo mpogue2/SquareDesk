@@ -2757,13 +2757,17 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 
             // while OPTION is held, the Lyrics button previews the alternate "lyrics2" highlight color;
             //   with SHIFT also held, it previews the "lyrics3" color (issue #1660)
+            // NOTE: uses a dynamic property + rules in Themes.qss (NOT a widget-level stylesheet),
+            //   so the button stays styled by the app-level theme and its geometry never changes
             Qt::KeyboardModifiers mods = QApplication::queryKeyboardModifiers();  // current hardware state
+            QString altPreview = "0";
             if ((mods & Qt::AltModifier) && ui->pushButtonCueSheetEditLyrics->isEnabled()) {
-                ui->pushButtonCueSheetEditLyrics->setStyleSheet((mods & Qt::ShiftModifier)
-                                                                    ? "QPushButton { background-color: #C0FFD9; }"
-                                                                    : "QPushButton { background-color: #C0D9FF; }");
-            } else {
-                ui->pushButtonCueSheetEditLyrics->setStyleSheet("");
+                altPreview = (mods & Qt::ShiftModifier) ? "3" : "2";
+            }
+            if (ui->pushButtonCueSheetEditLyrics->property("altpreview").toString() != altPreview) {
+                ui->pushButtonCueSheetEditLyrics->setProperty("altpreview", altPreview);
+                ui->pushButtonCueSheetEditLyrics->style()->unpolish(ui->pushButtonCueSheetEditLyrics);
+                ui->pushButtonCueSheetEditLyrics->style()->polish(ui->pushButtonCueSheetEditLyrics);
             }
         }
     }

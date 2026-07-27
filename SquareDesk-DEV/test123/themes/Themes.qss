@@ -339,6 +339,16 @@ QPushButton#pushButtonCueSheetEditLyrics {
     color: #000000;
 }
 
+/* while OPTION is held, the Lyrics button previews the alternate highlight colors (issue #1660):
+   OPTION = lyrics2 (Sky Blue), SHIFT-OPTION = lyrics3 (Mint Green) */
+QPushButton#pushButtonCueSheetEditLyrics[altpreview="2"] {
+    background-color: #C0D9FF;
+}
+
+QPushButton#pushButtonCueSheetEditLyrics[altpreview="3"] {
+    background-color: #C0FFD9;
+}
+
 QPushButton#pushButtonSetIntroTime,
 QPushButton#pushButtonSetOutroTime,
 QPushButton#pushButtonTestLoop,
