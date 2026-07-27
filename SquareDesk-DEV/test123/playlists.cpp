@@ -2026,66 +2026,22 @@ QString MainWindow::makeCanonicalRelativePath(QString s) {
     QString name = fi1.completeBaseName();
     QString suffix = fi1.suffix();
 
-    // qDebug() << "suffix:" << suffix;
-
-    // NOTE: THIS NEEDS TO MATCH STEPS 1d and 5 IN MP3FilenameVsCuesheetnameScore()
-    //   TODO: Factor this code out into a separate function
-    //
-
-    // Step 1d: note that this requires capitalized "NB" and no spaces for it to work
-    static QRegularExpression NewBeatAndNumber("NB-([0-9]?)");
-    name.replace(NewBeatAndNumber, "NB \\1");
-
-    // Step 5: Parse the filenames to extract components
-    // Try to identify label, label number, label extra, and title
-    struct ParsedName {
-        QString label;
-        QString labelNum;
-        QString labelExtra;
-        QString title;
-        QString canonicalTitle;
-        bool reversed = false;
-    };
-
-    ParsedName result;
-
-    // Try standard format: LABEL NUM[EXTRA] - TITLE
-    QRegularExpression stdFormat("^([A-Za-z ]{1,20})\\s*([0-9]{1,5})([A-Za-z]{0,4})?\\s*-\\s*(.+)$",
-                                 QRegularExpression::CaseInsensitiveOption);
-
-    // Try reversed format: TITLE - LABEL NUM[EXTRA]
-    QRegularExpression revFormat("^(.+)\\s*-\\s*([A-Za-z ]{1,20})\\s*([0-9]{1,5})([A-Za-z]{0,4})?$",
-                                 QRegularExpression::CaseInsensitiveOption);
-
-    QRegularExpressionMatch match = stdFormat.match(name);
-    if (match.hasMatch()) {
-        // NORMAL ORDER, e.g. "AAA 102 - Foo Bar.mp3"
-        result.label = match.captured(1);
-        result.labelNum = match.captured(2);
-        result.labelExtra = match.captured(3);
-        result.title = match.captured(4);
-        result.reversed = false;
-        result.canonicalTitle = s; // no change
-        // qDebug() << "makeCanonicalRelativePath: NORMAL ORDER: " << name << result.canonicalTitle;
-    } else {
-        match = revFormat.match(name);
-        if (match.hasMatch()) {
-            // REVERSED ORDER, e.g. "Foo Bar - AAA 102.mp3"
-            result.title = match.captured(1);
-            result.label = match.captured(2);
-            result.labelNum = match.captured(3);
-            result.labelExtra = match.captured(4);
-            result.reversed = true;
-            sl1[lastItem] = result.label + result.labelNum + " - " + result.title.simplified() + "." + suffix;
-            result.canonicalTitle = sl1.join("/");
-            // qDebug() << "makeCanonicalRelativePath: REVERSED ORDER: " << result.canonicalTitle;
-        } else {
-            // If no match, just consider the whole thing as title
-            result.canonicalTitle = s;
+    // Use the shared filename parser (same one used by darkSongTable and playlist CSV reload),
+    //   so that all paths agree on how e.g. "Shivers - NB-334NM.mp3" is parsed (issue #1665)
+    QString label, labelnum, labelnum_extra, title, shortTitle;
+    if (breakFilenameIntoParts(name, label, labelnum, labelnum_extra, title, shortTitle)
+        && label != "" && title != "") {
+        QString labelPart = label;
+        if (labelnum != "") {
+            labelPart += " " + labelnum;
         }
+        labelPart += labelnum_extra;
+        sl1[lastItem] = labelPart.simplified() + " - " + title.simplified() + (suffix == "" ? "" : "." + suffix);
+        return sl1.join("/");
     }
 
-    return(result.canonicalTitle);
+    // If no match, just consider the whole thing as title
+    return s;
 }
 
 void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, const QString &thePitch, const QString &theTempo, const QString &theFullPath, const QString &extra, int insertRowNum) {

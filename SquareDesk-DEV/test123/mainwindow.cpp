@@ -8401,7 +8401,8 @@ void MainWindow::darkAddPlaylistItemsToBottom(int whichSlot) { // slot is 0 - 2
         QString absPath = theFullPath; // already is fully qualified
 
         theRelativePath.replace(musicRootPath, "");
-        setTitleField(theTableWidget, songCount-1, theRelativePath, true, PlaylistFileName); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
+        QString theCanonicalRelativePath = makeCanonicalRelativePath(theRelativePath); // display as "LABEL NUM - Title", even if filename is reversed (issue #1665)
+        setTitleField(theTableWidget, songCount-1, theCanonicalRelativePath, true, PlaylistFileName, theRelativePath); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
 
         // LEVELS column
         QTableWidgetItem *lev = new QTableWidgetItem(songLevelsByPath.value(absPath, ""));
@@ -8479,7 +8480,8 @@ void MainWindow::darkAddPlaylistItemToBottom(int whichSlot, QString title, QStri
     QString absPath = theFullPath; // already is fully qualified
 
     theRelativePath.replace(musicRootPath, "");
-    setTitleField(theTableWidget, songCount-1, theRelativePath, true, PlaylistFileName, theRelativePath); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
+    QString theCanonicalRelativePath = makeCanonicalRelativePath(theRelativePath); // display as "LABEL NUM - Title", even if filename is reversed (issue #1665)
+    setTitleField(theTableWidget, songCount-1, theCanonicalRelativePath, true, PlaylistFileName, theRelativePath); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
 
     // LEVELS column
     QTableWidgetItem *lev2 = new QTableWidgetItem(songLevelsByPath.value(absPath, ""));
