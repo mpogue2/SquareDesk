@@ -950,7 +950,7 @@ private:
     int findCuesheetColumnSplitPosition(QTextDocument *doc);
 
     QString cuesheetSquareDeskVersion;
-    enum charsType { TitleChars=1, LabelChars=96, ArtistChars=255, HeaderChars=2, LyricsChars=3, Lyrics2Chars=4, NoneChars=0};
+    enum charsType { TitleChars=1, LabelChars=96, ArtistChars=255, HeaderChars=2, LyricsChars=3, Lyrics2Chars=4, Lyrics3Chars=5, NoneChars=0};
     charsType FG_BG_to_type(QColor fg, QColor bg);
     QTextCharFormat lastKnownTextCharFormat;
     int currentSelectionContains();
@@ -961,6 +961,7 @@ private:
     const int lyricsBit = 0x10;
     const int noneBit = 0x20;
     const int lyrics2Bit = 0x40;
+    const int lyrics3Bit = 0x80;
     QString getResourceFile(QString s);
     void saveLyrics();
     void saveLyricsAs();

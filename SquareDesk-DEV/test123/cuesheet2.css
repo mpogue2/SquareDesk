@@ -8,3 +8,4 @@ body, p, font { font-family: Verdana;     font-size: large;   font-weight: Norma
 .hdr          { font-family: Verdana; font-size: x-large; font-weight: Normal;  color: #FF0002;}
 .lyrics       { font-family: Verdana; font-size: large;   font-weight: Normal;  color: #030303; background-color: #FFC0CB;}
 .lyrics2      { font-family: Verdana; font-size: large;   font-weight: Normal;  color: #040404; background-color: #C0D9FF;}
+.lyrics3      { font-family: Verdana; font-size: large;   font-weight: Normal;  color: #050505; background-color: #C0FFD9;}

@@ -2742,20 +2742,26 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 
     if (Event->type() == QEvent::KeyPress || Event->type() == QEvent::KeyRelease) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent*>(Event);
-        if (keyEvent->key() == Qt::Key_Alt) {
-            if (keyEvent->isAutoRepeat()) {
+        if (keyEvent->key() == Qt::Key_Alt || keyEvent->key() == Qt::Key_Shift) {
+            if (keyEvent->key() == Qt::Key_Alt && keyEvent->isAutoRepeat()) {
                 return true;  // ignore ALT auto-repeats
             }
             MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
             if (maybeMainWindow == nullptr) {
                 return QObject::eventFilter(Object,Event);
             }
-            maybeMainWindow->optionCurrentlyPressed = (Event->type() == QEvent::KeyPress);
-            // qDebug() << "optionCurrentlyPressed:" << maybeMainWindow->optionCurrentlyPressed;
+            if (keyEvent->key() == Qt::Key_Alt) {
+                maybeMainWindow->optionCurrentlyPressed = (Event->type() == QEvent::KeyPress);
+                // qDebug() << "optionCurrentlyPressed:" << maybeMainWindow->optionCurrentlyPressed;
+            }
 
-            // while OPTION is held, the Lyrics button previews the alternate "lyrics2" highlight color (issue #1660)
-            if (maybeMainWindow->optionCurrentlyPressed && ui->pushButtonCueSheetEditLyrics->isEnabled()) {
-                ui->pushButtonCueSheetEditLyrics->setStyleSheet("QPushButton { background-color: #C0D9FF; }");
+            // while OPTION is held, the Lyrics button previews the alternate "lyrics2" highlight color;
+            //   with SHIFT also held, it previews the "lyrics3" color (issue #1660)
+            Qt::KeyboardModifiers mods = QApplication::queryKeyboardModifiers();  // current hardware state
+            if ((mods & Qt::AltModifier) && ui->pushButtonCueSheetEditLyrics->isEnabled()) {
+                ui->pushButtonCueSheetEditLyrics->setStyleSheet((mods & Qt::ShiftModifier)
+                                                                    ? "QPushButton { background-color: #C0FFD9; }"
+                                                                    : "QPushButton { background-color: #C0D9FF; }");
             } else {
                 ui->pushButtonCueSheetEditLyrics->setStyleSheet("");
             }
