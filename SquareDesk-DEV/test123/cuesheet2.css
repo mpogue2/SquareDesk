@@ -7,3 +7,4 @@ body, p, font { font-family: Verdana;     font-size: large;   font-weight: Norma
 .artist       { font-family: Verdana; font-size: medium;  font-weight: Normal;  color: #0000FF;}
 .hdr          { font-family: Verdana; font-size: x-large; font-weight: Normal;  color: #FF0002;}
 .lyrics       { font-family: Verdana; font-size: large;   font-weight: Normal;  color: #030303; background-color: #FFC0CB;}
+.lyrics2      { font-family: Verdana; font-size: large;   font-weight: Normal;  color: #040404; background-color: #C0D9FF;}

@@ -2752,6 +2752,13 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             }
             maybeMainWindow->optionCurrentlyPressed = (Event->type() == QEvent::KeyPress);
             // qDebug() << "optionCurrentlyPressed:" << maybeMainWindow->optionCurrentlyPressed;
+
+            // while OPTION is held, the Lyrics button previews the alternate "lyrics2" highlight color (issue #1660)
+            if (maybeMainWindow->optionCurrentlyPressed && ui->pushButtonCueSheetEditLyrics->isEnabled()) {
+                ui->pushButtonCueSheetEditLyrics->setStyleSheet("QPushButton { background-color: #C0D9FF; }");
+            } else {
+                ui->pushButtonCueSheetEditLyrics->setStyleSheet("");
+            }
         }
     }
 

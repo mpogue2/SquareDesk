@@ -257,7 +257,7 @@ void MainWindow::on_textBrowserCueSheet_selectionChanged()
             ui->pushButtonCueSheetEditLabel->setChecked(selContains & labelBit);
             ui->pushButtonCueSheetEditArtist->setChecked(selContains & artistBit);
             ui->pushButtonCueSheetEditHeader->setChecked(selContains & headerBit);
-            ui->pushButtonCueSheetEditLyrics->setChecked(selContains & lyricsBit);
+            ui->pushButtonCueSheetEditLyrics->setChecked(selContains & (lyricsBit | lyrics2Bit));
         } else {
             // else, base the button state on the charformat at the current cursor position
             QTextCharFormat tcf = ui->textBrowserCueSheet->textCursor().charFormat();
@@ -276,7 +276,7 @@ void MainWindow::on_textBrowserCueSheet_selectionChanged()
             ui->pushButtonCueSheetEditLabel->setChecked(c == LabelChars);
             ui->pushButtonCueSheetEditArtist->setChecked(c == ArtistChars);
             ui->pushButtonCueSheetEditHeader->setChecked(c == HeaderChars);
-            ui->pushButtonCueSheetEditLyrics->setChecked(c == LyricsChars);
+            ui->pushButtonCueSheetEditLyrics->setChecked(c == LyricsChars || c == Lyrics2Chars);
         }
     } else {
         // if editing is disabled, all the buttons are disabled.
@@ -391,7 +391,12 @@ void MainWindow::on_pushButtonCueSheetEditLyrics_clicked(bool checked)
     Q_UNUSED(checked)
     if (!cuesheetEditorReactingToCursorMovement)
     {
-        setSelectedTextToClass(ui->textBrowserCueSheet, "lyrics");
+        // OPTION-click (Alt) = alternate lyrics highlighting (e.g. second singer in a duet), issue #1660
+        if (QApplication::keyboardModifiers() & Qt::AltModifier) {
+            setSelectedTextToClass(ui->textBrowserCueSheet, "lyrics2");
+        } else {
+            setSelectedTextToClass(ui->textBrowserCueSheet, "lyrics");
+        }
     }
 //    showHTML(__FUNCTION__);
 }
@@ -418,6 +423,9 @@ int MainWindow::currentSelectionContains() {
     }
     if (theHTML.contains("color:#030303")) {
         result |= lyricsBit;
+    }
+    if (theHTML.contains("color:#040404")) {
+        result |= lyrics2Bit;
     }
     if (theHTML.contains("color:#000000")) {
         result |= noneBit;
@@ -816,6 +824,12 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
                                     QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption );
     cuesheet3.replace(LyricsRegExp, "<SPAN class=\"lyrics\">");
 
+    // LYRICS2 (alternate lyrics highlighting, e.g. second singer in a duet, issue #1660) ---------
+    // <span    style=" font-size:large; color:#040404; background-color:#c0d9ff;">
+    QRegularExpression Lyrics2RegExp("<SPAN[\\s\n]+style=[\\s\n]*\"[\\s\n]+font-size:(large|\\d+pt);[\\s\n]+color:#040404;[\\s\n]+background-color:#c0d9ff;[\\s\n]*\">",
+                                    QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption );
+    cuesheet3.replace(Lyrics2RegExp, "<SPAN class=\"lyrics2\">");
+
 
     // BLANK STYLES ON <P> --------
 
@@ -1010,6 +1024,7 @@ void MainWindow::maybeLoadCSSfileIntoTextBrowser(bool useSquareDeskCSS) {
                   ".artist       { font-size: medium;  font-weight: Normal; color: #0000FF;}\n"
                   ".hdr          { font-size: x-large; font-weight: Normal; color: #FF0002;}\n"
                   ".lyrics       { font-size: large;   font-weight: Normal; color: #030303; background-color: #FFC0CB;}\n"
+                  ".lyrics2      { font-size: large;   font-weight: Normal; color: #040404; background-color: #C0D9FF;}\n"
                   ".bold         { font-weight: bold; }\n"
                   ".italic       { font-style: italic; }";
 
