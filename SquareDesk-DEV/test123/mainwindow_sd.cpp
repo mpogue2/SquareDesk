@@ -3440,24 +3440,30 @@ void MainWindow::refreshSDframes() {
     FColor = "#6493ff";
 
 //    QString frameTitleString("<html><head/><body><p><span style=\"font-weight:700; color:#0433ff;\">F%1</span><span style=\"font-weight:700;\"> %2%5 [%06%3/%4]</span></p></body></html>"); // %06 is intentional, do not use just %6
-    QString frameTitleString("<html><head/><body><p><span style=\"font-weight:700; color:%7;\">F%1</span><span style=\"font-weight:700;\"> %2%5 [%06%3/%4]</span></p></body></html>"); // %06 is intentional, do not use just %6
+    QString frameTitleString("<html><head/><body><p><span style=\"font-weight:700; color:%7;\">F%1</span><span style=\"font-weight:700;\"> %2%5 [%06%3/%4] : %8</span></p></body></html>"); // %06 is intentional, do not use just %6
     QString editingInProgressIndicator = (newSequenceInProgress || editSequenceInProgress ? "*" : "");
 
+    if (frameTotalCalls.length() != frameFiles.length()) {
+        frameTotalCalls.resize(frameFiles.length());  // just in case we get here before a dance has been loaded
+    }
+
     for (int i = 0; i < frameFiles.length(); i++) {
+        frameTotalCalls[i] = SDCountCallsInFrame(i); // total calls in this frame, e.g. "F1 Easy [17/20] : 144"
+
 //        qDebug() << "frameFile: " << frameFiles[i] << ", frameVisible: " << frameVisible[i];
         if (frameVisible[i] == "sidebar") {
             whichSidebar += 1;
             switch (whichSidebar) {
                 case 1:
-                    ui->labelEasy->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg("").arg("").arg(FColor));
+                    ui->labelEasy->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg("").arg("").arg(FColor).arg(frameTotalCalls[i]));
                     loadFrame(i, frameFiles[i], fmin(frameCurSeq[i], frameMaxSeq[i]), ui->listEasy);
                     break;
                 case 2:
-                    ui->labelMedium->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg("").arg("").arg(FColor));
+                    ui->labelMedium->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg("").arg("").arg(FColor).arg(frameTotalCalls[i]));
                     loadFrame(i, frameFiles[i], fmin(frameCurSeq[i], frameMaxSeq[i]), ui->listMedium);
                     break;
                 case 3:
-                    ui->labelHard->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg("").arg("").arg(FColor));
+                    ui->labelHard->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg("").arg("").arg(FColor).arg(frameTotalCalls[i]));
                     loadFrame(i, frameFiles[i], fmin(frameCurSeq[i], frameMaxSeq[i]), ui->listHard);
                     break;
                 default: break; // by design, only the first 3 sidebar frames found are loaded (FIX)
@@ -3480,7 +3486,7 @@ void MainWindow::refreshSDframes() {
                 case 1:  statusString = "<span style=\"font-weight:700; color:#008000;\">GOOD: </span>"; break;  // dark green
                 default: statusString = "<span style=\"font-weight:700; color:#C00000;\">BAD: </span>";  break;  // red
             }
-                QString html1 = frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg(editingInProgressIndicator).arg(statusString).arg(FColor);
+                QString html1 = frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg(editingInProgressIndicator).arg(statusString).arg(FColor).arg(frameTotalCalls[i]);
             currentFrameNumber = i;
             currentFrameTextName = frameFiles[i]; // save just the name of the frame
             currentFrameHTMLName = html1;         // save fancy string
@@ -4095,6 +4101,64 @@ void MainWindow::SDScanFramesForMax() { // i = 0 to 3
 //    qDebug() << "Final frameLevel: "  << frameLevel;
 //    qDebug() << "Final frameMaxSeq: " << frameMaxSeq;
 //    qDebug() << "Final frameCurSeq: " << frameCurSeq;
+}
+
+// returns the total number of calls in ALL the sequences in frame i (0 - 3)
+//   a "call" is any non-blank line that is not a '@' sequence delimiter and not a '#TAG#' line,
+//   e.g. "HEADS Square Thru 4" and "( AL, HOME )" each count as one call.
+int MainWindow::SDCountCallsInFrame(int i) {
+    QString fileName = frameFiles[i]; // get the filename
+    QString pathToScanFile;
+
+    if (frameVisible[i] == "central") {
+        pathToScanFile = musicRootPath + "/sd/dances/" + frameName + "/F" + QString::number(i+1) + "-" + fileName + ".txt";
+    } else {
+        pathToScanFile = musicRootPath + "/sd/dances/" + frameName + "/f" + QString::number(i+1) + "-" + fileName + ".txt";
+    }
+
+    QFile file(pathToScanFile);
+
+    if (!file.open(QIODevice::ReadOnly)) {
+        // qDebug() << "SDCountCallsInFrame: File " << pathToScanFile << " could not be opened.";
+        return(0);
+    }
+
+    int callCount = 0;
+    bool gotREC = false;    // to work around a bug (#1373) where two #REC's somehow ended up with no @ between them
+    bool skipLines = false; //   these two work exactly like the ones in loadFrame(), so that we count only
+                            //   the calls in the sequences that are actually browsable in this frame
+
+    QTextStream in(&file);
+    while (!in.atEnd()) {
+        QString line = in.readLine().trimmed();
+
+        if (line.startsWith("@")) {
+            skipLines = false;  // end of sequence, so clear this flag
+            gotREC = false;     //   same....
+            continue;
+        } else if (skipLines) {
+            continue;
+        }
+
+        if (line.startsWith("#REC=")) {
+            if (gotREC) {
+                skipLines = true;  // second #REC with no @ between, so skip the rest of this bogus sequence
+                continue;
+            }
+            gotREC = true;
+            continue;
+        } else if (line.startsWith("#")) {
+            continue; // skip #AUTHOR=, #TITLE=, #HIGHLIGHT=, #PROOFREAD#, #EASY#, #SEQTYPE#, etc.
+        } else if (line.isEmpty()) {
+            continue; // skip blank lines
+        }
+
+        callCount++; // everything else is a call
+    }
+
+    file.close();
+
+    return(callCount);
 }
 
 
@@ -5251,12 +5315,14 @@ void MainWindow::sdLoadDance(QString danceName) {
     frameVisible.clear();
     frameCurSeq.clear();
     frameMaxSeq.clear();
+    frameTotalCalls.clear();
 
     // NOTE: These are the default names for the files, if they don't already exist, e.g. f1-biggie, F2-easy, f3-medium, f4-sidebar
     frameFiles   << "biggie"           << "easy"           << "medium"            << "hard";
     frameVisible << "sidebar"          << "central"        << "sidebar"           << "sidebar";
     frameCurSeq  << 1                  << 1                << 1                   << 1;          // These are persistent in /sd/<frameName>/.current.csv
     frameMaxSeq  << 1                  << 1                << 1                   << 1;          // These are updated at init time by scanning.
+    frameTotalCalls << 0               << 0                << 0                   << 0;          // These are updated by refreshSDframes(), by scanning.
 
 //    qDebug() << "FrameVisible: " << frameVisible;
 

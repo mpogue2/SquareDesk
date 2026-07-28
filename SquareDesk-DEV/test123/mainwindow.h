@@ -244,6 +244,7 @@ public:
     QStringList frameVisible;
     QVector<int> frameCurSeq;
     QVector<int> frameMaxSeq;
+    QVector<int> frameTotalCalls;  // total number of calls in all sequences in each frame
     bool selectFirstItemOnLoad;
     bool SDtestmode;
 
@@ -622,6 +623,7 @@ private slots:
     void SDGetCurrentSeqs();
     void SDSetCurrentSeqs(int i);
     void SDScanFramesForMax();
+    int SDCountCallsInFrame(int i);
     void SDAppendCurrentSequenceToFrame(int i);
     void SDMoveCurrentSequenceToFrame(int i);
     void SDDeleteCurrentSequence();
