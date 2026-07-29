@@ -1020,6 +1020,7 @@ private:
     int indexToPointSize(int index);
     void setFontSizes();
     void adjustFontSizes();
+    void setPaletteLevelsColumnWidth(QTableWidget *table, const QFont &f); // Issue #1674
     void fitTempoLabelFont();
     void usePersistentFontSize();
     void persistNewFontSize(int points);

@@ -58,6 +58,15 @@ void MainWindow::setSongTableFont(QTableWidget *songTable, const QFont &currentF
     }
 }
 
+// The Levels column of a palette slot holds a string like "SMP" (SSD/MS/Plus, in canonical "SMPAC" order).
+//   The palette slot font grows with the user's font size setting, so a fixed column width elides "SMP"
+//   to "S..." at the larger sizes.  Size the column to "SMP" in the font that will actually be used,
+//   but never narrower than the historical PALETTE_LEVELS_MIN_WIDTH.  (Issue #1674)
+void MainWindow::setPaletteLevelsColumnWidth(QTableWidget *table, const QFont &f) {
+    int w = QFontMetrics(f).horizontalAdvance(QStringLiteral("SMP")) + PALETTE_LEVELS_PADDING; // room for the cell's left/right margins
+    table->setColumnWidth(COLUMN_LEVELS, std::max(w, PALETTE_LEVELS_MIN_WIDTH));
+}
+
 int MainWindow::pointSizeToIndex(int pointSize) {
     // converts our old-style range: 11,13,15,17,19,21,23,25
     //   to an index:                 0, 1, 2, 3, 4, 5, 6, 7
@@ -493,6 +502,7 @@ void MainWindow::adjustFontSizes()
             }
             table->resizeColumnToContents(COLUMN_NUMBER);
         }
+        setPaletteLevelsColumnWidth(table, cf); // Levels column must track the palette slot font size (Issue #1674)
     }
 
     ui->playlist1Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);

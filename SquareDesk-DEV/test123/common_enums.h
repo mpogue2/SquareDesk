@@ -88,6 +88,10 @@ constexpr int COLUMN_TEMPO = 4;
 constexpr int COLUMN_PATH = 5;
 constexpr int COLUMN_LOADED = 6;
 
+// Levels column of the palette slots: sized to fit "SMP" in the current palette slot font (Issue #1674)
+constexpr int PALETTE_LEVELS_MIN_WIDTH = 40; // never narrower than this
+constexpr int PALETTE_LEVELS_PADDING = 14;   // cell left/right margins
+
 // Playlist slot numbers
 constexpr int MAX_PLAYLIST_SLOTS = 3;
 constexpr int SLOT_1 = 0;

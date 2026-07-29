@@ -918,7 +918,7 @@ void MainWindow::initializeMusicPlaylists() {
     ui->playlist1Table->setMainWindow(this);
     ui->playlist1Table->resizeColumnToContents(COLUMN_NUMBER); // number
     ui->playlist1Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
-    ui->playlist1Table->setColumnWidth(COLUMN_LEVELS,40); // levels
+    setPaletteLevelsColumnWidth(ui->playlist1Table, ui->playlist1Table->font()); // levels (Issue #1674)
     ui->playlist1Table->setColumnWidth(COLUMN_PITCH,20); // pitch
     ui->playlist1Table->setColumnWidth(COLUMN_TEMPO,45); // tempo
     ui->playlist1Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
@@ -1063,7 +1063,7 @@ void MainWindow::initializeMusicPlaylists() {
     ui->playlist2Table->setMainWindow(this);
     ui->playlist2Table->resizeColumnToContents(COLUMN_NUMBER); // number
     ui->playlist2Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
-    ui->playlist2Table->setColumnWidth(COLUMN_LEVELS,40); // levels
+    setPaletteLevelsColumnWidth(ui->playlist2Table, ui->playlist2Table->font()); // levels (Issue #1674)
     ui->playlist2Table->setColumnWidth(COLUMN_PITCH,20); // pitch
     ui->playlist2Table->setColumnWidth(COLUMN_TEMPO,45); // tempo
     ui->playlist2Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
@@ -1206,7 +1206,7 @@ void MainWindow::initializeMusicPlaylists() {
 
     ui->playlist3Table->resizeColumnToContents(COLUMN_NUMBER); // number
     ui->playlist3Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
-    ui->playlist3Table->setColumnWidth(COLUMN_LEVELS,40); // levels
+    setPaletteLevelsColumnWidth(ui->playlist3Table, ui->playlist3Table->font()); // levels (Issue #1674)
     ui->playlist3Table->setColumnWidth(COLUMN_PITCH,20); // pitch
     ui->playlist3Table->setColumnWidth(COLUMN_TEMPO,45); // tempo
     ui->playlist3Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
