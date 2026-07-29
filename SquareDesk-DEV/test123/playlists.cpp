@@ -775,7 +775,10 @@ void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativ
             // TITLE column ================================
             QString s12 = QString("/") + p1;
             QString categoryName = filepath2SongCategoryName(s12);
-            QString fakePath = "/" + categoryName + "/" + label + " - " + shortTitle;
+            // kLabelCol holds "label labelnum", which is blank when neither one could be parsed out of the
+            //   filename (e.g. markers like "CLOSER - ===============").  Don't emit a stray " - " then (issue #1675)
+            QString labelPart = label.simplified();
+            QString fakePath = "/" + categoryName + "/" + (labelPart == "" ? shortTitle : labelPart + " - " + shortTitle);
             if (!songTypeNamesForCalled.contains(categoryName) &&
                 !songTypeNamesForExtras.contains(categoryName) &&
                 !songTypeNamesForPatter.contains(categoryName) &&
@@ -998,8 +1001,21 @@ void MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString rel
                     QString theBaseName = fi.completeBaseName();
                     QString theSuffix = fi.suffix();
 
-                    QString theLabel, theLabelNum, theLabelNumExtra, theTitle, theShortTitle;
-                    breakFilenameIntoParts(theBaseName, theLabel, theLabelNum, theLabelNumExtra, theTitle, theShortTitle);
+                    // Markers are dividers, not songs, so don't try to split them into label/title at all (issue #1675)
+                    bool thisRowIsMarker = isPlaylistMarker(list1[0]);
+
+                    QString theDisplayName = theBaseName;  // markers show exactly as named, e.g. "CLOSER - ==============="
+                    if (!thisRowIsMarker) {
+                        QString theLabel, theLabelNum, theLabelNumExtra, theTitle, theShortTitle;
+                        breakFilenameIntoParts(theBaseName, theLabel, theLabelNum, theLabelNumExtra, theTitle, theShortTitle);
+
+                        QString theLabelPart = (theLabel + " " + theLabelNum).simplified();
+                        if (theLabelPart == "") {
+                            theDisplayName = theTitle;  // no label was found, so no " - " separator either (issue #1675)
+                        } else {
+                            theDisplayName = theLabelPart + " - " + theTitle;  // e.g. "RIV 307 - Going to Ceili"
+                        }
+                    }
 
                     // check to see if it needs to be colored like "/xtras"
                     QString categoryName = filepath2SongCategoryName(fi.absolutePath());
@@ -1011,14 +1027,13 @@ void MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString rel
                         categoryName = "xtras";
                     }
 
-                    QString theFakePath = "/" + categoryName + "/" + theLabel + " " + theLabelNum + " - " + theTitle + "." + theSuffix;
+                    QString theFakePath = "/" + categoryName + "/" + theDisplayName + "." + theSuffix;
 
                     if (absPath.contains("/iTunes/iTunes Media/")) {
                         theFakePath = absPath;
                     }
 
-                    // Determine if this row is a marker and if it should be indented (issue #1547)
-                    bool thisRowIsMarker = isPlaylistMarker(list1[0]);
+                    // Determine whether this row should be indented (issue #1547)
                     bool shouldIndent;
                     if (thisRowIsMarker) {
                         currentlyUnderMarker = true;  // Start a new marker section
