@@ -185,6 +185,12 @@ public:
     int beatBarDetection(); // returns -1 if no Vamp
     int segmentDetection();
 
+    // #1662: beat/bar detection results cache (in <musicRoot>/.squareDesk/beatCache)
+    QString beatBarCacheFilename();                      // "" if song is not cacheable (not under musicRootPath)
+    bool loadBeatMapFromCache();                         // true = valid cache found, beatMap/measureMap filled in
+    void saveBeatMapToCache(QString vampResultsFilename); // writes validity header + vamp results to cache
+    bool parseBeatResultsFile(const QString &filename);  // fills beatMap/measureMap; '#' lines ignored
+
 #define GRANULARITY_NONE 0
 #define GRANULARITY_BEAT 1
 #define GRANULARITY_MEASURE 2
@@ -244,6 +250,16 @@ private:
 
     QProcess vamp;          // for beat/bar processing
     QProcess vampSegment;   // for segment processing
+
+#define BEATBARTIMINGMEASUREMENT
+#ifdef BEATBARTIMINGMEASUREMENT
+    // #1662: per-stage timing of beat/bar detection, to size the win from caching results
+    QElapsedTimer beatBarTimer;      // started at beatBarDetection() entry
+    qint64 beatBarMono_ms = 0;       // elapsed-since-start marks for each stage
+    qint64 beatBarLPF_ms = 0;
+    qint64 beatBarWAV_ms = 0;
+    qint64 beatBarVampStart_ms = 0;
+#endif
 
     QString WAVfilename;        // these are in the temp directory, and when done, need to be deleted
     QString resultsFilename;

@@ -44,6 +44,7 @@
 #include <QThread>
 #include <QTemporaryFile>
 #include <QUuid>
+#include <QDateTime>
 #include <QDir>
 #include <QMutex>
 
@@ -1396,12 +1397,20 @@ QString AudioDecoder::makeExternalAudioFile(QString WAVfilename) {
 
     t->elapsed(__LINE__); // toMono takes 11ms
 
+#ifdef BEATBARTIMINGMEASUREMENT
+    if (beatBarTimer.isValid()) beatBarMono_ms = beatBarTimer.elapsed();
+#endif
+
     // LOW PASS FILTER IT, TO ELIMINATE THE CHUCK of BOOM-CHUCK -------------------------------------
     biquad_section<float> bq[] = { biquad_lowpass(1500.0 / ((double)(SAMPLE_RATE)), 0.5) };
     iir_filter<float> filter(iir_params<float>(bq, 1));
     filter.apply(monoBuffer, framesInSong);   // NOTE: applies IN PLACE
 
     t->elapsed(__LINE__); // LPF takes 57ms
+
+#ifdef BEATBARTIMINGMEASUREMENT
+    if (beatBarTimer.isValid()) beatBarLPF_ms = beatBarTimer.elapsed();
+#endif
 
 // WRITE MONO VERSION OF FILE OUT TO DISK -------------------------------------
     // Make a temp file name (or not) -----------
@@ -1435,6 +1444,10 @@ QString AudioDecoder::makeExternalAudioFile(QString WAVfilename) {
     delete[] monoBuffer;  // we don't need the data anymore (until we decide to call the library directly, instead of via QProcess)
 
     t->elapsed(__LINE__); // write WAV file takes 484ms (these can be pretty big, 27Mb or so)
+
+#ifdef BEATBARTIMINGMEASUREMENT
+    if (beatBarTimer.isValid()) beatBarWAV_ms = beatBarTimer.elapsed();
+#endif
 
     return(WAVfilename);
 }
@@ -1486,6 +1499,10 @@ QString AudioDecoder::runVamp(QString whichModule, QString WAVfilename, QString 
         } else {
             qDebug() << "beatbardetect process didn't start successfully.";
         }
+
+#ifdef BEATBARTIMINGMEASUREMENT
+        if (beatBarTimer.isValid()) beatBarVampStart_ms = beatBarTimer.elapsed();
+#endif
 
         // // SYNCHRONOUS: wait for vamp to finish
         // if (vamp.waitForFinished()) {
@@ -1614,9 +1631,133 @@ int AudioDecoder::segmentDetection() {
 }
 
 // ========================================================================================================================
+// #1662: beat/bar detection results cache
+//   Cache files live in <musicRoot>/.squareDesk/beatCache/<relativePath>.beatResults.txt and hold a 3-line
+//   validity header ('#' lines: version, source file size, source file mtime) followed by the raw vamp output.
+//   Any mismatch or parse problem is just a cache miss: we recompute and overwrite.
+//   Bump BEATCACHE_VERSION whenever the detection pipeline changes (LPF cutoff, plugin, file format, ...),
+//   which automatically invalidates all previously cached results.
+#define BEATCACHE_VERSION 1
+
+QString AudioDecoder::beatBarCacheFilename() {
+    if (musicRootPath.isEmpty() || !currentlyLoadedFilename.startsWith(musicRootPath)) {
+        return(QString()); // not under the music root, so not cacheable
+    }
+    return(QString(currentlyLoadedFilename).replace(musicRootPath, musicRootPath + "/.squareDesk/beatCache") + ".beatResults.txt");
+}
+
+bool AudioDecoder::parseBeatResultsFile(const QString &filename) {
+    // reads vamp qm-barbeattracker output (samplenum: beatnum) into beatMap/measureMap,
+    //   skipping any '#' header lines (present in cache files, absent in raw vamp output)
+    QFile resultsFile(filename);
+    if (!resultsFile.open(QFile::ReadOnly | QFile::Text)) {
+        qDebug() << "ERROR 7: Could not open results of Vamp from file:" << filename;
+        return(false);
+    }
+
+    QTextStream in(&resultsFile);
+    for (QString line = in.readLine(); !line.isNull(); line = in.readLine()) {
+        if (line.startsWith("#")) {
+            continue;
+        }
+        QStringList pieces = line.split(":");
+        if (pieces.size() < 2) {
+            qDebug() << "ERROR IN CONVERSION: " << line;
+            continue;
+        }
+        bool ok1, ok2;
+        unsigned long sampleNum = pieces[0].toULong(&ok1);
+        unsigned int beatNum = pieces[1].trimmed().toUInt(&ok2);
+        // qDebug() << "Line: " << line << sampleNum << beatNum;
+
+        if (ok1 && ok2) {
+            // qDebug() << "OK" << line;
+            beatMap.push_back(sampleNum/((double)(SAMPLE_RATE))); // time_sec
+            if (beatNum == 1) {
+                measureMap.push_back(sampleNum/((double)(SAMPLE_RATE))); // time_sec for beat 1's of each measure (NOTE: TODO assumes 4/4 time for all!)
+            }
+        } else {
+            qDebug() << "ERROR IN CONVERSION: " << line << ok1 << ok2;
+        }
+    }
+    resultsFile.close();
+
+    return(!beatMap.empty());
+}
+
+bool AudioDecoder::loadBeatMapFromCache() {
+    QString cacheFilename = beatBarCacheFilename();
+    if (cacheFilename.isEmpty() || !QFileInfo::exists(cacheFilename)) {
+        return(false);
+    }
+
+    QFile cacheFile(cacheFilename);
+    if (!cacheFile.open(QFile::ReadOnly | QFile::Text)) {
+        return(false);
+    }
+    QTextStream in(&cacheFile);
+    QString versionLine = in.readLine();
+    QString sizeLine    = in.readLine();
+    QString mtimeLine   = in.readLine();
+    cacheFile.close();
+
+    QFileInfo sourceInfo(currentlyLoadedFilename);
+    if (versionLine != QString("# beatCacheVersion=%1").arg(BEATCACHE_VERSION) ||
+        sizeLine    != QString("# sourceSize=%1").arg(sourceInfo.size()) ||
+        mtimeLine   != QString("# sourceMtime=%1").arg(sourceInfo.lastModified().toMSecsSinceEpoch())) {
+        return(false); // stale (source file or pipeline changed) or damaged: recompute and overwrite
+    }
+
+    return(parseBeatResultsFile(cacheFilename));
+}
+
+void AudioDecoder::saveBeatMapToCache(QString vampResultsFilename) {
+    QString cacheFilename = beatBarCacheFilename();
+    if (cacheFilename.isEmpty()) {
+        return;
+    }
+
+    QFile resultsFile(vampResultsFilename);
+    if (!resultsFile.open(QFile::ReadOnly)) {
+        qDebug() << "BEATBAR CACHE: could not read vamp results to cache them:" << vampResultsFilename;
+        return;
+    }
+    QByteArray results = resultsFile.readAll();
+    resultsFile.close();
+
+    QDir().mkpath(QFileInfo(cacheFilename).absolutePath()); // make sure e.g. .squareDesk/beatCache/patter exists
+
+    QFile cacheFile(cacheFilename);
+    if (!cacheFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qDebug() << "BEATBAR CACHE: could not write cache file:" << cacheFilename;
+        return;
+    }
+    QFileInfo sourceInfo(currentlyLoadedFilename);
+    QTextStream out(&cacheFile);
+    out << "# beatCacheVersion=" << BEATCACHE_VERSION << "\n";
+    out << "# sourceSize="       << sourceInfo.size() << "\n";
+    out << "# sourceMtime="      << sourceInfo.lastModified().toMSecsSinceEpoch() << "\n";
+    out << results;
+    cacheFile.close();
+}
+
+// ========================================================================================================================
 int AudioDecoder::beatBarDetection() {
 // NOTE: this can only be called after the file is completely loaded into memory!
 // returns -1 if no vamp
+
+#ifdef BEATBARTIMINGMEASUREMENT
+    beatBarTimer.start();
+    beatBarMono_ms = beatBarLPF_ms = beatBarWAV_ms = beatBarVampStart_ms = 0;
+#endif
+
+    // #1662: if we have a valid cached result for this song, use it and skip the whole vamp pipeline
+    if (loadBeatMapFromCache()) {
+#ifdef BEATBARTIMINGMEASUREMENT
+        // qDebug().noquote() << QString("BEATBAR CACHE HIT: \"%1\" load=%2ms").arg(currentlyLoadedFilename).arg(beatBarTimer.elapsed());
+#endif
+        return(0);
+    }
 
     QString infile = makeExternalAudioFile("/Users/mpogue/beatDetect.wav");
     // qDebug() << "***** beatBarDetection: " << infile;
@@ -1666,38 +1807,39 @@ int AudioDecoder::beatBarDetection() {
 
         t->elapsed(__LINE__); // 1600ms to have VAMP process the file
 
+#ifdef BEATBARTIMINGMEASUREMENT
+        qint64 beatBarVampDone_ms = beatBarTimer.elapsed();
+        Q_UNUSED(beatBarVampDone_ms)
+#endif
+
         if (exitStatus == QProcess::NormalExit && exitCode == 0) {
             // READ IN THE RESULTS, AND SETUP THE BEATMAP AND THE MEASUREMAP =====================
 
             // qDebug() << "Processing:" << resultsFilename;
 
-            QFile resultsFile(resultsFilename);
-            if (!resultsFile.open(QFile::ReadOnly | QFile::Text)) {
-                qDebug() << "ERROR 7: Could not open results of Vamp from file:" << resultsFilename;
-                return; // ERROR from lambda
-            }
-            // qDebug() << "OPEN SUCCEEDED:" << resultsFilename;
+            bool parseOK = parseBeatResultsFile(resultsFilename);
 
-            QTextStream in(&resultsFile);
-            for (QString line = in.readLine(); !line.isNull(); line = in.readLine()) {
-                QStringList pieces = line.split(":");
-                bool ok1, ok2;
-                unsigned long sampleNum = pieces[0].toULong(&ok1);
-                unsigned int beatNum = pieces[1].trimmed().toUInt(&ok2);
-                // qDebug() << "Line: " << line << sampleNum << beatNum;
-
-                if (ok1 && ok2) {
-                    // qDebug() << "OK" << line;
-                    beatMap.push_back(sampleNum/((double)(SAMPLE_RATE))); // time_sec
-                    if (beatNum == 1) {
-                        measureMap.push_back(sampleNum/((double)(SAMPLE_RATE))); // time_sec for beat 1's of each measure (NOTE: TODO assumes 4/4 time for all!)
-                    }
-                } else {
-                    qDebug() << "ERROR IN CONVERSION: " << line << ok1 << ok2;
-                }
+            if (parseOK) {
+                saveBeatMapToCache(resultsFilename); // #1662: cache the results, so next load of this song skips vamp
             }
 
-            resultsFile.close();  // done with it, so close it
+#ifdef BEATBARTIMINGMEASUREMENT
+            // one greppable summary line per song, all times in ms; stages are deltas, TOTAL is end-to-end
+            qint64 total_ms = beatBarTimer.elapsed();
+            double songLen_s = (m_data->size()/myPlayer.getBytesPerFrame())/((double)(SAMPLE_RATE));
+            Q_UNUSED(total_ms)
+            Q_UNUSED(songLen_s)
+            // qDebug().noquote() << QString("BEATBAR TIMING: \"%1\" len=%2s mono=%3ms lpf=%4ms wav=%5ms vampStartup=%6ms vamp=%7ms parse=%8ms TOTAL=%9ms")
+            //                           .arg(currentlyLoadedFilename)
+            //                           .arg(songLen_s, 0, 'f', 1)
+            //                           .arg(beatBarMono_ms)
+            //                           .arg(beatBarLPF_ms - beatBarMono_ms)
+            //                           .arg(beatBarWAV_ms - beatBarLPF_ms)
+            //                           .arg(beatBarVampStart_ms - beatBarWAV_ms)
+            //                           .arg(beatBarVampDone_ms - beatBarVampStart_ms)
+            //                           .arg(total_ms - beatBarVampDone_ms)
+            //                           .arg(total_ms);
+#endif
 
            //  // DEBUG: show me the results -----
            // for (unsigned long i = 0; i < beatMap.size(); i+=4)
@@ -1720,23 +1862,8 @@ int AudioDecoder::beatBarDetection() {
                 return; // ERROR from lambda
             }
 
-// #define CACHEBEATRESULTS
-#ifdef CACHEBEATRESULTS
-            qDebug() << "Processing 2:" << currentlyLoadedFilename << musicRootPath;
-
-            QString beatCacheFilename = currentlyLoadedFilename
-                                            .replace(musicRootPath,
-                                                     musicRootPath + "/.squareDesk/bulk") +
-                                        ".beatResults.txt";
-
-
-            qDebug() << "COPYING FROM resultsFile" << resultsFile.fileName();
-            qDebug() << "TO beatCacheFilename:" << beatCacheFilename;
-            QFile::copy(resultsFile.fileName(), beatCacheFilename);  // copy it to the beatcache
-#endif
-
-            if (!resultsFile.remove()) {
-                qDebug() << "ERROR: Had trouble removing the RESULTS file:" << resultsFile.fileName();
+            if (!QFile::remove(resultsFilename)) {
+                qDebug() << "ERROR: Had trouble removing the RESULTS file:" << resultsFilename;
                 return; // ERROR from lambda
             }
 
