@@ -222,33 +222,37 @@ QHttpServerResponse EmbeddedServer::handleRequest(const QHttpServerRequest &requ
     }
     
     QString filePath = m_webRoot + path;
-    
-    // Security: normalize and validate the path
+
+    // Security: normalize and validate the path.  Note the trailing separator on the prefix:
+    //   comparing against the bare web root would let a sibling directory such as
+    //   ".../Taminations/web_backup" pass, because it starts with ".../Taminations/web".
     QDir webDir(m_webRoot);
     QString canonicalWebRoot = webDir.canonicalPath();
-    
-    // For existing files, use canonical path
-    QFileInfo fileInfo(filePath);
-    if (fileInfo.exists()) {
-        QString canonicalPath = fileInfo.canonicalFilePath();
-        if (!canonicalPath.startsWith(canonicalWebRoot)) {
-            qWarning() << "Directory traversal attempt blocked (canonical path):" << path;
-            return serveNotFound();
-        }
-    } else {
-        // For non-existing files, check if the directory path would be valid
-        QString dirPath = fileInfo.absolutePath();
-        QFileInfo dirInfo(dirPath);
-        if (dirInfo.exists()) {
-            QString canonicalDirPath = dirInfo.canonicalFilePath();
-            if (!canonicalDirPath.startsWith(canonicalWebRoot)) {
-                qWarning() << "Directory traversal attempt blocked (directory path):" << path;
-                return serveNotFound();
-            }
-        }
-        // If directory doesn't exist either, let serveFile handle the 404
+    if (canonicalWebRoot.isEmpty()) {
+        qWarning() << "Web root does not exist:" << m_webRoot;
+        return serveNotFound();
     }
-    
+    QString webRootPrefix = canonicalWebRoot + "/";  // canonicalPath() is always '/'-separated
+
+    // Resolve the request as far as the filesystem allows, so that every request gets a
+    //   containment check (not just the ones whose file or parent directory happens to exist):
+    //     - the file exists            -> canonical path, which follows any symlinks
+    //     - only the parent exists     -> canonical parent + the requested file name
+    //     - neither exists             -> lexically cleaned absolute path
+    QFileInfo fileInfo(filePath);
+    QString resolvedPath = fileInfo.canonicalFilePath();  // empty if it doesn't exist
+    if (resolvedPath.isEmpty()) {
+        QString canonicalDirPath = QFileInfo(fileInfo.absolutePath()).canonicalFilePath();
+        resolvedPath = canonicalDirPath.isEmpty()
+                           ? QDir::cleanPath(fileInfo.absoluteFilePath())
+                           : canonicalDirPath + "/" + fileInfo.fileName();
+    }
+
+    if (resolvedPath != canonicalWebRoot && !resolvedPath.startsWith(webRootPrefix)) {
+        qWarning() << "Directory traversal attempt blocked:" << path;
+        return serveNotFound();
+    }
+
     return serveFile(filePath);
 }
 
