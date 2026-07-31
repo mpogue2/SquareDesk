@@ -1080,6 +1080,7 @@ private:
     bool currentSongHasID3Loop = false;
     double id3LoopStart_sec = 0.0;
     double id3LoopEnd_sec = 0.0;
+    bool snapDefaultLoopPointsToBars = false;  // #1604: first-time patter load: snap guessed loop points to bars when beatMap arrives
     QColor colorForLoopPoint(double time_sec);  // #1604: classify one loop point --> bracket color
     uint32_t currentSongID;
 

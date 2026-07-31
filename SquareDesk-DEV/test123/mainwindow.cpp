@@ -3479,6 +3479,8 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
         //     ui->seekBar->SetIntro(iFrac);
         //     ui->seekBar->SetOutro(oFrac);
         // }
+
+        snapDefaultLoopPointsToBars = false;  // #1604: ID3 loop points are exact, don't touch them
     } else {
         // The user has set Intro/Outro, OR the MP3 file did NOT contain LOOPSTART/LOOPLENGTH,
         //   OR there was a problem trying to read the ID3v2 tags, or this isn't an MP3 file.
@@ -3500,6 +3502,11 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
         //                                                currentSongIsSinger || currentSongIsVocal,
         //                                                startOfSong_sec, endOfSong_sec, cBass->FileLength);
         // }
+
+        // #1604: first-time load of a patter song (no ID3 loop, no saved loop points): the guess above
+        //   is often way off, so snap it to the nearest bars when beat/bar detection results arrive
+        //   (they're not available yet at this point; updateLoopAlignmentIndicators consumes this flag)
+        snapDefaultLoopPointsToBars = currentSongIsPatter && !isSetIntro1 && !isSetOutro1;
     }
 
     // in case loadSettings fails (no settings on the very first load!), we need to set these edit fields
@@ -6468,6 +6475,9 @@ void MainWindow::on_dateTimeEditIntroTime_timeChanged(const QTime &time)
     ui->darkSeekBar->setIntro(frac);
     on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
     saveCurrentSongSettings();
+    if (!loadingSong) {
+        snapDefaultLoopPointsToBars = false;  // #1604: user changed a loop point, so a pending snap-to-bars must not override it
+    }
     updateLoopAlignmentIndicators();  // #1604
 }
 
@@ -6503,6 +6513,9 @@ void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
 
     on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
     saveCurrentSongSettings();
+    if (!loadingSong) {
+        snapDefaultLoopPointsToBars = false;  // #1604: user changed a loop point, so a pending snap-to-bars must not override it
+    }
     updateLoopAlignmentIndicators();  // #1604
 }
 
@@ -6542,6 +6555,22 @@ void MainWindow::updateLoopAlignmentIndicators() {
     QTime oTime = ui->dateTimeEditOutroTime->time();
     double intro_sec = 60.0*iTime.minute() + iTime.second() + iTime.msec()/1000.0;
     double outro_sec = 60.0*oTime.minute() + oTime.second() + oTime.msec()/1000.0;
+
+    // #1604: first-time load of a patter song, and beat/bar detection results just arrived:
+    //   the default guess is often way off, so snap both loop points to the nearest bar.
+    //   They might still be wrong, but they'll be closer to right than before.
+    if (snapDefaultLoopPointsToBars && cBass->hasBeatMap()) {
+        snapDefaultLoopPointsToBars = false;  // one-shot
+        double snappedIntro_sec = cBass->snapToClosest(intro_sec, GRANULARITY_MEASURE);
+        double snappedOutro_sec = cBass->snapToClosest(outro_sec, GRANULARITY_MEASURE);
+        if (snappedIntro_sec >= 0.0 && snappedOutro_sec > snappedIntro_sec) {
+            // setting the time fields triggers the timeChanged handlers, which update both seekbars,
+            //   save the settings, and call us again (flag is already cleared, so no infinite loop)
+            ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*snappedIntro_sec+0.5)));
+            ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*snappedOutro_sec+0.5)));
+            return;
+        }
+    }
 
     // NOTE: each bracket is classified independently, so they can have different colors
     QColor introColor = colorForLoopPoint(intro_sec);
