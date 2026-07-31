@@ -281,6 +281,24 @@ public:
             } // activelyPlaying
             else {
                 m_audioSinkAssignmentMutex.unlock();
+#ifdef USE_JUCE
+                if (loudMaxDrainFramesRemaining > 0 && pLoudMaxPluginRaw != nullptr && !activelyPlaying) {
+                    // We just stopped: feed silence to JUST the LoudMax plugin (nothing else in
+                    //   the pipeline runs), so its meters drain to -Inf in approximately real time.
+                    //   At the 50ms polling rate below, one block of SAMPLE_RATE/20 frames per
+                    //   iteration is 50ms of audio, i.e. real-time.
+                    int framesThisBlock = SAMPLE_RATE/20;
+                    if (framesThisBlock > loudMaxDrainFramesRemaining) {
+                        framesThisBlock = loudMaxDrainFramesRemaining;
+                    }
+                    memset(processedData,  0, framesThisBlock * sizeof(float));
+                    memset(processedDataR, 0, framesThisBlock * sizeof(float));
+                    juce::AudioBuffer<float> silentBuffer(dataToReferTo, 2, framesThisBlock);
+                    juce::MidiBuffer emptyMidiBuffer; // not using MIDI
+                    pLoudMaxPluginRaw->processBlock(silentBuffer, emptyMidiBuffer);
+                    loudMaxDrainFramesRemaining -= framesThisBlock;
+                }
+#endif
             }
             msleep((activelyPlaying ? 5 : 50)); // sleep 10 milliseconds, this sets the polling rate for writing bytes to the audioSink  // CHECK THIS!
         } // while
@@ -306,6 +324,7 @@ public:
 
 #ifdef USE_JUCE
         // fadeIsStop = false;
+        loudMaxDrainFramesRemaining = 0; // playing again, no need to keep draining the LoudMax meters
 
         if (pLoudMaxPluginRaw != nullptr) {
             pLoudMaxPluginRaw->prepareToPlay(((double)(SAMPLE_RATE)), sizeof(processedData)/sizeof(float)); // 4 * 8192 is sizeof processedData/R, everything is 44.1K right now
@@ -343,6 +362,13 @@ public:
         //     return;
         // }
         // qDebug() << "second half of Stop()";
+
+        // Instead: after Stop, the run() loop feeds 2 sec of silence to JUST the LoudMax plugin
+        //   (no song data, no soundTouch, no audioSink), so its meters drain to -Inf without
+        //   keeping the rest of the pipeline alive.
+        if (activelyPlaying) {
+            loudMaxDrainFramesRemaining = 2 * SAMPLE_RATE;
+        }
 #endif
 
         activelyPlaying = false;
@@ -907,6 +933,7 @@ private:
 #ifdef USE_JUCE
     float * const dataToReferTo[2] = {processedData, processedDataR}; // array of pointers to the float data
     juce::AudioPluginInstance *pLoudMaxPluginRaw;
+    int loudMaxDrainFramesRemaining = 0; // when > 0 and stopped, feed silence to LoudMax so its meters drain to -Inf
     // bool fadeIsStop; // true, if we're using FadeToPause to Stop playback
 #endif
 
