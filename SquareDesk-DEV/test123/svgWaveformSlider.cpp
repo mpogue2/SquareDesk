@@ -792,6 +792,32 @@ void svgWaveformSlider::setLoop(bool b) {
     if (rightLoopMarker != nullptr) rightLoopMarker->setVisible(drawLoopPoints);
 }
 
+// #1604: loop alignment indicator colors ---------
+//   An invalid QColor() means "use the default loopColor()".
+void svgWaveformSlider::applyColorToLoopMarker(QGraphicsItemGroup *marker, QColor c) {
+    if (marker == nullptr) {
+        return;
+    }
+    QPen pen(c.isValid() ? c : loopColor(), 2);
+    QList<QGraphicsItem*> items = marker->childItems();
+    for (QGraphicsItem* item : items) {
+        QGraphicsLineItem* line = qgraphicsitem_cast<QGraphicsLineItem*>(item);
+        if (line) {
+            line->setPen(pen);
+        }
+    }
+}
+
+void svgWaveformSlider::setIntroColor(QColor c) {
+    introColor = c;
+    applyColorToLoopMarker(leftLoopMarker, introColor);
+}
+
+void svgWaveformSlider::setOutroColor(QColor c) {
+    outroColor = c;
+    applyColorToLoopMarker(rightLoopMarker, outroColor);
+}
+
 void svgWaveformSlider::setIntro(double frac) {
 //    introPosition = frac * WAVEFORMWIDTH;
     introPosition = frac * width();
@@ -800,18 +826,7 @@ void svgWaveformSlider::setIntro(double frac) {
     // qDebug() << "*** svgWaveformSlider::setIntro:" << introPosition << (leftLoopMarker != nullptr) << (leftLoopCover != nullptr);
     if (leftLoopMarker != nullptr && leftLoopCover != nullptr) {
         leftLoopMarker->setX(introPosition);
-        // Iterate over the items in the group, set their pen to the new color
-        QList<QGraphicsItem*> items = leftLoopMarker->childItems();
-        // qDebug() << "Number of items in group:" << items.size();
-
-        for (QGraphicsItem* item : items) {
-            QGraphicsLineItem* line = qgraphicsitem_cast<QGraphicsLineItem*>(item);
-            if (line) {
-                // qDebug() << "Line Item:" << line;
-                QPen currentLoopPen(loopColor(), 2);
-                line->setPen(currentLoopPen);
-            }
-        }
+        applyColorToLoopMarker(leftLoopMarker, introColor);  // #1604: alignment color (or default loopColor)
         leftLoopCover->setPen(QPen(darkeningColor()));
         leftLoopCover->setBrush(QBrush(darkeningColor()));
         leftLoopCover->setRect(-3,0, introPosition+3,61); // -3 is to cover up bugs on left hand side
@@ -827,19 +842,7 @@ void svgWaveformSlider::setOutro(double frac) {
     // qDebug() << "*** svgWaveformSlider::setOutro:" << outroPosition;
     if (rightLoopMarker != nullptr && rightLoopCover != nullptr) {
         rightLoopMarker->setX(outroPosition - 3); // 3 is to compensate for the width of the green bracket
-
-        // Iterate over the items in the group, set their pen to the new color
-        QList<QGraphicsItem*> items = rightLoopMarker->childItems();
-        // qDebug() << "Number of items in group:" << items.size();
-
-        for (QGraphicsItem* item : items) {
-            QGraphicsLineItem* line = qgraphicsitem_cast<QGraphicsLineItem*>(item);
-            if (line) {
-                // qDebug() << "Line Item:" << line;
-                QPen currentLoopPen(loopColor(), 2);
-                line->setPen(currentLoopPen);
-            }
-        }
+        applyColorToLoopMarker(rightLoopMarker, outroColor);  // #1604: alignment color (or default loopColor)
 
         rightLoopCover->setRect(outroPosition+1,0, width()+1-outroPosition,61);
         rightLoopCover->setBrush(QBrush(darkeningColor()));

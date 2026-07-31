@@ -44,6 +44,8 @@ public:
 
     void SetIntro(double intro);
     void SetOutro(double outro);
+    void SetIntroColor(QColor c);   // #1604: loop alignment indicator color for the intro bracket
+    void SetOutroColor(QColor c);   // #1604: loop alignment indicator color for the outro bracket
     double GetIntro() const;
     double GetOutro() const;
     void SetDefaultIntroOutroPositions(bool tempoIsBPM, double estimatedBPM,
@@ -70,6 +72,8 @@ private:
     bool singingCall, previousSingingCall;  // previousSingingCall is what it was last time (cached)
     double introPosition;
     double outroPosition;
+    QColor introColor;  // #1604: per-bracket colors; invalid QColor() means "use the default blue"
+    QColor outroColor;
     int origin;  // reset to this point when double-clicked
 
     bool drawMarkers;

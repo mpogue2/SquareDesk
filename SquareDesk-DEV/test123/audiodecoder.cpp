@@ -1783,6 +1783,7 @@ int AudioDecoder::beatBarDetection() {
 #ifdef BEATBARTIMINGMEASUREMENT
         // qDebug().noquote() << QString("BEATBAR CACHE HIT: \"%1\" load=%2ms").arg(currentlyLoadedFilename).arg(beatBarTimer.elapsed());
 #endif
+        emit beatMapReady();  // #1604: tell listeners they can query beat/bar alignment now
         return(0);
     }
 
@@ -1848,6 +1849,7 @@ int AudioDecoder::beatBarDetection() {
 
             if (parseOK) {
                 saveBeatMapToCache(resultsFilename); // #1662: cache the results, so next load of this song skips vamp
+                emit beatMapReady();  // #1604: tell listeners they can query beat/bar alignment now
             }
 
 #ifdef BEATBARTIMINGMEASUREMENT
@@ -1989,6 +1991,28 @@ double AudioDecoder::snapToClosest(double time_sec, unsigned char granularity) {
 
 //    qDebug() << "AudioDecoder::snapToClosest: " << time_sec << granularity << ", returns: " << result_index << result_sec;
     return(result_sec); // normal return
+}
+
+// #1604: loop alignment queries -----------
+//   These are pure lookups: unlike snapToClosest(), they never kick off beat detection.
+bool AudioDecoder::hasBeatMap() {
+    return(!beatMap.empty());
+}
+
+bool AudioDecoder::isAlignedToBeat(double time_sec, double tolerance_sec) {
+    if (beatMap.empty()) {
+        return(false);
+    }
+    unsigned int i = find_closest(beatMap, time_sec);
+    return(fabs(beatMap[i] - time_sec) <= tolerance_sec);
+}
+
+bool AudioDecoder::isAlignedToBar(double time_sec, double tolerance_sec) {
+    if (measureMap.empty()) {
+        return(false);
+    }
+    unsigned int i = find_closest(measureMap, time_sec);
+    return(fabs(measureMap[i] - time_sec) <= tolerance_sec);
 }
 
 void AudioDecoder::updateWaveformMap()

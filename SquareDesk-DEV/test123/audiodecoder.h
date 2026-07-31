@@ -197,6 +197,11 @@ public:
 
     double snapToClosest(double time_sec, unsigned char granularity);
 
+    // #1604: loop alignment queries (no side effects, do NOT trigger beat detection)
+    bool hasBeatMap();
+    bool isAlignedToBeat(double time_sec, double tolerance_sec);  // false if beatMap not available
+    bool isAlignedToBar(double time_sec, double tolerance_sec);   // false if measureMap not available
+
     unsigned char getCurrentState();
 
     unsigned int playPosition_frames;
@@ -212,6 +217,7 @@ public:
 
 signals:
     void done();
+    void beatMapReady();  // #1604: beatMap/measureMap are now filled in (cache hit or vamp finished)
 
 public slots:
     void bufferReady();

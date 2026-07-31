@@ -20,6 +20,19 @@ private: \
 // define this is you want to experiment with the qss file Light and Dark modes
 #define DEBUG_LIGHT_MODE
 
+// #1604: Loop alignment indicator colors (seekbar loop brackets)
+//   ID3ALIGNEDCOLOR:  loop point exactly matches the music producer's LOOPSTART/LOOPLENGTH ID3v2 tags ("best")
+//   BARALIGNEDCOLOR:  loop point is aligned to a bar (beat 1 of a measure) within tolerance ("excellent")
+//   BEATALIGNEDCOLOR: loop point is aligned to a beat within tolerance ("excellent")
+//   UNALIGNEDCOLOR:   loop point is not aligned to anything we know about ("should probably be set manually")
+#define ID3ALIGNEDCOLOR  "#00C000"
+#define BARALIGNEDCOLOR  "#26A4ED"
+#define BEATALIGNEDCOLOR "#26A4ED"
+#define UNALIGNEDCOLOR   "#FF8C00"
+
+// #1604: how close (in seconds) a loop point must be to a detected beat/bar to count as "aligned"
+#define LOOPALIGNMENTTOLERANCE_SEC 0.05
+
 // define this to play with JUCE
 #define USE_JUCE
 

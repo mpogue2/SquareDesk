@@ -45,6 +45,7 @@
 flexible_audio::flexible_audio(void)
 {
     connect(&decoder, SIGNAL(done()), this, SLOT(decoderDone()));  //
+    connect(&decoder, SIGNAL(beatMapReady()), this, SIGNAL(beatMapReady()));  // #1604: just forward it along
 
     currentSoundEffectID = 0;
     soundEffect.setAudioOutput(new QAudioOutput);
@@ -502,6 +503,19 @@ double flexible_audio::snapToClosest(double time_sec, unsigned char granularity)
 
     double result_sec = decoder.snapToClosest(time_sec, granularity);  // ask the AudioDecoder
     return(result_sec);  // NOTE: could be negative, if error
+}
+
+// #1604: loop alignment queries, just passed along to the AudioDecoder
+bool flexible_audio::hasBeatMap() {
+    return(decoder.hasBeatMap());
+}
+
+bool flexible_audio::isAlignedToBeat(double time_sec, double tolerance_sec) {
+    return(decoder.isAlignedToBeat(time_sec, tolerance_sec));
+}
+
+bool flexible_audio::isAlignedToBar(double time_sec, double tolerance_sec) {
+    return(decoder.isAlignedToBar(time_sec, tolerance_sec));
 }
 
 int flexible_audio::segmentDetection() {

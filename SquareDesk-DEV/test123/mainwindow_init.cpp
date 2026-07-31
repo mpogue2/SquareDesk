@@ -2149,6 +2149,7 @@ void MainWindow::initializeAudioEngine() {
 
     cBass = new flexible_audio();
     connect(cBass, SIGNAL(haveDuration()), this, SLOT(haveDuration2()));  // when decode complete, we know MP3 duration
+    connect(cBass, SIGNAL(beatMapReady()), this, SLOT(updateLoopAlignmentIndicators()));  // #1604: recolor loop brackets when beat detection results arrive
     cBass->Init();
 
     cBass->SetIntelBoostEnabled(prefsManager.GetintelBoostIsEnabled());

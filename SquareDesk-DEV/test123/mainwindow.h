@@ -681,6 +681,7 @@ private slots:
     void on_dateTimeEditOutroTime_timeChanged(const QTime &time);
     void on_darkStartLoopTime_timeChanged(const QTime &time);
     void on_darkEndLoopTime_timeChanged(const QTime &time);
+    void updateLoopAlignmentIndicators();  // #1604: recolor loop brackets (ID3/bar/beat/unaligned)
 
     // ============================================================================
     // SONG TABLE & PLAYLIST SLOTS
@@ -1074,6 +1075,12 @@ private:
     // QString currentSongLabel;
     int currentSongMP3SampleRate;
     QString currentSongIdentifier;
+
+    // #1604: producer's loop points from the LOOPSTART/LOOPLENGTH ID3v2 tags (cached at song load time)
+    bool currentSongHasID3Loop = false;
+    double id3LoopStart_sec = 0.0;
+    double id3LoopEnd_sec = 0.0;
+    QColor colorForLoopPoint(double time_sec);  // #1604: classify one loop point --> bracket color
     uint32_t currentSongID;
 
     QTableWidget *currentSongPlaylistTable;

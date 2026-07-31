@@ -351,18 +351,17 @@ void MainWindow::haveDuration2(void) {
 
     secondHalfOfLoad(currentSongTitle);  // now that we have duration and BPM, can finish up asynchronous load.
 
-    if (!ui->actionDisabled->isChecked()) {
-//        qDebug() << "haveDuration2 snapToClosest starting";
-        double maybeError = cBass->snapToClosest(0.1, GRANULARITY_BEAT); // this is a throwaway call, just to initiate beat detection ONLY if beat detection is ON
-        // This is 0.1, so that if Vamp is not present, it will return -0.1 (error indication)
-//           it will take about 1/2 second to initiate the VAMP process, but the UX should already be updated at this point
-//           another 1.6 sec later, the beatMap and measureMap will be filled in.  User should see minimal delay, and ONLY
-//           if beat detection is ON.
-//        qDebug() << "haveDuration2 snapToClosest returned" << maybeError;
-        if (maybeError < 0.0) {
-//            qDebug() << "haveDuration2: snap failed, turning off snapping!";
-            ui->actionDisabled->setChecked(true); // turn off snapping
-        }
+//    qDebug() << "haveDuration2 snapToClosest starting";
+    // #1604: this throwaway call initiates beat detection.  It used to happen ONLY if snapping was ON,
+    //   but now we always do it, so that the loop alignment indicators (bracket colors) always work.
+    double maybeError = cBass->snapToClosest(0.1, GRANULARITY_BEAT);
+    // This is 0.1, so that if Vamp is not present, it will return -0.1 (error indication)
+    //   it will take about 1/2 second to initiate the VAMP process, but the UX should already be updated at this point
+    //   another 1.6 sec later, the beatMap and measureMap will be filled in.  User should see minimal delay.
+//    qDebug() << "haveDuration2 snapToClosest returned" << maybeError;
+    if (maybeError < 0.0) {
+//        qDebug() << "haveDuration2: snap failed, turning off snapping!";
+        ui->actionDisabled->setChecked(true); // turn off snapping
     }
 }
 
@@ -3443,6 +3442,15 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     int result = readID3Tags(currentMP3filenameWithPath, &bpm, &tbpm, &loopStartSamples, &loopLengthSamples);
     // qDebug() << "secondHalfOfLoad result: " << result << loopStartSamples << loopLengthSamples << sampleRate;
 
+    // #1604: remember the producer's loop points, so we can color the loop brackets by alignment
+    currentSongHasID3Loop = (result != -1 && loopLengthSamples != 0 && sampleRate > 0);
+    if (currentSongHasID3Loop) {
+        id3LoopStart_sec = (double)loopStartSamples/(double)sampleRate;
+        id3LoopEnd_sec   = (double)(loopStartSamples + loopLengthSamples)/(double)sampleRate;
+    } else {
+        id3LoopStart_sec = id3LoopEnd_sec = 0.0;
+    }
+
     // enable the "Restore Loop Points from ID3v2 Tag" menu item ONLY if
     //   the LOOPLENGTH (in samples) is non-zero.  It's OK for the loopStart to be zero,
     //   since a loop can indeed start at the beginning of the song.
@@ -3585,6 +3593,8 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     songLoaded = true;  // now seekBar can be updated
     setInOutButtonState();
     loadingSong = false;
+
+    updateLoopAlignmentIndicators();  // #1604: color the loop brackets, now that intro/outro are set
 
     // Update Now Playing info with new song metadata
     updateNowPlayingMetadata();
@@ -6458,6 +6468,7 @@ void MainWindow::on_dateTimeEditIntroTime_timeChanged(const QTime &time)
     ui->darkSeekBar->setIntro(frac);
     on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
     saveCurrentSongSettings();
+    updateLoopAlignmentIndicators();  // #1604
 }
 
 void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
@@ -6492,6 +6503,54 @@ void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
 
     on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
     saveCurrentSongSettings();
+    updateLoopAlignmentIndicators();  // #1604
+}
+
+// #1604: Loop alignment indicators ----------------------------------
+//   Classify a single loop point:
+//     ID3ALIGNEDCOLOR:  exactly matches (at ms resolution) the producer's LOOPSTART/LOOPLENGTH ID3v2 tags
+//     BARALIGNEDCOLOR:  within LOOPALIGNMENTTOLERANCE_SEC of a detected bar (beat 1 of a measure)
+//     BEATALIGNEDCOLOR: within LOOPALIGNMENTTOLERANCE_SEC of a detected beat
+//     UNALIGNEDCOLOR:   none of the above
+//   If beat detection results aren't available (yet), we default to BARALIGNEDCOLOR; the brackets
+//   will be recolored when the beatMapReady signal fires.
+QColor MainWindow::colorForLoopPoint(double time_sec) {
+    if (currentSongHasID3Loop) {
+        // loop times are stored at millisecond resolution (QTime), so "exact match" means within 1 ms
+        if (fabs(time_sec - id3LoopStart_sec) <= 0.001 || fabs(time_sec - id3LoopEnd_sec) <= 0.001) {
+            return(QColor(ID3ALIGNEDCOLOR));
+        }
+    }
+    if (cBass->isAlignedToBar(time_sec, LOOPALIGNMENTTOLERANCE_SEC)) {
+        return(QColor(BARALIGNEDCOLOR));
+    }
+    if (cBass->isAlignedToBeat(time_sec, LOOPALIGNMENTTOLERANCE_SEC)) {
+        return(QColor(BEATALIGNEDCOLOR));
+    }
+    if (!cBass->hasBeatMap()) {
+        return(QColor(BARALIGNEDCOLOR));  // don't know yet, so show the default color
+    }
+    return(QColor(UNALIGNEDCOLOR));
+}
+
+void MainWindow::updateLoopAlignmentIndicators() {
+    if (cBass->FileLength <= 0.0 || loadingSong) {
+        return;  // no song fully loaded yet; secondHalfOfLoad will call us at the right time
+    }
+
+    QTime iTime = ui->dateTimeEditIntroTime->time();
+    QTime oTime = ui->dateTimeEditOutroTime->time();
+    double intro_sec = 60.0*iTime.minute() + iTime.second() + iTime.msec()/1000.0;
+    double outro_sec = 60.0*oTime.minute() + oTime.second() + oTime.msec()/1000.0;
+
+    // NOTE: each bracket is classified independently, so they can have different colors
+    QColor introColor = colorForLoopPoint(intro_sec);
+    QColor outroColor = colorForLoopPoint(outro_sec);
+
+    ui->seekBarCuesheet->SetIntroColor(introColor);
+    ui->seekBarCuesheet->SetOutroColor(outroColor);
+    ui->darkSeekBar->setIntroColor(introColor);
+    ui->darkSeekBar->setOutroColor(outroColor);
 }
 
 void MainWindow::on_pushButtonTestLoop_clicked()

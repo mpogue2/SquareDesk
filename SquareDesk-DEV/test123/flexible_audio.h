@@ -147,6 +147,11 @@ public:
     double snapToClosest(double time_sec, unsigned char granularity);   // does beatbar detection
     int segmentDetection();                                             // does segment detection
 
+    // #1604: loop alignment queries (no side effects, do NOT trigger beat detection)
+    bool hasBeatMap();
+    bool isAlignedToBeat(double time_sec, double tolerance_sec);
+    bool isAlignedToBar(double time_sec, double tolerance_sec);
+
     bool isPaused(void); // returns true if paused, false if playing
 
     //Controls
@@ -206,6 +211,7 @@ protected:
 
 signals:
     void haveDuration();
+    void beatMapReady();  // #1604: forwarded from AudioDecoder, beat/bar maps are now available
 
 private slots:
     void bufferReady();

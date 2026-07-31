@@ -157,6 +157,23 @@ void MySlider::SetOutro(double outro)
     outroPosition = outro;
 }
 
+// #1604: loop alignment indicator colors; an invalid QColor() means "use the default blue"
+void MySlider::SetIntroColor(QColor c)
+{
+    if (c != introColor) {
+        introColor = c;
+        update();
+    }
+}
+
+void MySlider::SetOutroColor(QColor c)
+{
+    if (c != outroColor) {
+        outroColor = c;
+        update();
+    }
+}
+
 double MySlider::GetIntro() const
 {
     return introPosition;
@@ -407,12 +424,11 @@ void MySlider::paintEvent(QPaintEvent *e)
 
     // LOOP POINTS ----------------
     if (drawLoopPoints) {
+        // #1604: default bracket color, used when no alignment color has been set
+        QColor defaultColor = fusionMode ? QColor("#26A4ED")   // Dark Mode needs to be much brighter
+                                         : QColor(Qt::blue);   // Light mode is fine with regular blue
         QPen pen;  //   = (QApplication::palette().dark().color());
-        if (!fusionMode) {
-            pen.setColor(Qt::blue); // Light mode is fine with regular blue
-        } else {
-            pen.setColor(QColor("#26A4ED")); // Dark Mode needs to be much brighter
-        }
+        pen.setColor(introColor.isValid() ? introColor : defaultColor);
         painter.setPen(pen);
 
         // double to = 0.1f;
@@ -425,6 +441,8 @@ void MySlider::paintEvent(QPaintEvent *e)
         painter.drawLine(line6);
 
         // double from = 0.9f;
+        pen.setColor(outroColor.isValid() ? outroColor : defaultColor);
+        painter.setPen(pen);
         double from = outroPosition;
 //        qDebug() << "repaint: " << from;
         QLineF line1(from * width + offset, 1,          from * width + offset, height-5);

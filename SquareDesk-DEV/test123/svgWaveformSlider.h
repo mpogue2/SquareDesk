@@ -77,6 +77,8 @@ public:
     void setLoop(bool b);
     void setIntro(double frac);
     void setOutro(double frac);
+    void setIntroColor(QColor c);   // #1604: loop alignment indicator color for the left bracket
+    void setOutroColor(QColor c);   // #1604: loop alignment indicator color for the right bracket
     double getIntro();
     double getOutro();
     double getIntroFrac();
@@ -150,6 +152,9 @@ private:
     bool drawLoopPoints;
     double introPosition;
     double outroPosition;
+    QColor introColor;  // #1604: per-bracket colors; invalid QColor() means "use the default loop pen color"
+    QColor outroColor;
+    void applyColorToLoopMarker(QGraphicsItemGroup *marker, QColor c);  // #1604
 
     double introFrac;
     double outroFrac;
