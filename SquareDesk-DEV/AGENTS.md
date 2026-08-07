@@ -143,3 +143,27 @@ For example: `bd create --help` shows `--parent`, `--deps`, `--assignee`, etc.
 - ❌ Do NOT clutter repo root with planning documents
 
 For more details, see README.md and QUICKSTART.md.
+
+## Debugging crashes and hangs: the AddressSanitizer build
+
+**Before spending long on any crash or hang — especially at quit time — read
+[ASAN.md](ASAN.md).**
+
+SquareDesk has an AddressSanitizer build, off by default and enabled by giving qmake
+`CONFIG+=asan`. Normal Debug and Release builds are completely unaffected; everything lives
+in an `asan { ... }` block at the bottom of `test123/test123.pro`.
+
+Why it is worth reaching for early: in issues #1686 and #1266, the macOS crash reports each
+named a destructor that turned out to be entirely innocent — the memory was corrupted
+somewhere else, and the reported frame was just where it got touched. Reading those reports
+produced a detailed and completely wrong theory. ASan named the real cause in one run, both
+times, by printing the stack that freed the memory.
+
+`ASAN.md` covers building it, the `ASAN_OPTIONS` worth setting, how to read the report, and
+— importantly — **two things that look exactly like a hang but are not**: JUCE assertions
+halting the process under lldb, and QtCreator's QML debug server blocking at shutdown. Both
+cost real time to diagnose before they were written down.
+
+Note that the QtCreator build/run configuration itself cannot be committed (it lives in
+`.pro.user`, which is gitignored and full of machine-specific paths), so the few GUI steps
+in `ASAN.md` have to be repeated on each developer's machine.

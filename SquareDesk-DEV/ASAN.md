@@ -42,12 +42,29 @@ Then just **Run** normally. QtCreator shows ASan's output in the Application Out
 
 ```sh
 mkdir -p ~/clean3/SquareDesk/build-asan && cd ~/clean3/SquareDesk/build-asan
-<QtDir>/macos/bin/qmake ../SquareDesk-DEV/SquareDesk.pro CONFIG+=asan CONFIG+=debug
+~/Qt/6.10.3/macos/bin/qmake ../SquareDesk-DEV/SquareDesk.pro CONFIG+=asan CONFIG+=debug
 make -j8
 ```
 
 `CONFIG+=asan` propagates from the top-level subdirs project to `test123`. `taglib` and
 `sdlib` ignore it and build uninstrumented; that is fine and intentional (see below).
+
+**Don't expect the ASan banner from the qmake step.** `SquareDesk.pro` is a subdirs
+project, so the top-level qmake prints nothing but `creating stash file`, and only writes
+the top-level Makefile. The `*** ADDRESS SANITIZER BUILD ENABLED ***` message comes from
+`test123.pro`, which qmake does not read until `make` recurses into it. To confirm the flag
+took effect without doing a full build:
+
+```sh
+make qmake_all                                  # generates the sub-Makefiles, no compiling
+grep -m1 '^CXXFLAGS' test123/Makefile | tr ' ' '\n' | grep fsanitize
+```
+
+Verified 2026-08-06: `-fsanitize=address -fno-omit-frame-pointer
+-fno-optimize-sibling-calls -O1 -g` in `CXXFLAGS`, `-fsanitize=address` in `LFLAGS`, and
+`-DSQUAREDESK_ASAN` in `DEFINES` — with `sdlib/Makefile` correctly containing no ASan flags
+at all. (The qmake half of this is verified; the compile itself has only been exercised
+through QtCreator, which uses the same `.pro` and the same flags.)
 
 ## Running
 
