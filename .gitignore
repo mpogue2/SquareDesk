@@ -35,3 +35,11 @@ SquareDesk.pro.user
 *.autosave
 
 SquareDesk-DEV/test123/.vscode/
+
+# QtCreator's clangd code model: a per-build-configuration directory holding a
+#   generated compile_commands.json and a large clangd index cache. Pure build
+#   artifacts, regenerated on demand.
+# NOTE: deliberately NOT a blanket "build/" rule -- SquareDesk-DEV/html-tidy/build/
+#   is real, tracked source.
+**/.qtc_clangd/
+compile_commands.json
