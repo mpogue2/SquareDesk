@@ -208,6 +208,11 @@ private:
 
     QMediaDevices md; // now private!
 
+    // #1683: audioOutputsChanged() arrives while Qt's CoreAudio backend still has a device-disconnect
+    //   handler in flight, and swapping the QAudioSink right then trips a use-after-free inside Qt.
+    //   This timer defers the swap and debounces the burst of device changes that a sleep/wake produces.
+    QTimer audioDeviceChangeTimer;
+
 protected:
     qint64 readData(char* data, qint64 maxlen) override;
     qint64 writeData(const char* data, qint64 len) override;
@@ -224,6 +229,7 @@ private slots:
     void durChanged(qint64);
     void FXChannelStatusChanged(QMediaPlayer::MediaStatus);
     void systemAudioOutputsChanged();
+    void applySystemAudioOutputsChange();  // #1683: the deferred half of systemAudioOutputsChanged()
 
 public slots:
     void decoderDone();

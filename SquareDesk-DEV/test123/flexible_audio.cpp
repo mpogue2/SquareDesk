@@ -68,6 +68,12 @@ flexible_audio::flexible_audio(void)
     bool b = connect(&md, SIGNAL(audioOutputsChanged()), this, SLOT(systemAudioOutputsChanged()));
     Q_UNUSED(b)
 //    qDebug() << "Connection: " << b;
+
+    // #1683: don't swap the audio sink from inside the audioOutputsChanged() handler itself.  See
+    //   systemAudioOutputsChanged() for why.
+    audioDeviceChangeTimer.setSingleShot(true);
+    audioDeviceChangeTimer.setInterval(250);  // ms
+    connect(&audioDeviceChangeTimer, SIGNAL(timeout()), this, SLOT(applySystemAudioOutputsChange()));
 }
 
 // ------------------------------------------------------------------
@@ -82,6 +88,24 @@ void flexible_audio::systemAudioOutputsChanged()
 {
 //    qDebug() << "***** systemAudioOutputsChanged!";
 
+    // #1683: SquareDesk used to tear down and rebuild the QAudioSink right here, synchronously inside
+    //   Qt's own device-notification delivery.  On macOS that is exactly when Qt's CoreAudio backend has
+    //   a device-disconnect continuation in flight: the HAL thread has already posted a queued call that
+    //   captures a raw QCoreAudioSinkStream pointer, and destroying the stream before that call is
+    //   delivered leaves it pointing at freed memory (crash in AudioObjectRemovePropertyListenerBlock).
+    //   A sleep/wake fires the disconnect and audioOutputsChanged() at essentially the same moment, which
+    //   is why an overnight sleep would kill the app.
+    //
+    //   Deferring the swap lets those in-flight continuations be delivered while their streams are still
+    //   alive, and restarting the timer debounces the burst of device changes that a wake produces, so we
+    //   swap once at the end instead of once per notification.  This narrows the window a lot, but the
+    //   real fix is the Qt-side rework landing in Qt 6.11.2 (QTBUG-142939); revisit when we upgrade.
+    audioDeviceChangeTimer.start();  // (re)start: single-shot, 250ms
+}
+
+// ------------------------------------------------------------------
+void flexible_audio::applySystemAudioOutputsChange()
+{
     QList<QAudioDevice> audioOutputList = QMediaDevices::audioOutputs();
     Q_UNUSED(audioOutputList)
 
