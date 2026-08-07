@@ -1,8 +1,7 @@
 #include "auditionbutton.h"
 
 auditionButton::auditionButton(QWidget *parent)
-    : QPushButton()
+    : QPushButton(parent)   // parent was previously accepted and then thrown away (Issue #1687)
 {
-    Q_UNUSED(parent)
     origPath = "NOT SET YET";
 }

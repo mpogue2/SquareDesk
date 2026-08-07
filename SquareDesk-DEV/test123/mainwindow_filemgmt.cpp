@@ -1464,7 +1464,10 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         // # COLUMN IS NOW USED FOR AUDITION BUTTONS -----
         QTableWidgetItem *auditionItem = new QTableWidgetItem();
 
-        auditionButton *auditionButton1 = new auditionButton();
+        // parented to the table, so the button always has an owner. setCellWidget() below
+        //   reparents it to the table's viewport, which is where it ends up either way --
+        //   this just means it is never briefly a parentless top-level widget. (Issue #1687)
+        auditionButton *auditionButton1 = new auditionButton(ui->darkSongTable);
         auditionButton1->setFlat(true);
         auditionButton1->setObjectName("auditionButton");
         auditionButton1->origPath = origPath;
