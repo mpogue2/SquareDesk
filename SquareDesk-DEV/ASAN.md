@@ -60,11 +60,19 @@ make qmake_all                                  # generates the sub-Makefiles, n
 grep -m1 '^CXXFLAGS' test123/Makefile | tr ' ' '\n' | grep fsanitize
 ```
 
-Verified 2026-08-06: `-fsanitize=address -fno-omit-frame-pointer
--fno-optimize-sibling-calls -O1 -g` in `CXXFLAGS`, `-fsanitize=address` in `LFLAGS`, and
-`-DSQUAREDESK_ASAN` in `DEFINES` — with `sdlib/Makefile` correctly containing no ASan flags
-at all. (The qmake half of this is verified; the compile itself has only been exercised
-through QtCreator, which uses the same `.pro` and the same flags.)
+Verified 2026-08-07, the whole way through — qmake, `make -j8`, and the resulting binary:
+
+- `CXXFLAGS` gets `-fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls
+  -O1 -g`, `LFLAGS` gets `-fsanitize=address`, `DEFINES` gets `-DSQUAREDESK_ASAN`
+- `sdlib/Makefile` correctly gets no ASan flags at all
+- the build completes with **exit 0 and zero errors** (there are ~5000 pre-existing
+  `-Wall -Wextra` warnings from the codebase and its vendored dependencies; the ASan flags
+  add none of them)
+- the linked binary really is instrumented, not merely compiled with the flags:
+  ```sh
+  otool -L test123/SquareDesk.app/Contents/MacOS/SquareDesk | grep asan
+  #  @rpath/libclang_rt.asan_osx_dynamic.dylib
+  ```
 
 ## Running
 
