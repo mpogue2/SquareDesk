@@ -1013,7 +1013,11 @@ static QString orderCategories(const QString &levelsFound) {
 // stale cache can never be used -- worst case is a full recompute, which then
 // rewrites the cache.
 
-static const char *kSongLevelsCacheVersion = "2"; // bump if the cache file format or the level-matching algorithm changes
+static const char *kSongLevelsCacheVersion = "3"; // bump if the cache file format or the level-matching algorithm changes,
+                                                 //   or to force every existing cache to be discarded on upgrade
+                                                 // 3: same format and algorithm as 2, bumped only to guarantee that no
+                                                 //   cache written by a 1.1.12 build survives the upgrade unexamined,
+                                                 //   since we could not confirm which cache caused the hang (Issue #1685)
 
 QString MainWindow::songLevelsCacheFilename() {
     return musicRootPath + "/.squaredesk/cache/songLevels.cache";
