@@ -71,8 +71,16 @@ applies to the Debug, Release and ASan builds alike. That is harmless and you ca
 set: a binary built without `-fsanitize=address` contains no ASan runtime and ignores
 `ASAN_OPTIONS` entirely.
 
-Either **Run** or **Debug** works. Debug is slightly better: `abort_on_error=1` raises
-`SIGABRT`, so lldb stops right at the report with the live stack still inspectable.
+Either **Run** or **Debug** works, and the choice matters more than it looks:
+
+- **Run** — nothing interrupts you. JUCE's `jassertfalse` checks
+  `juce_isRunningUnderDebugger()` before breaking, so with no debugger attached its
+  assertions only log and execution continues. ASan still writes its full report to
+  stderr, which still lands in the Application Output pane. **This is the better choice
+  for quit testing**, because the LoudMax assertions (see the caveats below) otherwise
+  halt you several times per session.
+- **Debug** — `abort_on_error=1` raises `SIGABRT`, so lldb stops right at the ASan report
+  with the live stack inspectable. Better when you actually have a finding to dig into.
 
 ### Turn OFF QML debugging (do this, or every quit test ends in a fake hang)
 
@@ -178,12 +186,25 @@ bug was. Only the "freed by" stack identified the real culprit.
   ```
   (keep the SkiaGraphite flag — `main.cpp` sets it for issue #1600). Web-engine noise in
   an ASan build is not evidence of a real bug.
-- **LoudMax will stop you under the debugger.** JUCE's `jassertfalse` compiles to a debug
-  trap, so a failing assertion halts the whole process under lldb — and a halted process
-  does not service its run loop, which macOS paints as a **beachball**. It looks exactly
-  like a hang, but the Application Output says
-  `JUCE Assertion failure in juce_VST3PluginFormat.cpp:2230`
-  (`HostToClientParamQueue::addPoint`, reached from `LoudMax::process` on the audio thread).
+- **LoudMax assertions will stop you, but only under the debugger.** Expect roughly two on
+  Play and two on Stop:
+  `JUCE Assertion failure in juce_VST3PluginFormat.cpp:2230`.
+  Under lldb each one halts the whole process, and a halted process does not service its
+  run loop, which macOS paints as a **beachball** — it looks exactly like a hang. Under
+  plain **Run** they only log, which is why Run is the better choice for quit testing.
+
+  **This is a bug in LoudMax, not in SquareDesk, and it is harmless.** The assertion is in
+  `HostToClientParamQueue::addPoint` — the *input* (host → plugin) parameter queue. The
+  VST3 spec does not allow a plugin to add points to an incoming queue, so JUCE returns
+  `kResultFalse` and asserts to name the offender. The call is rejected safely; nothing is
+  corrupted. It is also invisible in shipped builds: assertions are gated on
+  `JUCE_DEBUG && !JUCE_DISABLE_ASSERTIONS`, so in Release `jassertfalse` degrades to a
+  log-only statement and compiles away entirely with `JUCE_LOG_ASSERTIONS` off.
+
+  There is no fix on our side — we don't control the plugin, and silencing it would mean
+  `JUCE_DISABLE_ASSERTIONS`, which would blind us to every real JUCE assertion too. It is
+  **not** related to #1266, which is a threading/lifetime race.
+
   To take LoudMax out of a test run entirely, move the plugin aside:
   ```sh
   mv ~/Library/Audio/Plug-Ins/VST3/LoudMax.vst3 ~/LoudMax.vst3.disabled
@@ -194,8 +215,7 @@ bug was. Only the "freed by" stack identified the real culprit.
   `pLoudMaxPluginRaw != nullptr`, and the load path bails out cleanly at
   `mainwindow_JUCE.cpp:319`, so a missing plugin is handled — the app just logs
   `Play: pLoudMaxPluginRaw was null`. Note the FX button is a *launcher*, not a toggle;
-  it cannot be unchecked to disable the plugin. (That assertion is a real bug in its own
-  right, and belongs to #1266 — not to #1686.)
+  it cannot be unchecked to disable the plugin.
 - **Don't ship an ASan build.** It is for diagnosis only — no notarization, no DMG.
 - **Ignore leak-shaped complaints.** We are hunting a use-after-free. SquareDesk
   intentionally leaves some objects alive until exit.
