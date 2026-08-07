@@ -46,6 +46,7 @@
 #include <QUuid>
 #include <QDateTime>
 #include <QDir>
+#include <QSaveFile>
 #include <QMutex>
 
 // EQ ----------
@@ -1754,7 +1755,10 @@ void AudioDecoder::saveBeatMapToCache(QString vampResultsFilename) {
 
     QDir().mkpath(QFileInfo(cacheFilename).absolutePath()); // make sure e.g. .squareDesk/beatCache/patter exists
 
-    QFile cacheFile(cacheFilename);
+    // QSaveFile, not QFile: written to a temp file and atomically renamed into place by
+    //   commit(), so a crash part way through can never leave a truncated .beatResults.txt
+    //   whose 3-line validity header looks good but whose beat data is incomplete. (Issue #1685)
+    QSaveFile cacheFile(cacheFilename);
     if (!cacheFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
         qDebug() << "BEATBAR CACHE: could not write cache file:" << cacheFilename;
         return;
@@ -1765,7 +1769,9 @@ void AudioDecoder::saveBeatMapToCache(QString vampResultsFilename) {
     out << "# sourceSize="       << sourceInfo.size() << "\n";
     out << "# sourceMtime="      << sourceInfo.lastModified().toMSecsSinceEpoch() << "\n";
     out << results;
-    cacheFile.close();
+
+    out.flush();         // push the QTextStream's buffer into the QSaveFile...
+    cacheFile.commit();  // ...then atomically rename the temp file into place
 }
 
 // ========================================================================================================================

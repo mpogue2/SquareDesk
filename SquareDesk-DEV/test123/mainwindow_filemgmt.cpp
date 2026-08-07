@@ -43,6 +43,7 @@
 #include <QProcess>
 #include <QProgressDialog>
 #include <QRandomGenerator>
+#include <QSaveFile>
 #include <QScreen>
 #include <QScrollBar>
 #include <QStandardPaths>
@@ -527,7 +528,8 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QList<QString
 // are fine (updateCuesheetLevelInPathStack() handles those in-session).
 // The escape hatch is Menu > Rescan Music Directory, which forces a full scan.
 
-static const char *kPathStackCacheVersion = "2"; // bump if the cache file format or scan semantics change
+static const char *kPathStackCacheVersion = "3"; // bump if the cache file format or scan semantics change
+                                                 // 3: symlinked dirs are no longer walked or recorded (Issue #1685)
 
 // "type#!#<absolute path>[#!#level]" -> "type#!#<path relative to root>[#!#level]",
 // or "" if the path isn't under root (shouldn't happen for scanned entries)
@@ -568,7 +570,10 @@ void MainWindow::savePathStackCache()
 {
     QDir().mkpath(musicRootPath + "/.squaredesk/cache");
 
-    QFile file(musicRootPath + "/.squaredesk/cache/pathStack.cache");
+    // QSaveFile, not QFile: the cache is written to a temp file and renamed into place by
+    //   commit(), so a crash (or a power loss) part way through this function can never leave
+    //   a half-written pathStack.cache behind for the next startup to read. (Issue #1685)
+    QSaveFile file(musicRootPath + "/.squaredesk/cache/pathStack.cache");
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         return; // not writable -- no cache, but no harm either (we'll just rescan next time)
     }
@@ -584,8 +589,14 @@ void MainWindow::savePathStackCache()
     // D records: every directory below the music root. Hidden dirs (including our
     // own .squaredesk, whose cache/DB writes must not self-invalidate this cache)
     // are excluded, matching what findFilesRecursively() scans.
-    QDirIterator dirIt(musicRootPath, QDir::Dirs | QDir::NoDotAndDotDot,
-                       QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
+    // NOTE: symlinks are neither listed nor followed, exactly as in findFilesRecursively()
+    //   (which passes QDir::NoSymLinks). This walk used to pass FollowSymlinks, so a symlink
+    //   in the music tree pointing at a large local/network/iCloud tree made it walk far
+    //   outside the music directory -- a beachball on every full rescan, and because that
+    //   happened INSIDE this function the cache never got written, so the next launch did
+    //   the same thing again. (Issue #1685)
+    QDirIterator dirIt(musicRootPath, QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks,
+                       QDirIterator::Subdirectories);
     while (dirIt.hasNext()) {
         dirIt.next();
         QFileInfo fi = dirIt.fileInfo();
@@ -612,6 +623,69 @@ void MainWindow::savePathStackCache()
             out << "S\t" << it.key() << "\t" << soundFXname.value(it.key())
                 << "\t" << QStringView(path).mid(musicRootPath.length()) << "\n";
         }
+    }
+
+    out.flush();    // push the QTextStream's buffer into the QSaveFile...
+    file.commit();  // ...then atomically rename the temp file into place (Issue #1685)
+}
+
+// ============================================================================
+// UNCLEAN-STARTUP DETECTION (Issue #1685)
+//
+// The caches above are the only state SquareDesk carries from one launch to the
+// next through the music directory, and they are consumed during startup. If one
+// of them ever makes startup hang or crash, the user is stuck in a loop: the app
+// dies before it can rewrite the cache, so the next launch reads the same bad
+// cache and dies the same way, forever. 1.1.11 was immune only because it did not
+// know these files existed.
+//
+// So: drop a breadcrumb file just before the cache-consuming part of startup, and
+// remove it once the MainWindow is fully constructed. Finding the breadcrumb still
+// there at launch means the previous launch never finished starting up, so we
+// delete the startup caches and do a clean full scan this time. One bad launch,
+// then self-healed.
+//
+// NOTE: the beat/bar cache (.squareDesk/beatCache, Issue #1662) is deliberately NOT
+//   deleted here. It is only read when a song is loaded, never during startup, so it
+//   cannot be implicated in a startup failure -- and deleting it would force a slow
+//   Vamp re-run for every song in the library, for no safety benefit.
+
+QString MainWindow::startupBreadcrumbPath()
+{
+    if (musicRootPath.isEmpty()) {
+        return QString();
+    }
+    return musicRootPath + "/.squaredesk/cache/startup.inprogress";
+}
+
+void MainWindow::beginStartupBreadcrumb()
+{
+    QString breadcrumb = startupBreadcrumbPath();
+    if (breadcrumb.isEmpty()) {
+        return; // no music directory yet (very first run) -- nothing cached, nothing to protect
+    }
+
+    QDir().mkpath(musicRootPath + "/.squaredesk/cache");
+
+    if (QFileInfo::exists(breadcrumb)) {
+        // The previous launch died during startup. Throw away the caches it left behind,
+        //   so this launch does a normal full scan instead of reading them again.
+        qDebug() << "STARTUP: previous launch did not finish starting up; discarding startup caches";
+        QFile::remove(musicRootPath + "/.squaredesk/cache/pathStack.cache");
+        QFile::remove(songLevelsCacheFilename());
+    }
+
+    QFile file(breadcrumb);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        file.close(); // contents don't matter; only its existence does
+    }
+}
+
+void MainWindow::endStartupBreadcrumb()
+{
+    QString breadcrumb = startupBreadcrumbPath();
+    if (!breadcrumb.isEmpty()) {
+        QFile::remove(breadcrumb);
     }
 }
 

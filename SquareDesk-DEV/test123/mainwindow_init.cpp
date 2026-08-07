@@ -247,6 +247,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
     initializeLightDarkTheme();
 
+    // Startup completed without dying, so the caches we just read are known-good: clear the
+    //   breadcrumb, so the next launch is allowed to use them again. (Issue #1685)
+    endStartupBreadcrumb();
 }
 // END CONSTRUCTOR ---------
 
@@ -405,6 +408,11 @@ void MainWindow::initializeUI() {
     musicRootPath = prefsManager.GetmusicPath();      // defaults to ~/squareDeskMusic at very first startup
 
     cBass->musicRootPath = musicRootPath; // tell cBass where the musicRoot is for caching by AudioDecoder and Vamp
+
+    // From here to the end of the MainWindow constructor is the part of startup that reads the
+    //   caches in .squaredesk/cache. If we die in there, the next launch must not read those same
+    //   caches again, or it will die in exactly the same place, forever. (Issue #1685)
+    beginStartupBreadcrumb();
 
     // make required folders in the MusicDir, if and only if they are not there already --------
     maybeMakeAllRequiredFolders();

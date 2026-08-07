@@ -41,6 +41,7 @@
 #include <QCoreApplication>
 #include <QInputDialog>
 #include <QLineEdit>
+#include <QSaveFile>
 #include <QClipboard>
 #include <QtSvg/QSvgGenerator>
 #include <algorithm>  // for random_shuffle
@@ -1072,7 +1073,10 @@ bool MainWindow::loadSongLevelsCacheIfValid() {
 void MainWindow::saveSongLevelsCache() {
     QDir().mkpath(musicRootPath + "/.squaredesk/cache");
 
-    QFile file(songLevelsCacheFilename());
+    // QSaveFile, not QFile: written to a temp file and atomically renamed into place by
+    //   commit(), so a crash part way through can never leave a half-written songLevels.cache
+    //   behind for the next startup to read. (Issue #1685)
+    QSaveFile file(songLevelsCacheFilename());
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         return; // not writable -- no cache, but no harm either (we'll just recompute next time)
     }
@@ -1090,6 +1094,9 @@ void MainWindow::saveSongLevelsCache() {
         }
         out << QStringView(it.key()).mid(musicRootPath.length()) << "\t" << it.value() << "\n";
     }
+
+    out.flush();    // push the QTextStream's buffer into the QSaveFile...
+    file.commit();  // ...then atomically rename the temp file into place (Issue #1685)
 }
 
 // Computes songLevelsByPath: for every song that has at least one matching cuesheet

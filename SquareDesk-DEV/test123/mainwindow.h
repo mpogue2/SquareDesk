@@ -1137,6 +1137,14 @@ private:
     bool findMusic(QString mainRootDir, bool refreshDatabase, bool forceRescan = false); // returns true iff a full scan ran (false = pathStack cache hit, nothing changed on disk)
     bool loadPathStackCacheIfValid();
     void savePathStackCache();
+
+    // Unclean-startup detection (Issue #1685): a breadcrumb file that exists only while
+    //   the MainWindow constructor is running. If it's still there at the next launch, the
+    //   previous launch died (crash or force-quit) during startup, so the startup caches are
+    //   thrown away rather than read again.
+    QString startupBreadcrumbPath();
+    void beginStartupBreadcrumb();  // call once, as early in startup as musicRootPath allows
+    void endStartupBreadcrumb();    // call once, when the MainWindow is fully constructed
     void addFilesToPathStacks(const QStringList &copiedFilePaths); // incremental import, no full rescan needed (Issue #1664)
     void importFilesFromFinder(const QStringList &droppedPaths);   // deferred from dropEvent so the Finder drag session can finish first (Issue #1664)
     void updateTreeWidget();
