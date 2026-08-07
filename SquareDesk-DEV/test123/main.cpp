@@ -149,8 +149,49 @@ int main(int argc, char *argv[])
 
     t.elapsed(__LINE__);
 
+    // The MainWindow is on the heap, and is destroyed from aboutToQuit rather than by main()
+    //   returning. As a stack object, ~MainWindow ran only when main() returned, which is AFTER
+    //   a.exec() had returned and after every subsystem that hooks application shutdown had
+    //   already torn itself down. That is the window both quit-time crashes in #1686 landed in:
+    //   the whole widget tree was being deleted at the one moment when nothing else was left
+    //   alive to service it. Destroying it here puts the teardown inside QCoreApplication's
+    //   shutdown sequence instead of after the end of it, so deferred deletes posted by the
+    //   teardown are still drained, and shutdown hooks registered later still run afterwards.
+    //
+    // The connect() is deliberately made BEFORE the MainWindow is constructed: aboutToQuit
+    //   receivers run in connection order, and anything the MainWindow constructor connects --
+    //   QtWebEngine's shutdown hook in particular -- must run AFTER we have taken the window
+    //   down, not before it. (Issue #1686)
+    MainWindow *w = nullptr;
+    GlobalEventFilter *globalEventFilter = nullptr;
+
+    QObject::connect(&a, &QCoreApplication::aboutToQuit, &a, [&w, &globalEventFilter]() {
+        if (w == nullptr) {
+            return;
+        }
+
+        // close() is what runs closeEvent(), which saves the playlists, the splitter positions
+        //   and the window geometry. On a normal quit the window has already been closed and
+        //   closeEvent()'s closeEventHappened guard makes this a no-op; on the Light/Dark
+        //   restart path (qApp->exit(RESTART_SQUAREDESK)) it has NOT, and this is the call that
+        //   used to be main()'s w.close() after a.exec(). Without it, restarting would silently
+        //   discard the window state. (Issue #1686)
+        w->close();
+
+        // The filter holds a bare Ui::MainWindow* that 'delete ui' inside ~MainWindow is about
+        //   to free, and it is installed on the QApplication, which outlives the window. Pull
+        //   it out first, so nothing can route an event through a freed ui. (Issue #1686)
+        if (globalEventFilter != nullptr) {
+            qApp->removeEventFilter(globalEventFilter);
+            delete globalEventFilter;
+            globalEventFilter = nullptr;
+        }
+        delete w;
+        w = nullptr;
+    });
+
     // MainWindow w(&splash, darkmode);  // setMessage() will be called several times in here while loading...
-    MainWindow w(splash, darkmode);  // setMessage() will be called several times in here while loading...
+    w = new MainWindow(splash, darkmode);  // setMessage() will be called several times in here while loading...
     a.processEvents();  // force events to be processed, before closing the window
 
     t.elapsed(__LINE__);
@@ -162,15 +203,15 @@ int main(int argc, char *argv[])
     // put window back where it was last time (modulo the screen size, which
     //   is automatically taken care of.
     QSettings settings;
-    w.restoreGeometry(settings.value("geometry").toByteArray());
-    w.restoreState(settings.value("windowState").toByteArray());
+    w->restoreGeometry(settings.value("geometry").toByteArray());
+    w->restoreState(settings.value("windowState").toByteArray());
 
-    w.show();
+    w->show();
 
     t.elapsed(__LINE__);
 
-    w.setVisible(false);  // This works around a bug (not sure when introduced) whereby the first selection
-    w.setVisible(true);   //   of an item in a context menu does NOT call the lambda, UNLESS the app is started, then the app focus
+    w->setVisible(false);  // This works around a bug (not sure when introduced) whereby the first selection
+    w->setVisible(true);   //   of an item in a context menu does NOT call the lambda, UNLESS the app is started, then the app focus
                           //   is changed to another non-SquareDesk window, and then back to SquareDesk.  The second selection
                           //   always seems to work, no matter what.  This change seems to put the window into a good state again,
                           //   such that the first selection of a context menu item actually calls the lambda.
@@ -185,7 +226,8 @@ int main(int argc, char *argv[])
     QString sDir = QCoreApplication::applicationDirPath();
     a.addLibraryPath(sDir + "/plugins");
 
-    a.installEventFilter(new GlobalEventFilter(w.ui));
+    globalEventFilter = new GlobalEventFilter(w->ui);  // removed and deleted on aboutToQuit (#1686)
+    a.installEventFilter(globalEventFilter);
 
     t.elapsed(__LINE__);
 
@@ -193,7 +235,7 @@ int main(int argc, char *argv[])
 
     // this is needed, because when the splash screen happens, we don't get the usual appState change message
     //  so, SD doesn't work until you click on another window and come back.
-    w.changeApplicationState(a.applicationState()); // make sure we get one event with current state
+    w->changeApplicationState(a.applicationState()); // make sure we get one event with current state
 
 //    // DEBUG ========================================================
 //    void* callstack[128];
@@ -208,11 +250,16 @@ int main(int argc, char *argv[])
     t.elapsed(__LINE__);
 
     int ret = a.exec();
+
+    // NOTE: by this point the aboutToQuit handler above has already destroyed the MainWindow,
+    //   so 'w' is nullptr here. The w.close() that used to be in the restart path below is
+    //   gone with it -- closing a window we have already deleted is not something we can (or
+    //   need to) do, since the destructor did all of the shutdown work that close() led to.
+    //   (Issue #1686)
+
     if (ret == RESTART_SQUAREDESK)
     {
         //restart application
-
-        w.close();
 
         QString program = qApp->arguments()[0];
         QStringList arguments = qApp->arguments().mid(1);

@@ -1158,7 +1158,19 @@ MainWindow::~MainWindow()
         sdthread = nullptr;
     }
 
+    // MainWindow installs itself as an event filter, on itself (mainwindow_JUCE.cpp:423) and on
+    //   ui->darkEndLoopButton (mainwindow_init.cpp:754), and MainWindow::eventFilter()
+    //   dereferences ui on every event it sees. Plenty of things below this line still deliver
+    //   events to MainWindow -- 'delete sessionActionGroup' runs ~QActionGroup, which unparents
+    //   each of its actions, and each unparenting sends a ChildRemoved event straight back here.
+    //   So take the filter off first, and null ui out immediately after freeing it, so that
+    //   anything still reaching eventFilter() sees a dead ui instead of reading freed memory.
+    //   (Issue #1686)
+    removeEventFilter(this);
+
     delete ui;
+    ui = nullptr;  // checked by eventFilter(); MUST be set, not just left dangling
+
     delete sd_redo_stack;
 
     // Clean up debug dialog
@@ -2679,6 +2691,25 @@ void MainWindow::closeEvent(QCloseEvent *event)
         prefsManager.MySettings.setValue("lastCuesheetSavePath", lastCuesheetSavePath);
         prefsManager.MySettings.setValue("geometry", saveGeometry());
         prefsManager.MySettings.setValue("windowState", saveState());
+
+        // Tear the web views down HERE, by hand, while the event loop is still running and the
+        //   QtWebEngine render/GPU processes are all still alive.
+        //
+        // If they are left to the widget tree instead, ~QWebEngineView runs from
+        //   QObjectPrivate::deleteChildren() inside ~MainWindow, long after the event loop has
+        //   stopped and after QtWebEngine has shut its subprocesses down. Destroying a view then
+        //   makes the compositor call ReleaseLayerTreeFrameSink(), which does a SYNCHRONOUS
+        //   Finish() on the GPU command buffer -- a mojo round trip to a GPU process that no
+        //   longer exists. The reply never arrives and the main thread blocks in mach_msg
+        //   forever: a hang at quit, not a crash. (Issue #1686)
+        //
+        // deleteLater() would be wrong here: it would just defer the same destructor back out to
+        //   the very shutdown phase we are trying to get away from. These have to go now.
+        for (QWebEngineView *view : std::as_const(webViews)) {
+            delete view;  // removes itself from its parent tab/layout on the way out
+        }
+        webViews.clear();
+
         QMainWindow::closeEvent(event);
     }
     else {

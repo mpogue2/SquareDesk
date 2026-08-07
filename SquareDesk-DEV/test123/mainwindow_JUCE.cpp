@@ -445,6 +445,15 @@ void MainWindow::scanForPlugins() {
 // Handle window state changes
 bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 {
+    // ~MainWindow sets ui to nullptr the instant it deletes it. Events keep arriving here
+    //   after that point -- ~QActionGroup sends a ChildRemoved event to MainWindow as each
+    //   action is unparented, and MainWindow has installed itself as its own event filter --
+    //   and every branch below dereferences ui. Without this, that is a read of freed memory
+    //   (AddressSanitizer: heap-use-after-free, Issue #1686).
+    if (ui == nullptr) {
+        return QMainWindow::eventFilter(watched, event);
+    }
+
 #ifdef USE_JUCE
     if (watched == this && event->type() == QEvent::WindowStateChange) {
         // Main window state changed (minimized or restored)
