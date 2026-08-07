@@ -178,6 +178,9 @@ public:
     void setLoudMaxPlugin(std::unique_ptr<juce::AudioPluginInstance> &p); // pass by reference
 #endif
 
+    // stops the playback thread for good; call before anything it points at is destroyed (#1266)
+    void shutdownAudioThread();
+
     // always asks the engine what the state is (NOT CACHED), then returns one of:
     //    BASS_ACTIVE_STOPPED, BASS_ACTIVE_PLAYING, BASS_ACTIVE_STALLED, BASS_ACTIVE_PAUSED
     uint32_t currentStreamState();

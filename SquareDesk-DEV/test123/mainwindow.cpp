@@ -1124,6 +1124,19 @@ MainWindow::~MainWindow()
     cBass->Pause(); // if we don't do this, LoudMax will be called and will try to touch the window which will be dead already, and BOOM
     cBass->Stop();  // if we don't do this, LoudMax will be called and will try to touch the window which will be dead already, and BOOM
 
+    // Pause() and Stop() above are NOT sufficient on their own -- in fact Stop() makes things
+    //   worse. Stopping arms the LoudMax meter drain (loudMaxDrainFramesRemaining), and that
+    //   drain loop in PlayerThread::run() runs precisely when we are NOT actively playing, so
+    //   Stop() hands the audio thread a reason to keep calling processBlock() on its way out.
+    //   Meanwhile nothing was actually stopping that thread, so it went on calling into a
+    //   LoudMax plugin that this destructor had already freed -- confirmed by AddressSanitizer
+    //   as a heap-use-after-free at audiodecoder.cpp, in PlayerThread::run().
+    //
+    // So shut the playback thread down for good, right here, before anything it points at is
+    //   destroyed. This also clears its raw LoudMax pointer, because the "!= nullptr" guards
+    //   around the processBlock() calls test a stale pointer, not a null one. (Issue #1266)
+    cBass->shutdownAudioThread();
+
     // clearing the database lock as soon as possible, so that we don't put up scary messages later,
     //   if SD couldn't be killed.
     QString currentMusicRootPath = prefsManager.GetmusicPath();
@@ -1229,6 +1242,13 @@ MainWindow::~MainWindow()
     delete cBass;
 
 #ifdef USE_JUCE
+    // Destroy the LoudMax plugin HERE, explicitly, now that the audio engine and its playback
+    //   thread are definitively gone. Left to member destruction it would be freed after this
+    //   whole destructor body, which made the safety of it depend on the order members happen
+    //   to be declared in -- exactly the kind of implicit ordering that produced the
+    //   use-after-free in the first place. (Issue #1266)
+    loudMaxPlugin.reset();
+
     // JUCE -------
     // delete loudMaxWin;
     // delete paramThresh;

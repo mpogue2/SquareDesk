@@ -215,6 +215,9 @@ public:
     void setLoudMaxPlugin(std::unique_ptr<juce::AudioPluginInstance> &p); // pass by reference
 #endif
 
+    // stops the playback thread for good; call before anything it points at is destroyed (#1266)
+    void shutdownAudioThread();
+
 signals:
     void done();
     void beatMapReady();  // #1604: beatMap/measureMap are now filled in (cache hit or vamp finished)

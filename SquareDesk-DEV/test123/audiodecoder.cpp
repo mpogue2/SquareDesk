@@ -176,7 +176,17 @@ public:
 #endif
     }
 
-    virtual ~PlayerThread() {
+    // Stop the run() loop and do not return until the thread has actually exited.
+    //   Safe to call more than once.
+    //
+    // This has to be callable on demand, not just from ~PlayerThread, because myPlayer is a
+    //   file-scope global ("singleton", below), so its destructor does not run until static
+    //   destruction -- after main() has returned. Anything the thread holds a raw pointer to
+    //   and that dies with the MainWindow (the LoudMax plugin, in particular) is long gone by
+    //   then. Note also that QThread::quit(), which ~AudioDecoder used to call, is a no-op
+    //   here: it only unwinds a Qt event loop, and run() below is a plain while() loop that
+    //   never calls exec(). So nothing actually stopped this thread. (Issue #1266)
+    void stopThread() {
         threadDone = true;
 
         // from: https://stackoverflow.com/questions/28660852/qt-qthread-destroyed-while-thread-is-still-running-during-closing
@@ -186,6 +196,10 @@ public:
             this->terminate();  // Thread didn't exit in time, probably deadlocked, terminate it!
             this->wait();       // We have to wait again here!
         }
+    }
+
+    virtual ~PlayerThread() {
+        stopThread();
     }
 
     // SOUNDTOUCH LOOP
@@ -578,6 +592,15 @@ public:
     void setLoudMaxPlugin(std::unique_ptr<juce::AudioPluginInstance> &p) { // pass by reference
         // qDebug() << "PlayerThread::setLoudMaxPlugin";
         pLoudMaxPluginRaw = p.get();
+    }
+
+    // Forget the plugin. MUST be called before the plugin itself is destroyed, or the
+    //   processBlock() calls in run() and processDSP() are left holding a dangling pointer --
+    //   their "!= nullptr" guards test a stale pointer, not a null one, so they do not help.
+    //   Call stopThread() first: this is only safe once the audio thread is no longer running.
+    //   (Issue #1266)
+    void forgetLoudMaxPlugin() {
+        pLoudMaxPluginRaw = nullptr;
     }
 #endif
 
@@ -986,12 +1009,27 @@ AudioDecoder::AudioDecoder()
     wholeTrackPeak = 0.0;
 }
 
+// Stop the playback thread for good, and make it forget the LoudMax plugin.
+//   Call this before anything the thread points at is destroyed. (Issue #1266)
+void AudioDecoder::shutdownAudioThread()
+{
+    myPlayer.stopThread();
+#ifdef USE_JUCE
+    myPlayer.forgetLoudMaxPlugin();  // only safe now that the thread is stopped
+#endif
+}
+
 AudioDecoder::~AudioDecoder()
 {
     if (myPlayer.isRunning()) {
         myPlayer.Stop();
     }
-    myPlayer.quit();
+
+    // was myPlayer.quit(), which did nothing at all: quit() only unwinds a Qt event loop, and
+    //   PlayerThread::run() is a plain while() loop that never calls exec(). The thread ran on
+    //   until static destruction, calling processBlock() on a LoudMax plugin that ~MainWindow
+    //   had already destroyed. (Issue #1266)
+    shutdownAudioThread();
 
     if (m_data) {
         delete m_data;

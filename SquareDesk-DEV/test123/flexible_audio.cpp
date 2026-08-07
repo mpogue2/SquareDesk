@@ -537,3 +537,8 @@ void flexible_audio::setLoudMaxPlugin(std::unique_ptr<juce::AudioPluginInstance>
     decoder.setLoudMaxPlugin(p);
 }
 #endif
+
+// ------------------------------------------------------------------
+void flexible_audio::shutdownAudioThread() {
+    decoder.shutdownAudioThread();
+}
