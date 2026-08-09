@@ -1265,7 +1265,7 @@ void MainWindow::loadCuesheet(const QString cuesheetFilename)
 
     ui->textBrowserCueSheet->document()->setModified(false);
 
-    resetCuesheetTempZoom();              // the font size buttons' zoom is temporary: back to the global zoom
+    loadCuesheetFontOffset(loadedCuesheetNameWithPath);  // this cuesheet's own font size offset, if it has one (#1682)
     cuesheetIsTwoColumnRendered = false;  // fresh 1-column content was just loaded
     applyCuesheetColumnModeToView();      // re-render as 2 columns, if that mode is selected
 
@@ -1590,30 +1590,57 @@ void MainWindow::restoreCuesheetOneColumn() {
     cuesheetIsTwoColumnRendered = false;
 }
 
-// TEMPORARY CUESHEET FONT ZOOM (#1650) ---------------------------------------
+// PER-CUESHEET FONT ZOOM (#1650, #1682) --------------------------------------
 // The font size buttons zoom only the cuesheet, on top of the global View > Zoom
-//   (which is tracked separately in totalZoom).  This temporary zoom is NOT
-//   persisted: it is cleared whenever a cuesheet is (re)loaded, and by View > Reset.
+//   (which is tracked separately in totalZoom).  The offset is persisted per
+//   cuesheet in the cuesheets table, so it comes back the next time the same
+//   cuesheet is displayed, in this session or any later one.
 //   The zoom lives in the widget's base font, not in the document, so it is never
 //   saved into cuesheet files, and it survives the 1-column/2-column rebuilds.
+//
+// The actual zoom applied to the widget is always totalZoom + cuesheetFontOffset.
+//   QTextBrowser only offers a RELATIVE zoomIn(), so cuesheetAppliedZoom remembers
+//   what we last applied, and applyCuesheetZoom() does the arithmetic.  Everything
+//   that changes either term calls applyCuesheetZoom() rather than zooming the
+//   widget itself, so the two terms can change independently and in any order.
 
-void MainWindow::adjustCuesheetTempZoom(int delta) {
-    // clamp, so that repeated presses can't make the text absurdly big, or so small
-    //   that Qt refuses to shrink it further (which would break our un-zoom accounting)
-    int newTempZoom = qBound(-8, cuesheetTempZoom + delta, 20);
-    delta = newTempZoom - cuesheetTempZoom;
-    if (delta == 0) {
-        return;
+void MainWindow::applyCuesheetZoom() {
+    int wantedZoom = totalZoom + cuesheetFontOffset;
+    if (wantedZoom != cuesheetAppliedZoom) {
+        ui->textBrowserCueSheet->zoomIn(wantedZoom - cuesheetAppliedZoom);
+        cuesheetAppliedZoom = wantedZoom;
     }
-    ui->textBrowserCueSheet->zoomIn(delta);
-    cuesheetTempZoom = newTempZoom;
+
+    // both terms are shown in the font size buttons' tooltips, so that it's obvious (to users,
+    //   and when debugging) which part is the global zoom level and which part is this
+    //   cuesheet's own remembered offset
+    QString current = QString("\nCurrent: Zoom %1, Point size offset %2")
+                          .arg(totalZoom)
+                          .arg(cuesheetFontOffset > 0 ? "+" + QString::number(cuesheetFontOffset)
+                                                      : QString::number(cuesheetFontOffset));
+    ui->toolButtonCuesheetFontBigger->setToolTip("Bigger cuesheet text" + current);
+    ui->toolButtonCuesheetFontSmaller->setToolTip("Smaller cuesheet text" + current);
 }
 
-void MainWindow::resetCuesheetTempZoom() {
-    if (cuesheetTempZoom != 0) {
-        ui->textBrowserCueSheet->zoomIn(-cuesheetTempZoom);
-        cuesheetTempZoom = 0;
+void MainWindow::adjustCuesheetFontOffset(int delta) {
+    // clamp, so that repeated presses can't make the text absurdly big, or so small
+    //   that Qt refuses to shrink it further (which would break our zoom accounting)
+    int newOffset = qBound(-8, cuesheetFontOffset + delta, 20);
+    if (newOffset == cuesheetFontOffset) {
+        return;
     }
+    cuesheetFontOffset = newOffset;
+    applyCuesheetZoom();
+
+    // remember it for this cuesheet (a no-op when no cuesheet is loaded)
+    songSettings.setCuesheetFontOffset(loadedCuesheetNameWithPath, cuesheetFontOffset);
+}
+
+// called whenever a different cuesheet is displayed (including "no cuesheet", where
+//   cuesheetFilename is empty and the offset goes back to the default of 0)
+void MainWindow::loadCuesheetFontOffset(const QString &cuesheetFilename) {
+    cuesheetFontOffset = songSettings.getCuesheetFontOffset(cuesheetFilename);
+    applyCuesheetZoom();
 }
 
 // SAVE LYRICS ------------------------------

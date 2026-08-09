@@ -1739,8 +1739,8 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
                 if (true || patterTemplate.isEmpty()) {
                     ui->textBrowserCueSheet->setHtml("No cuesheet for this patter song.");
                     cuesheetIsTwoColumnRendered = false; // placeholder replaced any 2-column view
-                    resetCuesheetTempZoom();
                     loadedCuesheetNameWithPath = "";
+                    loadCuesheetFontOffset(loadedCuesheetNameWithPath); // no cuesheet: back to the plain global zoom (#1682)
                 } else {
                 }
             }
@@ -1760,8 +1760,8 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
             if (true || lyricsTemplate.isEmpty()) {
                 ui->textBrowserCueSheet->setHtml("No cuesheet found for this song.");
                 cuesheetIsTwoColumnRendered = false; // placeholder replaced any 2-column view
-                resetCuesheetTempZoom();
                 loadedCuesheetNameWithPath = "";
+                loadCuesheetFontOffset(loadedCuesheetNameWithPath); // no cuesheet: back to the plain global zoom (#1682)
             } else {
                 // ui->textBrowserCueSheet->setHtml(lyricsTemplate);
                 loadedCuesheetNameWithPath = musicRootPath + "/lyrics/templates/lyrics.template.html";  // this is now allowed to be the full path

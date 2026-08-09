@@ -287,6 +287,24 @@ RowDefinition markers_rows[] =
 };
 TableDefinition markers_table("markers", markers_rows);
 
+// Cuesheets ----------------
+//  Per-cuesheet display settings (#1682).  Keyed by the cuesheet's pathname RELATIVE to the music
+//    root dir (see removeRootDirs()), NOT by song, because:
+//      - one cuesheet is frequently shared by several recordings of the same song, and the font
+//          size the user picked should follow the cuesheet, not each individual recording
+//      - a cuesheet can be displayed when there is no songs row at all (patter cuesheets, the
+//          lyrics template, or a cuesheet chosen from the dropdown for a never-saved song)
+//    Relative keying also means these settings survive a move of the musicRoot.
+//  Rows only exist for cuesheets the user has actually customized; an offset that returns to the
+//    default deletes its row (see setCuesheetFontOffset).
+RowDefinition cuesheet_rows[] =
+{
+    RowDefinition("relative_path", "text PRIMARY KEY"),  // e.g. "/lyrics/BS 2623 - Besame Mucho.html"
+    RowDefinition("fontSizeOffset", "int"),              // points, on top of the global zoom level; 0 = default
+    RowDefinition(nullptr, nullptr), // NULL, NULL),
+};
+TableDefinition cuesheet_table("cuesheets", cuesheet_rows);
+
 /*
 "CREATE TABLE play_history (
  id int auto_increment primary key,
@@ -402,6 +420,7 @@ void SongSettings::openDatabase(const QString& path,
     ensureSchema(&call_taught_on_table);
     ensureSchema(&tag_colors_table);
     ensureSchema(&markers_table);
+    ensureSchema(&cuesheet_table);
     
     for (size_t i = 0; i < sizeof(index_definitions) / sizeof(*index_definitions); ++i)
     {
@@ -1360,5 +1379,56 @@ void SongSettings::deleteNearbyMarker(const float markerPos, QMap<float,int> &ma
             ++markerPosition; // normal increment
         }
     }
+}
+
+// CUESHEETS ---------------
+// Per-cuesheet display settings (#1682).  filenameWithPath is the ABSOLUTE pathname of the
+//   cuesheet; it is normalized to a musicRoot-relative pathname here, so that callers don't
+//   have to think about it (and so that these settings survive a move of the musicRoot).
+
+// returns the persisted font size offset (in points, on top of the global zoom level) for a
+//   cuesheet, or 0 if this cuesheet has never been customized
+int SongSettings::getCuesheetFontOffset(const QString &filenameWithPath)
+{
+    if (filenameWithPath.isEmpty() || !databaseOpened) {
+        return 0;  // no cuesheet is loaded (or no DB yet), so no offset
+    }
+
+    QSqlQuery q(m_db);
+    q.prepare("SELECT fontSizeOffset FROM cuesheets WHERE relative_path=:relative_path");
+    q.bindValue(":relative_path", removeRootDirs(filenameWithPath));
+    exec("getCuesheetFontOffset", q);
+
+    if (q.next())
+    {
+        return q.value(0).toInt();
+    }
+    return 0;  // no row for this cuesheet yet
+}
+
+void SongSettings::setCuesheetFontOffset(const QString &filenameWithPath, int offset)
+{
+    if (filenameWithPath.isEmpty() || !databaseOpened) {
+        return;  // no cuesheet is loaded (or no DB yet), so there's nothing to remember it against
+    }
+
+    QSqlQuery q(m_db);
+    if (offset == 0)
+    {
+        // back to the default, so don't keep a row around just to say "normal"
+        q.prepare("DELETE FROM cuesheets WHERE relative_path=:relative_path");
+        q.bindValue(":relative_path", removeRootDirs(filenameWithPath));
+        exec("setCuesheetFontOffset DELETE", q);
+        return;
+    }
+
+    // NOTE: a real UPSERT here (rather than INSERT OR REPLACE), so that any per-cuesheet columns
+    //   added to this table later aren't silently wiped when only the font size is being written.
+    q.prepare("INSERT INTO cuesheets(relative_path, fontSizeOffset) VALUES (:relative_path,:fontSizeOffset)"
+              " ON CONFLICT(relative_path) DO UPDATE SET fontSizeOffset=:fontSizeOffset2");
+    q.bindValue(":relative_path", removeRootDirs(filenameWithPath));
+    q.bindValue(":fontSizeOffset", offset);
+    q.bindValue(":fontSizeOffset2", offset);
+    exec("setCuesheetFontOffset UPSERT", q);
 }
 

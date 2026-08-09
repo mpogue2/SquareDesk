@@ -124,6 +124,10 @@ public:
     float getNearbyMarker(const float markerPos, QMap<float,int> &markers);
     void deleteNearbyMarker(const float markerPos, QMap<float,int> &markers);  // delete a marker position from a marker set
 
+    // per-cuesheet display settings (#1682); filenameWithPath is the ABSOLUTE path of the cuesheet
+    int getCuesheetFontOffset(const QString &filenameWithPath);                // 0, if never customized
+    void setCuesheetFontOffset(const QString &filenameWithPath, int offset);   // 0 deletes the row
+
     bool isDatabaseOpened() {
         return(databaseOpened);
     }

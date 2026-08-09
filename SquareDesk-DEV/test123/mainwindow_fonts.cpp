@@ -573,7 +573,7 @@ void MainWindow::usePersistentFontSize() {
     } else {
         totalZoom = indexToCuesheetZoom[index];
     }
-    ui->textBrowserCueSheet->zoomIn(totalZoom);
+    applyCuesheetZoom();  // cuesheet zoom := totalZoom + this cuesheet's font size offset (#1682)
 
     // if (!darkmode) {
     //     ui->songTable->setFont(currentFont);
@@ -624,12 +624,11 @@ void MainWindow::zoomInOut(int increment) {
 
     t.elapsed(__LINE__);
     if (newPointSize > currentMacPointSize) {
-        ui->textBrowserCueSheet->zoomIn(2*ZOOMINCREMENT);
         totalZoom += 2*ZOOMINCREMENT;
     } else if (newPointSize < currentMacPointSize) {
-        ui->textBrowserCueSheet->zoomIn(-2*ZOOMINCREMENT);
         totalZoom -= 2*ZOOMINCREMENT;
     }
+    applyCuesheetZoom();  // the global zoom level moved; the per-cuesheet offset rides on top of it (#1682)
 
     // qDebug() << "totalZoom is now: " << totalZoom << ", and currentMacPointSize: " << currentMacPointSize;
 
@@ -683,9 +682,11 @@ void MainWindow::on_actionReset_triggered()
     // ui->songTable->setFont(currentFont);
     ui->darkSongTable->setFont(currentFont);
 
-    resetCuesheetTempZoom();  // undo the (temporary) font size buttons' zoom first (#1650)
-    ui->textBrowserCueSheet->zoomOut(totalZoom);  // undo all zooming in the lyrics pane, by zooming OUT
+    // NOTE: this resets the global zoom LEVEL only.  The per-cuesheet font size offsets are user
+    //   data now (#1682), so Reset intentionally leaves them alone; the current cuesheet keeps its
+    //   offset, applied on top of the new zoom level.
     totalZoom = 0;
+    applyCuesheetZoom();
 
     persistNewFontSize(currentMacPointSize);
     // setSongTableFont(ui->songTable, currentFont);

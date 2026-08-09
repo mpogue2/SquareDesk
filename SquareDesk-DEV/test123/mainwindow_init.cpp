@@ -260,6 +260,10 @@ void MainWindow::initializeUI() {
     oldFocusWidget = nullptr;
     trapKeypresses = true;
     totalZoom = 0;
+    // cuesheet zoom accounting (#1682) must be valid before usePersistentFontSize() below, which
+    //   is the first thing to call applyCuesheetZoom()
+    cuesheetFontOffset = 0;
+    cuesheetAppliedZoom = 0;
     // darkmode = dark; // true if we're using the new dark UX
     darkmode = true; // true if we're using the new dark UX
 
@@ -1610,16 +1614,17 @@ void MainWindow::initializeCuesheetTab() {
     connect(columnModeGroup, &QButtonGroup::idClicked,
             this, [this](int nColumns) { setCuesheetColumnMode(nColumns); });
 
-    // temporary cuesheet font size buttons (#1650) ---------
+    // per-cuesheet font size buttons (#1650, #1682) ---------
     //   (icons are set per-theme in Themes.qss, these are the fallback if no QSS is active)
-    cuesheetTempZoom = 0;
+    //   NOTE: cuesheetFontOffset/cuesheetAppliedZoom are initialized way up in initializeUI(),
+    //     because usePersistentFontSize() applies the cuesheet zoom long before we get here.
     ui->toolButtonCuesheetFontBigger->setIcon(QIcon(":/graphics/font_increase.svg"));
     ui->toolButtonCuesheetFontSmaller->setIcon(QIcon(":/graphics/font_decrease.svg"));
 
     connect(ui->toolButtonCuesheetFontBigger,  &QToolButton::clicked,
-            this, [this]() { adjustCuesheetTempZoom(2); });
+            this, [this]() { adjustCuesheetFontOffset(2); });
     connect(ui->toolButtonCuesheetFontSmaller, &QToolButton::clicked,
-            this, [this]() { adjustCuesheetTempZoom(-2); });
+            this, [this]() { adjustCuesheetFontOffset(-2); });
 
     connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
             this, SLOT(LyricsCopyAvailable(bool)));

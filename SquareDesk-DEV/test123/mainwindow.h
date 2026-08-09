@@ -950,11 +950,14 @@ private:
     double computeCuesheetCrossoverFrac(QTextDocument *doc, int splitPos);
     int findCanonicalSingerSplitPosition(QTextDocument *doc);
 
-    // temporary cuesheet font zoom (#1650): on top of the global View > Zoom (totalZoom),
-    //   NOT persisted, cleared whenever a cuesheet is (re)loaded
-    int cuesheetTempZoom;
-    void adjustCuesheetTempZoom(int delta);             // +2/-2 per font size button press
-    void resetCuesheetTempZoom();                       // back to the global zoom level
+    // per-cuesheet font zoom (#1650, #1682): on top of the global View > Zoom (totalZoom),
+    //   persisted per cuesheet in the cuesheets table, so it comes back the next time the
+    //   same cuesheet is displayed
+    int cuesheetFontOffset;                             // offset for the CURRENTLY loaded cuesheet
+    int cuesheetAppliedZoom;                            // zoom actually applied to textBrowserCueSheet right now
+    void applyCuesheetZoom();                           // widget zoom := totalZoom + cuesheetFontOffset
+    void adjustCuesheetFontOffset(int delta);           // +2/-2 per font size button press, then persist
+    void loadCuesheetFontOffset(const QString &cuesheetFilename);  // fetch this cuesheet's offset from the DB, and apply it
     void setCuesheetColumnMode(int nColumns);           // toolbutton handler; saves pref + re-renders
     void applyCuesheetColumnModeToView();               // render per pref (only when locked for editing)
     void renderCuesheetTwoColumns();
