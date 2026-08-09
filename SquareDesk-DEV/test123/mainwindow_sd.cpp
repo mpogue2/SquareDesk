@@ -1783,6 +1783,21 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
 
 //    qDebug() << "original cmd: " << cmd << ", firstCall = " << firstCall;
 
+    // A trailing '?' or '!' asks SD to list the possible calls; it does not consume the
+    // call itself.  Since we clear the input field just below, remember what the user
+    // typed so we can put the partial call back afterwards (#1554).  sdtty redisplays
+    // the prefix the same way after printing the list.
+    QString textTypedByUser = cmd;
+    auto restoreInputIfCallListRequest = [this, textTypedByUser](const QString &submitted) {
+        if (!submitted.endsWith('?') && !submitted.endsWith('!'))
+            return;   // not a call-list request, the call was consumed normally
+        QString prefix = textTypedByUser.trimmed();
+        if (prefix.endsWith('?') || prefix.endsWith('!'))
+            prefix.chop(1);
+        ui->lineEditSDInput->setText(prefix.trimmed());
+        ui->lineEditSDInput->setFocus();
+    };
+
     ui->lineEditSDInput->clear();
 
 //    // SUFFIX COMMENTS --------------------------
@@ -1860,6 +1875,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
                 sd_redo_stack->add_command(row, cmd);
             }
         }
+        restoreInputIfCallListRequest(cmd);
         return;
     }
 
@@ -2155,6 +2171,8 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
                 sd_redo_stack->add_command(row, cmd);
             }
         }
+
+        restoreInputIfCallListRequest(cmd);
 
 //        qDebug() << "------------";
     }

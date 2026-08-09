@@ -268,8 +268,9 @@ bool SquareDesk_iofull::add_string_input(const char *s)
         int len = strlen(s);
              matcher_class &matcher = *gg77->matcher_p;
 
-        if (s[len - 1] == '!'
-            || s[len - 1] == '?')
+        if (len > 0
+            && (s[len - 1] == '!'
+                || s[len - 1] == '?'))
         {
             bool question_mark = s[len - 1] == '?';
             char ach[MAX_TEXT_LINE_LENGTH + 1];
@@ -277,7 +278,15 @@ bool SquareDesk_iofull::add_string_input(const char *s)
             if (len > MAX_TEXT_LINE_LENGTH)
                 len = MAX_TEXT_LINE_LENGTH;
             strncpy(ach,s,len);
-            ach[len - 1] = '\0';
+            ach[len - 1] = '\0';   // drop the '?' or '!' itself
+
+            // Drop any whitespace that was in front of the '?'/'!', so that e.g.
+            // "square thru ?" matches on "square thru" and not on "square thru ".
+            // sdtty never sees such a trailing blank, because there the user's input
+            // buffer is exactly what was typed.
+            for (int i = (int)strlen(ach) - 1; i >= 0 && (ach[i] == ' ' || ach[i] == '\t'); i--)
+                ach[i] = '\0';
+
             matcher.copy_to_user_input(ach);
             emit sdthread->sd_begin_available_call_list_output();
             matcher.match_user_input(nLastOne, true, question_mark, false);

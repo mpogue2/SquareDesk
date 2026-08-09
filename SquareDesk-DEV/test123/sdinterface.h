@@ -110,7 +110,13 @@ private:
 
 
     QMutex mutexThreadRunning;
-    QMutex mutexIOFullAccess;
+    // MUST be recursive (#1554): on_user_input() holds this across
+    // SquareDesk_iofull::add_string_input(), and the '?'/'!' path in there runs the
+    // matcher inline on the GUI thread.  Its output is delivered by direct-connected
+    // signals (SDThread lives in the GUI thread), so MainWindow::on_sd_add_new_line()
+    // re-enters find_dance_program() -- which takes this same lock -- on the same
+    // thread.  With a plain QMutex that is an unbreakable self-deadlock.
+    QRecursiveMutex mutexIOFullAccess;
     std::atomic<bool> shutdownRequested;
     bool abort;
     SquareDesk_iofull *iofull;    
