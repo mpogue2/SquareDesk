@@ -27,7 +27,7 @@ third-and-second pair is the whole answer.
 1. **Projects** → **Build & Run** → your Qt kit → **Build**
 2. Clone the **Debug** configuration; name the clone `ASan`
 3. Give it its own build directory, e.g.
-   `/Users/mpogue/clean3/SquareDesk/build-SquareDesk-Qt_6_10_3_for_macOS-ASan`
+   `/Users/mpogue/clean3/SquareDesk/build-SquareDesk-Qt_6_10_1_for_macOS-ASan`
    (do **not** reuse the Debug directory — the object files are incompatible)
 4. On the **qmake** build step, add to *Additional arguments*:
    ```
@@ -38,11 +38,27 @@ third-and-second pair is the whole answer.
 
 Then just **Run** normally. QtCreator shows ASan's output in the Application Output pane.
 
+### Use Qt 6.10.1, not 6.10.3
+
+Build ASan (and everything else) against **Qt 6.10.1**. Qt 6.10.3 has a CoreAudio bug that
+crashes SquareDesk every time an audio device goes away — unplugging the headphone jack, or a
+sleep/wake cycle. See issues #1693 and #1683.
+
+Briefly: 6.10.3 registers its audio device-disconnect listener as an ObjC *block*
+(`AudioObjectAddPropertyListenerBlock`), but does not retain a reference to it. macOS frees
+that block when it destroys the `HALDevice` for the departing device, and Qt then passes the
+freed block back to `AudioObjectRemovePropertyListenerBlock()`, which retains it — crash in
+`objc_retain`. 6.10.1 registers a plain C callback function pointer instead, so there is no
+block for CoreAudio to free and the bug cannot happen.
+
+If an ASan session is dying on device changes rather than on whatever you are chasing, check
+which Qt version the kit points at first.
+
 ### Command line
 
 ```sh
 mkdir -p ~/clean3/SquareDesk/build-asan && cd ~/clean3/SquareDesk/build-asan
-~/Qt/6.10.3/macos/bin/qmake ../SquareDesk-DEV/SquareDesk.pro CONFIG+=asan CONFIG+=debug
+~/Qt/6.10.1/macos/bin/qmake ../SquareDesk-DEV/SquareDesk.pro CONFIG+=asan CONFIG+=debug
 make -j8
 ```
 
@@ -174,6 +190,28 @@ The **"freed by thread T0 here"** stack is the answer.
 
 Save the whole report; it is worth pasting into #1686 verbatim.
 
+### When there is no report: `memory history`
+
+If the crash is a bare `EXC_BAD_ACCESS` with no ASan report — which is what you get when the
+faulting access is inside an uninstrumented system library (see the caveat below) — ASan has
+still recorded the allocation history. Ask it directly, from the lldb console (in QtCreator,
+the input field at the bottom left of the **Debugger Log** window):
+
+```
+frame select 0
+register read x0            # or whichever register holds the suspect pointer
+memory history 0x<addr>
+```
+
+`memory history` prints the malloc **and** free stacks for that address, with thread names —
+the same information as the report's "previously allocated by" / "freed by" blocks. This is
+the single most useful command in this document: in #1693 it is what proved macOS itself was
+freeing the object, on a HAL dispatch worker thread, from
+`HALPropertyListener::~HALPropertyListener()`.
+
+`expr (void)__asan_describe_address((void*)0x<addr>)` gives similar information, but writes
+to stderr, so it only helps if the Application Output pane is actually receiving output.
+
 ### What it found the first time it was run (2026-08-06)
 
 Worth recording, because the answer was nothing like what we had guessed from the crash
@@ -199,10 +237,21 @@ bug was. Only the "freed by" stack identified the real culprit.
 
 - **It is slow.** Roughly 2x slower and several times more memory. Startup scanning of a
   large music directory will feel sluggish. This is normal, not a new bug.
-- **Uninstrumented libraries still work.** ASan replaces `malloc`/`free` for the whole
-  process, so a double-free is caught even in Qt or JUCE code that wasn't rebuilt. Only
-  the *symbol names and line numbers* need instrumentation, and the interesting frames
-  here are in SquareDesk and Qt.
+- **Uninstrumented libraries still work — but only for the allocator.** ASan replaces
+  `malloc`/`free` for the whole process, so a double-free is caught even in Qt or JUCE code
+  that wasn't rebuilt, and every allocation gets its history recorded. Only the *symbol names
+  and line numbers* need instrumentation.
+
+  **What is *not* caught is a read or write of freed memory inside an uninstrumented
+  library.** The instrumentation that checks each memory access only exists in code compiled
+  with `-fsanitize=address`, so a use-after-free whose faulting access happens inside
+  libobjc, CoreAudio, AppKit or a stock system dylib produces **no ASan report at all** — just
+  a plain `EXC_BAD_ACCESS`.
+
+  This matters more than it sounds: **the absence of an ASan report is not evidence that
+  nothing was freed.** In #1693 the fatal read was `objc_retain` loading the isa of a freed
+  ObjC block. No report, and every `this` pointer in the backtrace looked perfectly healthy,
+  which sent the investigation down two wrong theories before `memory history` settled it.
 - **QtWebEngine may complain.** The Chromium helper process is not instrumented and its
   sandbox does not always get along with ASan. If the Taminations or Reference tabs
   misbehave *in the ASan build only*, try:
