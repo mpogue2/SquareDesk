@@ -793,6 +793,9 @@ bool MainWindow::findMusic(QString mainRootDir, bool refreshDatabase, bool force
     // // always gets rid of the old pathstack and pathStackCuesheets
     pathStack->clear();
     pathStackCuesheets->clear();
+    pathStackReference->clear();  // this one was missing, so every rescan appended ANOTHER copy of
+                                  //   the reference files, and the Dance Program pulldown grew a
+                                  //   duplicate entry per program per rescan (Issue #1680)
 
     // looks for files in the mainRootDir --------
     QDir rootDir1(mainRootDir);

@@ -778,7 +778,20 @@ static QString findTimingForCall(QString danceProgram, const QString &call)
         danceProgram = "b2";
     if (0 == danceProgram.compare("mainstream", Qt::CaseInsensitive))
         danceProgram = "ms";
-        
+
+    // the Sept 2026 Callerlab dance programs map to the same timing data as their predecessors.
+    //   Calls that changed program (e.g. Turn Thru, which is now Plus26, but whose timing is
+    //   listed under "ms") are still found by the program-agnostic search below.
+    if (0 == danceProgram.compare("mainstream26", Qt::CaseInsensitive))
+        danceProgram = "ms";
+    if (0 == danceProgram.compare("plus26", Qt::CaseInsensitive))
+        danceProgram = "plus";
+    if (0 == danceProgram.compare("a1-26", Qt::CaseInsensitive))
+        danceProgram = "a1";
+    if (0 == danceProgram.compare("a2-26", Qt::CaseInsensitive))
+        danceProgram = "a2";
+
+
     for (int i = 0; danceprogram_callinfo[i].name; ++i)
     {
         if ((0 == danceProgram.compare(danceprogram_callinfo[i].program, Qt::CaseInsensitive))
@@ -4156,7 +4169,7 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
 
         // Dance Program file names must begin with 0 then exactly 2 numbers followed by a dot, followed by the dance program name, dot text.
 //        if (QRegularExpression("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", Qt::CaseInsensitive).indexIn(s) != -1)  // matches the Dance Program files in /reference
-        static QRegularExpression re1("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", QRegularExpression::CaseInsensitiveOption);
+        static QRegularExpression re1("reference/0[0-9][0-9]\\.[a-zA-Z0-9'\\- ]+\\.txt$", QRegularExpression::CaseInsensitiveOption);
         if (s.indexOf(re1) != -1)  // matches the Dance Program files in /reference
         {
             // qDebug() << "Dance Program Match:" << s;
@@ -4184,16 +4197,20 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
     //   checks to see if a program with that name exists,
     //     and if not, it creates it and adds it to the list
     //
-    addToProgramsAndWriteTextFile(programs, outputDir, "010.basic1.txt",    danceprogram_basic1);
-    addToProgramsAndWriteTextFile(programs, outputDir, "020.basic2.txt",    danceprogram_basic2);
-    addToProgramsAndWriteTextFile(programs, outputDir, "025.SSD.txt",       danceprogram_SSD);
-    addToProgramsAndWriteTextFile(programs, outputDir, "028.NEW mainstream teaching order.txt", danceprogram_NEWmainstream);
-    addToProgramsAndWriteTextFile(programs, outputDir, "030.mainstream.txt", danceprogram_mainstream);
-    addToProgramsAndWriteTextFile(programs, outputDir, "040.plus.txt",      danceprogram_plus);
-    addToProgramsAndWriteTextFile(programs, outputDir, "050.a1.txt",        danceprogram_a1);
-    addToProgramsAndWriteTextFile(programs, outputDir, "060.a2.txt",        danceprogram_a2);
+    // As of the Sept 2026 Callerlab definitions, these are the only Dance Programs that we create.
+    //   The old ones (basic1, basic2, SSD, NEW mainstream teaching order, mainstream, plus, a1, a2)
+    //   are deprecated.  We no longer create them, but any that are already in the user's
+    //   reference folder are still found by the scan above, and still appear in the pulldown,
+    //   until the user deletes them.
+    // NOTE: A1/A2 must use new filenames, because addToProgramsAndWriteTextFile() never overwrites
+    //   an existing file, so existing users would otherwise never see the updated A1 list.
+    addToProgramsAndWriteTextFile(programs, outputDir, "030.Mainstream26.txt", danceprogram_mainstream26);
+    addToProgramsAndWriteTextFile(programs, outputDir, "040.Plus26.txt",       danceprogram_plus26);
+    addToProgramsAndWriteTextFile(programs, outputDir, "050.A1-26.txt",        danceprogram_a1_26);
+    addToProgramsAndWriteTextFile(programs, outputDir, "060.A2-26.txt",        danceprogram_a2_26);
 
     programs.sort(Qt::CaseInsensitive);
+    programs.removeDuplicates();  // belt-and-suspenders: never show the same file twice in the pulldown
 
     QListIterator<QString> program(programs);
     while (program.hasNext())
@@ -5663,7 +5680,7 @@ void MainWindow::microphoneStatusUpdate() {
 
 // ---------------------------------------------
 void MainWindow::initReftab() {
-    static QRegularExpression re1("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", QRegularExpression::CaseInsensitiveOption);
+    static QRegularExpression re1("reference/0[0-9][0-9]\\.[a-zA-Z0-9'\\- ]+\\.txt$", QRegularExpression::CaseInsensitiveOption);
 
     documentsTab = new QTabWidget();
 
