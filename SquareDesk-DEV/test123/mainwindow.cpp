@@ -432,97 +432,57 @@ void MainWindow::newFromTemplate() {
 // ----------------------------------------------------------------------
 // load up the palette slots from what was in those slots before...
 void MainWindow::reloadPaletteSlots() {
-    // Load up first slot -----
-    QString loadThisPlaylist1 = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
+    QString loadThisPlaylist[MAX_PLAYLIST_SLOTS];
+    loadThisPlaylist[0] = prefsManager.GetlastPlaylistLoaded();  // "" if no NAMED playlist was loaded
+    loadThisPlaylist[1] = prefsManager.GetlastPlaylistLoaded2();
+    loadThisPlaylist[2] = prefsManager.GetlastPlaylistLoaded3();
 
-    if (loadThisPlaylist1 != "") {
-        if (loadThisPlaylist1.startsWith("tracks/")) {
-            // it's a TRACK FILTER
-            QString fullPlaylistPath1 = musicRootPath + "/" + loadThisPlaylist1 + ".csv";
-            fullPlaylistPath1.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
+    for (int i = 0; i < MAX_PLAYLIST_SLOTS; i++) {
+        if (loadThisPlaylist[i] != "") {
+            QString fullPlaylistPath = musicRootPath + "/" + loadThisPlaylist[i] + ".csv";
+            if (loadThisPlaylist[i].startsWith("tracks/")) {
+                // it's a TRACK FILTER
+                fullPlaylistPath.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
+            }
             int songCount;
-            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath1, 0, songCount);
+            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath, i, songCount); // load it!
+
+            deleteUntitledSlotCache(i); // this slot has a NAMED playlist, so any leftover autosave is stale (issue #1688)
         } else {
-            // it's a PLAYLIST
-            QString fullPlaylistPath1 = musicRootPath + "/" + loadThisPlaylist1 + ".csv";
-            int songCount;
-            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath1, 0, songCount); // load it!
+            auto [theTableWidget, theLabel] = getSlotWidgets(i);
+            Q_UNUSED(theLabel)
+            if (theTableWidget->rowCount() == 0) {
+                // The slot is empty (i.e. we're starting up, rather than just re-rendering the slots after a
+                //   Preferences change), so bring back the Untitled playlist that was here last time, if any.
+                restoreUntitledSlotFromCache(i); // issue #1688
+            }
         }
     }
 
-    // Load up second slot -----
-    QString loadThisPlaylist2 = prefsManager.GetlastPlaylistLoaded2(); // "" if no playlist was loaded
-//    qDebug() << "MainWindow constructor, load playlist and palette slot 1: " << loadThisPlaylist2;
-
-    if (loadThisPlaylist2 != "") {
-        if (loadThisPlaylist2.startsWith("tracks/")) {
-            // it's a TRACK FILTER
-            QString fullPlaylistPath2 = musicRootPath + "/" + loadThisPlaylist2 + ".csv";
-            fullPlaylistPath2.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
-            int songCount;
-            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath2, 1, songCount);
-        } else {
-            // it's a PLAYLIST
-            QString fullPlaylistPath2 = musicRootPath + "/" + loadThisPlaylist2 + ".csv";
-            int songCount;
-            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath2, 1, songCount); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 1
-        }
-    }
-
-    // Load up third slot -----
-    QString loadThisPlaylist3 = prefsManager.GetlastPlaylistLoaded3(); // "" if no playlist was loaded
-//    qDebug() << "MainWindow constructor, load playlist and palette slot 2: " << loadThisPlaylist3;
-
-    if (loadThisPlaylist3 != "") {
-        if (loadThisPlaylist3.startsWith("tracks/")) {
-            // it's a TRACK FILTER
-            QString fullPlaylistPath3 = musicRootPath + "/" + loadThisPlaylist3 + ".csv";
-            fullPlaylistPath3.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
-            int songCount;
-            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath3, 2, songCount);
-        } else {
-            // it's a PLAYLIST
-            QString fullPlaylistPath3 = musicRootPath + "/" + loadThisPlaylist3 + ".csv";
-            int songCount;
-            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath3, 2, songCount); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 2
-        }
-    }
-    
     // Initialize the recent playlists list if it's empty
     QString currentRecentPlaylists = prefsManager.GetlastNPlaylistsLoaded();
     if (currentRecentPlaylists.isEmpty()) {
         QStringList initialRecentPlaylists;
-        
+
         // Add loaded playlists to the recent list (only real playlists, not tracks or Apple Music)
-        if (loadThisPlaylist1 != "" && !loadThisPlaylist1.startsWith("tracks/") && !loadThisPlaylist1.startsWith("/Apple Music/")) {
+        for (int i = 0; i < MAX_PLAYLIST_SLOTS; i++) {
+            if (loadThisPlaylist[i] == "" ||
+                loadThisPlaylist[i].startsWith("tracks/") ||
+                loadThisPlaylist[i].startsWith("/Apple Music/")) {
+                continue;
+            }
+
             // Remove "playlists/" prefix if present for consistency
-            QString relativePath = loadThisPlaylist1;
+            QString relativePath = loadThisPlaylist[i];
             if (relativePath.startsWith("playlists/")) {
                 relativePath = relativePath.mid(10); // Remove "playlists/" prefix
             }
-            initialRecentPlaylists.append(relativePath);
-        }
-        
-        if (loadThisPlaylist2 != "" && !loadThisPlaylist2.startsWith("tracks/") && !loadThisPlaylist2.startsWith("/Apple Music/")) {
-            QString relativePath = loadThisPlaylist2;
-            if (relativePath.startsWith("playlists/")) {
-                relativePath = relativePath.mid(10);
-            }
+
             if (!initialRecentPlaylists.contains(relativePath)) {
                 initialRecentPlaylists.append(relativePath);
             }
         }
-        
-        if (loadThisPlaylist3 != "" && !loadThisPlaylist3.startsWith("tracks/") && !loadThisPlaylist3.startsWith("/Apple Music/")) {
-            QString relativePath = loadThisPlaylist3;
-            if (relativePath.startsWith("playlists/")) {
-                relativePath = relativePath.mid(10);
-            }
-            if (!initialRecentPlaylists.contains(relativePath)) {
-                initialRecentPlaylists.append(relativePath);
-            }
-        }
-        
+
         // Save the initial recent playlists list
         if (!initialRecentPlaylists.isEmpty()) {
             QString initialRecentPlaylistsString = initialRecentPlaylists.join(";");
@@ -2514,6 +2474,10 @@ void MainWindow::on_vuMeterTimerTick(void)
 
 
 // --------------
+// Asks what to do about an unsaved 'Untitled playlist' that is about to be REPLACED by something else
+//   being loaded into its slot.  Returns false iff the user cancelled (so don't replace it).
+// NOTE: this is no longer called at quit time, or when the music directory changes.  In both of those
+//   cases the Untitled playlist is autosaved and comes back by itself, so there's nothing to ask about.
 bool MainWindow::maybeSavePlaylist(int whichSlot) {
     if (!slotModified[whichSlot]) {
         // slot has not been modified
@@ -2530,7 +2494,7 @@ bool MainWindow::maybeSavePlaylist(int whichSlot) {
     QMessageBox msgBox;
     msgBox.setText(QString("The 'Untitled playlist' in slot ") + QString::number(whichSlot + 1) + " has been modified.");
     msgBox.setIcon(QMessageBox::Warning);
-    msgBox.setInformativeText("Do you want to save your changes?");
+    msgBox.setInformativeText("It will be replaced by what you're loading into that slot. Do you want to save your changes first?");
     msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Save);
     int ret = msgBox.exec();
@@ -2547,6 +2511,7 @@ bool MainWindow::maybeSavePlaylist(int whichSlot) {
 
         default:
             //            qDebug() << "DEFAULT (DISCARD)";
+            deleteUntitledSlotCache(whichSlot); // user threw it away on purpose, so don't restore it later (issue #1688)
             break;
     }
 
@@ -2617,12 +2582,14 @@ void MainWindow::closeEvent(QCloseEvent *event)
         return;
     }
 
-    // check for unsaved playlists that have been modified, and ask to Save As... each one in turn
-    for (int i = 0; i < 3; i++) {
-        if (!maybeSavePlaylist(i)) {
-            //        qDebug() << "closeEvent ignored, because user cancelled.";
-            event->ignore();
-            return;
+    // Flush any slot changes that the playlistSlotWatcherTimer hasn't gotten around to writing yet.
+    // NOTE: we do NOT ask the user what to do about an unsaved 'Untitled playlist' anymore.  It gets
+    //   autosaved here, and restored into the same slot at next app start, so there is nothing to lose
+    //   and nothing to ask about.  If the user wants it gone they can clear the slot, and if they want
+    //   it kept under a real name they can Save As... (issue #1688)
+    for (int i = 0; i < MAX_PLAYLIST_SLOTS; i++) {
+        if (slotModified[i]) {
+            saveSlotNow(i);
         }
     }
 
@@ -4525,16 +4492,17 @@ void MainWindow::on_actionPreferences_triggered()
 //            qDebug() << "MUSIC ROOT PATH CHANGED!";
             // before we actually make the change to the music root path,
 
-            // check for unsaved playlists that have been modified, and ask to Save As... each one in turn
-            for (int i = 0; i < 3; i++) {
-                if (!maybeSavePlaylist(i)) {
-                    //        qDebug() << "closeEvent ignored, because user cancelled.";
-                    continue; // even if CANCELed, we'll ask for each one (this is non-optimal, but OK for this use case, which is rare)
+            // Flush anything the playlistSlotWatcherTimer hasn't written yet, while musicRootPath still
+            //   points at the OLD music directory, then empty out the slots.
+            // NOTE: as at quit time, we don't ask the user about unsaved 'Untitled playlists' anymore.  We
+            //   pass false to clearSlot() so their autosaves stay behind in the OLD music directory, and so
+            //   they come back if the user ever switches back to it (issue #1688)
+            for (int i = 0; i < MAX_PLAYLIST_SLOTS; i++) {
+                if (slotModified[i]) {
+                    saveSlotNow(i);
                 }
+                clearSlot(i, false);  // clear out the slot, mark not modified, and no relPathInSlot
             }
-            clearSlot(0);    // then clear out the slot, mark not modified, and no relPathInSlot
-            clearSlot(1);    // then clear out the slot, mark not modified, and no relPathInSlot
-            clearSlot(2);    // then clear out the slot, mark not modified, and no relPathInSlot
 
             // and do NOT reload these slots when app restarts
             prefsManager.SetlastPlaylistLoaded("");

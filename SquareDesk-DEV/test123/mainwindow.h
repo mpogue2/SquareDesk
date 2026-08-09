@@ -289,6 +289,13 @@ public:
     // Playlist operations
     void saveSlotNow(int whichSlot);
     void saveSlotNow(MyTableWidget *mtw);
+
+    // Autosave/restore of unsaved "Untitled playlist" slots (issue #1688)
+    QString untitledSlotCachePath(int whichSlot);
+    void saveUntitledSlotNow(int whichSlot);
+    void deleteUntitledSlotCache(int whichSlot);
+    void restoreUntitledSlotFromCache(int whichSlot);
+
     QStringList parseCSV(const QString &string);
     bool parseFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &labelnum_extra,
                                 QString &title, QString &shortTitle);
@@ -860,7 +867,7 @@ private slots:
     void saveSlotAsTemplate(int whichSlot);
     void loadTemplateToSlot(QString templateFullPath, int whichSlot);
     void writePlaylistRowsToStream(QTextStream &stream, QTableWidget *theTableWidget);
-    void clearSlot(int whichSlot);
+    void clearSlot(int whichSlot, bool deleteUntitledAutosave = true);
     void showInFinderOrExplorer(QString s);
     void on_pushButtonClearTaughtCalls_clicked();
     void on_pushButtonTestLoop_clicked();

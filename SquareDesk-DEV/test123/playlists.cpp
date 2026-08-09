@@ -664,8 +664,10 @@ bool MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int
 
     if (slotModified[slotNumber]) {
         if (relPathInSlot[slotNumber] == "") {
-            // it's an unsaved Untitled playlist -- ask the user whether to save it before we overwrite the slot
-            //   (same prompt as quitting with an unsaved Untitled playlist)
+            // It's an unsaved Untitled playlist -- ask the user whether to save it before we overwrite the slot.
+            //   This is the ONLY place we still ask: an Untitled playlist is autosaved and restored at app
+            //   start, so quitting can't lose it, but loading something else on top of it really does throw
+            //   it away, and there's no undo for that (issue #1688).
             if (!maybeSavePlaylist(slotNumber)) {
                 songCount = 0;
                 return false; // user cancelled, so don't load anything
@@ -1316,6 +1318,8 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
         file.close(); // OK, we're done saving the file, so...
         slotModified[whichSlot] = false;
 
+        deleteUntitledSlotCache(whichSlot); // it has a name and a file of its own now (issue #1688)
+
         // and update the QString array (for later use)
         QString rel = fullFilePath;
         relPathInSlot[whichSlot] = rel.replace(musicRootPath + PLAYLISTS_PATH_PREFIX, "").replace(CSV_FILE_EXTENSION,""); // relative to musicDir/playlists
@@ -1403,6 +1407,73 @@ void MainWindow::loadTemplateToSlot(QString templateFullPath, int whichSlot)
     theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"%1\" height=\"%2\">Untitled playlist").arg(PLAYLIST_ICON_WIDTH).arg(PLAYLIST_ICON_HEIGHT));
 }
 
+// ========================
+// AUTOSAVE/RESTORE OF UNSAVED "Untitled playlist" SLOTS (issue #1688)
+//
+// A slot whose relPathInSlot[] is "" holds an Untitled playlist, which has no playlist file of
+// its own to be saved into.  So we autosave it to <musicDir>/.squaredesk/unsaved/slotN.csv, where
+// the user won't trip over it: .squaredesk is where all of the SquareDesk internals already live,
+// it's a hidden folder, so it's skipped by both findFilesRecursively() and the musicRootWatcher
+// (neither passes QDir::Hidden, so autosave writes don't kick off a rescan), and it's not under
+// musicDir/playlists, so it never shows up in the Playlists tree.  At app start,
+// reloadPaletteSlots() reloads any of these that are left over, so an Untitled playlist survives
+// a crash or an app restart.
+//
+// Because this is completely transparent to the user, we don't ask them what to do about an unsaved
+// Untitled playlist at quit time anymore -- it just comes back.  To get rid of one, clear the slot;
+// to keep one under a real name, Save As... it.
+//
+// INVARIANT: slotN.csv exists iff slot N currently holds a non-empty Untitled playlist.
+
+QString MainWindow::untitledSlotCachePath(int whichSlot) {
+    return musicRootPath + "/.squaredesk/unsaved/slot" + QString::number(whichSlot + 1) + CSV_FILE_EXTENSION;
+}
+
+void MainWindow::deleteUntitledSlotCache(int whichSlot) {
+    QFile::remove(untitledSlotCachePath(whichSlot)); // OK if it doesn't exist
+}
+
+void MainWindow::saveUntitledSlotNow(int whichSlot) {
+    auto [theTableWidget, theLabel] = getSlotWidgets(whichSlot);
+    Q_UNUSED(theLabel)
+
+    QString cachePath = untitledSlotCachePath(whichSlot);
+
+    if (theTableWidget->rowCount() == 0) {
+        // an empty Untitled playlist is indistinguishable from an empty slot, so there's nothing to restore
+        QFile::remove(cachePath);
+        return;
+    }
+
+    QDir().mkpath(musicRootPath + "/.squaredesk/unsaved");
+
+    QFile file(cachePath);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        QTextStream stream(&file);
+        writePlaylistRowsToStream(stream, theTableWidget); // same CSV format as a normal playlist
+        file.close();
+    } else {
+        qDebug() << "ERROR: could not autosave Untitled playlist to CSV file: " << cachePath;
+    }
+
+    // NOTE: slotModified[whichSlot] is intentionally NOT cleared here.  For an Untitled playlist it
+    //   means "there is unnamed, unsaved content here", which is still true after an autosave, and
+    //   which maybeSavePlaylist() relies on when something else is loaded on top of this slot.
+}
+
+// Bring back the Untitled playlist that was in this slot when we last quit (or crashed).
+void MainWindow::restoreUntitledSlotFromCache(int whichSlot) {
+    QString cachePath = untitledSlotCachePath(whichSlot);
+
+    if (!QFile::exists(cachePath)) {
+        return; // no Untitled playlist was in this slot
+    }
+
+    // Exactly the end state we want: contents loaded into the slot, but the slot is still an
+    //   unnamed, unsaved playlist, so the user is forced to choose a name if they ever save it.
+    loadTemplateToSlot(cachePath, whichSlot);
+}
+
 // -----------
 // DARK MODE: NO file dialog, just save slot to that same file where it came from
 // SAVE a playlist in a slot to a CSV file
@@ -1423,7 +1494,9 @@ void MainWindow::saveSlotNow(int whichSlot) {
     // qDebug() << "saveSlotNow" << whichSlot;
 
     if (relPathInSlot[whichSlot] == "") {
-        // nothing in this slot
+        // it's an Untitled playlist (or an empty slot), so there's no playlist file of its own to save to.
+        //   Autosave it to the hidden cache instead, so that it survives a crash or an app restart (issue #1688).
+        saveUntitledSlotNow(whichSlot);
         return;
     }
 
@@ -2161,13 +2234,19 @@ void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, 
 
 // Functions moved from mainwindow.cpp
 
-void MainWindow::clearSlot(int slotNumber) {
+// deleteUntitledAutosave is false only when we're initializing the (empty) slot widgets at app
+//   start, where the autosave cache must survive long enough for reloadPaletteSlots() to read it.
+void MainWindow::clearSlot(int slotNumber, bool deleteUntitledAutosave) {
     auto [theTableWidget, theLabel] = getSlotWidgets(slotNumber);
 
     theTableWidget->setRowCount(0); // delete all the rows in the slot
     theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"%1\" height=\"%2\">Untitled playlist").arg(PLAYLIST_ICON_WIDTH).arg(PLAYLIST_ICON_HEIGHT)); // clear out the label
     slotModified[slotNumber] = false;  // not modified now
     relPathInSlot[slotNumber] = "";    // nobody home now
+
+    if (deleteUntitledAutosave) {
+        deleteUntitledSlotCache(slotNumber); // nothing in the slot now, so nothing to restore later (issue #1688)
+    }
     // qDebug() << "clearSlot" << slotNumber;
 }
 

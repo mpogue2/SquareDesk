@@ -1349,15 +1349,19 @@ void MainWindow::initializeMusicPlaylists() {
     ui->toggleShowPaletteTables->setVisible(false);
     ui->splitterMusicTabHorizontal->setCollapsible(1, false); // TEST TEST TEST
 
-    clearSlot(0);
-    clearSlot(1);
-    clearSlot(2);
+    clearSlot(0, false);   // false: don't delete the Untitled playlist autosaves, reloadPaletteSlots() needs them
+    clearSlot(1, false);
+    clearSlot(2, false);
 
     reloadPaletteSlots();  // reload all the palette slots, based on the last time we ran SquareDesk
     adjustFontSizes();      // and adjust their font sizes
 
-    for (int i = 0; i < 3; i++) {
-        slotModified[i] = false;
+    for (int i = 0; i < MAX_PLAYLIST_SLOTS; i++) {
+        // Everything we just reloaded matches what's on disk, EXCEPT a restored Untitled playlist, which is
+        //   still unnamed and unsaved, so it stays marked modified (issue #1688).
+        auto [theTableWidget, theLabel] = getSlotWidgets(i);
+        Q_UNUSED(theLabel)
+        slotModified[i] = (relPathInSlot[i] == "" && theTableWidget->rowCount() > 0);
     }
 
     // remember what we had set last time the app ran -----
