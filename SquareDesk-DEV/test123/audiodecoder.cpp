@@ -285,7 +285,16 @@ public:
                         if (numProcessedFrames > 0) {  // but, maybe we didn't get any back from soundTouch.
                             DoAMemoryCheck();
                             ASSERT((const char *)(processedData) + bytesPerFrame * numProcessedFrames < (const char *)(processedData + PROCESSED_DATA_BUFFER_SIZE));
-                            m_audioDevice->write((const char *)&processedData, bytesPerFrame * numProcessedFrames);  // DSP processed audio is 8 bytes/frame floats
+                            // #1694: m_audioSinkAssignmentMutex was released above, and the main thread can
+                            //   destroy the audio sink (and with it the QIODevice m_audioDevice points at) at
+                            //   any moment, e.g. when headphones are unplugged.  Re-take the lock and re-check:
+                            //   detachAudioSinkAndAudioDevice() nulls this out before anything is destroyed, so
+                            //   a null here means "the sink went away, drop this buffer" instead of a write into
+                            //   freed memory.
+                            LockHolder audioSinkLockHolder(m_audioSinkAssignmentMutex);
+                            if (m_audioDevice != nullptr) {
+                                m_audioDevice->write((const char *)&processedData, bytesPerFrame * numProcessedFrames);  // DSP processed audio is 8 bytes/frame floats
+                            }
                         }
                     } else {
                         Stop(); // we reached the end, so reset the player back to the beginning (disable the writing, move playback position to 0)
@@ -867,6 +876,18 @@ public:
         m_audioSink   = audioSink;
         m_audioSinkBufferSize = 0;
     }
+
+    // #1694: call this on the main thread BEFORE stopping/deleting the audio sink.  Taking the same
+    //   mutex the run() loop uses guarantees we are not inside bytesAvailable()/write() right now, and
+    //   nulling the pointers means the run() loop cannot re-enter them afterwards.  Without this, a
+    //   device swap (headphones unplugged) races the 5ms polling loop, which then calls bytesFree() on
+    //   a deleted QAudioSink and writes into the freed ringbuffer QIODevice.
+    void detachAudioSinkAndAudioDevice() {
+        LockHolder lockHolder(m_audioSinkAssignmentMutex);
+        m_audioDevice = nullptr;
+        m_audioSink   = nullptr;
+        m_audioSinkBufferSize = 0;
+    }
 private:
     unsigned int bytesAvailable(QAudioSink *audioSink) {
         DoAMemoryCheck();
@@ -1056,6 +1077,17 @@ void AudioDecoder::newSystemAudioOutputDevice() {
     if (defaultADName != m_currentAudioOutputDeviceName) {
         if (m_audioSink != 0) {
             // if we already have an AudioSink, make a new one
+
+            // #1694: the PlayerThread polls this sink every 5ms and writes into the QIODevice that
+            //   m_audioSink->start() handed us.  Nothing below takes its mutex, so without this the
+            //   swap races the audio thread: it calls bytesFree() on a QAudioSink we are about to
+            //   delete, and write()s into the freed ringbuffer QIODevice.  Detaching first takes that
+            //   mutex (so we know the audio thread is not inside either call right now) and nulls both
+            //   pointers (so it cannot re-enter them until we hand it the new ones at the end of this
+            //   function).  decoder.Pause() in the caller is NOT sufficient: it only clears a bool, it
+            //   does not wait for the thread to leave the write path.
+            myPlayer.detachAudioSinkAndAudioDevice();
+            m_audioDevice = nullptr;
 
             m_audioSink->stop();
             QAudioSink *oldOne = m_audioSink;
