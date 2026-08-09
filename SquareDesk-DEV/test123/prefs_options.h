@@ -141,6 +141,9 @@ CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showTempoColumn, true);
 
 CONFIG_ATTRIBUTE_INT_NO_PREFS(songTableFontSize, 13);
 
+// Import and Organize Files dialog: calculate section info for patter files after copying (Issue #1530)
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(calcSectionsOnImport, true);
+
 // flash call menu
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcallbasic, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcallmainstream, false);

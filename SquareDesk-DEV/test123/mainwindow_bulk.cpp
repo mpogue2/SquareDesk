@@ -349,6 +349,35 @@ void MainWindow::processFiles(QStringList &files) {
     // ui->statusBar->showMessage(QString::number(files.length()) + " audio files submitted for segmentation...");
 }
 
+void MainWindow::removeSectionInfoForPath(const QString &path) {
+    // delete the cached section info for one song, e.g. because the audio file itself was just replaced.
+    //   processOneFile() skips any file that already has a non-trivial .results.txt, so a stale results
+    //   file would otherwise be reused for the new audio. (Issue #1530)
+    QString resultsFilename = path;
+    QString bulkDirname = musicRootPath + "/.squaredesk/bulk";
+    resultsFilename.replace(musicRootPath, bulkDirname);
+    resultsFilename = resultsFilename + ".results.txt";
+
+    QFile::remove(resultsFilename);
+}
+
+void MainWindow::startSectionEstimation(const QStringList &paths) {
+    // start section calculations for these paths, with no confirmation dialog.
+    //   The caller is responsible for asking the user first, if that's appropriate.
+    QStringList pathsCopy = paths;  // copy FIRST, in case the caller handed us mp3FilenamesToProcess itself
+
+    mp3FilenamesToProcess.clear();
+    mp3ResultsLock.lock();
+    mp3Results.clear();
+    mp3ResultsLock.unlock();
+
+    mp3FilenamesToProcess = pathsCopy;
+
+    // qDebug() << "mp3FilenamesToProcess:\n" << mp3FilenamesToProcess;
+
+    processFiles(mp3FilenamesToProcess);
+}
+
 void MainWindow::on_darkSegmentButton_clicked()
 {
     // double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
@@ -374,11 +403,7 @@ void MainWindow::on_darkSegmentButton_clicked()
         return;
     }
 
-    mp3FilenamesToProcess.clear();
-    mp3ResultsLock.lock();
-    mp3Results.clear();
-    mp3ResultsLock.unlock();
-
+    QStringList pathsToProcess;
     int numMP3files = 0;
 
     QListIterator<QString> iter(*pathStack); // search through songs
@@ -395,15 +420,15 @@ void MainWindow::on_darkSegmentButton_clicked()
         if (numMP3files < maxFiles && songTypeNamesForPatter.contains(s2[0], Qt::CaseInsensitive)) {
             // qDebug() << "adding: " << s2[0] << s;
             if (s2[1].endsWith(".mp3", Qt::CaseInsensitive)) {
-                mp3FilenamesToProcess.append(s2[1]);
+                pathsToProcess.append(s2[1]);
                 numMP3files++;
             }
         }
     }
 
-    // qDebug() << "mp3FilenamesToProcess:\n" << mp3FilenamesToProcess;
+    // qDebug() << "pathsToProcess:\n" << pathsToProcess;
 
-    processFiles(mp3FilenamesToProcess);
+    startSectionEstimation(pathsToProcess);
 }
 
 
@@ -438,11 +463,7 @@ void MainWindow::on_actionEstimate_for_all_songs_triggered()
         return;
     }
 
-    mp3FilenamesToProcess.clear();
-    mp3ResultsLock.lock();
-    mp3Results.clear();
-    mp3ResultsLock.unlock();
-
+    QStringList pathsToProcess;
     int numMP3files = 0;
 
     QListIterator<QString> iter(*pathStack); // search thru songs
@@ -459,15 +480,15 @@ void MainWindow::on_actionEstimate_for_all_songs_triggered()
         if (numMP3files < maxFiles && songTypeNamesForPatter.contains(s2[0])) {
             // qDebug() << "adding: " << s << s2[0];
             if (s2[1].endsWith(".mp3", Qt::CaseInsensitive)) {
-                mp3FilenamesToProcess.append(s2[1]);
+                pathsToProcess.append(s2[1]);
                 numMP3files++;
             }
         }
     }
 
-    // qDebug() << "mp3FilenamesToProcess:\n" << mp3FilenamesToProcess;
+    // qDebug() << "pathsToProcess:\n" << pathsToProcess;
 
-    processFiles(mp3FilenamesToProcess);
+    startSectionEstimation(pathsToProcess);
 }
 
 
@@ -537,16 +558,12 @@ void MainWindow::EstimateSectionsForTheseSongs(QList<int> rows) {
         return;
     }
 
-    mp3FilenamesToProcess.clear();
-    mp3ResultsLock.lock();
-    mp3Results.clear();
-    mp3ResultsLock.unlock();
-
+    QStringList pathsToProcess;
     for (const auto &r : std::as_const(rows)) {
-        mp3FilenamesToProcess.append(ui->darkSongTable->item(r, kPathCol)->data(Qt::UserRole).toString());
+        pathsToProcess.append(ui->darkSongTable->item(r, kPathCol)->data(Qt::UserRole).toString());
     }
 
-    processFiles(mp3FilenamesToProcess);
+    startSectionEstimation(pathsToProcess);
 }
 
 void MainWindow::RemoveSectionsForTheseSongs(QList<int> rows) {
@@ -600,28 +617,24 @@ void MainWindow::EstimateSectionsForThesePaths(QStringList mp3Paths) {
         return;
     }
 
-    mp3FilenamesToProcess.clear();
-    mp3ResultsLock.lock();
-    mp3Results.clear();
-    mp3ResultsLock.unlock();
-
     // Validate and filter paths - only patter/test files
+    QStringList pathsToProcess;
     for (const auto &path : std::as_const(mp3Paths)) {
         QString theCategory = filepath2SongCategoryName(path);
         if (theCategory == "patter" || theCategory == "test") {
-            mp3FilenamesToProcess.append(path);
+            pathsToProcess.append(path);
         }
     }
 
     // Show error if no valid files
-    if (mp3FilenamesToProcess.isEmpty()) {
+    if (pathsToProcess.isEmpty()) {
         QMessageBox errorBox;
         errorBox.setText("Only patter files are supported right now.");
         errorBox.exec();
         return;
     }
 
-    processFiles(mp3FilenamesToProcess);
+    startSectionEstimation(pathsToProcess);
 }
 
 void MainWindow::RemoveSectionsForThesePaths(QStringList mp3Paths) {
@@ -706,16 +719,7 @@ void MainWindow::EstimateSectionsForThisSong(QString mp3Filename) {
         return;
     }
 
-    mp3FilenamesToProcess.clear();
-    mp3ResultsLock.lock();
-    mp3Results.clear();
-    mp3ResultsLock.unlock();
-
-    mp3FilenamesToProcess.append(mp3Filename);
-
-    // qDebug() << "mp3FilenamesToProcess:\n" << mp3FilenamesToProcess;
-
-    processFiles(mp3FilenamesToProcess);
+    startSectionEstimation(QStringList(mp3Filename));
 }
 
 void MainWindow::RemoveSectionsForThisSong(QString mp3Filename) {

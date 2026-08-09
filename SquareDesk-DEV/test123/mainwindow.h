@@ -347,6 +347,8 @@ public:
     QFuture<int> vampFuture;
     bool killAllVamps;
     int vampStatus;
+    void startSectionEstimation(const QStringList &paths);  // no confirmation dialog; caller asks the user first, if appropriate
+    void removeSectionInfoForPath(const QString &path);     // delete just the cached .results.txt for one song
     void EstimateSectionsForThisSong(QString pathToMP3);
     void EstimateSectionsForTheseSongs(QList<int> rowNumbers);
     void RemoveSectionsForThisSong(QString pathToMP3);

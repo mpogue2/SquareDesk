@@ -1775,6 +1775,7 @@ public:
 #include <QHeaderView>
 #include <QDialogButtonBox>
 #include <QComboBox>
+#include <QCheckBox>
 #include <QSet>
 #include <QPushButton>
 #include <QPainter>
@@ -1966,6 +1967,13 @@ void MainWindow::importFilesFromFinder(const QStringList &droppedPaths)
     noteLabel->setAlignment(Qt::AlignLeft); // Align to the right
     layout->addWidget(noteLabel);
 
+    // Issue #1530: optionally kick off section calculations on the patter files we're about to copy in.
+    //   This is a checkbox rather than automatic, because it's a long-running operation, and it's remembered
+    //   across restarts of SquareDesk.
+    QCheckBox *calcSectionsCheckbox = new QCheckBox(tr("Calculate section info for patter files after copying (about 30 sec per song, runs in the background)"));
+    calcSectionsCheckbox->setChecked(prefsManager.GetcalcSectionsOnImport());
+    layout->addWidget(calcSectionsCheckbox);
+
     QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     QPushButton *okButton = buttonBox->button(QDialogButtonBox::Ok);
     connect(buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
@@ -1984,6 +1992,12 @@ void MainWindow::importFilesFromFinder(const QStringList &droppedPaths)
     }
 
     // 4. Populate the table
+    QStringList musicExtensions;
+    musicExtensions << "mp3" << "wav" << "m4a" << "flac";
+
+    QStringList lyricsExtensions;
+    lyricsExtensions << "htm" << "html" << "txt"; // no pdf or doc files copied
+
     table->setRowCount(0);
     int currentItem = 1;
 
@@ -2138,12 +2152,6 @@ void MainWindow::importFilesFromFinder(const QStringList &droppedPaths)
 
         // copyButton->setIcon(greenCheckIcon);
 
-        QStringList musicExtensions;
-        musicExtensions << "mp3" << "wav" << "m4a" << "flac";
-
-        QStringList lyricsExtensions;
-        lyricsExtensions << "htm" << "html" << "txt"; // no pdf or doc files copied
-
         if (musicExtensions.contains(extension.toLower()) ||
             lyricsExtensions.contains(extension.toLower())) {
             copyButton->setChecked(true);
@@ -2268,7 +2276,11 @@ void MainWindow::importFilesFromFinder(const QStringList &droppedPaths)
         // for longer than the timer's 5s window.
         filewatcherIsTemporarilyDisabled = true;
 
-        QStringList copiedFilePaths; // everything actually copied (music AND cuesheets)
+        bool calcSections = calcSectionsCheckbox->isChecked();
+        prefsManager.SetcalcSectionsOnImport(calcSections); // remember it for next time (Issue #1530)
+
+        QStringList copiedFilePaths;       // everything actually copied (music AND cuesheets)
+        QStringList patterFilesToSegment;  // just the patter audio files, for section calculations (Issue #1530)
         for (int i = 0; i < table->rowCount(); ++i) {
             QWidget* w = table->cellWidget(i, 4);
             QPushButton* b = w->findChild<QPushButton*>();
@@ -2308,6 +2320,7 @@ void MainWindow::importFilesFromFinder(const QStringList &droppedPaths)
                         if (msgBox.clickedButton() == replaceButton) {
                             currentCopyAction = Ask; // Reset for next time if not "All"
                             QFile::remove(finalPath);
+                            removeSectionInfoForPath(finalPath); // the audio changed, so the cached section info is stale (Issue #1530)
                             QFile::copy(originalPath, finalPath);
                             didCopy = true;
                         } else if (msgBox.clickedButton() == skipButton) {
@@ -2319,6 +2332,7 @@ void MainWindow::importFilesFromFinder(const QStringList &droppedPaths)
                         } else if (msgBox.clickedButton() == replaceAllButton) {
                             currentCopyAction = ReplaceAll;
                             QFile::remove(finalPath);
+                            removeSectionInfoForPath(finalPath); // the audio changed, so the cached section info is stale (Issue #1530)
                             QFile::copy(originalPath, finalPath);
                             didCopy = true;
                         } else if (msgBox.clickedButton() == skipAllButton) {
@@ -2327,6 +2341,7 @@ void MainWindow::importFilesFromFinder(const QStringList &droppedPaths)
                         }
                     } else if (currentCopyAction == ReplaceAll) {
                         QFile::remove(finalPath);
+                        removeSectionInfoForPath(finalPath); // the audio changed, so the cached section info is stale (Issue #1530)
                         QFile::copy(originalPath, finalPath);
                         didCopy = true;
                     } else if (currentCopyAction == SkipAll) {
@@ -2342,6 +2357,15 @@ void MainWindow::importFilesFromFinder(const QStringList &droppedPaths)
 
                 if (didCopy) {
                     copiedFilePaths << finalPath;
+
+                    // Issue #1530: remember the patter AUDIO files, so we can calculate section info on them below.
+                    //   NOTE: dest is one of the user's own patter folder names (from Preferences), not necessarily "patter".
+                    //   NOTE: cuesheets and other non-audio files dropped into a patter folder must NOT be segmented.
+                    if (calcSections &&
+                        songTypeNamesForPatter.contains(dest, Qt::CaseInsensitive) &&
+                        musicExtensions.contains(QFileInfo(finalPath).suffix().toLower())) {
+                        patterFilesToSegment << finalPath;
+                    }
                 }
 
                 // qDebug() << "FOO:" << didCopy << patterSingingTypes << dest;
@@ -2359,6 +2383,23 @@ void MainWindow::importFilesFromFinder(const QStringList &droppedPaths)
             // add the just-copied files to the pathStacks and refresh the darkSongTable right
             // now, so they are searchable immediately -- no FileWatcher full rescan needed (Issue #1664)
             addFilesToPathStacks(copiedFilePaths);
+        }
+
+        // Issue #1530: calculate section info on the patter files we just copied in.  No confirmation
+        //   dialog here -- the checkbox in the Import dialog above WAS the confirmation.  This runs in
+        //   the background, with progress shown in the status bar by on_UIUpdateTimerTick().
+        if (!patterFilesToSegment.isEmpty()) {
+            if (vampFuture.isRunning()) {
+                // Can't add to a run that's already going, and the status bar is showing that run's progress,
+                //   so tell the user plainly that these files were NOT included.
+                QMessageBox msgBox;
+                msgBox.setText(tr("Section calculations are already in progress, so section info was NOT calculated for the files just imported."));
+                msgBox.setIcon(QMessageBox::Information);
+                msgBox.setInformativeText(tr("When the current calculations are done, select the new songs, then right-click and choose 'Calculate Section Info for these songs...'."));
+                msgBox.exec();
+            } else {
+                startSectionEstimation(patterFilesToSegment);
+            }
         }
     }
     currentCopyAction = Ask; // In all cases, Reset to ASK for next time
