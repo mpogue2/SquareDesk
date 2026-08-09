@@ -692,6 +692,23 @@ void SongSettings::markSongPlayed(const QString &filename, const QString &filena
 {
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
     int song_rowid = getSongIDFromFilename(filename, filenameWithPathNormalized);
+
+    // #1684: a song only gets a songs row when saveSettings() runs (Import & Organize, or a
+    //   settings change/song switch).  A song that was just dropped into the music directory and
+    //   played right away has no row yet, so the lookup above returns -1.  Inserting -1 here would
+    //   record the play against a song_rowid that matches nothing, and it would be invisible in
+    //   Song Play History forever.  So: create the minimal row now, and use it.
+    if (-1 == song_rowid)
+    {
+        QSqlQuery insertQ(m_db);
+        insertQ.prepare("INSERT OR IGNORE INTO songs(filename, songname) VALUES (:filename, :songname)");
+        insertQ.bindValue(":filename", filenameWithPathNormalized);
+        insertQ.bindValue(":songname", filename);
+        exec("markSongPlayed_addSong", insertQ);
+
+        song_rowid = getSongIDFromFilenameAlone(filenameWithPathNormalized);
+    }
+
     QSqlQuery q(m_db);
     q.prepare("INSERT INTO song_plays(song_rowid,session_rowid) VALUES (:song_rowid, :session_rowid)");
     q.bindValue(":song_rowid", song_rowid);
@@ -750,7 +767,10 @@ void SongSettings::getSongPlayHistory(SongPlayEvent &event,
                             bool omitEndDate,
                             QString endDate)
 {
-    QString sql("SELECT name, played_on, datetime(played_on,'localtime'), filename, pitch, tempo, last_cuesheet FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid");
+    // #1684: song_plays is the driving table here, and the join to songs is a LEFT JOIN, so that a
+    //   play whose song_rowid matches no song (written by older versions, which recorded -1 when the
+    //   song was not yet in the songs table) still shows up, rather than silently disappearing.
+    QString sql("SELECT COALESCE(songs.name,'<song not recorded>'), played_on, datetime(played_on,'localtime'), COALESCE(songs.filename,''), pitch, tempo, last_cuesheet FROM song_plays LEFT JOIN songs ON songs.rowid=song_plays.song_rowid");
     QStringList whereClause;
     
     if (session_id)
