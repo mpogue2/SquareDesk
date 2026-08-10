@@ -579,10 +579,7 @@ export(copydata12h.commands)
 QMAKE_EXTRA_TARGETS += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
 
 # ----------------------------------------------------------------------------------------
-# For the Mac OS X DMG installer build, we need exactly 3 files stuck into the results directory (OBSOLETE)
-# installer1.commands = $(COPY) $$PWD/PackageIt.command $$OUT_PWD/PackageIt.command          # INTEL (OBSOLETE)
-# installer3.commands = $(COPY) $$PWD/PackageIt_M1.command $$OUT_PWD/PackageIt_M1.command    # Apple Silicon M1 (OBSOLETE)
-
+# For the Mac OS X DMG installer build, we need these files stuck into the results directory
 installer1.commands = $(COPY) $$PWD/images/Installer3.png      $$OUT_PWD/Installer3.png             # DMG BACKGROUND IMAGE
 
 installer2.commands = $(COPY) $$PWD/makeInstallVersion.command    $$OUT_PWD/makeInstallVersion.command    # NEW RELEASE METHOD
@@ -1075,13 +1072,11 @@ DISTFILES += \
     Info.plist \
     LICENSE.GPL3 \
     LICENSE.GPL2 \
-    PackageIt_M1.command \
     abbrevs.txt \
     cuesheet2.css \
     fixAndSignSquareDesk.command \
     lyrics.template.2col.html \
     lyrics.template.html \
-    PackageIt.command \
     makeDMG.command \
     makeInstallVersion.command \
     notarizeSquareDesk.command \
