@@ -44,6 +44,8 @@
 #include <functional>
 #include <utility>
 
+#include "palettetablebulkupdate.h"
+
 #if defined(Q_OS_LINUX)
 #define OS_FALLTHROUGH [[fallthrough]]
 #elif defined(Q_OS_WIN)
@@ -270,7 +272,7 @@ bool MainWindow::shouldIndentPlaylistRow(QTableWidget *table, int rowNum) {
 // ============================================================================================================
 void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString relativePath,
                                bool isPlaylist, QString PlaylistFileName, QString theRealPath,
-                               bool shouldIndent) {
+                               bool shouldIndent, const QHash<QString, SongSetting> *settingsCache) {
 
     // relativePath is relative to the MusicRootPath, and it might be fake (because it was reversed, like Foo Bar - RIV123.mp3,
     //     we reversed it for presentation
@@ -316,8 +318,15 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     SongSetting settings;
     // QString origPath = musicRootPath + relativePath;
     QString origPath = musicRootPath + theRealPath;
-    songSettings.loadSettings(origPath,
-                              settings);
+    if (settingsCache != nullptr) {
+        // Bulk caller already SELECTed every song's settings in one query, so skip the per-row
+        //   one.  A miss leaves 'settings' default-constructed, exactly as loadSettings() does
+        //   when the song has no row in the DB.  (issue #1695)
+        settings = settingsCache->value(songSettings.removeRootDirs(origPath));
+    } else {
+        songSettings.loadSettings(origPath,
+                                  settings);
+    }
     if (settings.isSetTags())
         songSettings.addTags(settings.getTags());
     // qDebug() << "origPath:" << origPath << settings;
@@ -718,12 +727,24 @@ void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativ
     theTableWidget->setSortingEnabled(false);
     theTableWidget->setRowCount(0); // delete all the rows in the slot
 
+    // Row heights get recomputed once, when this goes out of scope at the end of the function,
+    //   rather than once per item we touch below.  See palettetablebulkupdate.h (issue #1695).
+    PaletteTableBulkUpdate bulk(theTableWidget);
+
     // The only way to get here is to RIGHT-CLICK on a Tracks/filterName in the TreeWidget.
     // In that case, the darkSongTable has already been loaded with the filtered rows.
     // We just need to transfer them up to the playlist.
 
     static QRegularExpression title_tags_remover("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
     static QRegularExpression spanPrefixRemover("<span style=\"color:.*\">(.*)</span>", QRegularExpression::InvertedGreedinessOption);
+
+    // One SELECT for every song, instead of one per row inside setTitleField() (issue #1695)
+    QHash<QString, SongSetting> settingsCache;
+    songSettings.loadSettingsForAllSongs(settingsCache);
+
+    // Pre-size the table to the most rows we could possibly need, and trim after the loop, so
+    //   we don't grow it one row at a time.  (issue #1695)
+    theTableWidget->setRowCount(ui->darkSongTable->rowCount());
 
     songCount = 0;
     bool currentlyUnderMarker = false;  // Track if we're in a section under a marker (issue #1547)
@@ -765,7 +786,8 @@ void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativ
 
             songCount++;
 
-            // make a new row, if needed
+            // make a new row, if needed (the pre-size above normally covers us, but a filter
+            //   that somehow matches more rows than darkSongTable has must still work)
             if (songCount > theTableWidget->rowCount()) {
                 theTableWidget->insertRow(theTableWidget->rowCount());
             }
@@ -799,7 +821,7 @@ void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativ
                 shouldIndent = currentlyUnderMarker;  // Indent if we're under a marker
             }
 
-            setTitleField(theTableWidget, songCount-1, fakePath, false, PlaylistFileName, "", shouldIndent); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
+            setTitleField(theTableWidget, songCount-1, fakePath, false, PlaylistFileName, "", shouldIndent, &settingsCache); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
 
             // LEVELS column
             QString levels = ui->darkSongTable->item(i, kLevelsCol)->text();
@@ -824,6 +846,8 @@ void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativ
             theTableWidget->setItem(songCount-1, COLUMN_LOADED, loaded);
         }
     }
+
+    theTableWidget->setRowCount(songCount); // drop the unused rows left over from the pre-size
 
     theTableWidget->resizeColumnToContents(COLUMN_NUMBER);
 
@@ -860,6 +884,14 @@ void MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString 
     setLastPlaylistLoaded(slotNumber, "Apple Music/" + relPath);
 
     theTableWidget->setRowCount(0); // delete all the rows
+
+    // This table is never hidden while we fill it, so without this guard every item we set
+    //   below re-measures every row in the table.  See palettetablebulkupdate.h (issue #1695).
+    PaletteTableBulkUpdate bulk(theTableWidget);
+
+    // One SELECT for every song, instead of one per row inside setTitleField() (issue #1695)
+    QHash<QString, SongSetting> settingsCache;
+    songSettings.loadSettingsForAllSongs(settingsCache);
 
     linesInCurrentPlaylist = 0;
     songCount = 0;
@@ -899,7 +931,7 @@ void MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString 
                 shouldIndent = currentlyUnderMarker;  // Indent if we're under a marker
             }
 
-            setTitleField(theTableWidget, songCount-1, "/xtras/" + shortTitle, false, sl[1], "", shouldIndent); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
+            setTitleField(theTableWidget, songCount-1, "/xtras/" + shortTitle, false, sl[1], "", shouldIndent, &settingsCache); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
 
             // LEVELS column
             QTableWidgetItem *lev = new QTableWidgetItem(songLevelsByPath.value(sl[2], ""));
@@ -955,6 +987,14 @@ void MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString rel
         setLastPlaylistLoaded(slotNumber, "playlists/" + relPath);
 
         theTableWidget->setRowCount(0); // delete all the rows
+
+        // This table is never hidden while we fill it, so without this guard every item we set
+        //   below re-measures every row in the table.  See palettetablebulkupdate.h (issue #1695).
+        PaletteTableBulkUpdate bulk(theTableWidget);
+
+        // One SELECT for every song, instead of one per row inside setTitleField() (issue #1695)
+        QHash<QString, SongSetting> settingsCache;
+        songSettings.loadSettingsForAllSongs(settingsCache);
 
         linesInCurrentPlaylist = 0;
 
@@ -1044,7 +1084,7 @@ void MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString rel
                         shouldIndent = currentlyUnderMarker;  // Indent if we're under a marker
                     }
 
-                    setTitleField(theTableWidget, songCount-1, theFakePath, true, PlaylistFileName, list1[0], shouldIndent); // list1[0] points at the file, theFakePath might have been reversed, e.g. Foo - RIV123.mp3
+                    setTitleField(theTableWidget, songCount-1, theFakePath, true, PlaylistFileName, list1[0], shouldIndent, &settingsCache); // list1[0] points at the file, theFakePath might have been reversed, e.g. Foo - RIV123.mp3
 
                     // LEVELS column
                     QTableWidgetItem *lev = new QTableWidgetItem(songLevelsByPath.value(absPath, ""));
@@ -1834,6 +1874,10 @@ void MainWindow::refreshAllPlaylists() {
 
     QTableWidget *playlistTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
 
+    // One SELECT for every song, instead of one per row inside setTitleField() (issue #1695)
+    QHash<QString, SongSetting> settingsCache;
+    songSettings.loadSettingsForAllSongs(settingsCache);
+
     for (int i = 0; i < 3; i++) {
         // qDebug() << "LOOK AT SLOT:" << i;
 
@@ -1844,6 +1888,10 @@ void MainWindow::refreshAllPlaylists() {
         }
 
         QTableWidget *theTable = playlistTables[i];
+
+        // This table is visible while we rewrite every title in it, so without this guard each
+        //   row we touch re-measures every row.  See palettetablebulkupdate.h (issue #1695).
+        PaletteTableBulkUpdate bulk(theTable);
 
         for (int j = 0; j < theTable->rowCount(); j++) {
             // for each title in the table
@@ -1862,7 +1910,7 @@ void MainWindow::refreshAllPlaylists() {
 
                 // this is what we want: "/patter/RIV 1180 - Sea Chanty.mp3" "/Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/playlists/Jokers/2024/Jokers_2024.06.05.csv"
                 QString theCanonicalRelativePath = makeCanonicalRelativePath(relativePath); // display as "LABEL NUM - Title", even if filename is reversed (issue #1665)
-                setTitleField(theTable, j, theCanonicalRelativePath, true, PlaylistFileName, relativePath, shouldIndent);
+                setTitleField(theTable, j, theCanonicalRelativePath, true, PlaylistFileName, relativePath, shouldIndent, &settingsCache);
 
                 // Re-apply loaded-song highlighting (bold+italic) if setTitleField() just replaced it (issue #1601)
                 if (theTable->item(j, COLUMN_LOADED) && theTable->item(j, COLUMN_LOADED)->text() == "1") {

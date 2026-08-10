@@ -39,6 +39,8 @@
 #include <QtSvg/QSvgGenerator>
 #include <algorithm>  // for random_shuffle
 
+#include "palettetablebulkupdate.h"
+
 // FONT SIZE STUFF ========================================
 
 void MainWindow::setSongTableFont(QTableWidget *songTable, const QFont &currentFont)
@@ -481,6 +483,11 @@ void MainWindow::adjustFontSizes()
     for (int i = 0; i < 3; i++) {
         MyTableWidget *table = tables[i];
         if (table->rowCount() > 0) {
+            // Without this guard, each setFont() below forces a re-measure of every row in the
+            //   table, making this loop O(N^2) -- 12.8 seconds for a 511-row Track Filter.
+            //   See palettetablebulkupdate.h for the full explanation (issue #1695).
+            PaletteTableBulkUpdate bulk(table);
+
             for (int j = 0; j < table->rowCount(); j++) {
                 if (table->item(j,COLUMN_NUMBER) != nullptr) {
                     table->item(j, COLUMN_NUMBER)->setFont(cf);
@@ -501,12 +508,13 @@ void MainWindow::adjustFontSizes()
                 }
             }
             table->resizeColumnToContents(COLUMN_NUMBER);
+            // ~PaletteTableBulkUpdate() restores ResizeToContents and recomputes the row heights
+            //   here, in one O(N) pass, for THIS table.  That replaces the pair of lines that
+            //   used to sit after this loop, which did it for slot #1 only -- slots #2 and #3
+            //   were silently skipped.  (issue #1695)
         }
         setPaletteLevelsColumnWidth(table, cf); // Levels column must track the palette slot font size (Issue #1674)
     }
-
-    ui->playlist1Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    ui->playlist1Table->resizeRowsToContents();
 
     // these are special MEDIUM ==================================
     int warningLabelFontSize = warningLabelSize[(index != -1 ? index : 2)]; // keep ratio constant

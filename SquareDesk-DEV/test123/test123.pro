@@ -173,6 +173,7 @@ HEADERS  += mainwindow.h \
     flexible_audio.h \
     globaldefines.h \
     mytextedit.h \
+    palettetablebulkupdate.h \
     playlist_constants.h \
     miniBPM/MiniBpm.h \
     minimp3.h \

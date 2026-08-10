@@ -421,9 +421,16 @@ public:
 
     // UI helper functions
     void darkPaletteTitleLabelDoubleClicked(QMouseEvent *e);
+    // settingsCache: optional, and only for callers that build many rows in one go.  Without it,
+    //   setTitleField() does one SQLite SELECT per row; that was 102 ms of the 131 ms spent
+    //   loading a 511-row Track Filter into a palette slot.  Callers that have many rows to do
+    //   should fetch every song's settings up front with SongSettings::loadSettingsForAllSongs()
+    //   and pass the result here, the way darkLoadMusicList() already does (issues #1669, #1695).
+    //   Keys are music-root-relative paths, i.e. SongSettings::removeRootDirs() of the abs path.
     void setTitleField(QTableWidget *whichTable, int whichRow, QString fullPath,
                        bool isPlaylist, QString PlaylistFileName, QString theRealPath = "",
-                       bool shouldIndent = false);
+                       bool shouldIndent = false,
+                       const QHash<QString, SongSetting> *settingsCache = nullptr);
     bool isPlaylistMarker(const QString &filename);
     bool shouldIndentPlaylistRow(QTableWidget *table, int rowNum);
     void titleLabelDoubleClicked(QMouseEvent * /* event */);

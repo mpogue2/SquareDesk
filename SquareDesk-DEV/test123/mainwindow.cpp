@@ -6390,7 +6390,13 @@ QString MainWindow::filepath2SongCategoryName(QString MP3Filename)
 {
     // returns the category name (as a string).  patter, hoedown -> "patter", as per user prefs
 
-    MP3Filename.replace(QRegularExpression("^" + musicRootPath),"");  // delete the <path to musicDir> from the front of the pathname
+    // delete the <path to musicDir> from the front of the pathname.  This used to compile a
+    //   fresh QRegularExpression("^" + musicRootPath) on every call, which is both slow (this
+    //   is called once per row when filling a palette slot, issue #1695) and wrong if
+    //   musicRootPath happens to contain regex metacharacters.
+    if (MP3Filename.startsWith(musicRootPath)) {
+        MP3Filename.remove(0, musicRootPath.length());
+    }
     QStringList parts = MP3Filename.split("/");
 
     if (parts.length() <= 1) {
