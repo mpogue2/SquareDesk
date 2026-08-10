@@ -86,6 +86,7 @@ void PerfTimer::stop(int lineNumber)
         indentLevel--;
     }
 #else
+    Q_UNUSED(lineNumber)
     Q_UNUSED(stopped)
 #endif
 }
