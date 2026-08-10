@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# #1696: MARKED FOR DELETION - OBSOLETE, DO NOT USE.
+#   This is the old Intel-only packaging script. It is not part of the current release process
+#   (releaseSquareDesk.command -> makeInstallVersion, fixAndSignSquareDesk, notarizeSquareDesk, makeDMG),
+#   and test123.pro no longer copies it to the build directory (see the commented-out installer1 line).
+#   Note its lipo step does "lipo -remove arm64", which is backwards for an arm64-only app.
+#   Delete this file, and its DISTFILES entry in test123.pro.
+
 # THIS FILE IS FOR X86 ONLY -----------------
 
 # by Andy Maloney

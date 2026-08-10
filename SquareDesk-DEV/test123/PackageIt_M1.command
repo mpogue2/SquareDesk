@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# #1696: MARKED FOR DELETION - OBSOLETE, DO NOT USE.
+#   This is the old Apple Silicon packaging script. It is not part of the current release process
+#   (releaseSquareDesk.command -> makeInstallVersion, fixAndSignSquareDesk, notarizeSquareDesk, makeDMG),
+#   and test123.pro no longer copies it to the build directory (see the commented-out installer3 line).
+#   Its x86_64 lipo step has been superseded by the bundle-wide thinning in makeInstallVersion.command.
+#   Delete this file, and its DISTFILES entry in test123.pro.
+
 # by Andy Maloney
 # http://asmaloney.com/2013/07/howto/packaging-a-mac-os-x-application-using-a-dmg/
 
