@@ -41,6 +41,7 @@
 #include "playlistexport.h"
 #include "mytreewidget.h"
 #include "mainwindow_applemusic.h"
+#include <algorithm>
 #include <functional>
 #include <utility>
 
@@ -851,7 +852,16 @@ void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativ
 
     theTableWidget->resizeColumnToContents(COLUMN_NUMBER);
 
-    theTableWidget->setSortingEnabled(true);
+    // NOTE: sorting stays OFF on palette slot tables (issue #1701).  It used to be turned back ON
+    //   here, but nothing ever turned it off again, so a slot that had once held a Track Filter kept
+    //   sorting enabled forever -- including after a regular/Untitled playlist was later loaded into
+    //   that same slot.  With sorting enabled, QTableModel::setItem() does a *sorted insertion* on
+    //   the sort indicator column (column 0 by default), which moves a half-filled row out from
+    //   under the drag-and-drop reorder loop in MyTableWidget::dropEvent() and leaves rows with
+    //   NULL items (and then a crash when the slot is saved).  The palette tables have no visible
+    //   header to click on anyway, and explicit re-sorts still work: QTableWidget::sortItems()
+    //   sorts regardless of this flag.
+    theTableWidget->setSortingEnabled(false);
     theTableWidget->show();
 
     // redo the label, but with an indicator that these are Tracks, not a Playlist
@@ -1281,11 +1291,21 @@ void MainWindow::writePlaylistRowsToStream(QTextStream &stream, QTableWidget *th
     stream << CSV_HEADER_STRING << ENDL;  // NOTE: This is a RELATIVE PATH, and "relpath" is used to detect that.
 
     for (int i = 0; i < theTableWidget->rowCount(); i++) {
-        QString path = theTableWidget->item(i, COLUMN_PATH)->text();
+        // A row with no PATH item is not a song, so there's nothing to write out for it.  This should
+        //   never happen, but saving a playlist must never be able to take the app down (issue #1701).
+        QTableWidgetItem *pathItem = theTableWidget->item(i, COLUMN_PATH);
+        if (pathItem == nullptr) {
+            qDebug() << "WARNING: writePlaylistRowsToStream: skipping row" << i << "with no PATH item in" << theTableWidget->objectName();
+            continue;
+        }
+
+        QString path = pathItem->text();
         path = path.replace(musicRootPath,"").replace("\"","\"\""); // if path contains a QUOTE, it needs to be changed to DOUBLE QUOTE in CSV
 
-        QString pitch = theTableWidget->item(i, COLUMN_PITCH)->text();
-        QString tempo = theTableWidget->item(i, COLUMN_TEMPO)->text();
+        QTableWidgetItem *pitchItem = theTableWidget->item(i, COLUMN_PITCH);
+        QTableWidgetItem *tempoItem = theTableWidget->item(i, COLUMN_TEMPO);
+        QString pitch = (pitchItem == nullptr ? "0" : pitchItem->text()); // "0" is the same default the CSV loader uses
+        QString tempo = (tempoItem == nullptr ? "0" : tempoItem->text());
         // qDebug() << path + "," + pitch + "," + tempo;
         stream << "\"" + path + "\"," + pitch + "," + tempo << ENDL; // relative path with quotes, then pitch then tempo (% or bpm)
     }
@@ -2196,6 +2216,11 @@ void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, 
     case 2: destTableWidget = ui->playlist3Table; break;
     }
 
+    // insertRow() quietly does nothing when insertRowNum is out of range, and then every setItem()
+    //   below quietly does nothing too, so the new song would just vanish.  insertRowNum is the drop
+    //   position, which is -1 when a drop arrives with no preceding dragMoveEvent (issue #1701).
+    insertRowNum = std::clamp(insertRowNum, 0, destTableWidget->rowCount());
+
     // make a new row, after all the other ones, and fill it in with the new info
     destTableWidget->insertRow(insertRowNum); // always make a new row
     int songCount = destTableWidget->rowCount();
@@ -2206,9 +2231,13 @@ void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, 
 
     // Now we have to renumber all the rows BELOW insertRowNum, to add 1 to them
     for (int i = insertRowNum+1; i < songCount; i++) {
-        int currentNum = destTableWidget->item(i, COLUMN_NUMBER)->text().toInt();
+        QTableWidgetItem *numItem = destTableWidget->item(i, COLUMN_NUMBER);
+        if (numItem == nullptr) {
+            continue; // a row with no # item can't be renumbered, but it must not crash us either (issue #1701)
+        }
+        int currentNum = numItem->text().toInt();
         // qDebug() << "currentNum:" << currentNum;
-        destTableWidget->item(i, COLUMN_NUMBER)->setText(QString::number(currentNum+1));
+        numItem->setText(QString::number(currentNum+1));
     }
 
     // TITLE column

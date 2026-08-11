@@ -33,6 +33,7 @@
 #include "mytablewidget.h"
 #include <QDebug>
 #include <QDrag>
+#include <algorithm>
 #include <utility>
 #include <QPainter>
 #include <QStyleOptionViewItem>
@@ -943,10 +944,27 @@ void MyTableWidget::dropEvent(QDropEvent *event)
         }
         std::sort(selRows.begin(), selRows.end());
 
+        if (selRows.isEmpty()) {
+            return; // nothing is selected, so there's nothing to move (selRows.first() below would crash) (issue #1701)
+        }
+
         // Adjust targetRow if moving downwards
         int minSel = selRows.first();
         if (targetRow > minSel)
             targetRow -= selRows.size();
+
+        // targetRow must land inside [0, rowCount-after-removal], or insertRow()/setItem() below quietly
+        //   do nothing and the dragged rows are deleted instead of moved (issue #1701).  targetRow is
+        //   -1 whenever the drop arrives with no preceding dragMoveEvent (a flaky mouse button will do
+        //   it), and the adjustment above can also drive it negative for a non-contiguous selection.
+        targetRow = std::clamp(targetRow, 0, rowCount() - static_cast<int>(selRows.size()));
+
+        // Sorting must be OFF while we remove and re-insert rows (issue #1701).  With sorting enabled,
+        //   QTableModel::setItem() does a sorted insertion on the sort indicator column, which moves
+        //   the half-filled row we are building out from under us: the rest of that row's columns then
+        //   land on some other row, and the row that moved away is left with NULL items.
+        bool wasSorting = isSortingEnabled();
+        setSortingEnabled(false);
 
         // Copy row data
         QList<QList<QTableWidgetItem*>> copiedItems;
@@ -999,6 +1017,8 @@ void MyTableWidget::dropEvent(QDropEvent *event)
             QTableWidgetItem *num = new TableNumberItem(QString::number(i+1)); // use TableNumberItem so that it sorts numerically
             setItem(i, 0, num);
         }
+
+        setSortingEnabled(wasSorting); // every row is fully populated again, so it's safe to restore (issue #1701)
 
         // --- Fix: Reset dropIndicatorRow and force viewport update to restore drag state ---
         dropIndicatorRow = -1;
