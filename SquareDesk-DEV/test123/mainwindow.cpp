@@ -4558,6 +4558,35 @@ void MainWindow::on_actionPreferences_triggered()
         {
             setCurrentSessionIdReloadSongAgesCheckMenu(songSettings.currentSessionIDByTime()); // TODO: Do we need this now?
         }
+        else if (static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()) == SessionDefaultPractice)
+        {
+            // #1699: in Manual mode, nothing else ever re-resolves lastSessionID (the once-per-second
+            //   timer's Manual branch is a no-op), so the -1 above would stick until the user picked a
+            //   session from the Session menu or restarted.  Re-resolve it here from the session that
+            //   the DB considers current, validated against the live (non-deleted) session list.
+            int currentSessionID = songSettings.getCurrentSession();
+
+            int firstSessionID = -1;
+            bool currentSessionStillExists = false;
+            QList<SessionInfo> sessions = songSettings.getSessionInfo();
+            for (const auto &s : std::as_const(sessions)) {
+                if (s.id == currentSessionID) {
+                    currentSessionStillExists = true;
+                }
+                if (s.order_number == 0) { // the first non-deleted session
+                    firstSessionID = s.id;
+                }
+            }
+
+            if (!currentSessionStillExists) {
+                // the current session was deleted in the Prefs dialog, so fall back to the first one
+                currentSessionID = firstSessionID;
+            }
+
+            if (currentSessionID > 0) {
+                setCurrentSessionIdReloadSongAges(currentSessionID); // also sets lastSessionID
+            }
+        }
         populateMenuSessionOptions();
 
         findMusic(musicRootPath, true); // always refresh the songTable after the Prefs dialog returns with OK
@@ -5649,7 +5678,26 @@ void MainWindow::microphoneStatusUpdate() {
             sessionID2sessionName[s.id] = s.name;
         }
 
-        currentSessionName = sessionID2sessionName[lastSessionID];
+        // #1699: lastSessionID can be stale (e.g. -1 right after the Prefs dialog, or -2 at startup),
+        //   and QMap::operator[] would silently return an empty name, giving "Session: , Audio: ...".
+        //   So: use value(), and fall back to what the DB thinks is current, then to the first session.
+        currentSessionName = sessionID2sessionName.value(lastSessionID);
+
+        if (currentSessionName.isEmpty()) {
+            currentSessionName = sessionID2sessionName.value(songSettings.getCurrentSession());
+        }
+
+        if (currentSessionName.isEmpty()) {
+            for (const auto& s : sessions) {
+                if (s.order_number == 0) { // the first non-deleted session
+                    currentSessionName = s.name;
+                }
+            }
+        }
+
+        if (currentSessionName.isEmpty()) {
+            currentSessionName = "UNKNOWN"; // no sessions at all, somehow
+        }
     }
 
     QString kybdStatus;
