@@ -30,6 +30,7 @@
 #include <QActionGroup>
 #include <QColorDialog>
 #include <QCoreApplication>
+#include <QCryptographicHash>
 #include <QDateTime>
 //#include <QDesktopWidget>
 #include <QElapsedTimer>
@@ -113,7 +114,13 @@
 #include <taglib/mpeg/id3v2/frames/unsynchronizedlyricsframe.h>
 #include <taglib/mpeg/id3v2/frames/commentsframe.h>
 #include <taglib/mpeg/id3v2/frames/textidentificationframe.h>
+#include <algorithm>
 #include <string>
+
+#ifndef Q_OS_WIN
+#include <dirent.h>     // directoryFingerprint() reads directories with readdir() directly:
+#include <sys/stat.h>   //   see the measurements in its comment (Issue #1703)
+#endif
 
 // #include "typetracker.h"
 using namespace TagLib;
@@ -464,11 +471,18 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QList<QString
             //            qDebug() << "findFilesRecursively() adding " + type + "#!#" + resolvedFilePath + " to pathStack";
             //            pathStack->append(type + "#!#" + resolvedFilePath);
 
-            // add to the pathStack iff it's not a sound FX .mp3 file (those are internal) AND iff it's not sd, choreography, or reference
+            // add to the pathStack iff it's not a sound FX .mp3 file (those are internal) AND iff it's not sd, choreography, playlists, or reference
             if (newType == "reference") {
                 // qDebug() << "pathStackReference adding:" << resolvedFilePath;
                 pathStackReference->append(newType + "#!#" + resolvedFilePath);
-            } else if (newType != "sd" && newType != "choreography") {
+            } else if (newType != "sd" && newType != "choreography" && newType != "playlists") {
+                // NOTE: "playlists" holds .csv playlist files, which updateTreeWidget() loads by
+                //   itself into pathStackPlaylists -- nothing in there belongs on these stacks.
+                //   It is excluded BY NAME (like sd/ and choreography/) rather than by relying on
+                //   its contents never matching, so that Tier 1 can skip fingerprinting it: a
+                //   directory the scan ignores must also be a directory the cache check ignores,
+                //   or a stray .txt/.html dropped in there would go into pathStackCuesheets and
+                //   then never be noticed again. Cuesheets belong in lyrics/. (Issue #1703)
                 if (newType == "lyrics" || resolvedFilePath.endsWith(".html") || resolvedFilePath.endsWith(".htm")) {
                     QString levelName = detectCuesheetLevel(resolvedFilePath);
                     pathStackCuesheets->append(newType + "#!#" + resolvedFilePath + "#!#" + levelName);
@@ -516,20 +530,47 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QList<QString
 // change when the music directory changes, which is rare. So we persist its
 // outputs (pathStack, pathStackCuesheets incl. detected levels,
 // pathStackReference, and the soundfx maps) to a key/value cache file, along
-// with the mtime of EVERY directory in the tree. At startup, we just stat that
-// flat list of directories (a few hundred stats, ~10-30ms) instead of walking
-// the whole tree: adding/deleting/renaming any file or subdirectory updates its
-// parent directory's mtime, and a deleted directory fails its stat, so any
-// structural change forces a normal full rescan (which then rewrites the cache).
+// with a FINGERPRINT of every directory whose contents the scan actually depends
+// on (see isUnscannedSubtree()). At startup (and on every FileWatcher wakeup) we
+// just re-fingerprint that flat list of directories -- one readdir() each, a few
+// hundred total -- instead of walking the whole tree.
+//
+// A directory's fingerprint is a hash of the names it currently contains: its
+// subdirectories, plus only those files that findFilesRecursively() would
+// actually scan (see directoryFingerprint()). Adding, deleting or renaming any
+// music file, cuesheet or subdirectory changes the fingerprint of its parent,
+// and a deleted directory fails outright, so any structural change forces a
+// normal full rescan (which then rewrites the cache).
+//
+// WHY A LISTING AND NOT AN mtime (Issue #1703): this check used to store each
+// directory's mtime. But an mtime records an EVENT, not a state, and it never
+// goes back down: a temp file that is created and then deleted bumps its parent's
+// mtime twice and leaves the directory's contents completely unchanged. Sync
+// clients do exactly that constantly -- a NextCloud user saw a full rescan every
+// ~5 seconds, forever, because chunked-upload temp files kept bumping directory
+// mtimes while nothing the scan cares about ever changed. Comparing the listing
+// instead compares STATE, so churn that undoes itself is invisible by
+// construction, while a real new .mp3 still invalidates immediately. (The music
+// root itself was already validated this way, for this same reason.)
+//
+// Note that filtering could not have solved the mtime version of this: an mtime
+// is a single number carrying no record of WHICH entry bumped it, so there is
+// nothing to filter. That is also why ignoring dot-files does not help -- hidden
+// entries were already excluded here, and not all sync noise is dot-prefixed.
+// The fingerprint's filter is an allowlist (music + cuesheet extensions), so
+// anything a sync client invents that is not a music/cuesheet file is ignored
+// regardless of what it is named.
 //
 // Known accepted staleness: an EXTERNAL editor rewriting a cuesheet in place
-// (parent dir mtime unchanged) won't be noticed, so its detected dance level
-// may be stale until the next real rescan. Cuesheets edited within SquareDesk
-// are fine (updateCuesheetLevelInPathStack() handles those in-session).
+// (same filename, contents replaced) won't be noticed, so its detected dance
+// level may be stale until the next real rescan. Cuesheets edited within
+// SquareDesk are fine: updateCuesheetLevelInPathStack() patches them in memory
+// AND re-saves this cache, so the new level survives a restart.
 // The escape hatch is Menu > Rescan Music Directory, which forces a full scan.
 
-static const char *kPathStackCacheVersion = "3"; // bump if the cache file format or scan semantics change
+static const char *kPathStackCacheVersion = "4"; // bump if the cache file format or scan semantics change
                                                  // 3: symlinked dirs are no longer walked or recorded (Issue #1685)
+                                                 // 4: D records hold a listing fingerprint, not an mtime (Issue #1703)
 
 // "type#!#<absolute path>[#!#level]" -> "type#!#<path relative to root>[#!#level]",
 // or "" if the path isn't under root (shouldn't happen for scanned entries)
@@ -540,6 +581,160 @@ static QString relativizePathStackEntry(const QString &entry, const QString &roo
     }
     parts[1] = parts[1].mid(root.length());
     return parts.join("#!#");
+}
+
+// The file suffixes that count when fingerprinting a directory: exactly the music +
+// cuesheet extensions that findMusic() hands to findFilesRecursively(). Parity matters
+// in one direction -- any file whose appearance/disappearance would change the scan
+// results MUST also change a fingerprint, or we would cache a stale pathStack forever.
+static const QStringList &fingerprintFileSuffixes() {
+    static const QStringList suffixes = []{
+        QStringList sl;
+        QString dot(".");
+        for (size_t i = 0; i < sizeof(music_file_extensions) / sizeof(*music_file_extensions); ++i) {
+            sl.append(dot + music_file_extensions[i]);
+        }
+        for (size_t i = 0; i < sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions); ++i) {
+            sl.append(dot + cuesheet_file_extensions[i]);
+        }
+        return sl;
+    }();
+    return suffixes;
+}
+
+// findFilesRecursively() ignores everything below sd/, choreography/ and playlists/ by
+// name, so nothing in those subtrees can ever change a scan's results and there is no
+// reason to fingerprint them. On a real library that is half of all the directories in
+// the tree (sd/ alone was 42 of 141). Deleting or renaming one of those folders ITSELF is
+// still caught, because the music root's own fingerprint lists them by name.
+//
+// This list MUST stay in step with the exclusions in findFilesRecursively(): a directory
+// the scan reads but this skips would let the cache go permanently stale. (Issue #1703)
+static bool isUnscannedSubtree(const QString &relativeDirPath) {
+    return relativeDirPath == "/sd"           || relativeDirPath.startsWith("/sd/")
+        || relativeDirPath == "/choreography" || relativeDirPath.startsWith("/choreography/")
+        || relativeDirPath == "/playlists"    || relativeDirPath.startsWith("/playlists/");
+}
+
+// True iff this file's name means findFilesRecursively() would have looked at it.
+static bool isScannedFileName(const QString &name) {
+    for (const QString &suffix : fingerprintFileSuffixes()) {
+        if (name.endsWith(suffix, Qt::CaseInsensitive)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Hash of the entry names one directory contains right now: its subdirectories (kept
+// unconditionally -- that is what catches a brand new subdirectory, which has no cache
+// record of its own yet), plus only the files findFilesRecursively() would scan. Returns
+// "" iff the directory could not be read at all, which must invalidate the cache exactly
+// as a failed stat used to. Hidden entries and symlinks are excluded, matching the scan
+// and the D-record walk. Adds this directory's entry count to *entryCount, for the log.
+//
+// A hash rather than the names themselves: a few hundred fixed-width D records keep the
+// cache file small and its per-wakeup parse cost flat, where storing every filename would
+// roughly double the file. SHA-1 makes a false "unchanged" verdict (which would silently
+// hide a newly added song) not a realistic concern.
+//
+// PERFORMANCE (Issue #1703). This is the hot loop of the entire FileWatcher path, so on
+// POSIX it calls readdir() directly instead of using QDirIterator / QDir::entryList.
+// That is not a micro-optimization: measured over one real 69-directory, 11832-entry
+// music library, doing identical work in every case --
+//     readdir() + d_type + extension filter + sort + SHA-1      6.8 ms
+//     QDirIterator, two passes, fileName() only               237.1 ms
+//     QDirIterator, ONE pass, fileName() only                 121.7 ms
+//     QDirIterator, ONE pass, QDir::NoFilter                   151.3 ms
+//     QDir::entryList, two passes, unsorted                   239.2 ms
+//     the sort + SHA-1 alone                                    2.0 ms
+//     the extension filter alone                                0.4 ms
+// -- i.e. ~10us per entry inside Qt's iteration machinery regardless of which filters are
+// asked for (QDir::NoFilter is no cheaper), and roughly 18x the cost of readdir(). Our own
+// filtering and hashing is 2.4ms of it. Since this runs on EVERY watcher wakeup, and a
+// sync client can generate wakeups every few seconds indefinitely, 240ms vs 7ms matters.
+static QString directoryFingerprint(const QString &dirPath, int *entryCount) {
+    QStringList names;
+
+#ifdef Q_OS_WIN
+    // Qt fallback: correct, just slower. Windows has no dirent.h, and hand-rolling
+    // FindFirstFileW here would add a platform path that cannot be tested from the
+    // machines this was profiled on.
+    QDir d(dirPath);
+    if (!d.exists()) {
+        return QString();
+    }
+    QDirIterator subdirIt(dirPath, QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks,
+                          QDirIterator::NoIteratorFlags);
+    while (subdirIt.hasNext()) {
+        subdirIt.next();
+        names.append(subdirIt.fileName());
+    }
+    QDirIterator fileIt(dirPath, QDir::Files | QDir::NoSymLinks, QDirIterator::NoIteratorFlags);
+    while (fileIt.hasNext()) {
+        fileIt.next();
+        QString name = fileIt.fileName();
+        if (isScannedFileName(name)) {
+            names.append(name);
+        }
+    }
+#else
+    DIR *dir = opendir(QFile::encodeName(dirPath).constData());
+    if (dir == nullptr) {
+        return QString(); // deleted, or unreadable -> treat as changed
+    }
+
+    while (struct dirent *entry = readdir(dir)) {
+        if (entry->d_name[0] == '.') {
+            continue; // "." and ".." and dotfiles, matching NoDotAndDotDot + no QDir::Hidden
+        }
+
+        bool isDir = false;
+        switch (entry->d_type) {
+        case DT_DIR: isDir = true;  break;
+        case DT_REG: isDir = false; break;
+        case DT_UNKNOWN: {
+            // some filesystems don't fill in d_type; pay for one lstat() on just those
+            struct stat st;
+            if (lstat(QFile::encodeName(dirPath + "/" + QFile::decodeName(entry->d_name)).constData(), &st) != 0) {
+                continue;
+            }
+            if (S_ISLNK(st.st_mode)) { continue; } // QDir::NoSymLinks
+            if (!S_ISDIR(st.st_mode) && !S_ISREG(st.st_mode)) { continue; }
+            isDir = S_ISDIR(st.st_mode);
+            break;
+        }
+        default:
+            continue; // symlinks (QDir::NoSymLinks), fifos, sockets, devices
+        }
+
+        QString name = QFile::decodeName(entry->d_name);
+        if (isDir || isScannedFileName(name)) {
+            names.append(name);
+        }
+    }
+    closedir(dir);
+
+    // NOTE: on macOS Qt also treats UF_HIDDEN-flagged (chflags hidden) entries as hidden,
+    //   where this sees them. The disagreement is harmless and in the safe direction: the
+    //   fingerprint would notice a file the scan ignores, costing one redundant rescan
+    //   that finds nothing -- never a stale cache.
+#endif
+
+    if (entryCount != nullptr) {
+        *entryCount += names.size();
+    }
+
+    // any deterministic order will do (readdir order is not guaranteed stable between calls),
+    // so this is a plain byte-wise sort rather than QDir::Name's locale-aware collation
+    std::sort(names.begin(), names.end());
+
+    QCryptographicHash hash(QCryptographicHash::Sha1);
+    for (const QString &name : names) {
+        hash.addData(name.toUtf8());
+        hash.addData(QByteArrayView("\n", 1)); // separator, so {"ab","c"} and {"a","bc"} can't collide
+    }
+    return QString::fromLatin1(hash.result().toHex());
 }
 
 // inverse of relativizePathStackEntry()
@@ -555,17 +750,21 @@ static QString absolutizePathStackEntry(const QString &entry, const QString &roo
 // Writes the results of a just-completed findFilesRecursively() scan to
 // <musicDir>/.squaredesk/cache/pathStack.cache. Line format (tab-separated):
 //   version=N
-//   E <entryName>                        -- one per non-hidden entry directly in the music root
-//   D <relativeDirPath> <mtimeMsecs>     -- one per directory BELOW the music root
+//   D <relativeDirPath> <fingerprint>    -- one per directory, INCLUDING the music root
 //   P <type#!#relativePath>              -- pathStack entry
 //   Q <type#!#relativePath#!#level>      -- pathStackCuesheets entry
 //   R <type#!#relativePath>              -- pathStackReference entry
 //   S <index> <name> <relativePath>      -- soundfx entry
-// The music root itself is validated by its entry LISTING (E records), not its mtime:
-// transient files that the app / macOS / iCloud briefly create directly in the root
-// bump the root's mtime on every session (which made an mtime check ALWAYS fail),
-// but the scan only cares about which entries currently exist there.
-// Must be called BEFORE Apple Music / playlist entries get appended to the stacks.
+// The music root is just the D record whose relative path is empty. It used to need a
+// record type of its own (E), because it was the one directory validated by listing
+// rather than by mtime; now that every directory is validated by listing, that special
+// case is gone.
+//
+// Safe to call at any point in the session, not only right after a scan: the only other
+// things that ever append to these three stacks are the post-import fast path (which adds
+// real files that do exist on disk) and Apple Music / playlists, which append to
+// pathStackApplePlaylists / pathStackPlaylists / pathStackNewApplePlaylists instead --
+// and relativizePathStackEntry() drops anything outside the music root as a backstop.
 void MainWindow::savePathStackCache()
 {
     QDir().mkpath(musicRootPath + "/.squaredesk/cache");
@@ -580,28 +779,38 @@ void MainWindow::savePathStackCache()
     QTextStream out(&file);
     out << "version=" << kPathStackCacheVersion << "\n";
 
-    // E records: the current (sorted) non-hidden entries directly in the music root
-    const QStringList rootEntries = QDir(musicRootPath).entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
-    for (const QString &name : rootEntries) {
-        out << "E\t" << name << "\n";
-    }
-
-    // D records: every directory below the music root. Hidden dirs (including our
-    // own .squaredesk, whose cache/DB writes must not self-invalidate this cache)
-    // are excluded, matching what findFilesRecursively() scans.
+    // D records: the music root (empty relative path), then every directory below it.
+    // Hidden dirs (including our own .squaredesk, whose cache/DB writes must not
+    // self-invalidate this cache) are excluded, matching what findFilesRecursively() scans.
     // NOTE: symlinks are neither listed nor followed, exactly as in findFilesRecursively()
     //   (which passes QDir::NoSymLinks). This walk used to pass FollowSymlinks, so a symlink
     //   in the music tree pointing at a large local/network/iCloud tree made it walk far
     //   outside the music directory -- a beachball on every full rescan, and because that
     //   happened INSIDE this function the cache never got written, so the next launch did
     //   the same thing again. (Issue #1685)
+    // NOTE: an empty fingerprint means the directory could not be listed, and must never be
+    //   written: a missing directory also fingerprints as "", so an empty stored value would
+    //   compare EQUAL to it and keep validating a cache for a tree that no longer exists.
+    QString rootFingerprint = directoryFingerprint(musicRootPath, nullptr);
+    if (rootFingerprint.isEmpty()) {
+        return; // music root unreadable -- write no cache at all, and just rescan next time
+    }
+    out << "D\t\t" << rootFingerprint << "\n";
+
     QDirIterator dirIt(musicRootPath, QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks,
                        QDirIterator::Subdirectories);
     while (dirIt.hasNext()) {
         dirIt.next();
-        QFileInfo fi = dirIt.fileInfo();
-        out << "D\t" << QStringView(fi.filePath()).mid(musicRootPath.length())
-            << "\t" << fi.lastModified().toMSecsSinceEpoch() << "\n";
+        QString dirPath = dirIt.fileInfo().filePath();
+        QString relativePath = dirPath.mid(musicRootPath.length());
+        if (isUnscannedSubtree(relativePath)) {
+            continue; // nothing in here can affect the scan results
+        }
+        QString fingerprint = directoryFingerprint(dirPath, nullptr);
+        if (fingerprint.isEmpty()) {
+            continue; // deleted out from under the walk; its parent's fingerprint covers that
+        }
+        out << "D\t" << relativePath << "\t" << fingerprint << "\n";
     }
 
     for (const QString &e : *pathStack) {
@@ -689,19 +898,39 @@ void MainWindow::endStartupBreadcrumb()
     }
 }
 
-// If pathStack.cache exists and every directory mtime in it still matches the
-// filesystem, appends the cached scan results to the pathStacks/soundfx maps
-// (exactly what findFilesRecursively() would have produced) and returns true.
-// Any mismatch, missing directory, or parse problem returns false, and the
-// caller does a normal full rescan.
+// TIER 1 (Issue #1703). If pathStack.cache exists and every directory in it still has
+// the same fingerprint (= same contents) as when it was written, appends the cached scan
+// results to the pathStacks/soundfx maps (exactly what findFilesRecursively() would have
+// produced) and returns true. Any mismatch, missing directory, or parse problem returns
+// false, and the caller does a normal full rescan (Tier 2).
+//
+// This runs on every FileWatcher wakeup, so it is deliberately cheap: one readdir() per
+// directory, and no file is ever opened. Tier 2 is the expensive one -- it opens and
+// reads EVERY cuesheet to detect its dance level (~1.3s on a large library), then rewrites
+// this cache and reloads the song table.
+//
+// Timing is logged unconditionally, so a library that still rescans on every wakeup says
+// which directory keeps changing instead of having to be guessed at.
 bool MainWindow::loadPathStackCacheIfValid()
 {
+    QElapsedTimer tier1;
+    tier1.start();
+    int dirCount = 0;
+    int entryCount = 0;
+
+    auto tier1Log = [&](const QString &verdict) {
+        qDebug().noquote() << QString("FILEWATCHER Tier 1: %1 dirs, %2 entries, %3 ms -> %4")
+                                  .arg(dirCount).arg(entryCount).arg(tier1.elapsed()).arg(verdict);
+    };
+
     QFile file(musicRootPath + "/.squaredesk/cache/pathStack.cache");
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        tier1Log("NO CACHE (full rescan)");
         return false; // no cache yet
     }
     QTextStream in(&file);
     if (in.readLine() != QString("version=") + kPathStackCacheVersion) {
+        tier1Log("CACHE VERSION CHANGED (full rescan)");
         return false;
     }
 
@@ -709,24 +938,25 @@ bool MainWindow::loadPathStackCacheIfValid()
     // can't leave the real pathStacks half-populated
     QList<QString> newPathStack, newPathStackCuesheets, newPathStackReference;
     QMap<int, QString> newSoundFXpaths, newSoundFXnames;
-    QStringList cachedRootEntries;
-    int dirCount = 0;
 
     while (!in.atEnd()) {
         QString line = in.readLine();
         QStringList fields = line.split('\t');
 
-        if (fields[0] == "E" && fields.size() == 2) {
-            cachedRootEntries.append(fields[1]);
-        } else if (fields[0] == "D" && fields.size() == 3) {
-            QFileInfo fi(musicRootPath + fields[1]);
-            if (!fi.exists() || fi.lastModified().toMSecsSinceEpoch() != fields[2].toLongLong()) {
-                return false; // this directory changed (or is gone) -> full rescan needed
-            }
+        if (fields[0] == "D" && fields.size() == 3) {
+            // fields[1] is "" for the music root itself, "/sub/dir" for everything below it
             dirCount++;
+            if (directoryFingerprint(musicRootPath + fields[1], &entryCount) != fields[2]) {
+                // contents added/removed/renamed here, or the directory is gone entirely
+                // (fingerprint "" never matches a stored hash) -> full rescan needed
+                tier1Log(QString("CHANGED at \"%1\" (full rescan)")
+                             .arg(fields[1].isEmpty() ? QString("<music root>") : fields[1]));
+                return false;
+            }
         } else if ((fields[0] == "P" || fields[0] == "Q" || fields[0] == "R") && fields.size() == 2) {
             QString abs = absolutizePathStackEntry(fields[1], musicRootPath);
             if (abs.isEmpty()) {
+                tier1Log("CORRUPT ENTRY (full rescan)");
                 return false; // corrupt entry
             }
             if      (fields[0] == "P") { newPathStack.append(abs); }
@@ -736,21 +966,19 @@ bool MainWindow::loadPathStackCacheIfValid()
             newSoundFXnames.insert(fields[1].toInt(), fields[2]);
             newSoundFXpaths.insert(fields[1].toInt(), musicRootPath + fields[3]);
         } else {
+            tier1Log("CORRUPT LINE (full rescan)");
             return false; // corrupt line
         }
     }
 
-    if (dirCount == 0 && cachedRootEntries.isEmpty()) {
-        return false; // no directory/root-entry records at all -- don't trust it
+    if (dirCount == 0) {
+        tier1Log("NO DIRECTORY RECORDS (full rescan)");
+        return false; // not even the music root's own record -- don't trust it
     }
 
-    // The music root is validated by comparing its current entry listing against the
-    // cached one (both sorted by name), NOT by mtime -- see savePathStackCache().
-    if (QDir(musicRootPath).entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot, QDir::Name) != cachedRootEntries) {
-        return false; // something was added/removed/renamed directly in the music root
-    }
+    tier1Log("UNCHANGED (no rescan)");
 
-    // root listing and all subdirectory mtimes match: commit, mirroring what findFilesRecursively() appends
+    // every directory's contents match: commit, mirroring what findFilesRecursively() appends
     pathStack->append(newPathStack);
     pathStackCuesheets->append(newPathStackCuesheets);
     pathStackReference->append(newPathStackReference);
@@ -818,7 +1046,7 @@ bool MainWindow::findMusic(QString mainRootDir, bool refreshDatabase, bool force
     t.elapsed(__LINE__);
 
     // If nothing in the music directory changed since the last scan (checked via
-    // directory mtimes), load the scan results from the pathStack cache instead of
+    // each directory's entry listing), load the scan results from the pathStack cache instead of
     // walking the whole tree (Issue #1669). A MANUAL_RESCAN bypasses the cache.
     bool didFullScan = forceRescan || !loadPathStackCacheIfValid();
     if (didFullScan) {
@@ -941,15 +1169,18 @@ void MainWindow::addFilesToPathStacks(const QStringList &copiedFilePaths)
     }
 
     // The steps below run even if the pathStacks did not change (e.g. every copy was a
-    // "Replace" of an existing file): a Replace still bumps directory mtimes (so the
-    // cache must be re-saved) and still sets the NEW tag (so the table must refresh).
+    // "Replace" of an existing file): a Replace still sets the NEW tag, so the table must
+    // refresh. (Since Issue #1703 a pure Replace no longer invalidates the cache at all --
+    // the filename is unchanged, so no directory's fingerprint moves -- but re-saving it
+    // is harmless, and keeps this path correct whatever the copies turned out to be.)
 
-    // Keep the startup cache valid: the copies just bumped directory mtimes, which would
-    // otherwise invalidate the pathStack cache and force a full scan at the next launch
-    // (Issue #1669). This also makes any later spurious FileWatcher wakeup (e.g. iCloud's
-    // bird daemon touching xattrs after our 5s disable window) a cheap no-op instead of a
-    // full rescan. Apple Music entries appended to pathStack after the initial scan are
-    // excluded automatically: relativizePathStackEntry() drops paths not under the root.
+    // Keep the startup cache valid: the copies just added filenames to their destination
+    // directories, which would otherwise invalidate the pathStack cache and force a full
+    // scan at the next launch (Issue #1669). This also makes any later spurious FileWatcher
+    // wakeup (e.g. iCloud's bird daemon touching xattrs after our 5s disable window) a cheap
+    // no-op instead of a full rescan. Apple Music entries appended to pathStack after the
+    // initial scan are excluded automatically: relativizePathStackEntry() drops paths not
+    // under the root.
     savePathStackCache();
 
     // same Levels-column policy as findMusic(): only pay for it if it's in use

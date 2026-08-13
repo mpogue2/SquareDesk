@@ -1207,8 +1207,15 @@ void MainWindow::updateCuesheetLevelInPathStack(const QString &absoluteFilePath)
             QString oldLevelName = parts.size() >= 3 ? parts[2] : QString();
             (*pathStackCuesheets)[i] = parts[0] + "#!#" + absoluteFilePath + "#!#" + levelName;
             updateSongLevelsForOneCuesheet(absoluteFilePath, parts[0], oldLevelName, levelName);
-            if (songLevelsComputed && oldLevelName != levelName) {
-                saveSongLevelsCache(); // pathStackCuesheets entry changed, so re-save under the new fingerprint
+            if (oldLevelName != levelName) {
+                // The pathStack cache's Q record still carries the OLD level, and Tier 1 will
+                // NOT notice this edit (the cuesheet was rewritten in place, so no directory
+                // listing changed), so nothing would ever rewrite that record -- the new level
+                // would silently revert on the next launch. Re-save the cache now. (Issue #1703)
+                savePathStackCache();
+                if (songLevelsComputed) {
+                    saveSongLevelsCache(); // pathStackCuesheets entry changed, so re-save under the new fingerprint
+                }
             }
             return;
         }
@@ -1221,6 +1228,12 @@ void MainWindow::updateCuesheetLevelInPathStack(const QString &absoluteFilePath)
     pathStackCuesheets->append(type + "#!#" + absoluteFilePath + "#!#" + levelName);
 
     updateSongLevelsForOneCuesheet(absoluteFilePath, type, QString(), levelName);
+
+    // A brand new cuesheet DOES change its directory's listing, so Tier 1 would eventually
+    // catch this and force a full rescan. Saving the cache now (with the new file already in
+    // both the pathStack and the fingerprints) keeps the two in sync, so that rescan never
+    // has to happen. (Issue #1703)
+    savePathStackCache();
     if (songLevelsComputed) {
         saveSongLevelsCache(); // pathStackCuesheets gained an entry, so re-save under the new fingerprint
     }
