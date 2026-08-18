@@ -433,7 +433,7 @@ void MainWindow::initializeUI() {
     // if the FileWatcher is actually enabled ("Rescan Music Directory when new songs are
     // added" in Preferences > Experimental). If the user enables it later, the paths get
     // registered at that time (see the Preferences handling). (Issue #1669)
-    if (prefsManager.GetenableFileWatcher()) {
+    if (prefsManager.GetenableNewFileWatcher()) {
         initializeMusicRootWatcher();
     }
 

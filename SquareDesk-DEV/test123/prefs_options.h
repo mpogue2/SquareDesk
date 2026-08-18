@@ -129,7 +129,9 @@ CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(enablegroupstation, true);  // defaults to sho
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(enableordersequence, true); // defaults to show order/sequence
 
 CONFIG_ATTRIBUTE_BOOLEAN(enableAutoAirplaneModeCheckbox, enableAutoAirplaneMode, false);
-CONFIG_ATTRIBUTE_BOOLEAN(enableFileWatcherCheckBox, enableFileWatcher, true); // NOTE: defaults to TRUE to preserve previous behavior
+// NOTE: pref renamed from "enableFileWatcher" to "enableNewFileWatcher" (Issue #1703), so that the new
+//   FALSE default applies to ALL users, including those who had previously turned the old pref ON.
+CONFIG_ATTRIBUTE_BOOLEAN(enableFileWatcherCheckBox, enableNewFileWatcher, false);
 
 //CONFIG_ATTRIBUTE_BOOLEAN(enableAutoMicsOffCheckbox, enableAutoMicsOff, false)
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showLabelColumn, true);

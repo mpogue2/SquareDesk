@@ -909,8 +909,9 @@ void MainWindow::endStartupBreadcrumb()
 // reads EVERY cuesheet to detect its dance level (~1.3s on a large library), then rewrites
 // this cache and reloads the song table.
 //
-// Timing is logged unconditionally, so a library that still rescans on every wakeup says
-// which directory keeps changing instead of having to be guessed at.
+// Timing/verdict logging is left in place but commented out (see tier1Log below); uncomment it
+// if a library ever starts rescanning on every wakeup and you need to know which directory
+// keeps changing.
 bool MainWindow::loadPathStackCacheIfValid()
 {
     QElapsedTimer tier1;
@@ -919,8 +920,10 @@ bool MainWindow::loadPathStackCacheIfValid()
     int entryCount = 0;
 
     auto tier1Log = [&](const QString &verdict) {
-        qDebug().noquote() << QString("FILEWATCHER Tier 1: %1 dirs, %2 entries, %3 ms -> %4")
-                                  .arg(dirCount).arg(entryCount).arg(tier1.elapsed()).arg(verdict);
+        Q_UNUSED(verdict)
+        // Uncomment to trace which directory keeps triggering a rescan:
+        // qDebug().noquote() << QString("FILEWATCHER Tier 1: %1 dirs, %2 entries, %3 ms -> %4")
+        //                           .arg(dirCount).arg(entryCount).arg(tier1.elapsed()).arg(verdict);
     };
 
     QFile file(musicRootPath + "/.squaredesk/cache/pathStack.cache");

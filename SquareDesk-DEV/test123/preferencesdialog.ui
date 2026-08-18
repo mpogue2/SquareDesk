@@ -1537,7 +1537,7 @@ Click on a color square to change the color associated with that Music Type.  Se
             <string>Rescan Music Directory when new songs are added</string>
            </property>
            <property name="checked">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
           </widget>
          </item>

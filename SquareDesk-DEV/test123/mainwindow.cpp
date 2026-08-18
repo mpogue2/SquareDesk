@@ -508,7 +508,7 @@ void MainWindow::musicRootModified(QString s)
     // qDebug() << "musicRootModified() = " << s;
 
     if (s != "MANUAL_RESCAN") {
-        if (!prefsManager.GetenableFileWatcher()) {
+        if (!prefsManager.GetenableNewFileWatcher()) {
             // in the Preference UI, this is called "Rescan Music Directory when new songs are added"
             // qDebug() << "filewatcher is INTENTIONALLY disabled by User Preference, skipping the re-scan of songTable....";
             return;
@@ -4595,7 +4595,7 @@ void MainWindow::on_actionPreferences_triggered()
         // FileWatcher on/off (Issue #1669): watch paths are only registered while the
         // "Rescan Music Directory when new songs are added" pref is ON (registering them
         // costs ~300ms on a large library, so startup skips it when the pref is OFF).
-        if (prefsManager.GetenableFileWatcher()) {
+        if (prefsManager.GetenableNewFileWatcher()) {
             if (musicRootWatcher.directories().isEmpty()) {
                 initializeMusicRootWatcher(); // user just turned it ON -- register the watch paths now
             }
