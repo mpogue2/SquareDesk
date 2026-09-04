@@ -43,4 +43,28 @@ public:
 //    IOPMAssertionID assertionID;
 
 };
+
+// ----------------------------------------------------------------------------
+// Helpers for parenting a JUCE plugin window (e.g. the LoudMax FX panel) to the
+//   main SquareDesk window.  Both handles are NSView* (that is what QWindow::winId()
+//   and juce::Component::getWindowHandle() both return on macOS); each helper walks
+//   up to the enclosing NSWindow itself.
+//
+// These MUST live in a .mm file.  A previous attempt at this lived in
+//   mainwindow_JUCE.cpp inside an "#ifdef __OBJC__", but that file is compiled as
+//   plain C++, so the entire body silently compiled away to nothing (Issue #1707).
+
+// Mark an auxiliary window so it can join the main window in its Full Screen Space,
+//   instead of yanking the user back to the default Space when it is shown.
+// Call this BEFORE the window is first made visible.
+void prepareAuxWindowMac(void *auxWindowHandle);
+
+// Make auxWindow a child of mainWindow: it then stays above the main window, moves
+//   with it, hides/shows with it, and follows it into and out of Full Screen.
+void attachChildWindowMac(void *mainWindowHandle, void *auxWindowHandle);
+
+// Undo attachChildWindowMac(), whoever the parent happens to be.  Safe to call if the
+//   window was never attached.
+void detachChildWindowMac(void *auxWindowHandle);
+
 #endif

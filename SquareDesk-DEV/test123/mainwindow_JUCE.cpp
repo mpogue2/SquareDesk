@@ -125,31 +125,45 @@ public:
     void closeButtonPressed() override
     {
         // Just hide the window instead of destroying it
+        detachFromMainWindow();
         setVisible(false);
         ui->FXbutton->setChecked(false);
     }
 
-#ifdef USE_JUCE
-    // Function to sync window level with the main window
-    void syncWindowLevelWithMain(QWindow* mainWindow)
+    // Mark this window as one that is allowed to appear over a Full Screen window.
+    //   Must be done BEFORE it is first shown, otherwise showing it while the main
+    //   window is in Full Screen switches Spaces (Issue #1707).
+    void prepareAsAuxWindow()
     {
 #ifdef Q_OS_MAC
-        // On macOS, use native APIs to sync window levels
-        if (mainWindow && isVisible()) {
-            syncWindowLevelsNative(mainWindow->winId(), getWindowHandle());
-        }
+        prepareAuxWindowMac(getWindowHandle());
 #endif
     }
+
+    // Make this window a child of the main window, so it stays above the main window,
+    //   moves with it when it is dragged, hides/shows with it, and follows it into and
+    //   out of Full Screen.  macOS then handles all of the window layering for us.
+    void attachToMainWindow(QWindow *mainWindow)
+    {
+#ifdef Q_OS_MAC
+        if (mainWindow != nullptr) {
+            attachChildWindowMac(reinterpret_cast<void *>(mainWindow->winId()), getWindowHandle());
+        }
+#else
+        Q_UNUSED(mainWindow)
 #endif
+    }
+
+    void detachFromMainWindow()
+    {
+#ifdef Q_OS_MAC
+        detachChildWindowMac(getWindowHandle());
+#endif
+    }
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginWindow)
     Ui::MainWindow *ui;
-    
-#ifdef Q_OS_MAC
-    // Platform-specific implementation for macOS
-    static void syncWindowLevelsNative(WId mainWindowId, void* pluginWindowHandle);
-#endif
 };
 
 // --------------------------------------------
@@ -402,6 +416,10 @@ void MainWindow::scanForPlugins() {
     // loudMaxWin->setContentOwned (new GenericAudioProcessorEditor(*loudMaxPlugin), true);
     loudMaxWin->addToDesktop (/* flags */);
 
+    // Tell macOS that this is a window that is allowed to appear over a Full Screen
+    //   window.  This has to happen before it is first shown (Issue #1707).
+    static_cast<PluginWindow*>(loudMaxWin.get())->prepareAsAuxWindow();
+
     connect(ui->FXbutton, &QPushButton::clicked,
             this, [this](){
                 if (ui->FXbutton->isChecked()) {
@@ -411,10 +429,13 @@ void MainWindow::scanForPlugins() {
                                           loudMaxWin->getWidth(),
                                           loudMaxWin->getHeight());
                     loudMaxWin->setVisible (true); // show the window!
-                    
-                    // Sync window levels when showing
-                    static_cast<PluginWindow*>(loudMaxWin.get())->syncWindowLevelWithMain(windowHandle());
+
+                    // Re-parent to the main window every time we show it.  Hiding the window
+                    //   (orderOut:) drops it out of the main window's child list, so this is
+                    //   not a one-time setup.
+                    static_cast<PluginWindow*>(loudMaxWin.get())->attachToMainWindow(windowHandle());
                 } else {
+                    static_cast<PluginWindow*>(loudMaxWin.get())->detachFromMainWindow();
                     loudMaxWin->setVisible (false); // hide the window!
                 }
             } );
@@ -422,16 +443,14 @@ void MainWindow::scanForPlugins() {
     // Install event filter on the main window to catch window state changes
     this->installEventFilter(this);
     
-    // Also connect to the application state changes for better window level management
+    // When the application becomes active again, make sure the FX window is still parented
+    //   to the main window.  This is a no-op if it already is.  We deliberately do NOT
+    //   raise it by hand here: macOS keeps a child window above its parent for us, and
+    //   ordering it in explicitly is what used to yank a Full Screen user to another
+    //   Space (Issue #1707).
     connect(qApp, &QGuiApplication::applicationStateChanged, this, [this](Qt::ApplicationState state) {
         if (state == Qt::ApplicationActive && loudMaxWin && loudMaxWin->isVisible()) {
-            // When application becomes active again, make sure window levels are in sync
-            static_cast<PluginWindow*>(loudMaxWin.get())->syncWindowLevelWithMain(windowHandle());
-            
-            // On macOS, explicitly raise the LoudMax window to ensure it comes to the front
-#ifdef Q_OS_MAC
-            loudMaxWin->toFront(false); // false means don't become the key window
-#endif
+            static_cast<PluginWindow*>(loudMaxWin.get())->attachToMainWindow(windowHandle());
         }
     });
     
@@ -455,45 +474,23 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
     }
 
 #ifdef USE_JUCE
-    if (watched == this && event->type() == QEvent::WindowStateChange) {
-        // Main window state changed (minimized or restored)
-        bool isMinimized = windowHandle()->windowState() & Qt::WindowMinimized;
-        
-        // Store whether LoudMax was visible before minimizing
-        static bool wasLoudMaxVisible = false;
-        
-        if (isMinimized) {
-            // Main window is being minimized
-            if (loudMaxWin) {
-                // Remember if LoudMax was visible
-                wasLoudMaxVisible = loudMaxWin->isVisible();
-                
-                // Hide LoudMax when main window is minimized
-                if (wasLoudMaxVisible) {
-                    loudMaxWin->setVisible(false);
-                }
-            }
-        } else {
-            // Main window is being restored
-            if (loudMaxWin && wasLoudMaxVisible && ui->FXbutton->isChecked()) {
-                // Restore LoudMax if it was visible before and button is still checked
+    // The FX window is a child window of the main window, so macOS hides it when the main
+    //   window is minimized and brings it back when the main window is restored, and keeps
+    //   it above the main window without any help from us.  All we do here is make sure the
+    //   parent/child relationship is still in place -- these calls are no-ops if it is.
+    //   (Doing more than this, in particular ordering the FX window in by hand, is what
+    //   switched Spaces out from under a Full Screen user in Issue #1707.)
+    if (watched == this &&
+        (event->type() == QEvent::WindowStateChange || event->type() == QEvent::ActivationChange)) {
+
+        bool isMinimized = (windowHandle() != nullptr) &&
+                           (windowHandle()->windowState() & Qt::WindowMinimized);
+
+        if (loudMaxWin && !isMinimized && ui->FXbutton->isChecked()) {
+            if (!loudMaxWin->isVisible()) {
                 loudMaxWin->setVisible(true);
-                
-                // Sync window levels after restoring
-                static_cast<PluginWindow*>(loudMaxWin.get())->syncWindowLevelWithMain(windowHandle());
             }
-        }
-    }
-    else if (watched == this && event->type() == QEvent::ActivationChange) {
-        // Main window activation changed
-        if (isActiveWindow() && loudMaxWin && loudMaxWin->isVisible()) {
-            // Sync window levels when activated
-            static_cast<PluginWindow*>(loudMaxWin.get())->syncWindowLevelWithMain(windowHandle());
-            
-            // Also explicitly raise the LoudMax window when main window is activated
-#ifdef Q_OS_MAC
-            loudMaxWin->toFront(false); // false means don't become the key window
-#endif
+            static_cast<PluginWindow*>(loudMaxWin.get())->attachToMainWindow(windowHandle());
         }
     }
 #endif
@@ -531,50 +528,13 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 #endif
 
 // ==== Platform-specific implementation ====
-#ifdef Q_OS_MAC
-#ifdef __OBJC__
-#import <Cocoa/Cocoa.h>
-#endif
-
-#ifdef USE_JUCE
-// Implement the static method defined in PluginWindow
-void PluginWindow::syncWindowLevelsNative(WId mainWindowId, void* pluginWindowHandle)
-{
-#ifdef __OBJC__
-    // Implementation using Objective-C
-    NSView* mainView = reinterpret_cast<NSView*>(mainWindowId);
-    NSWindow* mainNSWindow = [mainView window];
-    
-    NSView* pluginView = (NSView*)pluginWindowHandle;
-    NSWindow* pluginNSWindow = [pluginView window];
-    
-    if (mainNSWindow && pluginNSWindow) {
-        // Sync the window level - ensure LoudMax has exactly the same level as the main window
-        [pluginNSWindow setLevel:[mainNSWindow level]];
-        
-        // Sync collection behavior - this controls how the window behaves with macOS window management
-        NSWindowCollectionBehavior behavior = [mainNSWindow collectionBehavior];
-        [pluginNSWindow setCollectionBehavior:behavior];
-        
-        // Ensure floating behavior matches
-        [pluginNSWindow setFloatingPanel:[mainNSWindow isFloatingPanel]];
-        
-        // Make sure the plugin window moves with the main window
-        [pluginNSWindow setMovableByWindowBackground:YES];
-        
-        // Force order the plugin window above the main window
-        if ([mainNSWindow isVisible] && [pluginNSWindow isVisible]) {
-            [pluginNSWindow orderWindow:NSWindowAbove relativeTo:[mainNSWindow windowNumber]];
-        }
-    }
-#else
-    // Silence unused parameter warnings when not using Objective-C
-    (void)mainWindowId;
-    (void)pluginWindowHandle;
-#endif
-}
-#endif // Q_OS_MAC
-#endif
+// This used to hold a hand-rolled window-level sync (syncWindowLevelsNative), wrapped in
+//   "#ifdef __OBJC__".  This file is compiled as plain C++ (it is in SOURCES, not
+//   OBJECTIVE_SOURCES), so __OBJC__ was never defined and the whole thing compiled away to
+//   nothing -- the FX window was never actually being managed at all.  The real
+//   implementation now lives in macUtils.mm, which IS compiled as Objective-C++, and it
+//   parents the FX window to the main window instead of trying to sync levels by hand.
+//   See Issue #1707.
 
 // =============================================================================
 // PER-SONG PERSISTANCE OF LOUDMAX PARAMS

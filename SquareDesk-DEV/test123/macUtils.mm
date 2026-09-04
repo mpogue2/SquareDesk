@@ -439,3 +439,80 @@ extern "C" {
         //        playCallback, pauseCallback, nextCallback, prevCallback, seekCallback);
     }
 }
+
+// ----------------------------------------------------------------------------
+// Parenting the JUCE plugin window (the LoudMax FX panel) to the main window.
+//
+// Issue #1707: with the main window in Full Screen, showing the FX panel yanked the
+//   user to a different Space.  Full Screen gives the main window its own Space; the
+//   FX panel was an ordinary NSWindow belonging to the *default* Space, so ordering it
+//   in made macOS switch Spaces to go find it.  The app was still frontmost, which is
+//   why clicking the Dock icon appeared to do nothing.
+//
+// Fix: mark the panel as a Full Screen *auxiliary* window (so it is allowed to appear
+//   over a Full Screen window), and make it an actual child of the main window (so it
+//   rides along with the main window's Space, ordering, and drags).
+
+static NSWindow *nsWindowFromHandle(void *handle) {
+    if (handle == nullptr) {
+        return nil;
+    }
+    id obj = (id)handle;
+    if ([obj isKindOfClass:[NSWindow class]]) {
+        return (NSWindow *)obj;   // just in case someone hands us the window itself
+    }
+    if ([obj isKindOfClass:[NSView class]]) {
+        return [(NSView *)obj window];  // the usual case: QWindow::winId()/getWindowHandle() are NSView*
+    }
+    return nil;
+}
+
+void prepareAuxWindowMac(void *auxWindowHandle) {
+    NSWindow *aux = nsWindowFromHandle(auxWindowHandle);
+    if (aux == nil) {
+        return;
+    }
+
+    NSWindowCollectionBehavior behavior = [aux collectionBehavior];
+
+    // FullScreenPrimary means "this window can BE full screened", which is wrong for a
+    //   utility panel, and FullScreenNone would forbid it from appearing over one at all.
+    behavior &= ~(NSWindowCollectionBehaviorFullScreenPrimary | NSWindowCollectionBehaviorFullScreenNone);
+
+    // FullScreenAuxiliary: allowed to show on top of somebody else's Full Screen window.
+    // MoveToActiveSpace: come to the user, rather than dragging the user to it.
+    behavior |= NSWindowCollectionBehaviorFullScreenAuxiliary | NSWindowCollectionBehaviorMoveToActiveSpace;
+
+    [aux setCollectionBehavior:behavior];
+}
+
+void attachChildWindowMac(void *mainWindowHandle, void *auxWindowHandle) {
+    NSWindow *mainWindow = nsWindowFromHandle(mainWindowHandle);
+    NSWindow *aux        = nsWindowFromHandle(auxWindowHandle);
+    if (mainWindow == nil || aux == nil) {
+        return;
+    }
+
+    NSWindow *currentParent = [aux parentWindow];
+    if (currentParent == mainWindow) {
+        return;  // already attached
+    }
+    if (currentParent != nil) {
+        [currentParent removeChildWindow:aux];
+    }
+
+    // NSWindowAbove: the panel sits above the main window, and stays there.
+    [mainWindow addChildWindow:aux ordered:NSWindowAbove];
+}
+
+void detachChildWindowMac(void *auxWindowHandle) {
+    NSWindow *aux = nsWindowFromHandle(auxWindowHandle);
+    if (aux == nil) {
+        return;
+    }
+
+    NSWindow *parent = [aux parentWindow];
+    if (parent != nil) {
+        [parent removeChildWindow:aux];
+    }
+}
