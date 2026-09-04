@@ -138,6 +138,7 @@ and the following external variables:
    allow_bend_home_getout
    enforce_overcast_warning
    using_active_phantoms
+   active_phantoms_in_this_sequence
    last_direction_kind
    interactivity
    database_version
@@ -201,8 +202,10 @@ int written_history_nopic;
 //
 // BEWARE!!  This list is keyed to the definition of "dance_level" in database.h .
 dance_level level_threshholds_for_pick[] = {
+   l_xyz,
    l_mainstream,
    l_plus,
+   l_pqr,
    l_a1,
    l_a1,      // If a2 is given, an a1 call is OK.
    l_c1,
@@ -218,8 +221,10 @@ dance_level level_threshholds_for_pick[] = {
 
 // BEWARE!!  This list is keyed to the definition of "dance_level" in database.h .
 Cstring getout_strings[] = {
+   "Mainstream 2026",
    "Mainstream",
    "Plus",
+   "Plus 2026",
    "A1",
    "A2",
    "C1",
@@ -234,7 +239,7 @@ Cstring getout_strings[] = {
    ""};
 
 // *** There are more globals proclaimed at line 164.
-uint32_t the_topcallflags;
+uint64_t the_topcallflags;
 bool there_is_a_call;
 call_with_name **base_calls;        // Gets allocated as array of pointers in sdinit.
 
@@ -278,6 +283,7 @@ bool allowing_minigrand = false;
 bool allow_bend_home_getout = false;
 bool enforce_overcast_warning = false;
 bool using_active_phantoms = false;
+int active_phantoms_in_this_sequence = 0;
 bool two_couple_calling = false;
 bool expanding_database = false;
 int trace_progress = 0;
@@ -338,7 +344,7 @@ Cstring get_concept_name(const concept_descriptor *foo) { return foo->name; }
 Cstring get_concept_menu_name(const concept_descriptor *foo) { return foo->menu_name; }
 concept_kind get_concept_kind(const concept_descriptor *foo) { return foo->kind; }
 const concept_descriptor *access_concept_descriptor_table(int i) { return &concept_descriptor_table[i]; }
-bool get_yield_if_ambiguous_flag(call_with_name *foo) {return (foo->the_defn.callflagsf & CFLAG2_YIELD_IF_AMBIGUOUS) != 0; }
+bool get_yield_if_ambiguous_flag(call_with_name *foo) {return (foo->the_defn.callflags1 & CFLAG1_YIELD_IF_AMBIGUOUS) != 0; }
 call_with_name *access_base_calls(int i) { return base_calls[i]; }
 
 const concept_kind constant_with_concept_diagnose = concept_diagnose;
@@ -1100,7 +1106,7 @@ void setup::big_endian_get_directions32(
 
 void setup::touch_or_rear_back(
    bool did_mirror,
-   int callflags1) THROW_DECL
+   uint64_t callflags1) THROW_DECL
 {
    uint32_t directions, livemask;
    const full_expand::thing *tptr;
@@ -1243,6 +1249,14 @@ void setup::touch_or_rear_back(
                // the middle must be as if in a DPT or trade-by.  Everyone
                // else must be in generalized columns.
                tptr = &step_qtag_pair;
+               goto found_tptr;
+            }
+            else if (step_ok && livemask == 0x0FF0 && directions == 0x09C0) {
+               tptr = &step_bone_pair;
+               goto found_tptr;
+            }
+            else if (step_ok && livemask == 0xF00F && directions == 0x6003) {
+               tptr = &step_bone_pair;
                goto found_tptr;
             }
          }
@@ -1555,8 +1569,6 @@ void setup::do_matrix_expansion(
                goto expanded;
             }
          }
-
-
          else if (needpropbits & (NB(CONCPROP__NEEDK_TWINDMD) | NB(CONCPROP__NEEDK_TWINQTAG))) {
             // Egads!  It turns out that the "CONCPROP__NEEDK_TWINQTAG"
             // indicator is used not just for "twin phantom 1/4 tags", but for
@@ -2568,6 +2580,9 @@ restriction_test_result verify_restriction(
    case cr_levelplus:
       if (calling_level < l_plus) return restriction_bad_level;
       goto good;
+   case cr_levelpqr:
+      if (calling_level < l_pqr) return restriction_bad_level;
+      goto good;
    case cr_levela1:
       if (calling_level < l_a1) return restriction_bad_level;
       goto good;
@@ -2600,11 +2615,10 @@ restriction_test_result verify_restriction(
       t ^= 1;
       // This is independent of whether we are line-like or column-like.
       for (idx=0 ; idx<4 ; idx++) {
-         int ii;
          int perquad = (attr::slimit(ss)+1) >> 2;
          qa0 = 0; qa1 = 0; qa2 = 0; qa3 = 0;
          // Test one quadrant.
-         for (ii=0 ; ii<perquad ; ii++) {
+         for (int ii=0 ; ii<perquad ; ii++) {
             uint32_t tp;
             if ((tp = ss->people[perquad*idx+ii].id1) != 0) {
                qa0 |= (tp^1);
@@ -2615,6 +2629,17 @@ restriction_test_result verify_restriction(
          }
          if ((qa0&t) && (qa1&t) && (qa2&t) && (qa3&t)) goto bad;
       }
+      goto good;
+   case cr_consistent_roll:
+      if (ss->kind == s2x2) {
+         uint32_t tp = ss->or_all_people();
+         if ((tp & ROLL_DIRMASK) == 0 || (tp & ROLL_DIRMASK) == ROLL_DIRMASK) {
+            // No sweep deduced from roll info; maybe there is slide info.
+            if ((tp & NSLIDE_MASK) == 0 || (tp & NSLIDE_MASK) == NSLIDE_MASK)
+               goto bad;
+         }
+      }
+
       goto good;
    }
 
@@ -2658,6 +2683,11 @@ restriction_test_result verify_restriction(
          if (t1 && (t1 & 3)!=qa3) qa0 &= ~1;
          if (t2 && (t2 & 3)!=qa2) qa0 &= ~1;
          if ((t1|t2) == 0 && tt.assump_live) goto bad;
+         else if ((ss->cmd.cmd_misc3_flags & CMD_MISC3__UNDER_MELDED) != 0 &&
+                  (t1 == 0 || t2 == 0) && tt.assump_live)
+            // If it's under a melded command, demand both points nonzero.
+            // Need this to keep t02t, wd39t, le01t, and le02t happy.
+            goto bad;
       }
 
       if (qa1) {
@@ -2909,7 +2939,7 @@ restriction_test_result verify_restriction(
    case restriction_tester::chk_anti_groups:
       limit = rr->map2[0];
       // Under certain circumstances (dividing a qtag made of different-handedness single qtags)
-      // cr_miniwaves has no handedness.  (Though after division, in the qingle qtags, it will.)
+      // cr_miniwaves has no handedness.  (Though after division, in the single qtags, it will.)
       if (rr->map2[1] != 0) tt.assump_both = 0;
       map1item = rr->map1;
       szlim = rr->size*limit;
@@ -2919,9 +2949,9 @@ restriction_test_result verify_restriction(
 
          for (int jjj=0 ; jjj<rr->size ; jjj++) {
             if ((t = ss->people[map1item[0]].id1) != 0)     { qa0 |= t;   qa1 |= t^2; }
-            else if (local_negate) goto bad;    // All live people were demanded.
+            else if (local_negate || tt.assump_live) goto bad;    // All live people were demanded.
             if ((t = ss->people[map1item[szlim]].id1) != 0) { qa0 |= t^2; qa1 |= t;   }
-            else if (local_negate) goto bad;    // All live people were demanded.
+            else if (local_negate || tt.assump_live) goto bad;    // All live people were demanded.
             map1item++;
          }
 
@@ -3618,7 +3648,7 @@ bool check_for_concept_group(
        (get_meta_key_props(this_concept) & MKP_RESTRAIN_1))
       retstuff.m_need_to_restrain |= 1;
 
-   parse_block *skip_a_pair = (parse_block *) 0;
+   parse_block *double_skip = (parse_block *) 0;
    final_and_herit_flags junk_concepts;
 
    junk_concepts.clear_all_herit_and_final_bits();
@@ -3626,7 +3656,7 @@ bool check_for_concept_group(
 
    if (temp && temp != parseptrcopy && temp->concept->kind == concept_concentric &&
        !junk_concepts.bool_test_heritbits(~(INHERITFLAG_GRAND|INHERITFLAG_SINGLE|INHERITFLAG_CROSS))) {
-         skip_a_pair = temp;
+         double_skip = temp;
    }
    else {
       junk_concepts.clear_all_herit_and_final_bits();
@@ -3639,7 +3669,7 @@ bool check_for_concept_group(
             if ((temp->concept->kind == concept_tandem ||
                  temp->concept->kind == concept_frac_tandem) &&
                 (!junk_concepts.test_for_any_herit_or_final_bit())) {
-               skip_a_pair = temp;
+               double_skip = temp;
             }
          }
          else if (k == concept_snag_mystic && (this_concept->arg1 & CMD_MISC2__CENTRAL_MYSTIC)) {
@@ -3650,7 +3680,7 @@ bool check_for_concept_group(
                  temp->concept->kind == concept_multiple_boxes) &&
                 temp->concept->arg4 == 3 &&
                 (!junk_concepts.test_for_any_herit_or_final_bit())) {
-               skip_a_pair = temp;
+               double_skip = temp;
             }
          }
          else if (k == concept_parallelogram ||
@@ -3664,27 +3694,32 @@ bool check_for_concept_group(
                  temp->concept->kind == concept_do_phantom_boxes) &&
                 temp->concept->arg3 == MPKIND__SPLIT &&
                 (!junk_concepts.test_for_any_herit_or_final_bit())) {
-               skip_a_pair = temp;
+               // But not if being done "initially" or whatever.
+               // In that case the "parallelogram" (or whatever) and the
+               // "split phantom waves (or whatever)" are treated as one concept.
+               if (retstuff.m_meta_key != meta_key_nth_part_work &&
+                   retstuff.m_meta_key != meta_key_echo)
+                  double_skip = temp;
             }
          }
          else if (get_meta_key_props(this_concept) & MKP_RESTRAIN_2) {
             // Look for combinations like "random/initially/echo/nth-part-work <concept>".
-            skip_a_pair = parseptr_skip;
+            double_skip = parseptr_skip;
          }
          else if (k == concept_so_and_so_only &&
                   ((selective_key) parseptrcopy->concept->arg1) == selective_key_work_concept) {
             // Look for combinations like "<anyone> work <concept>".
-            skip_a_pair = parseptr_skip;
+            double_skip = parseptr_skip;
          }
          else if (k == concept_matrix) {
-            skip_a_pair = parseptr_skip;
+            double_skip = parseptr_skip;
          }
       }
    }
 
-   if (skip_a_pair) {
-      parseptrcopy = skip_a_pair;
-      next_parseptr = skip_a_pair;
+   if (double_skip) {
+      parseptrcopy = double_skip;
+      next_parseptr = double_skip;
       retval = true;
       goto try_again;
    }
@@ -3839,7 +3874,8 @@ extern callarray *assoc(
    begin_kind key,
    setup *ss,
    callarray *spec,
-   bool *specialpass /* = (bool *) 0 */) THROW_DECL
+   bool *specialpass /* = (bool *) 0 */,
+   uint64_t funnybits /* = 0ULL */) THROW_DECL
 {
    for (callarray *p = spec ; p ; p = p->next) {
       uint32_t k, t, u, w, mask;
@@ -3858,6 +3894,8 @@ extern callarray *assoc(
       // We need to be careful, and err on the side of acceptance.
 
       if (!ss) return p;
+
+      int begin_size = attr::slimit(ss)+1;
 
       // The bits of the "qualifierstuff" field have the following meaning
       //          (see definitions in database.h):
@@ -3919,8 +3957,18 @@ extern callarray *assoc(
          }
 
          // Either way, demand that it be the correct number.
-         if (((unsigned int) (p->qualifierstuff & QUALBIT__NUM_MASK) / QUALBIT__NUM_BIT) !=
-             (current_options.number_fields & NUMBER_FIELD_MASK)+1)
+         int t = (current_options.number_fields & NUMBER_FIELD_MASK);
+         if ((ss->cmd.callspec->the_defn.callflags1 & CFLAG1_IS_STAR_CALL) &&
+             current_options.star_turn_option != 0) {
+            if (current_options.star_turn_option == -1)
+               t = 0;
+            else
+               t = current_options.star_turn_option;   // The star turn number overrides.
+         }
+
+         // The "qualifierstuff" field is one higher than what the database author said.  That is "qualifier num 2"
+         // in the database gets 3 in current_options.number_fields.
+         if (((uint32_t) (p->qualifierstuff & QUALBIT__NUM_MASK) / QUALBIT__NUM_BIT) != (uint32_t) (t+1))
             continue;
       }
       else {
@@ -3962,9 +4010,14 @@ extern callarray *assoc(
          this_qualifier = cr_dmd_ctrs_mwv;
       }
 
-      if (this_qualifier == cr_none) {
+      if (this_qualifier == cr_not_funny) {
+         if ((funnybits & INHERITFLAG_FUNNY) != 0ULL)
+            goto bad;
+      }
+
+      if (this_qualifier == cr_none || this_qualifier == cr_not_funny) {
          if ((p->qualifierstuff / QUALBIT__LIVE) & 1) {   // All live people were demanded.
-            for (plaini=0; plaini<=attr::slimit(ss); plaini++) {
+                 for (plaini=0; plaini < begin_size; plaini++) {
                if ((ss->people[plaini].id1) == 0) goto bad;
             }
          }
@@ -3985,6 +4038,7 @@ extern callarray *assoc(
       k = 0;   // Many tests will find these values useful.
       mask = 0;
       uint32_t livemask;
+
       tt.assumption = this_qualifier;
       tt.assump_col = 0;
       tt.assump_cast = 0;
@@ -3992,6 +4046,7 @@ extern callarray *assoc(
       tt.assump_both = (p->qualifierstuff / QUALBIT__RIGHT) & 3;
 
       u = ss->or_all_people();
+      w = 0;
 
       switch (this_qualifier) {
       case cr_wave_only:
@@ -4068,21 +4123,27 @@ extern callarray *assoc(
       case cr_facing_someone:
          {
             predicate_descriptor *pred;
-            int begin_size = attr::slimit(ss)+1;
 
             switch (ssK) {
             case s1x2:
-               //            case s2x4:
                // This is the index for "2x1_facing_someone",
                pred = &pred_table[start_of_facing_tests+5];
                break;
+            case s1x3:
+               // This is the index for "3x1_facing_someone",
+               pred = &pred_table[start_of_facing_tests+6];
+               break;
             case s1x4:
                // This is the index for "4x1_facing_someone",
-               pred = &pred_table[start_of_facing_tests+6];
+               pred = &pred_table[start_of_facing_tests+7];
+               break;
+            case s1x6:
+               // This is the index for "6x1_facing_someone",
+               pred = &pred_table[start_of_facing_tests+8];
                break;
             case s1x8:
                // This is the index for "8x1_facing_someone",
-               pred = &pred_table[start_of_facing_tests+7];
+               pred = &pred_table[start_of_facing_tests+9];
                break;
             default:
                goto good;
@@ -4366,6 +4427,24 @@ extern callarray *assoc(
                                // could subdivide into 2x6's -- we'd better accept it.
 
          goto bad;   // If it's a 2x4, for example, it can't be a parallelogram.
+
+
+      case cr_have_roll_info:
+         for (plaini=0; plaini < begin_size; plaini++) {
+            u = ss->people[plaini].id1;
+            // Ignore people with both bits on.
+            if ((u & ROLL_DIRMASK) != ROLL_DIRMASK)
+               w |= u & ROLL_DIRMASK;
+         }
+
+         // Now if w is just ROLL_IS_R or ROLL_IS_L, we have a roll direction.
+
+         if (w == ROLL_IS_R && tt.assump_both == 2)
+            goto good;
+         else if (w == ROLL_IS_L && tt.assump_both == 1)
+            goto good;
+
+         goto bad;
       case cr_lateral_cols_empty:
          t = ss->or_all_people();
          mask = ss->little_endian_live_mask();
@@ -4485,7 +4564,7 @@ extern callarray *assoc(
       case cr_said_dmd:
          if (ss->cmd.cmd_misc3_flags & CMD_MISC3__SAID_DIAMOND) goto good;
          goto bad;
-      case cr_said_gal:
+      case cr_said_galaxy:
          if (ss->cmd.cmd_misc3_flags & CMD_MISC3__SAID_GALAXY) goto good;
          goto bad;
       case cr_didnt_say_tgl:
@@ -4498,6 +4577,9 @@ extern callarray *assoc(
       case cr_didnt_say_matrix:
          if (ss->cmd.cmd_misc_flags & CMD_MISC__EXPLICIT_MATRIX) goto bad;
          goto good;
+      case cr_phantom_in_use:
+         if (ss->cmd.cmd_misc_flags & CMD_MISC__PHANTOMS) goto good;
+         goto bad;
       case cr_occupied_as_h:
          if (ssK != s3x4 ||
              (ss->people[1].id1 | ss->people[2].id1 |
@@ -4598,6 +4680,9 @@ extern callarray *assoc(
       case cr_extend_inloutr:
          /* **** FELL THROUGH!!!!!! */
          goto check_tt;
+      case cr_ctr_pts_rh_or_fake_it:   // These two are very special, short6 only.
+      case cr_ctr_pts_lh_or_fake_it:
+         w = 1;
       case cr_ctr_pts_rh:
       case cr_ctr_pts_lh:
          {
@@ -4638,6 +4723,24 @@ extern callarray *assoc(
             case s_short6:
                // This one has the people facing sideways.
                ndir = d_east; sdir = d_west;
+
+               if (this_qualifier == cr_ctr_pts_rh_or_fake_it) {
+                  t1 = ss->people[3].id1;
+                  t2 = ss->people[0].id1;
+
+                  if ((t1 & d_mask) == d_west && (t2 & d_mask) == d_east)
+                     goto good;
+                  else goto bad;
+               }
+               else if (this_qualifier == cr_ctr_pts_lh_or_fake_it) {
+                  t1 = ss->people[2].id1;
+                  t2 = ss->people[5].id1;
+
+                  if ((t1 & d_mask) == d_west && (t2 & d_mask) == d_east)
+                     goto good;
+                  else goto bad;
+               }
+
                t1 = 1; t2 = 4; break;
             case s_star:
                // This has to look at headliner-sideliner-ness.  It
@@ -4738,9 +4841,61 @@ extern callarray *assoc(
          // we will test it more thoroughly.
          if (ssK == s2x4)
             goto good;
-      case cr_people_1_and_5_real:
-         if (ss->people[1].id1 & ss->people[5].id1) goto good;
+      case cr_people_1_opp_real:
+         if (ss->people[1].id1 != 0 && ss->people[(begin_size>>1)+1].id1 != 0)
+            goto good;
          goto bad;
+      case cr_people_12_opp_real:
+         if (ss->people[1].id1 != 0 && ss->people[(begin_size>>1)+1].id1 != 0 &&
+             ss->people[2].id1 != 0 && ss->people[(begin_size>>1)+2].id1 != 0) 
+            goto good;
+         goto bad;
+      case cr_people_34_opp_real:
+         if (ss->people[3].id1 != 0 && ss->people[(begin_size>>1)+3].id1 != 0 &&
+             ss->people[4].id1 != 0 && ss->people[(begin_size>>1)+4].id1 != 0) 
+            goto good;
+         goto bad;
+      case cr_people_0_opp_phan:
+         // We need 0 and 2 phantom, and, if this is of size 4, everyone else real.
+         // All kind of stupid.
+         if (begin_size == 4 && (ss->people[1].id1 == 0 || ss->people[3].id1 == 0))
+            goto bad;
+         if (ss->people[0].id1 != 0 || ss->people[(begin_size>>1)+0].id1 != 0)
+            goto bad;
+         goto good;
+
+      case cr_slide_seems_good:
+         {
+            if (ss->kind != s2x2) goto bad;
+
+            int left_count = 0;
+            int right_count = 0;
+
+            for (k=0 ; k<4 ; k++) {
+               if (ss->people[k].id1 & SLIDE_IS_L)
+                  left_count++;
+               else if ((ss->people[k].id1 & ROLL_DIRMASK) == ROLL_IS_R)
+                  left_count++;
+               if (ss->people[k].id1 & SLIDE_IS_R)
+                  right_count++;
+               else if ((ss->people[k].id1 & ROLL_DIRMASK) == ROLL_IS_L)
+                  right_count++;
+            }
+
+            // We want at least 3 people to agree on the slide direction.
+            // If we have a quorum, that is.
+            if (tt.assump_both == 2 && (left_count >= 3 || right_count == 0)) {
+               if (right_count != 0)
+                  warn(warn_controversial);
+               goto good;
+            }
+            else if (tt.assump_both == 1 && (right_count >= 3 || left_count == 0)) {
+               if (left_count != 0)
+                  warn(warn_controversial);
+               goto good;
+            }
+            goto bad;
+         }
 
       case cr_ptp_unwrap_sel:
       case cr_nor_unwrap_sel:
@@ -4762,6 +4917,7 @@ extern callarray *assoc(
          goto check_tt;
 
       case cr_levelplus:
+      case cr_levelpqr:
       case cr_levela1:
       case cr_levela2:
       case cr_levelc1:
@@ -5378,7 +5534,8 @@ parse_block *process_final_concepts(
 }
 
 
-skipped_concept_info::skipped_concept_info(parse_block *incoming) THROW_DECL
+skipped_concept_info::skipped_concept_info(parse_block *incoming,
+                                           meta_key_kind meta_key /* = meta_key_none */) THROW_DECL
 {
    if (!incoming)
       fail("Need a concept.");
@@ -5393,6 +5550,7 @@ skipped_concept_info::skipped_concept_info(parse_block *incoming) THROW_DECL
    m_result_of_skip = m_skipped_concept->next;
    m_need_to_restrain = 0;
    m_root_of_result_of_skip = (parse_block **) 0;
+   m_meta_key = meta_key;
 
    final_and_herit_flags junk_concepts;
    junk_concepts.clear_all_herit_and_final_bits();
@@ -5689,6 +5847,10 @@ bool fix_n_results(
             else
                rotstates &= 0xF00;
          }
+         else if (z[i].kind == sdbltrnglu) {
+               zirot = 0;  // The rotstate_table table won't understand what we are doing.
+               rotstates &= 0x033;
+         }
          else
             rotstates &= 0x033;
 
@@ -5971,11 +6133,7 @@ void normalize_setup(setup *ss, normalize_action action, qtag_compress_choice no
    tbonetest = ss->or_all_people();
    livemask = ss->little_endian_live_mask();
 
-   if (ss->kind == sfat2x8)
-      ss->kind = s2x8;     /* That's all it takes! */
-   else if (ss->kind == swide4x4)
-      ss->kind = s4x4;     /* That's all it takes! */
-   else if (ss->kind == s_dead_concentric && action > plain_normalize) {
+   if (ss->kind == s_dead_concentric && action > plain_normalize) {
       ss->kind = ss->inner.skind;
       ss->rotation += ss->inner.srotation;
       ss->eighth_rotation += ss->inner.seighth_rotation;
@@ -6014,6 +6172,10 @@ void normalize_setup(setup *ss, normalize_action action, qtag_compress_choice no
          goto startover;
       }
    }
+
+   // At the top level, these setups stay until user explicitly cuts them down.
+   if (action <= plain_normalize && (ss->kind == sdblthar || ss->kind == sdblalamo))
+      return;
 
    // Next, search for simple things in the hash table.
 
@@ -6266,7 +6428,7 @@ void check_concept_parse_tree(parse_block *conceptptr, bool strict) THROW_DECL
    }
 }
 
-bool check_for_centers_concept(uint32_t & callflags1_to_examine,   // We rewrite this.
+bool check_for_centers_concept(uint64_t & callflags1_to_examine,   // We rewrite this.
                                parse_block * & parse_scan,         // This too.
                                const setup_command *the_cmd) THROW_DECL
 {
@@ -6752,7 +6914,7 @@ void toplevelmove() THROW_DECL
    starting_setup.cmd.parseptr = conceptptr;
    starting_setup.cmd.callspec = (call_with_name *) 0;
    starting_setup.cmd.cmd_final_flags.clear_all_herit_and_final_bits();
-   starting_setup.result_flags.misc &= ~RESULTFLAG__DID_MXN_EXPANSION;
+   starting_setup.result_flags.misc &= RESULTFLAG__IMPRECISE_ROT;  // Leave that one on --- it's global.
    starting_setup.cmd.cmd_heritflags_to_save_from_mxn_expansion = 0ULL;
    move(&starting_setup, false, &newhist.state, true);
    newhist.state_is_valid = true;
@@ -6775,9 +6937,9 @@ void toplevelmove() THROW_DECL
       newhist.state.eighth_rotation += newhist.state.inner.seighth_rotation;
    }
 
-   // Once rotation is imprecise, it is always imprecise.  Same for the other flags copied here.
+   // Once rotation is imprecise, it is always imprecise.
    newhist.state.result_flags.misc |= starting_setup.result_flags.misc &
-      (RESULTFLAG__IMPRECISE_ROT|RESULTFLAG__ACTIVE_PHANTOMS_ON|RESULTFLAG__ACTIVE_PHANTOMS_OFF);
+      RESULTFLAG__IMPRECISE_ROT;
 }
 
 
@@ -6957,7 +7119,7 @@ bool do_subcall_query(
       // Star turn calls can have funny names like "nobox".
 
       gg77->unparse_call_name(
-         (orig_call->the_defn.callflagsf & CFLAG2_IS_STAR_CALL) ?
+         (orig_call->the_defn.callflags1 & CFLAG1_IS_STAR_CALL) ?
          "turn the star @b" : orig_call->name,
          pretty_call_name, &current_options);
 

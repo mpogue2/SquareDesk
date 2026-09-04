@@ -54,9 +54,11 @@ private: \
 #endif
 
 // this needs to match the version of the sd_doc.pdf that is in the Resources folder
-// This will be copied to the user's Reference folder, if "196.SD_<SD_VERSION>.pdf" does not exist.
+// This will be copied to the user's Reference folder as "<N>.SD_V<SD_VERSION>.pdf", if that does
+//   not exist. <N> is the number in mainwindow.cpp's latestSDFilename, which goes up by one on
+//   each SD update, so old copies are kept rather than replaced. sdlib/update_sd.sh bumps both.
 // User must delete the old one, if they don't want to see it.
-#define SD_VERSION "39.71"
+#define SD_VERSION "39.84"
 
 // for debugging
 #define DDD(x) qDebug() << __func__ << "line" << __LINE__ << "::" << #x << " = " << x;

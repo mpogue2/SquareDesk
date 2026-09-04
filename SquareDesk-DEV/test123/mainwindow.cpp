@@ -6205,7 +6205,7 @@ void MainWindow::maybeInstallReferencefiles() {
     // and populate it with the SD doc, if it didn't exist (somewhere) already
     bool hasSDpdf = false;
     bool hasNOSD = false;
-    QString latestSDFilename = "196.SD_V";
+    QString latestSDFilename = "197.SD_V";
     latestSDFilename = latestSDFilename + SD_VERSION + ".pdf";
 
     QDirIterator it(referenceDir);
@@ -7087,22 +7087,30 @@ void MainWindow::on_actionSD_Help_triggered()
     QString referenceDir = musicDirPath + "/reference";
 
     // ---------------
-    // Find something that looks like the SD doc (we probably copied it there)
+    // Find something that looks like the SD doc (we probably copied it there).
+    // Each SD update installs a new numbered copy alongside the old ones, e.g.
+    // 196.SD_V39.71.pdf and 197.SD_V39.84.pdf, so take the HIGHEST-numbered
+    // one -- QDirIterator does not promise any particular order. (#1713)
     bool hasSDpdf = false;
     QString pathToSDdoc;
+    int bestSDnum = -1;
 
     QDirIterator it(referenceDir);
     while(it.hasNext()) {
         it.next();
         QString s1 = it.fileName();
         // if 123.SD.pdf or SD.pdf, then do NOT copy one in as 195.SD.pdf
-        static QRegularExpression re10("^[0-9]+\\.SD_V[0-9]+\\.[0-9]+.pdf$"); // new hotness
+        static QRegularExpression re10("^([0-9]+)\\.SD_V[0-9]+\\.[0-9]+.pdf$"); // new hotness
         // static QRegularExpression re11("^[0-9]+\\.SD.pdf$"); // old
         // static QRegularExpression re12("^SD.pdf$");  // oldest
-        if (s1.contains(re10)) {
-            hasSDpdf = true;
-            pathToSDdoc = QString("file://") + referenceDir + "/" + s1;
-            break;
+        QRegularExpressionMatch m10 = re10.match(s1);
+        if (m10.hasMatch()) {
+            int thisSDnum = m10.captured(1).toInt();
+            if (thisSDnum > bestSDnum) {
+                bestSDnum = thisSDnum;
+                hasSDpdf = true;
+                pathToSDdoc = QString("file://") + referenceDir + "/" + s1;
+            }
         }
     }
 

@@ -39,7 +39,7 @@ class SDAvailableCall {
 public :
     dance_level dance_program;
     QString call_name;
-SDAvailableCall() : dance_program(l_mainstream), call_name() {}
+SDAvailableCall() : dance_program(l_xyz), call_name() {}  // l_xyz == mainstream26, our lowest level (#1713)
 };
 
 class QListWidget;

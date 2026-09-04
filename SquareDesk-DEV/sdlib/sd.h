@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2024  William B. Ackerman.
+//    Copyright (C) 1990-2025  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -730,8 +730,8 @@ enum {
    // These comprise a 2 bit field for slide info.
    NSLIDE_MASK      = 0x30000000U,  // mask of the field
    NSLIDE_BIT       = 0x10000000U,  // low bit of the field
-   SLIDE_IS_R       = 0x10000000U,
-   SLIDE_IS_L       = 0x20000000U,
+   SLIDE_IS_R       = 0x10000000U,  // "G"
+   SLIDE_IS_L       = 0x20000000U,  // "F"
 
    // These comprise a 3 bit field for roll info.
    // High bit says person moved.
@@ -740,9 +740,9 @@ enum {
    PERSON_MOVED     = 0x08000000U,
    ROLL_DIRMASK     = 0x06000000U,  // the low 2 bits, that control roll direction
    NROLL_BIT        = 0x02000000U,  // low bit of the field
-   ROLL_IS_R        = 0x02000000U,
-   ROLL_IS_L        = 0x04000000U,
-   ROLL_IS_M        = 0x06000000U,
+   ROLL_IS_R        = 0x02000000U,  // "R"
+   ROLL_IS_L        = 0x04000000U,  // "L"
+   ROLL_IS_M        = 0x06000000U,  // "M"
 
    NSLIDE_ROLL_MASK = NSLIDE_MASK | NROLL_MASK,   // Commonly used together.
 
@@ -1021,7 +1021,7 @@ struct by_def_item {
 };
 
 struct calldefn {
-   uint32_t callflags1;      // The CFLAG1_??? flags.
+   uint64_t callflags1;      // The CFLAG1_??? flags.
    heritflags callflagsherit; // The mask for the heritable flags.
    uint32_t callflagsf;    // The ESCAPE_WORD__???  and CFLAGH__??? flags.
    int8_t level;
@@ -1276,7 +1276,6 @@ struct fraction_command {
 // These bits are used to allocate flag bits
 // that appear in the "callflagsf" word of a top level calldefn block
 // and the "cmd_final_flags.final" of a setup with its command block.
-// We need to leave the top 16 bits free in order to accomodate the "CFLAG2" bits.
 
 enum {
    // A 3-bit field.
@@ -1492,18 +1491,22 @@ enum selector_kind {
    selector_columnright,
    selector_boxleft,
    selector_boxright,
-   selector_nearfour,
-   selector_farfour,
+   selector_nearest1,
+   selector_farthest1,
    selector_neartwo,
    selector_fartwo,
-   selector_nearsix,
-   selector_farsix,
    selector_nearthree,
    selector_farthree,
-   selector_neartriangle,
-   selector_fartriangle,
+   selector_nearfour,
+   selector_farfour,
    selector_nearfive,
    selector_farfive,
+   selector_nearsix,
+   selector_farsix,
+   selector_nearseven,
+   selector_farseven,
+   selector_neartriangle,
+   selector_fartriangle,
    selector_the2x3,
    selector_thetriangle,
    selector_thediamond,
@@ -1513,10 +1516,6 @@ enum selector_kind {
    selector_facingback,
    selector_facingleft,
    selector_facingright,
-   selector_farthest1,
-   selector_nearest1,
-   selector_nearseven,
-   selector_farseven,
    // Another WHO_YOU_ARE group.  It runs up to TGL_START, exclusive.
    selector_boy1,    selector_WHO_YOU_ARE_2_START = selector_boy1,
    selector_girl1,
@@ -1691,6 +1690,7 @@ public:
    bool no_check_call_level;      // if true, don't check whether this call
                                   // is at the level
    bool say_and;                  // Used by "randomize" -- put "AND" in front of this
+   bool concentric_4p;            // To make "concentric" concept do 4-person setup only.
 
    static parse_block *get_parse_block_mark();    // In sdutil.cpp
    static parse_block *get_parse_block();         // In sdutil.cpp
@@ -1801,7 +1801,7 @@ struct resultflag_rec {
    // BEWARE!!!  If add fields to this, be sure to initialize them in constructor, below.
    uint16_t split_info[2];  // The split stuff.  X in slot 0, Y in slot 1.
    uint32_t misc;           // Miscellaneous info, with names like RESULTFLAG__???.
-   heritflags res_heritflags_to_save_from_mxn_expansion;   // Used if misc has RESULTFLAG__DID_MXN_EXPANSION bit on.
+   heritflags res_heritflags_to_save_from_mxn_expansion;   // Used if misc has RESULTFLAG__REQUEST_MXN_COMPRESSION bit on.
                            // Gets copied to command block for next cycle of sequential call.
 
    inline void clear_split_info()
@@ -1827,7 +1827,10 @@ struct resultflag_rec {
    }
 };
 
-enum { MAX_PEOPLE = 24 };
+// Attempting to increase this will run afoul of many things, including
+// collision_collector::fix_possible_collision, and the various
+// "get_directions" things.
+enum { MAX_PEOPLE = 32 };
 
 struct small_setup {
    setup_kind skind;
@@ -1926,8 +1929,7 @@ void put_in_absolute_proximity_and_facing_bits();
 
 void touch_or_rear_back(
    bool did_mirror,
-   int callflags1) THROW_DECL;
-
+   uint64_t callflags1) THROW_DECL;
 };
 
 
@@ -2028,6 +2030,7 @@ enum {
    CONCPROP__NEEDK_QUAD_1X3  = 0x000001F0U,
    CONCPROP__NEEDK_1X6       = 0x00000200U,
    CONCPROP__NEEDK_1X8       = 0x00000210U,
+   CONCPROP__NEEDK_BIGDMD    = 0x00000220U,
 
    CONCPROP__NEED_ARG2_MATRIX= 0x00000400U,
    CONCPROP__USE_DIRECTION   = 0x00000800U,
@@ -2111,6 +2114,8 @@ enum start_select_kind {
    start_select_heads_start,
    start_select_sides_start,
    start_select_as_they_are,
+   start_select_headsface,
+   start_select_sidesface,
    start_select_two_couple,     // End of items that are keyed to startinfolist.
    start_select_toggle_conc,
    start_select_toggle_singlespace,
@@ -2648,6 +2653,19 @@ extern SDLIB_API int number_of_calls[call_list_extent];
 
 
 extern SDLIB_API bool using_active_phantoms;                        /* in SDTOP */
+
+/* If "using_active_phantoms" is enabled (a toggleable user option), the state of
+   "active_phantoms_in_this_sequence" tells whether the state of the "active phantoms"
+   mode flag was used in this sequence.  If it was read and found to be on,
+   active_phantoms_in_this_sequence is set to 2.  If it was read and found to be off,
+   htis is is set to 1.  It is, of course, read any time an "assume <whatever> concept
+   is invoked.  This information is used to tell what kind of annotation to place in the
+   transcript file to tell what assumptions were made.  The reason for having both
+   states separately is that the state of the active phantoms mode can be toggled at
+   arbitrary times, so a single card might have both usages.  In that unusual case, we
+   want to so indicate on the card. */
+
+extern SDLIB_API int active_phantoms_in_this_sequence;              /* in SDTOP */
 extern SDLIB_API bool two_couple_calling;                           /* in SDTOP */
 extern SDLIB_API bool expanding_database;                           /* in SDTOP */
 extern SDLIB_API int trace_progress;                                /* in SDTOP */
@@ -3016,6 +3034,17 @@ class select {
       fx_fdblbentccw,
       fx_fcrookedcw,
       fx_fcrookedccw,
+
+      fx_dblthar0,
+      fx_dblthar1,
+      fx_dblthar2,
+      fx_dblthar3,
+
+      fx_dblalamo0,
+      fx_dblalamo1,
+      fx_dblalamo2,
+      fx_dblalamo3,
+
       fx_fspindlc,
       fx_fspindlf,
       fx_fspindlg,
@@ -3370,6 +3399,8 @@ class select {
       fx_f2x4pos6,
       fx_f2x4pos7,
       fx_f2x4pos8,
+      fx_ftglu1,
+      fx_ftglu2,
       fx_f2x4pos02,
       fx_f2x4pos13,
       fx_f2x4posa,
@@ -3724,7 +3755,7 @@ class tglmap {
 };
 
 
-typedef uint32_t id_bit_table[4]; // -mpogue, 2025/01/21: some values don't fit in a signed int32, but all are OK in unsigned int32
+typedef uint32_t id_bit_table[4];
 
 struct ctr_end_mask_rec {
    uint32_t mask_normal;
@@ -3757,8 +3788,8 @@ struct coordrec {
    // search in any case.  Doing it this way means that the picture area, 64 bytes, is
    // wasted, but it's just more straightforward this way.
    int xfactor;
-   int8_t xca[24];
-   int8_t yca[24];
+   int8_t xca[MAX_PEOPLE];
+   int8_t yca[MAX_PEOPLE];
    int8_t diagram[64];
 };
 
@@ -4030,17 +4061,6 @@ struct nice_setup_info_item {
    concept.  Otherwise, we might end up saying "magic diamond single wheel" when
    we should have said "magic diamond, diamond single wheel".
 
-   RESULTFLAG__ACTIVE_PHANTOMS_ON and _OFF tell whether the state of the "active
-   phantoms" mode flag was used in this sequence.  If it was read and found to
-   be on, RESULTFLAG__ACTIVE_PHANTOMS_ON is set.  If it was read and found to
-   be off, RESULTFLAG__ACTIVE_PHANTOMS_OFF is set.  It is, of course, read any
-   time an "assume <whatever> concept is invoked.  This information is used to
-   tell what kind of annotation to place in the transcript file to tell what
-   assumptions were made.  The reason for having both bits is that the state
-   of the active phantoms mode can be toggled at arbitrary times, so a single
-   card might have both usages.  In that unusual case, we want to so indicate
-   on the card.
-
    RESULTFLAG__DID_SHORT6_2X3 means that we fudged a short6 to a 2x3
    (with permission), and, if we are putting back a concentric formation,
    we may need to act accordingly.
@@ -4067,14 +4087,12 @@ enum {
    RESULTFLAG__DID_NEXTTOLAST_PART  = 0x00000008U,
    RESULTFLAG__SECONDARY_DONE       = 0x00000010U,
    RESULTFLAG__PARTS_ARE_KNOWN      = 0x00000020U,
-
    RESULTFLAG__NEED_DIAMOND         = 0x00000040U,
-   RESULTFLAG__DID_MXN_EXPANSION    = 0x00000080U,
-   RESULTFLAG__COMPRESSED_FROM_2X3  = 0x00000100U,
-   RESULTFLAG__EMPTY_1X4_TO_2X2     = 0x00000200U,
-
-   RESULTFLAG__ACTIVE_PHANTOMS_ON   = 0x00000400U,
-   RESULTFLAG__ACTIVE_PHANTOMS_OFF  = 0x00000800U,
+   RESULTFLAG__REQUEST_MXN_COMPRESSION = 0x00000080U,
+   RESULTFLAG__DEFER_MXN_COMPRESSION = 0x00000100U,
+   RESULTFLAG__COMPRESSED_FROM_2X3  = 0x00000200U,
+   RESULTFLAG__EMPTY_1X4_TO_2X2     = 0x00000400U,
+   RESULTFLAG__RECTIFY_ACCEPTED     = 0x00000800U,
    RESULTFLAG__EXPAND_TO_2X3        = 0x00001000U,
    RESULTFLAG__PRESERVE_INCOMING_EXPIRATIONS = 0x00002000U,
 
@@ -4102,7 +4120,6 @@ enum {
    RESULTFLAG__FORCE_SPOTS_ALWAYS   = 0x20000000U,
    RESULTFLAG__INVADED_SPACE        = 0x40000000U,
    RESULTFLAG__STOP_OVERCAST_CHECK  = 0x80000000U
-   // No spares!
 };
 
 
@@ -4596,7 +4613,8 @@ enum {
    CMD_MISC3__SPECIAL_NUMBER_INVOKE= 0x08000000U,
    CMD_MISC3__NO_FUDGY_2X3_FIX     = 0x10000000U,
    CMD_MISC3__RECTIFY              = 0x20000000U,
-   CMD_MISC3__REDUCED_BY_TANDEM    = 0x40000000U
+   CMD_MISC3__REDUCED_BY_TANDEM    = 0x40000000U,
+   CMD_MISC3__UNDER_MELDED         = 0x80000000U
 };
 
 enum normalize_action {
@@ -4633,7 +4651,7 @@ class expand {
    // initialized arrays.
 
    struct thing {
-      int8_t source_indices[24];
+      int8_t source_indices[MAX_PEOPLE];
       setup_kind inner_kind;
       setup_kind outer_kind;
       int rot;
@@ -4831,6 +4849,7 @@ enum part_key_kind {
 
 // BEWARE!!  This list is keyed to the table "meta_key_props" in sdtables.cpp .
 enum meta_key_kind {
+   meta_key_none,
    meta_key_random,
    meta_key_rev_random,   // Must follow meta_key_random.
    meta_key_piecewise,
@@ -4986,12 +5005,15 @@ extern const expand::thing s_qtg_3x4;
 extern const expand::thing s_short6_2x3;
 extern const expand::thing s_bigrig_dblbone;
 extern const expand::thing s_bigbone_dblrig;
-extern const int8_t identity24[24];
+extern const expand::thing s_bigh_dblthar;
+extern const expand::thing s4x6_dblalamo;
+extern const int8_t identity32[32];
 extern full_expand::thing rear_1x2_pair;
 extern full_expand::thing rear_2x2_pair;
 extern full_expand::thing rear_bone_pair;
 extern full_expand::thing step_8ch_pair;
 extern full_expand::thing step_qtag_pair;
+extern full_expand::thing step_bone_pair;
 extern full_expand::thing step_2x2h_pair;
 extern full_expand::thing step_2x2v_pair;
 extern full_expand::thing step_spindle_pair;
@@ -5037,12 +5059,48 @@ enum mpkind {
    MPKIND__MAGIC,
    MPKIND__INTLKDMD,
    MPKIND__MAGICINTLKDMD,
-   MPKIND__OFFS_L_ONEQ,
+
+   MPKIND__OFFS_L_ONEQ,    // split: 1
    MPKIND__OFFS_R_ONEQ,
+   MPKIND__OFFS_L_ONEQ_LAT,
+   MPKIND__OFFS_R_ONEQ_LAT,
+   MPKIND__OFFS_L_HALF,    // 2
+   MPKIND__OFFS_R_HALF,
+   MPKIND__OFFS_L_HALF_LAT,
+   MPKIND__OFFS_R_HALF_LAT,
+   MPKIND__OFFS_L_THRQ,    // 3
+   MPKIND__OFFS_R_THRQ,
+   MPKIND__OFFS_L_FULL,    // 4
+   MPKIND__OFFS_R_FULL,
+
+   MPKIND__OFFS_L_ONEQ_INTLK,    // interlocked: 1
+   MPKIND__OFFS_R_ONEQ_INTLK,
+   MPKIND__OFFS_L_ONEQ_LAT_INTLK,
+   MPKIND__OFFS_R_ONEQ_LAT_INTLK,
+   MPKIND__OFFS_L_HALF_INTLK,    // 2
+   MPKIND__OFFS_R_HALF_INTLK,
+   MPKIND__OFFS_L_HALF_LAT_INTLK,
+   MPKIND__OFFS_R_HALF_LAT_INTLK,
+   MPKIND__OFFS_L_THRQ_INTLK,    // 3
+   MPKIND__OFFS_R_THRQ_INTLK,
+   MPKIND__OFFS_L_FULL_INTLK,    // 4
+   MPKIND__OFFS_R_FULL_INTLK,
+
+   MPKIND__OFFS_L_ONEQ_CONCPHAN,    // concphan: 1
+   MPKIND__OFFS_R_ONEQ_CONCPHAN,
+   MPKIND__OFFS_L_ONEQ_LAT_CONCPHAN,
+   MPKIND__OFFS_R_ONEQ_LAT_CONCPHAN,
+   MPKIND__OFFS_L_HALF_CONCPHAN,    // 2
+   MPKIND__OFFS_R_HALF_CONCPHAN,
+   MPKIND__OFFS_L_HALF_LAT_CONCPHAN,
+   MPKIND__OFFS_R_HALF_LAT_CONCPHAN,
+   MPKIND__OFFS_L_THRQ_CONCPHAN,    // 3
+   MPKIND__OFFS_R_THRQ_CONCPHAN,
+   MPKIND__OFFS_L_FULL_CONCPHAN,    // 4
+   MPKIND__OFFS_R_FULL_CONCPHAN,
+
    MPKIND__OFFS_L_THIRD,
    MPKIND__OFFS_R_THIRD,
-   MPKIND__OFFS_L_HALF,
-   MPKIND__OFFS_R_HALF,
    MPKIND__OFFSPG_L1,
    MPKIND__OFFSPG_L2,
    MPKIND__OFFSPG_R1,
@@ -5053,10 +5111,6 @@ enum mpkind {
    MPKIND__OVLOFS_R_HALF,
    MPKIND__OFFS_L_HALF_STAGGER,
    MPKIND__OFFS_R_HALF_STAGGER,
-   MPKIND__OFFS_L_THRQ,
-   MPKIND__OFFS_R_THRQ,
-   MPKIND__OFFS_L_FULL,
-   MPKIND__OFFS_R_FULL,
    MPKIND__OFFS_BOTH_FULL,
    MPKIND__OFFS_BOTH_SINGLEV,
    MPKIND__OFFS_BOTH_SINGLEH,
@@ -5072,6 +5126,7 @@ enum mpkind {
    MPKIND__4_QUADRANTS_WITH_45_ROTATION,
    MPKIND__4_EDGES_FROM_4X4,
    MPKIND__4_EDGES,
+   MPKIND__4_EDGES_REALLY_ALTERNATING,
    MPKIND__ALL_8,
    MPKIND__DMD_STUFF,
    MPKIND__NONISOTROPDMD,
@@ -5201,13 +5256,6 @@ enum specmapkind {
    spcmap_diag23b,
    spcmap_diag23c,
    spcmap_diag23d,
-   spcmap_f2x8_4x4,
-   spcmap_f2x8_4x4h,
-   spcmap_w4x4_4x4,
-   spcmap_w4x4_4x4h,
-   spcmap_f2x8_2x8,
-   spcmap_f2x8_2x8h,
-   spcmap_w4x4_2x8,
    spcmap_emergency1,
    spcmap_emergency2,
    spcmap_fix_triple_turnstyle,
@@ -5359,14 +5407,17 @@ struct skipped_concept_info {
    parse_block *m_result_of_skip;
    parse_block **m_root_of_result_of_skip;
    uint32_t m_nocmd_misc3_bits;
+   meta_key_kind m_meta_key = meta_key_none;
 
    skipped_concept_info() : m_nocmd_misc3_bits(0) {}
-   skipped_concept_info(parse_block *incoming) THROW_DECL;    // In SDTOP
+   skipped_concept_info(parse_block *incoming,
+                        meta_key_kind meta_key = meta_key_none) THROW_DECL;    // In SDTOP
    parse_block *get_next() {
       parse_block *t = (m_heritflag != 0ULL) ? m_concept_with_root : m_result_of_skip;
       if (!t)
          fail("Need a concept.");
-      return t; }
+      return t;
+   }
 };
 
 extern bool check_for_concept_group(
@@ -5388,7 +5439,8 @@ extern callarray *assoc(
    begin_kind key,
    setup *ss,
    callarray *spec,
-   bool *specialpass = (bool *) 0) THROW_DECL;
+   bool *specialpass = (bool *) 0,
+   uint64_t funnybits = 0ULL) THROW_DECL;
 
 uint32_t uncompress_position_number(uint32_t datum);
 
@@ -5416,7 +5468,7 @@ inline uint32_t setup::or_all_people() const
 
 inline void setup::clear_people()
 {
-   memset(people, 0, sizeof(personrec)*MAX_PEOPLE);
+   ::memset(people, 0, sizeof(personrec)*MAX_PEOPLE);
 }
 
 
@@ -5521,7 +5573,7 @@ void normalize_setup(setup *ss, normalize_action action, qtag_compress_choice no
 
 void check_concept_parse_tree(parse_block *conceptptr, bool strict) THROW_DECL;
 
-bool check_for_centers_concept(uint32_t & callflags1_to_examine,     // We rewrite this.
+bool check_for_centers_concept(uint64_t & callflags1_to_examine,     // We rewrite this.
                                parse_block * & parse_scan,         // This too.
                                const setup_command *the_cmd) THROW_DECL;
 
@@ -5698,6 +5750,7 @@ public:
 
    // Simple constructor, takes argument saying whether collisions will be legal.
    collision_collector(setup *const result, collision_severity allow):
+      m_beware_mystic_collision(false),
       m_result_ptr(result),
       m_allow_collisions(allow),
       m_collision_mask(0),
@@ -5708,24 +5761,27 @@ public:
       m_cmd_misc_flags(0),
       m_collision_appears_illegal(1),  // Halfway between "appears_illegal"
                                        // and not -- use table item.
-      m_result_mask(0)
+      m_result_mask(0),
+      m_extra_collided_people(*result)
    {
       m_extra_collided_people.clear_people();
    }
 
    // Glorious constructor, takes all sorts of stuff.
    collision_collector(setup *const result, bool mirror,
-                       setup_command *cmd, const calldefn *callspec):
+                       setup_command *cmd, uint64_t callflags1):
+      m_beware_mystic_collision(false),
       m_result_ptr(result),
       m_allow_collisions(collision_severity_ok),
       m_collision_mask(0),
-      m_callflags1(callspec->callflags1),
+      m_callflags1(callflags1),
       m_assume_ptr(&cmd->cmd_assume),
       m_force_mirror_warn(mirror),
       m_doing_half_override(false),
       m_cmd_misc_flags(cmd->cmd_misc_flags),
       m_collision_appears_illegal(0),  // May change to 2 as call progresses.
-      m_result_mask(0)
+      m_result_mask(0),
+      m_extra_collided_people(*result)
    {
       m_extra_collided_people.clear_people();
       // If doing half of a call, and doing it left,
@@ -5742,20 +5798,21 @@ public:
    uint32_t * install_with_collision(
       int resultplace,
       const setup *sourcepeople, int sourceplace,
-      int rot,
-      bool force_moved_bit = false) THROW_DECL;
+      int rot) THROW_DECL;
 
    void fix_possible_collision(merge_action_type action = merge_strict_matrix,
                                uint32_t callarray_flags = 0,
                                setup *ss = (setup *) 0) THROW_DECL;
 
+public:
+   bool m_beware_mystic_collision;
+
 private:
    setup *const m_result_ptr;
-   setup m_extra_collided_people;
    const collision_severity m_allow_collisions;
    int m_collision_index;
    uint32_t m_collision_mask;
-   uint32_t m_callflags1;
+   uint64_t m_callflags1;
    assumption_thing *m_assume_ptr;
    bool m_force_mirror_warn;
    bool m_doing_half_override;
@@ -5765,6 +5822,7 @@ private:
    // used when a collision occurs between the two groups doing an "own the anyone" operation.
    int m_collision_appears_illegal;
    uint32_t m_result_mask;
+   setup m_extra_collided_people;
 };
 
 extern void mirror_this(setup *s) THROW_DECL;
@@ -5823,7 +5881,8 @@ extern uint32_t do_call_in_series(
    bool qtfudged) THROW_DECL;
 
 extern void brute_force_merge(const setup *res1, const setup *res2,
-                              merge_action_type action, setup *result) THROW_DECL;
+                              merge_action_type action, bool beware_mystic_collision,
+                              setup *result) THROW_DECL;
 
 extern void drag_someone_and_move(setup *ss, parse_block *parseptr, setup *result) THROW_DECL;
 
@@ -5863,8 +5922,7 @@ void really_inner_move(
    bool qtfudged,
    const calldefn *callspec,
    calldef_schema the_schema,
-   uint32_t callflags1,
-   uint32_t callflagsf,
+   uint64_t callflags1,
    uint32_t override_concentric_rules,
    bool did_4x4_expansion,
    uint32_t imprecise_rotation_result_flagmisc,
@@ -6300,8 +6358,19 @@ class ui_option_type {
    // the second parameter.  This allows using a specific seed while allowing the
    // time to be a value that might overrun if in debug mode.
 
-   int resolve_test_minutes;
+   // The switch "resolve_test <N> <K> <L>" sets the number of attempts per log printing.
+   // When L is nonzero, after every L attempts the random number that was used at that
+   // will be printed.  This is intended for situations in which the program crashes
+   // after a long time (hours) in a stress test in release mode, and running it in
+   // debug mode would take prohibitively long.  Set L to some number so that the random
+   // number is logged at some random interval.  When it crashes, note the printed number,
+   // and run it again with that number as the seed and a smaller value of L.  It should
+   // get to the bad case sooner.  When L is small enough, it should be possible to do
+   // this in debug mode and locate the crash exactly.
+
    int resolve_test_random_seed;
+   int resolve_test_minutes;
+   int resolve_test_attempts_per_print;
 
    int singing_call_mode;
 
@@ -6349,7 +6418,7 @@ struct parse_state_type {
    parse_block **concept_write_ptr;
    parse_block **concept_write_base;
    char specialprompt[MAX_TEXT_LINE_LENGTH];
-   uint32_t topcallflags1;
+   uint64_t topcallflags1;
    call_list_kind call_list_to_use;
    call_list_kind base_call_list_to_use;
 };
@@ -6479,7 +6548,7 @@ extern SDLIB_API int text_line_count;                               /* in SDTOP 
 extern SDLIB_API bool there_is_a_call;                              /* in SDTOP */
 extern SDLIB_API int no_erase_before_this;                          /* in SDTOP */
 extern SDLIB_API int written_history_nopic;                         /* in SDTOP */
-extern SDLIB_API uint32_t the_topcallflags;                         /* in SDTOP */
+extern SDLIB_API uint64_t the_topcallflags;                         /* in SDTOP */
 
 /* In SDTOP */
 

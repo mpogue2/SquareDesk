@@ -103,8 +103,12 @@ extern bool parse_level(Cstring s, Cstring *break_ptr /*= 0*/)
    if (break_ptr) *break_ptr = breakpos;
 
    switch (s[0]) {
-      case 'm': case 'M': calling_level = l_mainstream; return true;
-      case 'p': case 'P': case '+': calling_level = l_plus; return true;
+      case 'm': case 'M':
+         calling_level = (s[len-1] == '6') ? l_xyz : l_mainstream;
+         return true;
+      case 'p': case 'P': case '+':
+         calling_level = (s[len-1] == '6') ? l_pqr : l_plus;
+         return true;
       case 'a': case 'A':
          if (s[1] == '1' && len == 2) calling_level = l_a1;
          else if (s[1] == '2' && len == 2) calling_level = l_a2;
@@ -973,7 +977,7 @@ static void read_in_call_definition(calldefn *root_to_use, int char_count)
          zz = new calldef_block;
          zz->next = 0;
          zz->modifier_seth = 0ULL;
-         zz->modifier_level = l_mainstream;
+         zz->modifier_level = l_xyz;
          root_to_use->stuff.arr.def_list = zz;
 
          read_array_def_blocks(zz);    // The first group.
@@ -1046,24 +1050,20 @@ static void read_in_call_definition(calldefn *root_to_use, int char_count)
    root_to_use->compound_part = (calldefn *) 0;
 
    if (last_datum == 0x3FFF) {
-      calldef_schema call_schema;
-
       calldefn *recursed_call_root = new calldefn;
 
-      read_halfword();       // Get level (not really) and 16 bits of "callflags2" stuff.
-      uint32_t saveflags1overflow = last_datum;
-      read_fullword();       // Get top level flags, first word.
-                             // This is the "callflags1" stuff.
-      uint32_t saveflags1 = last_datum;
+      read_fullword();       // Get level (not really) and 16 bits of "callflags2" stuff.
+      uint64_t flags1word = ((uint64_t) last_datum) << 32;
+      read_fullword();
+      flags1word |= last_datum;
       // The "heritflags" stuff, two full words, right then left.
       heritflags saveflagsherit = read_hugeword();
       read_halfword();       // Get char count (ignore same) and schema.
-      call_schema = (calldef_schema) (last_datum & 0xFF);
+      calldef_schema call_schema = (calldef_schema) (last_datum & 0xFF);
       recursed_call_root->level = 0;
       recursed_call_root->schema = call_schema;
-      recursed_call_root->callflags1 = saveflags1;
-      recursed_call_root->callflagsf = saveflags1overflow << 16;
-      // Will get "CFLAGH" and "ESCAPE_WORD" bits later.
+      recursed_call_root->callflags1 = flags1word;
+      recursed_call_root->callflagsf = 0;
       recursed_call_root->callflagsherit = saveflagsherit;
       read_in_call_definition(recursed_call_root, 0);    // Recurse.
       root_to_use->compound_part = recursed_call_root;
@@ -1711,21 +1711,18 @@ static void build_database_1(abridge_mode_t abridge_mode)
 
       dance_level this_calls_level = (dance_level) (read_8_from_database() & 0xFF);
 
-      read_halfword();       // Get 16 bits of "callflags1"  overflow stuff.
-      uint32_t saveflags1overflow = last_datum;
-
-      // This is the "callflags1" stuff.
       read_fullword();
-      uint32_t saveflags1 = last_datum;
+      uint64_t flags1word = ((uint64_t) last_datum) << 32;
+      read_fullword();
+      flags1word |= last_datum;
 
       // Deal with the special "base_circ_call" / phony "force" info.
       heritflags phonyheritbit = 0ULL;
-      if (saveflags1 & CFLAG1_BASE_CIRC_CALL) {
+      if (flags1word & CFLAG1_BASE_CIRC_CALL) {
          phonyheritbit = read_hugeword();
       }
 
-      // The "heritflags" stuff, 64-bit "hugeword".
-      heritflags saveflagsherit = read_hugeword();
+      heritflags flagshword = read_hugeword();
 
       read_halfword();       // Get char count and schema.
       call_schema = (calldef_schema) (last_datum & 0xFF);
@@ -1740,6 +1737,9 @@ static void build_database_1(abridge_mode_t abridge_mode)
       call_root = (call_with_name *) ::operator new(sizeof(call_with_name) + char_count - 3);
       call_root->menu_name = (Cstring) 0;
 
+      call_root->the_defn.callflagsherit = flagshword;
+      call_root->the_defn.callflags1 = flags1word;
+
       if (savetag) {
          check_tag(savetag);
          base_calls[savetag] = call_root;
@@ -1747,10 +1747,7 @@ static void build_database_1(abridge_mode_t abridge_mode)
 
       call_root->the_defn.level = (int) this_calls_level;
       call_root->the_defn.schema = call_schema;
-      call_root->the_defn.callflags1 = saveflags1;
-      call_root->the_defn.callflagsf = saveflags1overflow << 16;
-      // Will get "CFLAGH" and "ESCAPE_WORD" bits later.
-      call_root->the_defn.callflagsherit = saveflagsherit;
+      call_root->the_defn.callflagsf = 0;
 
       read_in_call_definition(&call_root->the_defn, char_count);
 
@@ -2028,6 +2025,18 @@ void configuration::initialize()
       0600|d_east,ID2_B4,  0700|d_east,ID2_G4,
       0x9ADE1256));
 
+   configuration::initialize_startinfolist_item(start_select_headsface, "Heads face (while the sides move in and) ...", false, new setup(s2x4, 1,
+      0400|d_south,ID2_B3, 0300|d_south,ID2_G2,
+      0200|d_south,ID2_B2, 0100|d_south,ID2_G1,
+      0000|d_north,ID2_B1, 0700|d_north,ID2_G4,
+      0600|d_north,ID2_B4, 0500|d_north,ID2_G3));
+
+   configuration::initialize_startinfolist_item(start_select_sidesface, "Sides face (while the heads move in and) ...", false, new setup(s2x4, 0,
+      0600|d_south,ID2_B4, 0500|d_south,ID2_G3,
+      0400|d_south,ID2_B3, 0300|d_south,ID2_G2,
+      0200|d_north,ID2_B2, 0100|d_north,ID2_G1,
+      0000|d_north,ID2_B1, 0700|d_north,ID2_G4));
+
    configuration::initialize_startinfolist_item(start_select_two_couple, "Two couples only", false, new setup(s2x2, 0,
       0500|d_south,ID2_G3, 0400|d_south,ID2_B3,
       0100|d_north,ID2_G1, 0000|d_north,ID2_B1,
@@ -2198,6 +2207,12 @@ bool open_session(int argc, char **argv)
                   if (sscanf(args[argno+1], "%d", &ui_options.resolve_test_random_seed) != 1)
                      gg77->iob88.bad_argument("Bad number", args[argno+1], 0);
                }
+
+               if (argno+2 < nargs) {
+                  argno++;
+                  if (sscanf(args[argno+1], "%d", &ui_options.resolve_test_attempts_per_print) != 1)
+                     gg77->iob88.bad_argument("Bad number", args[argno+1], 0);
+               }
             }
          }
          else if (strcmp(&args[argno][1], "print_length") == 0) {
@@ -2282,7 +2297,7 @@ bool open_session(int argc, char **argv)
       }
       else if (!parse_level(args[argno])) {
          gg77->iob88.bad_argument("Unknown calling level argument", args[argno],
-            "Known calling levels: m, p, a1, a2, c1, c2, c3a, c3, c3x, c4a, c4, or c4x.");
+            "Known calling levels: m, p, m26, p26, a1, a2, c1, c2, c3a, c3, c3x, c4a, c4, or c4x.");
       }
    }
 

@@ -147,6 +147,7 @@ extern void general_initialize()
    unsigned int seed = (ui_options.resolve_test_random_seed != 0) ?
       ui_options.resolve_test_random_seed : (uint32_t) time((time_t *) 0);
    random_number = seed;
+   hashed_randoms = random_number * 1000;
    resolve_test_count = 0;
 }
 

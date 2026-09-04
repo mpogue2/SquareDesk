@@ -128,6 +128,16 @@
 
 s_tinyhyperbone -- like s_hyperbone, but all 4 trngl4's are on top of each other.
 
+s_bighyperbone
+            11  6
+            10  7
+               8
+    0  1       9      16 17
+         2  3    15 14
+    5  4      21      13 12
+              20
+            19  22
+            18  23
 */
 
 
@@ -366,6 +376,8 @@ static collision_map collision_map_table[] = {
     sdmd,    s_1x2dmd,        0, warn__none, 0},
    {3, 0x000000000000000A, 0x0B, 0x01, {0, 1, 3},            {0, 2, 5},             {1, 2, 5},
     sdmd,    s_1x2dmd,        0, warn__none, 0},
+   {6, 0x000000000000030C, 0x71c, 0x410, {2, 3, 4, 8, 9, 10}, {2, 3, 4, 8, 9, 11}, {2, 3, 5, 8, 9, 10},
+    sbigdmd, sbigdmd,        0,  warn__none, 0},   // in "wings" of bigdmd
    // These items handle columns with people wedged everywhere, and hence handle unwraps of facing diamonds etc.
    {4, 0x0000005500000055, 0x55, 0x55, {0, 2, 4, 6},         {12, 14, 2, 11},       {10, 3, 4, 6},
     s2x4,        s4x4,        0, warn__none, 0x40000000},
@@ -646,8 +658,7 @@ static collision_map collision_map_table[] = {
 uint32_t * collision_collector::install_with_collision(
    int resultplace,
    const setup *sourcepeople, int sourceplace,
-   int rot,
-   bool force_moved_bit /* = false */) THROW_DECL
+   int rot) THROW_DECL
 {
    if (resultplace < 0) fail("This would go into an excessively large matrix.");
    m_result_mask |= 1<<resultplace;
@@ -655,6 +666,7 @@ uint32_t * collision_collector::install_with_collision(
 
    if (m_result_ptr->people[resultplace].id1) {
       // We have a collision.
+
       // Prepare the error message, in case it is needed.
       collision_person1 = m_result_ptr->people[resultplace].id1;
       collision_person2 = sourcepeople->people[sourceplace].id1;
@@ -716,15 +728,24 @@ void collision_collector::fix_possible_collision(merge_action_type action /*= me
    if (!m_collision_mask) return;
 
    int i;
-   setup spare_setup = *m_result_ptr;
+   setup local_setup = *m_result_ptr;
    bool kill_ends = false;
    uint64_t lowbitmask = 0ULL;
+   uint64_t junk;
+   uint64_t localdirmask;
+   uint64_t extradirmask;
    collision_map *c_map_ptr;
 
    m_result_ptr->clear_people();
 
+   local_setup.big_endian_get_directions64(localdirmask, junk);
+   m_extra_collided_people.big_endian_get_directions64(extradirmask, junk);
+
+   // **** Can we use some "get_mask" function for this?
+   // If MAX_PEOPLE is more than 32, we are in trouble.
    for (i=0; i<MAX_PEOPLE; i++) {
-      lowbitmask |= ((uint64_t) (spare_setup.people[i].id1) & UINT64_C(1)) << i;
+      // One bit per person.
+      lowbitmask |= ((uint64_t) (local_setup.people[i].id1) & UINT64_C(1)) << i;
       lowbitmask |= ((uint64_t) (m_extra_collided_people.people[i].id1) & UINT64_C(1)) << (i+32);
    }
 
@@ -779,25 +800,27 @@ void collision_collector::fix_possible_collision(merge_action_type action /*= me
          // rather than accept the table entry and deal with the warnings that it raises.
          // So we only do the "goto win" in certain circumstances.
 
-         if (c_map_ptr->warning == warn_bad_collision)
-            goto win;   // Entries with this warning always know exactly what they are doing.
+      if (c_map_ptr->warning == warn_bad_collision)
+         goto win;   // Entries with this warning always know exactly what they are doing.
 
-         // If doing real as_couples call, we reject certain maps and pick up the next one.
-         if (action == merge_c1_phantom_real_couples && (c_map_ptr->assume_key & 0x20000000))
-            continue;
+      // If doing real as_couples call, we reject certain maps and pick up the next one.
+      if (action == merge_c1_phantom_real_couples && (c_map_ptr->assume_key & 0x20000000))
+         continue;
 
-         if ((m_collision_appears_illegal & 6) ||
-             ((m_collision_appears_illegal & 1) &&
-              (c_map_ptr->assume_key & 0x80000000)))
-            continue;
-         else
-            goto win;
+      if ((m_collision_appears_illegal & 6) ||
+          ((m_collision_appears_illegal & 1) &&
+           (c_map_ptr->assume_key & 0x80000000)))
+         continue;
+      else
+         goto win;
    }
 
    // Don't recognize the pattern, report this as normal collision.
    throw error_flag_type(error_flag_collision);
 
  win:
+
+   bool handedness_warning = false;
 
    if ((callarray_flags & CAF__NO_CUTTING_THROUGH) && (c_map_ptr->assume_key & 0x08000000))
       fail("Call's collision has outsides cutting through the middle of the set.");
@@ -821,6 +844,7 @@ void collision_collector::fix_possible_collision(merge_action_type action /*= me
          warn(warn__left_half_pass);
    }
    else {
+      handedness_warning = true;
       if (m_cmd_misc_flags & CMD_MISC__EXPLICIT_MIRROR)
          warn(warn__take_left_hands);
       else if (c_map_ptr->warning != warn__really_no_collision)
@@ -839,10 +863,10 @@ void collision_collector::fix_possible_collision(merge_action_type action /*= me
    for (i=0; i<c_map_ptr->size; i++) {
       int oldperson;
 
-      oldperson = spare_setup.people[c_map_ptr->source[i]].id1;
+      oldperson = local_setup.people[c_map_ptr->source[i]].id1;
       install_rot(m_result_ptr,
                   (((oldperson ^ flip) & 2) ? c_map_ptr->map1 : c_map_ptr->map0)[i],
-                  &spare_setup,
+                  &local_setup,
                   c_map_ptr->source[i],
                   temprot);
 
@@ -853,6 +877,15 @@ void collision_collector::fix_possible_collision(merge_action_type action /*= me
                   c_map_ptr->source[i],
                   temprot);
    }
+
+   // When centers and ends have different handedness, we do not want the original centers,
+   // when they collide and take hands, to be adjacent to each other.  Same with the ends.
+   // We want the final collided setup to have original centers and ends to be interleaved.
+   // Why is this the right thing?  No one knows.  But see Git issue #8, "mystic the action".
+
+   if (localdirmask == 0x802 && extradirmask == 0x208 && m_beware_mystic_collision &&
+       handedness_warning && m_result_ptr->kind == s2x8)
+      fail("Collision among groups of different handedness.");
 
    if (kill_ends) {
       const int8_t m3276[] = {3, 2, 7, 6};
@@ -867,14 +900,14 @@ void collision_collector::fix_possible_collision(merge_action_type action /*= me
            m_result_ptr->people[5].id1))
          fail("Need an assumption in order to take right hands at collision.");
 
-      spare_setup = *m_result_ptr;
+      local_setup = *m_result_ptr;
 
       if (m_result_ptr->kind == s_crosswave) {
-         gather(m_result_ptr, &spare_setup, m2367, 3, 033);
+         gather(m_result_ptr, &local_setup, m2367, 3, 033);
          m_result_ptr->rotation++;
       }
       else {
-         gather(m_result_ptr, &spare_setup, m3276, 3, 0);
+         gather(m_result_ptr, &local_setup, m3276, 3, 0);
       }
 
       m_result_ptr->kind = s1x4;
@@ -999,9 +1032,9 @@ static const coordrec tgl4_rotated = {s_trngl4, 0x23,
          s->kind = s->outer.skind;
          s->rotation = s->outer.srotation;
          s->eighth_rotation = s->outer.seighth_rotation;
-         for (i=0 ; i<12 ; i++) s->swap_people(i, i+12);
+         for (i=0 ; i<MAX_PEOPLE/2 ; i++) s->swap_people(i, i+MAX_PEOPLE/2);
          mirror_this(s);    // Sorrier!
-         for (i=0 ; i<12 ; i++) s->swap_people(i, i+12);
+         for (i=0 ; i<MAX_PEOPLE/2 ; i++) s->swap_people(i, i+MAX_PEOPLE/2);
          s->outer.srotation = s->rotation;
          s->outer.seighth_rotation = s->eighth_rotation;
 
@@ -1066,6 +1099,8 @@ static const int8_t ftcspn[8] = {6, 11, 13, 17, 22, 27, 29, 1};
 static const int8_t ftcbone[8] = {6, 13, 18, 19, 22, 29, 2, 3};
 static const int8_t ftc2x1dmd[6] = {1, 2, 4, 7, 8, 10};
 static const int8_t ftl2x1dmd[9] = {10, 1, 2, 4, 7, 8, 10, 1, 2};
+static const int8_t ftc2x3qtag[6] = {5, 7, 0, 1, 3, 4};
+static const int8_t ftcxwvqtag[9] = {-1, 2, -1, -1, 6, -1, -1, 2, -1};
 static const int8_t qhypergall[8] = {1, 8, 10, -1, 9, 0, 2, -1};
 static const int8_t qhypergalc[8] = {-1, 3, 7, -1, -1, 11, 15, -1};
 
@@ -1189,6 +1224,9 @@ static const int8_t tinyhyperbonel[20] = {-1, -1,  3,  2, -1, -1, -1, -1,
 static const int8_t tinyhyperboneb[20] = { 3,  0, -1, -1, -1, -1, -1, -1,
                                            1,  2, -1, -1, -1, -1, -1, -1,
                                            3,  0, -1, -1};
+
+static const int8_t bighyperbone[24] = { -1, -1, -1, -1, -1, -1, 0, 1, 2, 3, 10, 11,
+                                         -1, -1, -1, -1, -1, -1, 6, 7, 8, 9, 4, 5};
 
 static const int8_t galhyperv[15] = {0, 7, 5, 6, 0, 0, 0, 3, 1, 2, 0, 4, 0, 7, 5};
 static const int8_t qtghyperh[12] = {6, 7, 0, 0, 0, 1, 2, 3, 4, 0, 0, 5};
@@ -1639,7 +1677,7 @@ static uint32_t do_slide_roll(uint32_t person_in, uint32_t z, int direction)
 }
 
 static void put_person_away(setup *destination, callarray *tdef, personrec & this_person, uint32_t z, int real_index,
-                            int real_direction, int k, uint16_t resultrot, int newplacelist[], uint32_t lilresult_mask[])
+                            int real_direction, int k, uint16_t resultrot, int newplacelist[], uint32_t localmask[])
 {
    destination->people[real_index].id1 = do_slide_roll(this_person.id1, z, real_direction);
 
@@ -1659,7 +1697,7 @@ static void put_person_away(setup *destination, callarray *tdef, personrec & thi
    }
 
    newplacelist[real_index] = k;
-   lilresult_mask[k>>5] |= (1 << (k&037));
+   localmask[(k&077)>>5] |= (1 << (k&037));
 }
 
 
@@ -1709,6 +1747,8 @@ static void special_4_way_symm(
    static const int8_t table_2x3_4dmd[6] = {6, 11, 13, 22, 27, 29};
 
    static const int8_t table_bigd_x4dmd[12] = {7, 5, 10, 11, 14, 12, 23, 21, 26, 27, 30, 28};
+
+   static const int8_t table_bigb_xbigb[12] = {0, 1, 2, 3, 16, 17, 12, 13, 14, 15, 4, 5};
 
    static const int8_t line_table[4] = {0, 1, 6, 7};
 
@@ -1784,6 +1824,10 @@ static void special_4_way_symm(
    case sbigdmd:
       result->kind = sx4dmd;
       the_table = table_bigd_x4dmd;
+      break;
+   case sbigbone:
+      result->kind = s_bighyperbone;
+      the_table = table_bigb_xbigb;
       break;
    default:
       fail("Don't recognize ending setup for this call.");
@@ -1919,14 +1963,14 @@ static void special_triangle(
 
 static void warn_unless_one_person_call(setup *ss, warning_index w)
 {
-   if ((ss->cmd.callspec->the_defn.callflagsf & CFLAG2_ONE_PERSON_CALL) == 0)
+   if ((ss->cmd.callspec->the_defn.callflags1 & CFLAG1_ONE_PERSON_CALL) == 0)
       warn(w);
 }
 
 
 
 static bool handle_3x4_division(
-   setup *ss, uint32_t callflags1, uint32_t callflagsf, uint32_t newtb, uint32_t livemask,
+   setup *ss, uint64_t callflags1, uint32_t newtb, uint32_t livemask,
    uint32_t & division_code,            // We write over this.
    callarray *calldeflist, bool matrix_aware, setup *result)
 {
@@ -1951,7 +1995,7 @@ static bool handle_3x4_division(
 
       if ((!(newtb & 001) || assoc(b_2x3, ss, calldeflist)) &&
           (!(newtb & 010) || assoc(b_3x2, ss, calldeflist) ||
-           ((callflagsf & CFLAG2_CAN_DO_IN_Z) &&
+           ((callflags1 & CFLAG1_CAN_DO_IN_Z) &&
             (livemask == 06565 || livemask == 07272) && 
             assoc(b_2x2, ss, calldeflist)))) {
          division_code = MAPCODE(s2x3,2,MPKIND__SPLIT,1);
@@ -2135,7 +2179,7 @@ static bool handle_3x4_division(
 
 
 static bool handle_4x4_division(
-   setup *ss, uint32_t callflags1, uint32_t newtb, uint32_t livemask,
+   setup *ss, uint64_t callflags1, uint32_t newtb, uint32_t livemask,
    uint32_t & division_code,            // We write over this.
    int & finalrot,                    // We write over this.
    callarray *calldeflist, bool matrix_aware)
@@ -2403,7 +2447,7 @@ static bool handle_4x4_division(
 
 
 static bool handle_4x6_division(
-   setup *ss, uint32_t callflags1, uint32_t newtb, uint32_t livemask,
+   setup *ss, uint64_t callflags1, uint32_t newtb, uint32_t livemask,
    uint32_t & division_code,            // We write over this.
    callarray *calldeflist, bool matrix_aware)
 {
@@ -2518,7 +2562,7 @@ static bool handle_4x6_division(
 
 
 static bool handle_3x8_division(
-   setup *ss, uint32_t callflags1, uint32_t newtb, uint32_t livemask,
+   setup *ss, uint64_t callflags1, uint32_t newtb, uint32_t livemask,
    uint32_t & division_code,            // We write over this.
    callarray *calldeflist, bool matrix_aware)
 {
@@ -2566,7 +2610,7 @@ static bool handle_3x8_division(
 
 
 static bool handle_2x12_division(
-   setup *ss, uint32_t callflags1, uint32_t newtb, uint32_t livemask,
+   setup *ss, uint64_t callflags1, uint32_t newtb, uint32_t livemask,
    uint32_t & division_code,            // We write over this.
    callarray *calldeflist, bool matrix_aware)
 {
@@ -2634,8 +2678,7 @@ static int divide_the_setup(
    callarray *have_1x2, *have_2x1, *have_2x2;
    uint32_t division_code = ~0U;
    uint32_t newtb = *newtb_p;
-   uint32_t callflags1 = ss->cmd.callspec->the_defn.callflags1;
-   uint32_t callflagsf = ss->cmd.callspec->the_defn.callflagsf;
+   uint64_t callflags1 = ss->cmd.callspec->the_defn.callflags1;
    final_and_herit_flags final_concepts = ss->cmd.cmd_final_flags;
    setup_command conc_cmd;
    uint32_t must_do_mystic = ss->cmd.cmd_misc2_flags & CMD_MISC2__CTR_END_KMASK;
@@ -2739,6 +2782,12 @@ static int divide_the_setup(
          }
       }
 
+      // 4x4 given?  We know what to do.
+      if (ss->cmd.cmd_final_flags.herit == INHERITFLAGNXNK_4X4) {
+         division_code = MAPCODE(s2x4,2,MPKIND__SPLIT,0);
+         goto divide_us_no_recompute;
+      }
+
       // Setup is randomly populated.  See if we have 1x2/1x1 definitions, but no 2x2,
       // 2x3, or other unseemly things.
       // If so, divide the 2x8 into 2 2x4's and proceed from there.
@@ -2820,7 +2869,7 @@ static int divide_the_setup(
          if ((!(newtb & 010) || assoc(b_2x3, ss, calldeflist)) &&
              (!(newtb & 001) ||
               assoc(b_3x2, ss, calldeflist) ||
-              ((callflagsf & CFLAG2_CAN_DO_IN_Z) && assoc(b_2x2, ss, calldeflist)))) {
+              ((callflags1 & CFLAG1_CAN_DO_IN_Z) && assoc(b_2x2, ss, calldeflist)))) {
             division_code = MAPCODE(s2x3,2,MPKIND__SPLIT,0);
             // See comment above about abomination.
             // If database said to split, don't give warning, unless said "3x3".
@@ -3318,6 +3367,19 @@ static int divide_the_setup(
       }
 
       goto divide_us_no_recompute;
+
+   case sbigh:
+      division_code = MAPCODE(s1x2,6,MPKIND__4_EDGES,1);
+      goto divide_us_no_recompute;
+
+   case sdblthar:
+      division_code = MAPCODE(s1x2,8,MPKIND__4_EDGES_REALLY_ALTERNATING,0);
+      goto divide_us_no_recompute;
+
+   case sdblalamo:
+      division_code = MAPCODE(s1x2,8,MPKIND__4_EDGES_REALLY_ALTERNATING,1);
+      goto divide_us_no_recompute;
+
    case sbigdmd:
 
       // The only way this can be legal is if people are in genuine "T" spots.
@@ -3507,7 +3569,7 @@ static int divide_the_setup(
 
       break;
    case s3x4:
-      if (handle_3x4_division(ss, callflags1, callflagsf, newtb, livemask,
+      if (handle_3x4_division(ss, callflags1, newtb, livemask,
                               division_code, calldeflist, matrix_aware, result))
          goto divide_us_no_recompute;
       return 1;
@@ -3722,7 +3784,7 @@ static int divide_the_setup(
    case s2x3:
       // If the "CAN_DO_IN_Z" flag is on (e.g. peel off), we accept a 2x2 def'n as
       // being as good as a 3x2 def'n.
-      if ((!(newtb & 010)) && (callflagsf & CFLAG2_CAN_DO_IN_Z) && assoc(b_2x2, ss, calldeflist)) {
+      if ((!(newtb & 010)) && (callflags1 & CFLAG1_CAN_DO_IN_Z) && assoc(b_2x2, ss, calldeflist)) {
          if ((livemask & 011) == 0)
             division_code = MAPCODE(s2x2,1,MPKIND__OFFS_R_HALF,1);
          else if ((livemask & 044) == 0)
@@ -4391,6 +4453,9 @@ static int divide_the_setup(
    case sdbltrngl4:
       division_code = HETERO_MAPCODE(s_trngl4,2,MPKIND__HET_SPLIT,1,s_trngl4,0x5);
       goto divide_us_no_recompute;
+   case sdbltrnglu:
+      division_code = HETERO_MAPCODE(s_trngl,2,MPKIND__HET_SPLIT,1,s_trngl,0x2);
+      goto divide_us_no_recompute;
    case sdbltrngl:
       division_code = HETERO_MAPCODE(s_trngl,2,MPKIND__HET_SPLIT,1,s_trngl,0x5);
       goto divide_us_no_recompute;
@@ -4658,6 +4723,9 @@ static uint32_t do_actual_array_call(
    bool & check_peeloff_migration,
    setup *result) THROW_DECL
 {
+   uint32_t lilresult_mask[2];
+   lilresult_mask[0] = 0;
+   lilresult_mask[1] = 0;
    int inconsistent_rotation = 0;
    uint32_t resultflagsmisc = 0;
    int inconsistent_setup = 0;
@@ -4671,8 +4739,12 @@ static uint32_t do_actual_array_call(
    setup newpersonlist;
    int newplacelist[MAX_PEOPLE];
    bool need_to_normalize = false;
+   bool specialhetero = false;
+   setup_kind tempkind;
+   setup_kind Lresult_kind;
 
    newpersonlist.clear_people();
+   Lresult_kind = linedefinition ? linedefinition->get_end_setup() : nothing;
 
    // This shouldn't happen, but we are being very careful here.
    if (ss->cmd.cmd_misc2_flags & CMD_MISC2__CTR_END_MASK)
@@ -4885,22 +4957,11 @@ static uint32_t do_actual_array_call(
       goto fixup;
    }
    else {
-      uint32_t lilresult_mask[2];
-      setup_kind tempkind;
-
       result->rotation = goodies->callarray_flags & CAF__ROT;
       result->rotation_offset_from_true_north = ss->rotation_offset_from_true_north;
       num = attr::slimit(ss)+1;
       halfnum = num >> 1;
       tempkind = result->kind;
-      lilresult_mask[0] = 0;
-      lilresult_mask[1] = 0;
-
-      if (funnybits != 0ULL) {
-         if ((ss->kind != result->kind) || result->rotation ||
-             inconsistent_rotation || inconsistent_setup)
-            fail("Can't do 'funny' shape-changer.");
-      }
 
       // Check for a 1x4 call around the outside that
       // sends people far away without permission.
@@ -4930,9 +4991,9 @@ static uint32_t do_actual_array_call(
       if ((ss->kind == s2x2 || ss->kind == s2x3) &&
           (orig_elongation & 0x3F) != 0 &&
           !(ss->cmd.cmd_misc_flags & CMD_MISC__NO_CHK_ELONG)) {
-         if (callspec->callflagsf & CFLAG2_NO_ELONGATION_ALLOWED)
+         if (callspec->callflags1 & CFLAG1_NO_ELONGATION_ALLOWED)
             fail_no_retry("Call can't be done around the outside of the set.");
-         if (callspec->callflagsf & CFLAG2_WARN_ON_ELONGATION) {
+         if (callspec->callflags1 & CFLAG1_WARN_ON_ELONGATION) {
             if (calling_level >= concentric_level)
                warn(warn__maybe_use_concentric);
             else
@@ -4975,8 +5036,8 @@ static uint32_t do_actual_array_call(
       }
       else {
          int halfnumoutl, halfnumoutc, numoutl, numoutc;
-         const int8_t *final_translatec = identity24;
-         const int8_t *final_translatel = identity24;
+         const int8_t *final_translatec = identity32;
+         const int8_t *final_translatel = identity32;
          int rotfudge_line = 0;
          int rotfudge_col = 0;
          numoutl = attr::slimit(result)+1;
@@ -4985,39 +5046,45 @@ static uint32_t do_actual_array_call(
          uint32_t oddness = (numoutl & 1) ? numoutl-1 : 0;
 
          if (inconsistent_setup) {
-            setup_kind other_kind = linedefinition->get_end_setup();
-
             if (inconsistent_rotation) {
 
                struct arraycallfixer {
                   setup_kind reskind;
                   setup_kind otherkind;
                   setup_kind finalkind;
+                  int rotc;
+                  int rotl;
+                  int rotfinal;
                   const int8_t *final_c;
                   const int8_t *final_l;
                   bool onlyifequalize;
+                  bool specialhetero;
                };
 
                arraycallfixer arraycallfixtable[] = {
-                  {s_spindle, s_crosswave, sx4dmd, ftcspn, ftlcwv, false},
-                  {s_bone, s_qtag, sx4dmdbone, ftcbone, ftlbigqtg, false},
-                  {s_short6, s_2x1dmd, s_short6, identity24, ftlshort6dmd, false},
-                  {s_2x1dmd, s1x6, sx1x6, ftc2x1dmd, ftl2x1dmd, false},
-                  {s2x4, s_qtag, sxequlize, ftequalize, ftlqtg, true}, // Complicated T-boned "transfer and []".
-                  {s2x4, s_qtag, s2x4, identity24, qtg2x4, false},
-                  {s_qtag, s2x4, s_qtag, identity24, f2x4qtg, false},
-                  {s_c1phan, s2x4, s_c1phan, identity24, f2x4phan, false},
+                  {s_spindle, s_crosswave, sx4dmd, 0, 3, 0, ftcspn, ftlcwv, false, false},
+                  {s_bone, s_qtag, sx4dmdbone, 0, 3, 0, ftcbone, ftlbigqtg, false, false},
+                  {s_short6, s_2x1dmd, s_short6, 0, 3, 0, identity32, ftlshort6dmd, false, false},
+                  {s_2x1dmd, s1x6, sx1x6, 0, 3, 0, ftc2x1dmd, ftl2x1dmd, false, false},
+                  {s2x3, s_crosswave, s_qtag, 3, 2, 1, ftc2x3qtag, ftcxwvqtag, false, false}, // Complicated 1/2 funny circulate
+                  {s2x4, s_qtag, sxequlize, 0, 3, 0, ftequalize, ftlqtg, true, false}, // Complicated T-boned "transfer and []".
+                  {s2x4, s_qtag, s2x4, 0, 0, 0, identity32, identity32, false, true},      // **** Special "2 steps at a time" thing.
+                  {s_qtag, s2x4, s_qtag, 0, 3, 0, identity32, f2x4qtg, false, false},
+                  {s_c1phan, s2x4, s_c1phan, 0, 3, 0, identity32, f2x4phan, false, false},
                   {nothing},
                };
 
                for (arraycallfixer *p = arraycallfixtable ; p->reskind != nothing ; p++) {
-                  if (result->kind == p->reskind && other_kind == p->otherkind &&
-                      (!p->onlyifequalize || (callspec->callflagsf & CFLAG2_EQUALIZE))) {
+                  if (result->kind == p->reskind && Lresult_kind == p->otherkind &&
+                      (!p->onlyifequalize || (callspec->callflags1 & CFLAG1_EQUALIZE))) {
                      result->kind = p->finalkind;
+                     result->rotation += p->rotfinal;
                      tempkind = result->kind;
                      final_translatec = p->final_c;
                      final_translatel = p->final_l;
-                     rotfudge_line = 3;
+                     rotfudge_col = p->rotc;
+                     rotfudge_line = p->rotl;
+                     specialhetero = p->specialhetero;
 
                      if (!(goodies->callarray_flags & CAF__ROT)) {
                         final_translatel += (attr::klimit(p->reskind) + 1) >> 1;
@@ -5028,7 +5095,7 @@ static uint32_t do_actual_array_call(
                   }
                }
 
-               if (result->kind == s2x4 && other_kind == s_hrglass) {
+               if (result->kind == s2x4 && Lresult_kind == s_hrglass) {
                   result->rotation = linedefinition->callarray_flags & CAF__ROT;
                   result->kind = s_hrglass;
                   tempkind = s_hrglass;
@@ -5042,7 +5109,7 @@ static uint32_t do_actual_array_call(
                      rotfudge_col = 3;
                   }
                }
-               else if (result->kind == s_hrglass && other_kind == s2x4) {
+               else if (result->kind == s_hrglass && Lresult_kind == s2x4) {
                   result->rotation = linedefinition->callarray_flags & CAF__ROT;
                   result->kind = s2x4;
                   tempkind = s2x4;
@@ -5056,7 +5123,7 @@ static uint32_t do_actual_array_call(
                      rotfudge_col = 3;
                   }
                }
-               else if (result->kind == s_qtag && other_kind == s_bone) {
+               else if (result->kind == s_qtag && Lresult_kind == s_bone) {
                   result->rotation = linedefinition->callarray_flags & CAF__ROT;
                   result->kind = sx4dmdbone;
                   tempkind = sx4dmdbone;
@@ -5075,47 +5142,47 @@ static uint32_t do_actual_array_call(
                   fail("T-bone call went to a weird setup.");
             }
             else {
-               if (result->kind == s4x4 && other_kind == s2x4) {
-                  numoutl = attr::klimit(other_kind)+1;
+               if (result->kind == s4x4 && Lresult_kind == s2x4) {
+                  numoutl = attr::klimit(Lresult_kind)+1;
                   final_translatel = ftc4x4;
                }
-               else if (result->kind == srigger12 && other_kind == s1x12) {
+               else if (result->kind == srigger12 && Lresult_kind == s1x12) {
                   final_translatel = ftrig12;
                }
-               else if (result->kind == s4x4 && other_kind == s_qtag) {
-                  numoutl = attr::klimit(other_kind)+1;
+               else if (result->kind == s4x4 && Lresult_kind == s_qtag) {
+                  numoutl = attr::klimit(Lresult_kind)+1;
                   result->kind = sbigh;
                   tempkind = sbigh;
                   final_translatec = ft4x4bh;
                   final_translatel = ftqtgbh;
                }
-               else if (result->kind == s4x4 && other_kind == s2x6) {
-                  numoutl = attr::klimit(other_kind)+1;
+               else if (result->kind == s4x4 && Lresult_kind == s2x6) {
+                  numoutl = attr::klimit(Lresult_kind)+1;
                   result->kind = s4x6;
                   tempkind = s4x6;
                   final_translatec = ft4x446;
                   final_translatel = ft2646;
                }
-               else if (result->kind == sbigbone && other_kind == s3x4) {
+               else if (result->kind == sbigbone && Lresult_kind == s3x4) {
                   tempkind = result->kind;
                   final_translatel = ft3x4bb;
                }
-               else if (result->kind == s2x4 && other_kind == s2x6) {
-                  numoutl = attr::klimit(other_kind)+1;
+               else if (result->kind == s2x4 && Lresult_kind == s2x6) {
+                  numoutl = attr::klimit(Lresult_kind)+1;
                   result->kind = s2x6;
                   tempkind = s2x6;
                   final_translatec = ft2x42x6;
                }
-               else if (result->kind == s_c1phan && other_kind == s2x4) {
-                  numoutl = attr::klimit(other_kind)+1;
+               else if (result->kind == s_c1phan && Lresult_kind == s2x4) {
+                  numoutl = attr::klimit(Lresult_kind)+1;
                   final_translatel = ftcphan;
                }
-               else if (result->kind == s2x4 && other_kind == s_bone) {
+               else if (result->kind == s2x4 && Lresult_kind == s_bone) {
                   // We seem to be doing a complicated T-boned "busy []".
                   // Check whether we have been requested to "equalize",
                   // in which case we can do glorious things like going into
                   // a center diamond.
-                  if ((callspec->callflagsf & CFLAG2_EQUALIZE)) {
+                  if ((callspec->callflags1 & CFLAG1_EQUALIZE)) {
                      result->kind = shypergal;
                      tempkind = shypergal;
                      final_translatec = qhypergalc;
@@ -5125,20 +5192,20 @@ static uint32_t do_actual_array_call(
                      final_translatel = qtlbone;
                   }
                }
-               else if (result->kind == s_bone && other_kind == s2x4) {
+               else if (result->kind == s_bone && Lresult_kind == s2x4) {
                   final_translatel = qtlbone2;
                }
-               else if (result->kind == s1x8 && other_kind == s_crosswave) {
+               else if (result->kind == s1x8 && Lresult_kind == s_crosswave) {
                   final_translatel = qtlxwv;
                }
-               else if (result->kind == s1x8 && other_kind == s_qtag) {
+               else if (result->kind == s1x8 && Lresult_kind == s_qtag) {
                   final_translatel = qtl1x8;
                }
-               else if (result->kind == s_rigger && other_kind == s1x8) {
+               else if (result->kind == s_rigger && Lresult_kind == s1x8) {
                   final_translatel = qtlrig;
                }
-               else if (result->kind == s_hyperglass && other_kind == s_qtag) {
-                  numoutl = attr::klimit(other_kind)+1;
+               else if (result->kind == s_hyperglass && Lresult_kind == s_qtag) {
+                  numoutl = attr::klimit(Lresult_kind)+1;
                   final_translatel = qtlgls;
                }
                else
@@ -5230,8 +5297,16 @@ static uint32_t do_actual_array_call(
                kt = final_translate[where];
                if (kt < 0) fail("T-bone call went to a weird and confused setup.");
 
-               put_person_away(&newpersonlist, goodies, this_person, z, real_index, final_direction, kt,
-                               final_direction - real_direction + result->rotation, newplacelist, lilresult_mask);
+               put_person_away(&newpersonlist,
+                               goodies,
+                               this_person,
+                               z,
+                               real_index,
+                               final_direction,
+                               kt + ((specialhetero && (real_direction & 1)) ? 64 : 0),
+                               final_direction - real_direction + result->rotation,
+                               newplacelist,
+                               lilresult_mask);
             }
          }
       }
@@ -5843,6 +5918,19 @@ static uint32_t do_actual_array_call(
             else
                fail("Call went to improperly-formed setup.");
             break;
+         case s_bighyperbone:
+            if ((lilresult_mask[0] & 0x03F03F) == 0) {
+               result->kind = sbigbone;
+               permuter = bighyperbone;
+               rotator = 1;
+            }
+            else if ((lilresult_mask[0] & 0xFC0FC0) == 0) {
+               result->kind = sbigbone;
+               permuter = bighyperbone+6;
+            }
+            else
+               fail("Call went to improperly-formed setup.");
+            break;
          case s_2stars:
             if ((lilresult_mask[0] & 0xCC) == 0) {
                result->kind = s2x2;
@@ -5957,7 +6045,10 @@ static uint32_t do_actual_array_call(
       // the stuff for handling the nuances of the call definition and the
       // assumption.
 
-      collision_collector CC(result, mirror, &ss->cmd, callspec);
+      collision_collector CC(result, mirror, &ss->cmd, callspec->callflags1);
+      setup secondresult = *result;    // Just clone the main result to get a few things.
+      secondresult.clear_people();     // Just making sure.
+      collision_collector secondCC(&secondresult, mirror, &ss->cmd, callspec->callflags1);
 
       for (real_index=0; real_index<num; real_index++) {
          personrec newperson = newpersonlist.people[real_index];
@@ -6011,8 +6102,18 @@ static uint32_t do_actual_array_call(
                }
             }
             else {              // Un-funny move.
-               CC.install_with_collision(newplacelist[real_index],
-                                         &newpersonlist, real_index, 0);
+               if (specialhetero) {
+                  if (newplacelist[real_index] >= 64)
+                     CC.install_with_collision(newplacelist[real_index] - 64,
+                                               &newpersonlist, real_index, 0);
+                  else
+                     secondCC.install_with_collision(newplacelist[real_index],
+                                                     &newpersonlist, real_index, 0);
+               }
+               else {
+                  CC.install_with_collision(newplacelist[real_index],
+                                            &newpersonlist, real_index, 0);
+               }
             }
          }
       }
@@ -6029,6 +6130,14 @@ static uint32_t do_actual_array_call(
          merge_c1_phantom_real_couples : merge_strict_matrix;
 
       CC.fix_possible_collision(action, goodies->callarray_flags, ss);
+
+      if (specialhetero) {
+         // result has line people's result,
+         secondresult.kind = Lresult_kind;
+         secondresult.rotation = result->rotation-1;
+         secondCC.fix_possible_collision(action, goodies->callarray_flags, ss);
+         merge_table::merge_setups(&secondresult, merge_c1_phantom, result);
+      }
    }
 
    // Fix up "dixie tag" result if fraction was 1/4.
@@ -6079,7 +6188,7 @@ static uint32_t do_actual_array_call(
    //   are adjacent, with roll direction toward each other, but the bit is not on, because
    //   they were not adjacent before the call.
 
-   if (!ss->cmd.callspec || (ss->cmd.callspec->the_defn.callflagsf & CFLAG2_OVERCAST_TRANSPARENT) == 0) {
+   if (!ss->cmd.callspec || (ss->cmd.callspec->the_defn.callflags1 & CFLAG1_OVERCAST_TRANSPARENT) == 0) {
       // Save the original locations.
       // ****** make this a nice routine, and use same at sdmoves/1100.
       // Also, use the full XPID_MASK bits, not just 3 bits.
@@ -6136,7 +6245,7 @@ static uint32_t do_actual_array_call(
                                ((result->people[place].id1 ^ ss->people[f8].id1) & ROLL_DIRMASK) == 0) {
                               // Other person -- same.  Check whether the call prevents this.
                               if (!ss->cmd.callspec ||
-                                  (ss->cmd.callspec->the_defn.callflagsf & CFLAG2_NO_RAISE_OVERCAST) == 0)
+                                  (ss->cmd.callspec->the_defn.callflags1 & CFLAG1_NO_RAISE_OVERCAST) == 0)
                                  warn(warn__overcast);
                            }
                         }
@@ -6183,7 +6292,7 @@ extern void basic_move(
    heritflags search_temp_without_funny;
    heritflags search_temp_with_funny;
    int orig_elongation = 0;
-   bool four_way_startsetup;
+   bool four_way_startsetup = false;
    uint32_t newtb = tbonetest;
    uint32_t resultflagsmisc = 0;
    int desired_elongation = 0;
@@ -6202,7 +6311,9 @@ extern void basic_move(
    // (1) We want it to be zero in case we bail out.
    // (2) we want the RESULTFLAG__SPLIT_AXIS_MASK stuff to be clear
    //     for the normal case, and have bits only if splitting actually occurs.
-   clear_result_flags(result);
+   clear_result_flags(result,
+                      RESULTFLAG__RECTIFY_ACCEPTED|
+                      RESULTFLAG__DEFER_MXN_COMPRESSION);
 
    if (ss->cmd.cmd_misc2_flags & CMD_MISC2__DO_NOT_EXECUTE) {
       result->kind = nothing;
@@ -6367,6 +6478,8 @@ extern void basic_move(
    uint64_t given_funny_flag = ss->cmd.cmd_final_flags.test_heritbits(INHERITFLAG_FUNNY);
 
    heritflags search_concepts_without_funny = ss->cmd.cmd_final_flags.herit & ~INHERITFLAG_FUNNY;
+   if (ss->result_flags.misc & RESULTFLAG__RECTIFY_ACCEPTED)
+      search_concepts_without_funny &= ~INHERITFLAG_RECTIFY;
 
    search_temp_without_funny = 0ULL;
 
@@ -6382,12 +6495,20 @@ foobar:
    for (qq = callspec->stuff.arr.def_list; qq; qq = qq->next) {
       // First, see if we have a match including any incoming "funny" flag.
       if (qq->modifier_seth == search_temp_with_funny) {
+
+         if ((search_temp_with_funny & INHERITFLAG_RECTIFY) != 0)
+            result->result_flags.misc |= RESULTFLAG__RECTIFY_ACCEPTED;
+
          goto use_this_calldeflist;
       }
       // Search again, for a plain definition that has the "CAF__FACING_FUNNY" flag.
       else if (given_funny_flag != 0ULL &&
                qq->modifier_seth == search_temp_without_funny &&
                (qq->callarray_list->callarray_flags & CAF__FACING_FUNNY)) {
+
+         if ((search_temp_without_funny & INHERITFLAG_RECTIFY) != 0)
+            result->result_flags.misc |= RESULTFLAG__RECTIFY_ACCEPTED;
+
          funnybits = given_funny_flag;
          goto use_this_calldeflist;
       }
@@ -6583,8 +6704,8 @@ foobar:
             // we can find the "CFLAG1_PARALLEL_CONC_END" bit,
             // also known as the "other_elongate" bit.
 
-            if (!newtb || (newtb & 010)) linedefinition = assoc(key1, ss, calldeflist);
-            if (!newtb || (newtb & 1)) coldefinition = assoc(key2, ss, calldeflist);
+            if (!newtb || (newtb & 010)) linedefinition = assoc(key1, ss, calldeflist, (bool *) 0, funnybits);
+            if (!newtb || (newtb & 1)) coldefinition = assoc(key2, ss, calldeflist, (bool *) 0, funnybits);
 
             if (ss->cmd.cmd_misc2_flags & CMD_MISC2__REQUEST_Z && ss->kind == s2x3) {
                // See if the call has a 2x3 definition that goes to a setup of size 4.
@@ -6599,7 +6720,7 @@ foobar:
                   (coldefinition && (attr::klimit(coldefinition->get_end_setup()) == 3 ||
                                      (callspec->callflags1 & CFLAG1_PRESERVE_Z_STUFF)));
 
-               if (ss->cmd.callspec->the_defn.callflagsf & CFLAG2_CAN_DO_IN_Z)
+               if (ss->cmd.callspec->the_defn.callflags1 & CFLAG1_CAN_DO_IN_Z)
                    whuzzis2 = true;
 
                if (!(ss->cmd.cmd_misc3_flags & CMD_MISC3__ACTUAL_Z_CONCEPT) && whuzzis2) {
@@ -6634,55 +6755,28 @@ foobar:
          fail("Triangle concept not allowed here.");
    }
 
-   /* If we found a definition for the setup we are in, we win.
-      This is true even if we only found a definition for the lines version
-      of the setup and not the columns version, or vice-versa.
-      If we need both and don't have both, we will lose. */
+   // If we found a definition for the setup we are in, we win.
+   // This is true even if we only found a definition for the lines version
+   // of the setup and not the columns version, or vice-versa.
+   // If we need both and don't have both, we will lose.
 
    if (linedefinition || coldefinition) {
-      /* Raise a warning if the "split" concept was explicitly used but the
-         call would have naturally split that way anyway. */
-
-      /* ******* we have patched this out, because we aren't convinced that it really
-         works.  How do we make it not complain on "split sidetrack" even though some
-         parts of the call, like the "zig-zag", would complain?  And how do we account
-         for the fact that it is observed not to raise the warning on split sidetrack
-         even though we don't understand why?  By the way, uncertainty about this is what
-         led us to make this a warning.  It was originally an error.  Which is correct?
-         It is probably best to leave it as a warning of the "don't use in resolve" type.
-
-      if (ss->setupflags & CMD_MISC__SAID_SPLIT) {
-         switch (ss->kind) {
-            case s2x2:
-               if (!assoc(b_2x4, ss, calldeflist) && !assoc(b_4x2, ss, calldeflist))
-                  warn(warn__excess_split);
-               break;
-            case s1x4:
-               if (!assoc(b_1x8, ss, calldeflist) && !assoc(b_8x1, ss, calldeflist))
-                  warn(warn__excess_split);
-               break;
-            case sdmd:
-               if (!assoc(b_qtag, ss, calldeflist) && !assoc(b_pqtag, ss, calldeflist) &&
-                        !assoc(b_ptpd, ss, calldeflist) && !assoc(b_pptpd, ss, calldeflist))
-                  warn(warn__excess_split);
-               break;
-         }
-      }
-      */
+      // Raise a warning if the "split" concept was explicitly used but the
+      // call would have naturally split that way anyway.
 
       if (ss->cmd.cmd_final_flags.test_finalbits(FINAL__TRIANGLE|FINAL__LEADTRIANGLE))
          fail("Triangle concept not allowed here.");
 
-      /* We got here if either linedefinition or coldefinition had something.
-         If only one of them had something, but both needed to (because the setup
-         was T-boned) the normal intention is that we proceed anyway, which will
-         raise an error.  However, we check here for the case of a 1x2 setup
-         that has one definition but not the other, and has a 1x1 definition as well.
-         In that case, we split the setup.  This allows T-boned "quarter <direction>".
-         The problem is that "quarter <direction>" has a 1x2 definition (for
-         "quarter in") and a 1x1 definition, but no 2x1 definition.  (If it had
-         a 2x1 definition, then the splitting from a 2x2 would be ambiguous.)
-         So we have to fix that. */
+      // We got here if either linedefinition or coldefinition had something.
+      // If only one of them had something, but both needed to (because the setup
+      // was T-boned) the normal intention is that we proceed anyway, which will
+      // raise an error.  However, we check here for the case of a 1x2 setup
+      // that has one definition but not the other, and has a 1x1 definition as well.
+      // In that case, we split the setup.  This allows T-boned "quarter <direction>".
+      // The problem is that "quarter <direction>" has a 1x2 definition (for
+      // "quarter in") and a 1x1 definition, but no 2x1 definition.  (If it had
+      // a 2x1 definition, then the splitting from a 2x2 would be ambiguous.)
+      // So we have to fix that.
 
       if (ss->kind == s1x2 && (newtb & 011) == 011 && (!linedefinition || !coldefinition))
          goto need_to_divide;
@@ -6773,7 +6867,7 @@ foobar:
                      (ss->kind == s2x4) ? CONCPROP__NEEDK_2X6 : CONCPROP__NEEDK_TRIPLE_1X4,
                      true);
 
-                  if (ss->kind != s2x6 && ss->kind != s3x4 && ss->kind != s1x12)
+                  if (ss->kind != s2x6 && ss->kind != s3x4 && ss->kind != s1x12 && ss->kind != s3x6)
                      fail("Can't expand to a 12 matrix.");
                   matrix_check_flag = INHERITFLAG_12_MATRIX;
                }

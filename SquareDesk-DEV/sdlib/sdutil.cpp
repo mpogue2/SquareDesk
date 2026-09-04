@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2025  William B. Ackerman.
+//    Copyright (C) 1990-2026  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -124,8 +124,10 @@ const Cstring *filename_strings = old_filename_strings; // ******** For now
 
 // BEWARE!!  These lists are keyed to the definition of "dance_level" in database.h
 const Cstring old_filename_strings[] = {
+   ".MS_2026",
    ".MS",
    ".Plus",
+   ".Plus_2026",
    ".A1",
    ".A2",
    ".C1",
@@ -141,8 +143,10 @@ const Cstring old_filename_strings[] = {
    ""};
 
 const Cstring new_filename_strings[] = {
+   "_MS2026.txt",
    "_MS.txt",
    "_Plus.txt",
+   "_Plus2026.txt",
    "_A1.txt",
    "_A2.txt",
    "_C1.txt",
@@ -364,8 +368,9 @@ ui_option_type::ui_option_type() :
    no_sound(false),
    tab_changes_focus(false),
    max_print_length(59),
-   resolve_test_minutes(0),
    resolve_test_random_seed(0),
+   resolve_test_minutes(0),
+   resolve_test_attempts_per_print(0),
    singing_call_mode(0),
    use_escapes_for_drawing_people(0),
    pn1("11223344"),
@@ -465,8 +470,10 @@ void ui_utils::do_write(Cstring s)
          else
             newline();
       }
-      else if (c >= 'a' && c <= 'x')
+      else if (c >= 'a' && c <= 'z')
          printperson(rotperson(printarg->people[personstart + ((c-'a'-offs)%modulus)].id1, ri));
+      else if (c >= 'A' && c <= 'F')
+         printperson(rotperson(printarg->people[personstart + ((c-'A'+26-offs)%modulus)].id1, ri));
       else {
          // We need to do the mundane translation of "5" and "6" if the result
          // isn't going to be used by something that uses same.
@@ -994,7 +1001,7 @@ void ui_utils::printsetup(setup *x)
          writestuff(" ends:");
          newline();
          ui_options.drawing_picture = 1;
-         print_4_person_setup(12, &(x->outer), x->concsetup_outer_elongation);
+         print_4_person_setup(MAX_PEOPLE/2, &(x->outer), x->concsetup_outer_elongation);
          break;
       default:
          if (two_couple_calling) {
@@ -1721,9 +1728,9 @@ void ui_utils::print_recurse(parse_block *thing, int print_recurse_arg)
          // This is a "marker", so it has a call, perhaps with a selector and/or number.
          // The call may be null if we are printing a partially entered line.  Beware.
 
-         parse_block *sub1_ptr;
-         parse_block *sub2_ptr;
-         parse_block *search;
+         parse_block *sub1_ptr = (parse_block *) 0;
+         parse_block *sub2_ptr = (parse_block *) 0;
+         parse_block *search = (parse_block *) 0;
          bool pending_subst1, pending_subst2;
 
          parse_block *save_cptr = local_cptr;
@@ -2081,11 +2088,11 @@ void ui_utils::print_recurse(parse_block *thing, int print_recurse_arg)
                   /* Need to check for case of replacing one star turn with another. */
 
                   if ((first_replace == 0) &&
-                      (replaced_call->the_defn.callflagsf & CFLAG2_IS_STAR_CALL) &&
+                      (replaced_call->the_defn.callflags1 & CFLAG1_IS_STAR_CALL) &&
                       ((subsidiary_ptr->concept->kind == marker_end_of_list) ||
                        subsidiary_ptr->concept->kind == concept_another_call_next_mod) &&
                       cc &&
-                      ((cc->the_defn.callflagsf & CFLAG2_IS_STAR_CALL) ||
+                      ((cc->the_defn.callflags1 & CFLAG1_IS_STAR_CALL) ||
                        cc->the_defn.schema == schema_nothing)) {
                      first_replace++;
 
@@ -2140,7 +2147,7 @@ void ui_utils::print_recurse(parse_block *thing, int print_recurse_arg)
 
                         writestuff_with_decorations(
                            &search->options,
-                           (replaced_call->the_defn.callflagsf & CFLAG2_IS_STAR_CALL) ?
+                           (replaced_call->the_defn.callflags1 & CFLAG1_IS_STAR_CALL) ?
                            "turn the star @b" : replaced_call->name, false);
 
                         writestuff(" WITH [");
@@ -2212,11 +2219,8 @@ void ui_utils::write_header_stuff(bool with_ui_version, uint32_t act_phan_flags)
       }
    }
 
-   if (act_phan_flags & RESULTFLAG__ACTIVE_PHANTOMS_ON) {
-      if (act_phan_flags & RESULTFLAG__ACTIVE_PHANTOMS_OFF)
-         writestuff(" (AP-)");
-      else
-         writestuff(" (AP)");
+   if (act_phan_flags & 2) {
+      writestuff((act_phan_flags & 1) ? " (AP-)" : " (AP)");
    }
 
    writestuff("     ");
@@ -2361,6 +2365,7 @@ void parse_block::initialize(const concept_descriptor *cc)
    replacement_key = 0;
    no_check_call_level = false;
    say_and = false;
+   concentric_4p = false;
    subsidiary_root = (parse_block *) 0;
    next = (parse_block *) 0;
 }
@@ -2768,7 +2773,7 @@ bool ui_utils::write_sequence_to_file() THROW_DECL
    get_date(date);
    writestuff(date);
    writestuff("     ");
-   write_header_stuff(false, configuration::current_config().state.result_flags.misc);
+   write_header_stuff(false, active_phantoms_in_this_sequence);
    newline();
 
    if (!configuration::sequence_is_resolved()) {
@@ -2891,7 +2896,7 @@ selector_kind translate_selector_permutation2(uint32_t x)
 
 extern uint32_t translate_selector_fields(parse_block *xx, uint32_t mask)
 {
-   selector_kind z;
+   selector_kind z = selector_uninitialized;
    uint32_t retval = 0;
 
    for ( ; xx ; xx=xx->next) {
@@ -2961,7 +2966,7 @@ extern uint32_t translate_selector_fields(parse_block *xx, uint32_t mask)
       }
 
       if (z == selector_uninitialized) retval = 2;   // Raise error.
-      if (z != xx->options.who.who[0]) retval |= 1;         // Note that we changed something.
+      if (z != xx->options.who.who[0]) retval |= 1;  // Note that we changed something.
       xx->options.who.who[0] = z;
 
    nofix:
@@ -3065,7 +3070,7 @@ void ui_utils::run_program(iobase & ggg)
       writestuff("SD -- square dance caller's helper.");
       newline();
       newline();
-      writestuff("Copyright (c) 1990-2025 William B. Ackerman");
+      writestuff("Copyright (c) 1990-2026 William B. Ackerman");
       newline();
       writestuff("   and Stephen Gildea.");
       newline();
@@ -3423,6 +3428,7 @@ void ui_utils::run_program(iobase & ggg)
       configuration::initialize_history(global_reply.minorpart);   // Clear the position history.
       configuration::history[1].init_warnings_specific();
       configuration::history[1].init_resolve();
+      active_phantoms_in_this_sequence = 0;
       // Put the people into their starting position.
       configuration::history[1].state = *configuration::history[1].get_startinfo_specific()->the_setup_p;
       two_couple_calling = (attr::klimit(configuration::history[1].state.kind) < 4);

@@ -69,7 +69,18 @@ static QBrush coupleColorBrushes[4] = { QBrush(COUPLE1COLOR),
                              QBrush(COUPLE4COLOR)
 };
 static QStringList initialDancerLocations;
+
+// Human-readable name for each dance_level, as shown in the UI and persisted
+// in the preferences.
 static QHash<dance_level, QString> sdLevelEnumsToStrings;
+
+// The level name we hand to sd on its command line, which is NOT always the
+// name we show the user. SquareDesk's Dance Program > Mainstream means the
+// 2026 Callerlab mainstream program, which sd calls "mainstream26" (l_xyz),
+// and > Plus means "plus26" (l_pqr). See issue #1713. sd's parse_level()
+// keys off the leading letter and a trailing '6', and rejects names with
+// hyphens or spaces in them.
+static QHash<dance_level, QString> sdLevelEnumsToSDArgs;
 
 static const char *str_exit_from_the_program = "exit from the program";
 static const char *str_abort_this_sequence = "abort this sequence";
@@ -621,8 +632,12 @@ void MainWindow::initialize_internal_sd_tab()
     }
 
 
-    sdLevelEnumsToStrings[l_mainstream] = "Mainstream";
-    sdLevelEnumsToStrings[l_plus] = "Plus";
+    // NOTE: Mainstream and Plus are the 2026 Callerlab programs, l_xyz and
+    //   l_pqr. We do not carry sd's older l_mainstream/l_plus definitions:
+    //   going forward, "Mainstream" means mainstream26 and "Plus" means
+    //   plus26, to Callerlab and to SquareDesk both. See issue #1713.
+    sdLevelEnumsToStrings[l_xyz] = "Mainstream";
+    sdLevelEnumsToStrings[l_pqr] = "Plus";
     sdLevelEnumsToStrings[l_a1] = "A1";
     sdLevelEnumsToStrings[l_a2] = "A2";
     sdLevelEnumsToStrings[l_c1] = "C1";
@@ -635,6 +650,13 @@ void MainWindow::initialize_internal_sd_tab()
     sdLevelEnumsToStrings[l_c4x] = "C4x";
     sdLevelEnumsToStrings[l_dontshow] = "Dontshow";
     sdLevelEnumsToStrings[l_nonexistent_concept] = "Nonexistent_concept";
+
+    // What we actually pass to sd on its command line. Identical to the
+    // display name everywhere except Mainstream and Plus, where sd needs the
+    // 2026 program names. See issue #1713.
+    sdLevelEnumsToSDArgs = sdLevelEnumsToStrings;
+    sdLevelEnumsToSDArgs[l_xyz] = "mainstream26";
+    sdLevelEnumsToSDArgs[l_pqr] = "plus26";
 
 
     
@@ -2184,11 +2206,11 @@ dance_level MainWindow::get_current_sd_dance_program()
 
     if (ui->actionSDDanceProgramMainstream->isChecked())
     {
-        current_dance_program = l_mainstream;
+        current_dance_program = l_xyz;   // mainstream26 (#1713)
     }
     if (ui->actionSDDanceProgramPlus->isChecked())
     {
-        current_dance_program = l_plus;
+        current_dance_program = l_pqr;   // plus26 (#1713)
     }
     if (ui->actionSDDanceProgramA1->isChecked())
     {
@@ -2330,7 +2352,10 @@ void MainWindow::on_lineEditSDInput_textChanged()
 
 void MainWindow::startSDThread(dance_level dance_program) {
     // Initializers for these should probably be up in the constructor
-    sdthread = new SDThread(this, dance_program, sdLevelEnumsToStrings[dance_program]);
+    // NOTE: sdLevelEnumsToSDArgs, not ...ToStrings -- this string becomes sd's
+    //   command-line level argument, and Mainstream/Plus map to the 2026
+    //   program names there. See issue #1713.
+    sdthread = new SDThread(this, dance_program, sdLevelEnumsToSDArgs[dance_program]);
     sdthread->start();
     sdthread->unlock();
 }
@@ -2363,8 +2388,8 @@ void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
     // set string for keyboard level in UI
     currentSDKeyboardLevel = "UNK";
     switch (dance_program) {
-        case l_mainstream: currentSDKeyboardLevel = "Mainstream"; break;
-        case l_plus: currentSDKeyboardLevel = "Plus"; break;
+        case l_xyz:  currentSDKeyboardLevel = "Mainstream"; break;  // mainstream26 (#1713)
+        case l_pqr:  currentSDKeyboardLevel = "Plus"; break;        // plus26 (#1713)
         case l_a1:   currentSDKeyboardLevel = "A1"; break;
         case l_a2:   currentSDKeyboardLevel = "A2"; break;
         case l_c1:   currentSDKeyboardLevel = "C1"; break;
@@ -2392,11 +2417,11 @@ void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
 
 void MainWindow::on_actionSDDanceProgramMainstream_triggered()
 {
-    setCurrentSDDanceProgram(l_mainstream);
+    setCurrentSDDanceProgram(l_xyz);   // mainstream26 (#1713)
 }
 void MainWindow::on_actionSDDanceProgramPlus_triggered()
 {
-    setCurrentSDDanceProgram(l_plus);
+    setCurrentSDDanceProgram(l_pqr);   // plus26 (#1713)
 }
 void MainWindow::on_actionSDDanceProgramA1_triggered()
 {
@@ -5267,8 +5292,8 @@ void MainWindow::sdLoadDance(QString danceName) {
             nameToLevel.insert(name.toLower(), lvl);
         }
         // Add synonyms
-        nameToLevel.insert("ms",  l_mainstream); // "ms" allowed for "mainstream"
-        nameToLevel.insert("ssd", l_mainstream); // SD does not support SSD, but MS is a superset of SSD
+        nameToLevel.insert("ms",  l_xyz); // "ms" allowed for "mainstream"
+        nameToLevel.insert("ssd", l_xyz); // SD does not support SSD, but MS is a superset of SSD
 
         int usIdx = danceName.lastIndexOf('_');
         if (usIdx < 0 || usIdx >= danceName.length() - 1)
@@ -5284,10 +5309,10 @@ void MainWindow::sdLoadDance(QString danceName) {
             break; // already on this level
 
         switch (desiredLevel) {
-            case l_mainstream:
+            case l_xyz:
                 if (!ui->actionSDDanceProgramMainstream->isChecked()) ui->actionSDDanceProgramMainstream->trigger();
                 break;
-            case l_plus:
+            case l_pqr:
                 if (!ui->actionSDDanceProgramPlus->isChecked()) ui->actionSDDanceProgramPlus->trigger();
                 break;
             case l_a1:

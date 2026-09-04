@@ -90,7 +90,9 @@ void prepare_for_call_in_series(setup *result, setup *ss,
       result->result_flags.misc &= ~RESULTFLAG__EXPIRATION_BITS;
 
    // And clear all the rest except these few bits.
-   result->result_flags.misc &= (RESULTFLAG__NO_REEVALUATE|RESULTFLAG__REALLY_NO_REEVALUATE|RESULTFLAG__EXPIRATION_BITS);
+   result->result_flags.misc &=
+      (RESULTFLAG__NO_REEVALUATE|RESULTFLAG__REALLY_NO_REEVALUATE|
+       RESULTFLAG__EXPIRATION_BITS|RESULTFLAG__RECTIFY_ACCEPTED);
 
    // Or clear even RESULTFLAG__NO_REEVALUATE if requested, but never RESULTFLAG__REALLY_NO_REEVALUATE.
    if (!dont_clear__no_reeval)
@@ -188,6 +190,10 @@ void remove_tgl_distortion(setup *ss) THROW_DECL
    static const expand::thing thing2x4f = {{6, 7, 1, 2, 3, 5}, s_short6, s2x4, 1};
    static const expand::thing thing2x4g = {{0, 1, 3, 4, 5, 7}, s2x3,     s2x4, 0};
    static const expand::thing thing2x4h = {{0, 2, 3, 4, 6, 7}, s2x3,     s2x4, 0};
+   static const expand::thing thing2x4i = {{0, 1, 2, 4, 5, 6}, s_ntrgl6ccw, s2x4, 0};
+   static const expand::thing thing2x4j = {{1, 2, 3, 5, 6, 7}, s_ntrgl6cw, s2x4, 0};
+   static const expand::thing thing2x4l = {{0, 1, 3, 4, 5, 7}, s_ntrgl6ccw, s2x4, 0};
+   static const expand::thing thing2x4k = {{0, 2, 3, 4, 6, 7}, s_ntrgl6cw, s2x4, 0};
    static const expand::thing thing1x4a = {{0, 1, 3},          s1x3,     s1x4, 0};
    static const expand::thing thing1x4b = {{1, 3, 2},          s1x3,     s1x4, 0};
    static const expand::thing thingqtga = {{6, 7, 1, 2, 3, 5}, s_ntrgl6ccw, s_qtag, 0};
@@ -250,6 +256,36 @@ void remove_tgl_distortion(setup *ss) THROW_DECL
                 (~ss->people[4].id1) & ss->people[5].id1 &
                 ss->people[6].id1 & ss->people[7].id1 & BIT_PERSON) {
                eptr = &thing2x4f;
+            }
+         }
+         else if (ss->people[0].id1 & ss->people[2].id1 &
+                  ss->people[4].id1 & ss->people[6].id1 & 01) {
+            if (ss->people[0].id1 & ss->people[1].id1 &
+                ss->people[2].id1 & (~ss->people[3].id1) &
+                ss->people[4].id1 & ss->people[5].id1 &
+                ss->people[6].id1 & (~ss->people[7].id1) & BIT_PERSON) {
+               eptr = &thing2x4i;
+            }
+            if (ss->people[0].id1 & (~ss->people[1].id1) &
+                ss->people[2].id1 & ss->people[3].id1 &
+                ss->people[4].id1 & (~ss->people[5].id1) &
+                ss->people[6].id1 & ss->people[7].id1 & BIT_PERSON) {
+               eptr = &thing2x4k;
+            }
+         }
+         else if (ss->people[1].id1 & ss->people[3].id1 &
+                  ss->people[5].id1 & ss->people[7].id1 & 01) {
+            if ((~ss->people[0].id1) & ss->people[1].id1 &
+                ss->people[2].id1 & ss->people[3].id1 &
+                (~ss->people[4].id1) & ss->people[5].id1 &
+                ss->people[6].id1 & ss->people[7].id1 & BIT_PERSON) {
+               eptr = &thing2x4j;
+            }
+            if (ss->people[0].id1 & ss->people[1].id1 &
+                (~ss->people[2].id1) & ss->people[3].id1 &
+                ss->people[4].id1 & ss->people[5].id1 &
+                (~ss->people[6].id1) & ss->people[7].id1 & BIT_PERSON) {
+               eptr = &thing2x4l;
             }
          }
       }
@@ -427,6 +463,7 @@ static void multiple_move_innards(
          x[i].rotation = rrr & 3;
          x[i].rotation_offset_from_true_north = ss->rotation_offset_from_true_north;
          x[i].eighth_rotation = 0;
+         x[i].result_flags = ss->result_flags;
          canonicalize_rotation(&x[i]);
          if (rrr & 1)
             x[i].result_flags.swap_split_info_fields();
@@ -737,9 +774,10 @@ static void multiple_move_innards(
    // since they can handle non-isotropic setups.  But we raise an error on any other maps,
    // since they can't handle it.  These map kinds are known to work -- they all arise
    // in regression tests.  It may be that more map kinds need to be added to this list.
-   bool funnymap =
+   bool map_has_alternating_directions =
       map_kind == MPKIND__NONISOTROPDMD ||
       map_kind == MPKIND__ALL_8 ||
+      map_kind == MPKIND__4_EDGES_REALLY_ALTERNATING ||
       map_kind == MPKIND__4_QUADRANTS ||
       map_kind == MPKIND__4_QUADRANTS_WITH_45_ROTATION ||
       map_kind == MPKIND__TRIPLETRADEINWINGEDSTAR6;
@@ -783,7 +821,7 @@ static void multiple_move_innards(
       // This uses the "allow_hetero_and_notify" mechanism.
 
       if (fix_n_results(arity,
-                        (map_kind == MPKIND__NONE && maps->inner_kind == sdmd) ? 9 : funnymap ? 7 : -1,
+                        (map_kind == MPKIND__NONE && maps->inner_kind == sdmd) ? 9 : map_has_alternating_directions ? 7 : -1,
                         z,
                         rotstate,
                         pointclip,
@@ -844,7 +882,7 @@ static void multiple_move_innards(
       if (!hetero_mapkind(map_kind) && (arity != 2 || (setup_attrs[z[0].kind].setup_props & SPROP_NO_SYMMETRY) == 0)) {
          if (map_kind != MPKIND__SPLIT_SPLIT_ANISOTROPIC_THAR && (rotstate & 0xF03) == 0) {
             // Rotations are alternating.  Aside from the two map kinds just below,
-            // we demand funnymap on.  These are the maps that want alternating rotations.
+            // we demand map_has_alternating_directions on.  These are the maps that want alternating rotations.
             if (map_kind == MPKIND__SPLIT || map_kind == MPKIND__CONCPHAN) {
                if (!(rotstate & 0x0F0))
                   fail("Can't do this orientation changer.");
@@ -863,7 +901,7 @@ static void multiple_move_innards(
 
                map_kind = MPKIND__NONISOTROPDMD;
             }
-            else if (!funnymap && map_kind != MPKIND__NONE)
+            else if (!map_has_alternating_directions && map_kind != MPKIND__NONE)
                fail("Can't do this orientation changer.");
          }
          else {
@@ -1301,6 +1339,15 @@ static void multiple_move_innards(
    if (z[0].kind == nothing || (arity >= 2 && z[1].kind == nothing))
       fail("This is an inconsistent shape or orientation changer.");
 
+   // Very special and interesting action.  Setup is bone; concept calls for orthogonal qtags.
+   // That is, "phantom 1/4 tags" or "phantom diamonds".
+
+   if (map_kind == MPKIND__HET_CO_ONCEREM && arity == 2 && ss->kind == s_bone) {
+      *result = z[0];
+      merge_table::merge_setups(&z[1], merge_strict_matrix, result);
+      goto getout;
+   }
+
    final_mapcode = hetero_mapkind(map_kind) ?
       HETERO_MAPCODE(z[0].kind,arity,map_kind,(z[0].rotation ^ vert) & 1,
                      z[1].kind,((z[1].rotation & 3) << 2) | (z[0].rotation & 3)) :
@@ -1342,40 +1389,6 @@ static void multiple_move_innards(
          }
       }
 
-      // We allow the special case of appending two 4x4's or 2x8's, if the
-      // real people (this includes active phantoms!) can fit inside a 4x4 or 2x8.
-      if (arity == 2 && z[0].kind == s4x4 && map_kind == MPKIND__SPLIT) {
-         uint32_t mask0 = z[0].little_endian_live_mask();
-         uint32_t mask1 = z[1].little_endian_live_mask();
-
-         if (vert == 1) {
-            if (((mask0 | mask1) & 0x1717) != 0)
-               final_mapcode = spcmap_w4x4_4x4;
-            else
-               final_mapcode = spcmap_f2x8_4x4;
-         }
-         else {
-            if (((mask0 | mask1) & 0x7171) != 0)
-               final_mapcode = spcmap_w4x4_4x4h;
-            else
-               final_mapcode = spcmap_f2x8_4x4h;
-         }
-      }
-      else if (arity == 2 && z[0].kind == s2x8 && map_kind == MPKIND__SPLIT) {
-         if (vert != z[0].rotation) {
-            uint32_t mask0 = z[0].little_endian_live_mask();
-            uint32_t mask1 = z[1].little_endian_live_mask();
-
-            if (((mask0 | mask1) & 0xC3C3) != 0)
-               final_mapcode = spcmap_f2x8_2x8;
-            else
-               final_mapcode = spcmap_w4x4_2x8;
-         }
-         else {
-            final_mapcode = spcmap_f2x8_2x8h;
-         }
-      }
-
       if (final_mapcode != ~0U)
          final_map = map::get_map_from_code(final_mapcode);
 
@@ -1386,7 +1399,7 @@ static void multiple_move_innards(
 
    // The low 2 bits of the ten thousands digit give additional rotation info.
    result->rotation = (map_kind == MPKIND__SPLIT_SPLIT_ANISOTROPIC_THAR) ? 0 :
-      ((z[0].rotation + (final_map->rot >> 16) - final_map->rot) & 3);
+      (z[0].rotation + (final_map->rot >> 16) - final_map->rot) & 3;
 
    if (map_kind == MPKIND__HET_SPLIT || map_kind == MPKIND__HET_TWICEREM || map_kind == MPKIND__HET_CONCPHAN) {
 
@@ -3140,7 +3153,8 @@ extern void distorted_move(
    int8_t the_map[8];
    const parse_block *next_parseptr;
    final_and_herit_flags junk_concepts;
-   int rot, rotz;
+   int rot = 0;
+   int rotz = 0;
    setup_kind k;
    setup a1;
    setup res1;
@@ -3485,11 +3499,20 @@ extern void distorted_move(
             ss->cmd.cmd_misc_flags |= CMD_MISC__VERIFY_WAVES;
 
          divided_setup_move(ss, goodmap->map_code, phantest_ok, true, result);
-         if (result->kind != goodmap->k) fail("Can't figure out result setup.");
-
-         // Now we have to put back the inactives.  Note also that they can't roll.
 
          const int8_t *inactivemap = goodmap->inactives;
+
+         const int8_t special_1x6_inactives[] = {0, 4, -1};
+
+         // Special case: shapechanger.
+         if (goodmap->map_code == spcmap_3lqtg && result->kind == s1x8) {
+            copy_person(&ssave, 0, &ssave, 6);
+            copy_person(&ssave, 4, &ssave, 2);
+            inactivemap = special_1x6_inactives;
+         }
+         else if (result->kind != goodmap->k) fail("Can't figure out result setup.");
+
+         // Now we have to put back the inactives.  Note also that they can't roll.
 
          for (int i=0 ; ; i++) {
             int j = inactivemap[i];
@@ -3784,7 +3807,7 @@ extern void triple_twin_move(
 {
    ss->clear_all_overcasts();
    uint32_t tbonetest = global_tbonetest;
-   uint32_t mapcode;
+   uint32_t mapcode = 0;
    phantest_kind phan = (phantest_kind) parseptr->concept->arg4;
 
    // Arg1 = 0/1/3 for C/L/W, usual coding.
@@ -3950,6 +3973,30 @@ extern void do_concept_rigger(
       0, 2, 4, 6, 8, 10, 12, 14, 1, 7, 5, 11, 9, 15, 13, 3,
       1, 2, 3, 4, 5, 6, 7, 0,
       5, 0, 1, 2, 3, 4};        // For 2x3.
+   static const int8_t map3[24] = {   // For 4x6, northeast rigger
+      -1, -1, 12, 13, -1, -1,  0, 14, 15, 10, 11, 9,
+      -1, -1,  4,  5, -1, -1,  8,  6,  7,  2,  3, 1};
+   static const int8_t map4[24] = {   // For 4x6, southeast rigger
+      -1, -1, 14,  0, -1, -1,  2,  7,  1,  3, 13, 12,
+      -1, -1,  6,  8, -1, -1, 10, 15,  9, 11,  5,  4};
+   static const int8_t map5[24] = {   // For 2x8, northeast rigger
+      -1, -1,  4,  5,  6,  7, -1, -1,  8,  9, 10, 11,
+      -1, -1, 12, 13, 14, 15, -1, -1,  0,  1,  2,  3};
+   static const int8_t map6[24] = {   // For 2x8, southeast rigger
+      -1, -1,  0,  1,  2,  3, -1, -1,  7,  6,  5,  4,
+      -1, -1,  8,  9, 10, 11, -1, -1, 15, 14, 13, 12};
+   static const int8_t map7[26] = {   // For 4x8, northeast rigger
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      0,  1,  2,  4, -1, -1,  6, 11, 15,
+      8,  9, 10, 12, -1, -1, 14,  3,  7};
+   static const int8_t map8[26] = {   // For 4x8, southeast rigger
+      -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, 0,  1,  2,  4,  6, 11, 15,
+      -1, -1, 8,  9, 10, 12, 14,  3,  7};
+   static const int8_t map9[10] = {   // For 2x8, northeast rigger
+      4, 5, 6,           10, 11,         12, 13, 14,     2, 3};
+   static const int8_t map10[10] = {  // For 2x8, southeast rigger
+      1, 2, 3,           5, 4,           9, 10, 11,     13, 12};
 
    int rstuff, indicator, base;
    setup a1;
@@ -4046,24 +4093,26 @@ extern void do_concept_rigger(
    a1.eighth_rotation = 0;
    a1.cmd = ss->cmd;
    a1.cmd.cmd_misc_flags |= CMD_MISC__DISTORTED;
+   a1.cmd.cmd_misc_flags &= ~CMD_MISC__NO_EXPAND_AT_ALL;
    a1.cmd.cmd_assume.assumption = cr_none;
    move(&a1, false, &res1);
+   normalize_setup(&res1, plain_normalize, qtag_compress);
 
    // Swap tables for rigger and qtag.
    // Won't happen in C1 phantom, and will raise error if started in short6 or spindle.
    if (((res1.rotation) & 1) && base < 16) base ^= 8;
 
    if (startkind == s_c1phan) {
-      int i;
-      uint32_t evens = 0;
-      uint32_t odds = 0;
-
-      for (i=0; i<16; i+=2) {
-         evens |= res1.people[i].id1;
-         odds |= res1.people[i+1].id1;
-      }
-
       if (res1.kind == s_c1phan) {
+         int i;
+         uint32_t evens = 0;
+         uint32_t odds = 0;
+
+         for (i=0; i<16; i+=2) {
+            evens |= res1.people[i].id1;
+            odds |= res1.people[i+1].id1;
+         }
+
          if (indicator) {
             if (evens) {
                if (odds) fail("Can't do this.");
@@ -4086,7 +4135,7 @@ extern void do_concept_rigger(
       else {
          base ^= 16;
          if (res1.kind != s2x4) fail("Can't do this.");
-         result->kind = base ? s_qtag : s_rigger;
+         result->kind = base ? s_rigger : s_qtag;
       }
    }
    else if (startkind == s2x3) {
@@ -4094,17 +4143,59 @@ extern void do_concept_rigger(
       result->kind = s_short6;
    }
    else {
-      if (res1.kind != s2x4) fail("Can't do this.");
-      if (ss->kind == s_spindle) {
-         if ((res1.rotation) & 1) fail("Can't do this.");
-         result->kind = s_spindle;
+      if (res1.kind == s2x6) {
+         // We normalized too far, a 2x6 can't be what the user wants,
+         // and we wouldn't be able to put back the required 50% offset
+         // and get a reasonable outcome.  Set it back to a 2x8.
+         warn(warn_controversial);
+         res1.do_matrix_expansion(CONCPROP__NEEDK_2X8, false);
       }
-      else {
-         result->kind = base ? s_qtag : s_rigger;
+
+      if (res1.kind == s2x4) {
+         if (ss->kind == s_spindle) {
+            if ((res1.rotation) & 1) fail("Can't do this.");
+            result->kind = s_spindle;
+         }
+         else {
+            result->kind = base ? s_qtag : s_rigger;
+         }
       }
+      else if (res1.kind == s4x4) {
+         if (base != 0) {
+            result->kind = s3x6;
+            rot = 3;
+            res1.rotation++;   // Fix final rotateion.
+            map_ptr = indicator ? map8 : map7;
+         }
+         else {
+            result->kind = s4x6;
+            map_ptr = indicator ? map3 : map4;
+         }
+      }
+      else if (res1.kind == s2x8) {
+         uint32_t the_mask = res1.little_endian_live_mask();
+
+         if ((the_mask & 0xF3F3) == 0x7070 && indicator == 0) {
+            result->kind = s_343;
+            map_ptr = map9;
+            base = 0;
+         }
+         else if ((the_mask & 0xCFCF) == 0x0E0E && indicator == 2) {
+            result->kind = s_343;
+            map_ptr = map10;
+            base = 0;
+         }
+         else {
+            result->kind = s3x8;
+            base = 0;
+            map_ptr = indicator ? map6 : map5;
+         }
+      }
+      else
+         fail("Can't do this.");
    }
 
-   gather(result, &res1, &map_ptr[base], attr::klimit(res1.kind), rot*011);
+   gather(result, &res1, &map_ptr[base], attr::klimit(result->kind), rot*011);
    result->rotation = res1.rotation;
    result->eighth_rotation = 0;
    result->result_flags = res1.result_flags;
@@ -4312,15 +4403,60 @@ struct common_spot_map {
    setup_kind orig_kind;
    setup_kind partial_kind;  // What setup they are virtually in.
    int rot;                  // Whether to rotate partial setup CW.
-   int uncommon[12];
-   int common0[12];
-   uint32_t dir0[12];
-   int common1[12];
-   uint32_t dir1[12];
+   int uncommon[16];
+   int common0[16];
+   uint32_t dir0[16];
+   int common1[16];
+   uint32_t dir1[16];
    uint32_t people_accounted_for;
 };
 
 common_spot_map cmaps[] = {
+
+   // Common spot waves from a tidal wave, inner spots.
+   {0x1000, s1x16, s1x8, 0,
+    {      -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1},
+    {      -1,      -1,       6,       5,      -1,      -1,      14,      13},
+    { d_north, d_south, d_north, d_south, d_south, d_north, d_south, d_north},
+    {      -1,      -1,       7,       4,      -1,      -1,      15,      12},
+    { d_south, d_north, d_south, d_north, d_north, d_south, d_north, d_south}},
+
+   // Common spot 2FL from a tidal wave, inner spots.
+   {0x2000, s1x16, s1x8, 0,
+    {      -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1},
+    {      -1,      -1,       6,       4,      -1,      -1,      14,      12},
+    { d_north, d_south, d_north, d_north, d_south, d_north, d_south, d_south},
+    {      -1,      -1,       7,       5,      -1,      -1,      15,      13},
+    { d_south, d_north, d_south, d_south, d_north, d_south, d_north, d_north}},
+
+
+   // Common spot (1-faced) lines from a tidal wave, inner spots,
+   // probably bogus.
+   {0x4000, s1x16, s1x8, 0,
+    {      -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1},
+    {      -1,      -1,       6,       4,      -1,      -1,      15,      13},
+    { d_north, d_south, d_north, d_north, d_south, d_north, d_north, d_north},
+    {      -1,      -1,       7,       5,      -1,      -1,      14,      12},
+    { d_south, d_north, d_south, d_south, d_north, d_south, d_south, d_south}},
+
+   // Common spot waves from a tidal wave, outer spots.
+   {0x1000, s1x16, s1x8, 0,
+    {      -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1},
+    {       0,       3,      -1,      -1,      8,       11,      -1,      -1},
+    { d_north, d_south, d_south, d_north, d_south, d_north, d_north, d_south},
+    {       1,       2,      -1,      -1,      9,       10,      -1,      -1},
+    { d_south, d_north, d_north, d_south, d_north, d_south, d_south, d_north}},
+
+   // Common spot 2FL from a tidal wave, outer spots.
+   {0x2000, s1x16, s1x8, 0,
+    {      -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1},
+    {      -1,      -1,       2,       0,      -1,      -1,      10,       8},
+    { d_north, d_south, d_north, d_north, d_south, d_north, d_south, d_south},
+    {      -1,      -1,       3,       1,      -1,      -1,      11,       9},
+    { d_south, d_north, d_south, d_south, d_north, d_south, d_north, d_north}},
+
+
+
 
    // Common point galaxy.
    {0x40000001, s_rigger, s_galaxy, 0,
@@ -4403,7 +4539,16 @@ common_spot_map cmaps[] = {
     { d_south,       0,       0, d_north, d_north,       0,       0, d_south}},
 
    // All in outer quadruple boxes; we allow this.
+   // This handles common spot lines load the boat, all RH or all LH.
    {0x10, s2x8, s2x4, 0,
+    {      -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1},
+    {       0,      -1,      -1,       6,       8,      -1,      -1,      14},
+    { d_north,       0,       0, d_north, d_south,       0,       0, d_south},
+    {       1,      -1,      -1,       7,       9,      -1,      -1,      15},
+    { d_south,       0,       0, d_south, d_north,       0,       0, d_north}},
+
+   // Alternate version, for some having left hands.
+   {0x80000010, s2x8, s2x4, 0,
     {      -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1},
     {       0,      -1,      -1,       7,       8,      -1,      -1,      15},
     { d_north,       0,       0, d_south, d_south,       0,       0, d_north},
@@ -4714,6 +4859,12 @@ extern void common_spot_move(
    // common spot 1/4 lines                    : 0x100
    // common spot 1/4 tags                     : 0x200
    // common spot point-to-point diamonds      : 0x400
+   // common spot tidal line                   : 0x2000
+   // common spot tidal wave                   : 0x1000
+
+   if (parseptr->concept->arg3 == s1x16 && ss->kind == s1x8) {
+      ss->do_matrix_expansion(CONCPROP__NEEDK_1X16, false);
+   }
 
    if (ss->kind == s_c1phan) {
       ss->do_matrix_expansion(CONCPROP__NEEDK_4X4, false);
@@ -4745,26 +4896,18 @@ extern void common_spot_move(
             int t = map_ptr->common0[i];
             int u = map_ptr->common1[i];
 
-            if (t >= 0) {
-               if ((ss->people[t].id1 & d_mask) != map_ptr->dir0[i]) goto not_this_rh_map;
+            if (t >= 0 && ss->people[t].id1) {
+               if ((ss->people[t].id1 & d_mask) != map_ptr->dir0[i]) {
+                  if ((ss->people[t].id1 & d_mask) != (map_ptr->dir0[i] ^ 2)) goto not_this_map;
+                  not_rh = true;
+               }
             }
 
-            if (u >= 0) {
-               if ((ss->people[u].id1 & d_mask) != map_ptr->dir1[i]) goto not_this_rh_map;
-            }
-
-            continue;
-
-         not_this_rh_map: ;
-
-            not_rh = true;
-
-            if (t >= 0) {
-               if ((ss->people[t].id1 & d_mask) != (map_ptr->dir0[i] ^ 2)) goto not_this_map;
-            }
-
-            if (u >= 0) {
-               if ((ss->people[u].id1 & d_mask) != (map_ptr->dir1[i] ^ 2)) goto not_this_map;
+            if (u >= 0 && ss->people[u].id1) {
+               if ((ss->people[u].id1 & d_mask) != map_ptr->dir1[i]) {
+                  if ((ss->people[u].id1 & d_mask) != (map_ptr->dir1[i] ^ 2)) goto not_this_map;
+                  not_rh = true;
+               }
             }
          }
 
@@ -4819,6 +4962,8 @@ extern void common_spot_move(
       if (0x20000000U & map_ptr->indicator) {
          a0.cmd.cmd_misc3_flags |= CMD_MISC3__SAID_DIAMOND;
          a1.cmd.cmd_misc3_flags |= CMD_MISC3__SAID_DIAMOND;
+         a0.cmd.cmd_assume.assumption = cr_diamond_like;
+         a1.cmd.cmd_assume.assumption = cr_diamond_like;
       }
 
       a0.update_id_bits();
@@ -4839,6 +4984,77 @@ extern void common_spot_move(
             the_results[0].do_matrix_expansion(CONCPROP__NEEDK_4X4, false);
          else if (the_results[1].kind == s2x4 && the_results[0].kind == s4x4)
             the_results[1].do_matrix_expansion(CONCPROP__NEEDK_4X4, false);
+
+         // Handle important case of common-point diamonds doing a non-shape-changer
+         // like 6x2 Acey Deucey.  But, at present, the other code is too complicated.
+
+         if (rstuff == 0x804 && ss->kind == sbigdmd) {
+            if (the_results[0].kind == s_qtag && the_results[0].rotation == 1)
+               the_results[0].do_matrix_expansion(CONCPROP__NEEDK_BIGDMD, false);
+            if (the_results[1].kind == s_qtag && the_results[1].rotation == 1)
+               the_results[1].do_matrix_expansion(CONCPROP__NEEDK_BIGDMD, false);
+
+            if (the_results[0].kind == sbigdmd &&
+                the_results[1].kind == sbigdmd &&
+                the_results[0].rotation == the_results[1].rotation) {
+               int t;
+
+               *result = the_results[0];
+               result->result_flags = get_multiple_parallel_resultflags(the_results, 2);
+               reinstate_rotation(ss, result);
+
+               // We create an especially glorious collision collector here, with all
+               // the stuff for handling the nuances of the call definition and the
+               // assumption.
+
+               collision_collector CC(result, false, &ss->cmd, CFLAG1_TAKE_RIGHT_HANDS);
+
+               result->clear_people();
+
+               // Scan setup 0, see if any of its people can be found in setup 1.
+               // If so, delete my copy, that person will be picked up later.
+
+               for (t=0; t<12; t++) {
+                  int hopefully_adjacent_position = t^1;   // Grotesque kludge.
+                  if (the_results[0].people[t].id1) {
+                     if (the_results[1].people[t].id1) {
+                        // Check that they are actually the same person, and facing the same way.
+                        if (((the_results[0].people[t].id1 ^ the_results[1].people[t].id1) |
+                             ((the_results[0].people[t].id2 ^ the_results[1].people[t].id2) &
+                              ~ID2_BITS_NOT_INTRINSIC)) == 0) {
+
+                           // Exact match in same position.  Delete other version.
+                           the_results[1].clear_person(t);
+                        }
+
+                        // Well, check with adjacent position; see if there's a match there.
+                        else if (((the_results[0].people[t].id1 ^ the_results[1].people[hopefully_adjacent_position].id1) |
+                             ((the_results[0].people[t].id2 ^ the_results[1].people[hopefully_adjacent_position].id2) &
+                              ~ID2_BITS_NOT_INTRINSIC)) == 0) {
+                           // Then delete that person.
+                           the_results[1].clear_person(hopefully_adjacent_position);
+                        }
+                        else
+                           fail("This common spot call is very problematical.");
+                     }
+
+                     // Need to check for displaced person. !!!!
+                     // Move to prime (inner) spot!!!!
+
+                     CC.install_with_collision(t, &the_results[0], t, 0);
+                  }
+               }
+
+               // Now do what's left in setup 1.
+               for (t=0; t<12; t++) {
+                  if (the_results[1].people[t].id1)
+                     CC.install_with_collision(t, &the_results[1], t, 0);
+               }
+
+               CC.fix_possible_collision();
+               goto getout;
+            }
+         }
 
          if (the_results[0].kind != the_results[1].kind ||
              the_results[0].rotation != the_results[1].rotation)
@@ -4924,6 +5140,8 @@ extern void common_spot_move(
       else
          saved_error.throw_saved_error();
    }
+
+ getout:
 
    // Turn off any "do your part" warnings that arose during execution
    // of the subject call.  The dancers already know.

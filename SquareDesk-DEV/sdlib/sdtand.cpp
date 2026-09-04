@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2024  William B. Ackerman.
+//    Copyright (C) 1990-2025  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -101,6 +101,9 @@ public:
                   setup *result) THROW_DECL;
 
 
+   // m_real_saved_people[0] shows a setup with the left or front people in each pair.
+   // m_real_saved_people[1] shows a setup with the right or back people in each pair.
+   // and so on if couples of 3, etc.
    setup m_real_saved_people[8];
    int m_saved_rotations[MAX_PEOPLE];
    setup m_virtual_setup[4];       // If melded, use however many in group.  Otherwise only m_virtual_setup[0].
@@ -114,21 +117,24 @@ public:
    int m_people_per_group;
 };
 
+// limit=size of inner (small) setup
+// Each half (or third, whatever) of the map is calibrated by the inner setup.  First half (that is, first
+// "limit" items) shows the left/front person's location in the outer setup; second half shows the right/back person
+// (and so on for threesome).
 
 static tm_thing maps_isearch_twosome[] = {
    //       maps                                                      ilatmask3     olatmask  limit rot insetup outsetup
+
+   // !!!! NOTE !!!! These first two are conditionally included.  Search for "wd38t".  Note the use of "maps_isearch_twosome+2".
+   {{2, 4, 5, 0,                     -2, 3, -2, 1},                        0ULL,    0033,         4, 1,  s2x2,  s2x3},  // ***special***
+   {{1, 3, 5, 0,                     2, -2, 4, -2},                        0ULL,    0066,         4, 1,  s2x2,  s2x3},  // ***special***
+
    // "2x4_4" - see below; this must be before the others.
    {{7, 6, 4, 5,                     0, 1, 3, 2},                          0ULL,    0000,         4, 0,  s1x4,  s2x4},
    {{0, 2, 5, 7,                     1, 3, 4, 6},                      02222ULL,    0xFF,         4, 0,  s2x2,  s2x4},
    {{2, 5, 7, 0,                     3, 4, 6, 1},                          0ULL,    0xFF,         4, 1,  s2x2,  s2x4},
    {{0, 2, 4, 7, 10, 12, 14, 15, 17,     1, 3, 5, 6, 9, 11, 13, 16, 8}, 0222222222ULL,0x3FFFF,    9, 0,  s3x3,  s3x6},
    {{4, 7, 10, 12, 14, 15, 0, 2, 17,     5, 6, 9, 11, 13, 16, 1, 3, 8},      0ULL,    0x3FFFF,    9, 1,  s3x3,  s3x6},
-   // This one gets h1p, far box star thru, as couples touch
-   {{7, 6, 2, 5,                     0, 1, 3, 4},                      00022ULL,    0x3C,         4, 1, s_trngl4, s2x4},
-   // This one gets h1p, near box star thru, as couples touch
-   {{4, 5, 7, 0,                     3, 2, 6, 1},                      00022ULL,    0xC3,         4, 3, s_trngl4, s2x4},
-   // This one comes back from far box
-   {{0, 2, 4, 6,                     1, 3, 5, 7},                         02200ULL, 0xF0,         4, 0, s_trngl4, s_trngl8},
 
    // Special maps for couples 1/8 twosome stuff.
    // These need further work in the table initializer.
@@ -156,6 +162,11 @@ static tm_thing maps_isearch_twosome[] = {
    {{0, 2, 6, 4, 9, 11, 15, 13,      1, 3, 7, 5, 8, 10, 14, 12},     022222222ULL, 0xFFFF,        8, 0,  s1x8,  s1x16},
    {{15, 14, 12, 13, 8, 9, 11, 10,   0, 1, 3, 2, 7, 6, 4, 5},              0ULL,    0000,         8, 0,  s1x8,  s2x8},
    {{11, 10, 9, 6, 7, 8,             0, 1, 2, 5, 4, 3},                    0ULL,    0000,         6, 0,  s1x6,  s2x6},
+
+   {{12, 3, 14, 15, 8, 9, 10, 5,     0, 1, 2, 13, 4, 11, 6, 7},            0ULL,       0,         8, 0,  s_ptpd,s2x2dmd},
+   {{6, 0, 3, 5,    15, 9, 10, 12,   7, 1, 2, 4,   14, 8, 11, 13},  002220222ULL, 0xCFCF,         8, 0,  s_ptpd,sdblrig},
+   {{6, 0, 3, 5,    15, 9, 10, 12,   7, 1, 2, 4,   14, 8, 11, 13},  022022202ULL, 0xFCFC,         8, 0,  s_ptpd,sdblrig},
+   {{-2, 0, 2, 11, -2, 7, 9, 4,   -2, 1, 3, 10, -2, 6, 8, 5},       022202220ULL,  0xFFF,         8, 0,  s_ptpd,sbigbone},
 
    {{0, 2, 3, 4,                     1, -1, -1, -1},                     00002ULL,   0x3,         4, 0,  s1x4,  s1x5},
    {{0, 1, 3, 4,                     -1, 2, -1, -1},                     00020ULL,   0x6,         4, 0,  s1x4,  s1x5},
@@ -185,12 +196,6 @@ static tm_thing maps_isearch_twosome[] = {
    {{8, 10, 12, 3, 5, 7, 14, 1},                                       02222ULL,    0xAA55,       4, 3,s_trngl4,s_c1phan},
    {{15, 3, 7, 6, 13, 1, 2, 11},                                       00220ULL,    0x008E,       4, 0,  s2x2,  s4x4},
    {{3, 7, 10, 12, 1, 5, 8, 14},                                       00220ULL,    0x05A0,       4, 0,  s2x2,  s_c1phan},
-
-   // getouts
-   {{0, 2, 6, 7, 1, 3, 5, 4},                                          04466ULL,    0x000F,       4, 0,  s1x4,  slinebox},
-   {{5, 4, 1, 3, 6, 7, 0, 2},                                          06204ULL,    0x000F,       4, 2,  s1x4,  slinebox},
-   {{0, 3, 7, 4, 1, 2, 6, 5},                                          06446ULL,    0x0033,       4, 0,  s1x4,  sdbltrngl4},
-   {{6, 5, 1, 2, 7, 4, 0, 3},                                          04664ULL,    0x0033,       4, 2,  s1x4,  sdbltrngl4},
 
    {{10, 15, 3, 1, 4, 5, 6, 8,       12, 13, 14, 0, 2, 7, 11, 9},          0ULL,    0,            8, 0,  s2x4,  s4x4},
    {{14, 3, 7, 5, 8, 9, 10, 12,      0, 1, 2, 4, 6, 11, 15, 13},           0ULL,    0xFFFF,       8, 1,  s2x4,  s4x4},
@@ -261,6 +266,12 @@ static tm_thing maps_isearch_twosome[] = {
 
    // Must be after "2x4_4".
    {{7, 1, 4, 6,                     0, 2, 3, 5},                      02020ULL,    0146,         4, 0,  sdmd,  s2x4},
+   // This one gets h1p, far box star thru, as couples touch
+   {{7, 6, 2, 5,                     0, 1, 3, 4},                      00022ULL,    0x3C,         4, 1, s_trngl4, s2x4},
+   // This one gets h1p, near box star thru, as couples touch
+   {{4, 5, 7, 0,                     3, 2, 6, 1},                      00022ULL,    0xC3,         4, 3, s_trngl4, s2x4},
+   // This one comes back from far box
+   {{0, 2, 4, 6,                     1, 3, 5, 7},                         02200ULL, 0xF0,         4, 0, s_trngl4, s_trngl8},
    // Next one is for so-and-so in tandem in a bone6, making a virtual line of 4.
    {{4, 5, 3, 2,                     0, -1, 1, -1},                        0ULL,    0000,         4, 0,  s1x4,  s_bone6},
    // Next one is for so-and-so in tandem in a short6, making a virtual line of 4.
@@ -276,26 +287,34 @@ static tm_thing maps_isearch_twosome[] = {
    {{0, 1, 3, 5,                     -1, 2, -1, 4},                    02020ULL,    0066,         4, 0,  s1x4,  s1x6},
    {{0, 2, 4, 5,                     1, -1, 3, -1},                    00202ULL,    0033,         4, 0,  s1x4,  s1x6},
 
-   // Next six are for couples/tandem triangles in a 2x3 or rigger, doing a triangle circulate or some such.
+   // Next five are for couples/tandem triangles in a 2x3, rigger, or double upright triangles,
+   // doing a triangle circulate or some such.
+   {{0, 4, 2,                        1, 5, 3},                         0222ULL,     0x3F,         3, 2,  s_trngl, sdbltrnglu},
    {{3, 5, 0,                        2, 4, 1},                         0002ULL,     0063,         3, 3,  s_trngl, s2x3},
    {{5, 1, 4,                        0, 2, 3},                         0002ULL,     0036,         3, 1,  s_trngl, s2x3},
-   {{6, 0, 2,                        5, 1, 3},                         0222ULL,     0x6F,         3, 0,  s_trngl, s2x4},
-   {{1, 5, 7,                        2, 4, 6},                         0222ULL,     0xF6,         3, 2,  s_trngl, s2x4},
    {{6, 0, 5,                        7, 1, 4},                            0ULL,     0xFF,         3, 1,  s_trngl, s_rigger},
    {{3, 5, 0,                        2, 4, 1},                            0ULL,     0xFF,         3, 3,  s_trngl, s_rigger},
+   // No longer needed, kept for historical reference.
+   //   {{6, 0, 2,                        5, 1, 3},                         0222ULL,     0x6F,         3, 0,  s_trngl, s2x4},
+   //   {{1, 5, 7,                        2, 4, 6},                         0222ULL,     0xF6,         3, 2,  s_trngl, s2x4},
 
-   // Next 4 are for so-and-so in tandem from a column of 6, making a virtual column of
+   // Next few are for so-and-so in tandem from a column of 6, making a virtual column of
    // 4.  The first two are the real maps, and the other two take care of the
    // reorientation that sometimes happens when coming out of a 2x2.
 
+   {{2, 4, 5, 0,                     -1, 3, -1, 1},                    00202ULL,    0033,         4, 1,  s2x2,  s2x3},
+   {{1, 3, 5, 0,                     2, -1, 4, -1},                        0ULL,    0066,         4, 1,  s2x2,  s2x3},
    {{0, 1, 3, 5,                     -1, 2, -1, 4},                    02020ULL,    0066,         4, 0,  s2x2,  s2x3},
    {{2, 4, 5, 0,                     -1, 3, -1, 1},                        0ULL,    0033,         4, 1,  s2x2,  s2x3},
    {{0, 2, 4, 5,                     1, -1, 3, -1},                    00202ULL,    0033,         4, 0,  s2x2,  s2x3},
-   {{1, 3, 5, 0,                     2, -1, 4, -1},                        0ULL,    0066,         4, 1,  s2x2,  s2x3},
+
    {{0, 1, 4, 5,                     -1, 2, 3, -1},                    00220ULL,    0036,         4, 0,  s2x2,  s2x3},
    {{0, 2, 3, 5,                     1, -1, -1, 4},                    02002ULL,    0063,         4, 0,  s2x2,  s2x3},
    {{2, 3, 5, 0,                     -1, -1, 4, 1},                        0ULL,    0063,         4, 1,  s2x2,  s2x3},
    {{1, 4, 5, 0,                     2, 3, -1, -1},                        0ULL,    0036,         4, 1,  s2x2,  s2x3},
+
+   {{0, 2,                           1, -1},                           0002ULL,      003,         2, 0,  s1x2,  s1x3},
+   {{0, 1,                           -1, 2},                           0020ULL,      006,         2, 0,  s1x2,  s1x3},
 
    // Next 2 are for similar situations, in "nonisotropic triangles".
    // We do not have the 3rd or 4th maps in the class, because they apply only
@@ -361,6 +380,12 @@ static tm_thing maps_isearch_twosome[] = {
    // Must be after "2x4_4".
    {{6, 5, 3, 4,                     7, 0, 2, 1},                      00202ULL,    0xCC,         4, 0,  s1x4,  s_rigger},
    {{5, 6, 4, 3,                     0, 7, 1, 2},                      02020ULL,    0xCC,         4, 0,  s1x4,  s_bone},
+
+   // Getouts, must be after the above two.
+   {{0, 2, 6, 7, 1, 3, 5, 4},                                          04466ULL,    0x000F,       4, 0,  s1x4,  slinebox},
+   {{5, 4, 1, 3, 6, 7, 0, 2},                                          06204ULL,    0x000F,       4, 2,  s1x4,  slinebox},
+   {{0, 3, 7, 4, 1, 2, 6, 5},                                          06446ULL,    0x0033,       4, 0,  s1x4,  sdbltrngl4},
+   {{6, 5, 1, 2, 7, 4, 0, 3},                                          04664ULL,    0x0033,       4, 2,  s1x4,  sdbltrngl4},
 
    // Next 2 must precede the third.
    {{0, 3, 6,                        1, 2, 7},                         00220ULL,    0x33,      3, 1,  s_trngl, s_crosswave},
@@ -438,7 +463,6 @@ static tm_thing maps_isearch_twosome[] = {
 
 static tm_thing maps_isearch_threesome[] = {
    //       maps                                                      ilatmask3      olatmask   limit rot insetup outsetup
-
    {{0,                    1,                    2},                        02ULL,       07,      1, 0,  s1x1,  s1x3},
    {{0,                    1,                    2},                        00ULL,       07,      1, 1,  s1x1,  s1x3},
    {{0, 5,                 1, 4,                 2, 3},                    022ULL,      077,      2, 0,  s1x2,  s1x6},
@@ -451,6 +475,15 @@ static tm_thing maps_isearch_threesome[] = {
 
    {{0, 3, 8, 11,     1, 4, 7, 10,     2, 5, 6, 9},                      02222ULL,    07777,      4, 0,  s2x2,  s2x6},
    {{3, 8, 11, 0,     4, 7, 10, 1,     5, 6, 9, 2},                          0ULL,    07777,      4, 1,  s2x2,  s2x6},
+
+   {{-2, 3, 4, -2, 10, 13,       -2, -2, 5, -2, -2, 12,
+             -2, -2, 6, -2, -2, 11},                                   0200200ULL,   0x3870,      6, 0,  s2x3,  s2x7},
+   {{-2, 3, 6, -2, 12, 13,       -2, 4, -2, -2, 11, -2,
+             -2, 5, -2, -2, 10, -2},                                   0020020ULL,   0x1C38,      6, 0,  s2x3,  s2x7},
+   {{0, 3, -2, 9, 10, -2,        1, -2, -2, 8, -2, -2,
+             2, -2, -2, 7, -2, -2},                                    0002002ULL,   0x0387,      6, 0,  s2x3,  s2x7},
+   {{0, 1, -2, 7, 10, -2,        -2, 2, -2, -2, 9, -2,
+             -2, 3, -2, -2, 8, -2},                                    0020020ULL,   0x070E,      6, 0,  s2x3,  s2x7},
 
    {{3, 8, 11, 14, 15, 0,   4, 7, 10, 13, 16, 1,   5, 6, 9, 12, 17, 2},      0ULL,  0777777,      6, 1,  s2x3,  s3x6},
 
@@ -818,6 +851,21 @@ const siamese_item siamese_table_of_2[] = {
    {sdeepbigqtg, 0xCACA3535U, 0x3A3AU, warn__none},
    {sdeepbigqtg, 0xC5C53A3AU, 0x3535U, warn__none},
    {sdeepbigqtg, 0x3A3AC5C5U, 0xCACAU, warn__none},
+
+   {s2x2dmd,     0x0A0A1111U, 0x10000A0AU, warn__none},
+   {s2x2dmd,     0x11110A0AU, 0x20000000U, warn__none},
+   {s2x2dmd,     0xA0A01111U, 0x3000A0A0U, warn__none},
+   {s2x2dmd,     0x1111A0A0U, 0x40000000U, warn__none},
+   {s2x2dmd,     0x0A0A4444U, 0x50000A0AU, warn__none},
+   {s2x2dmd,     0x44440A0AU, 0x60000000U, warn__none},
+   {s2x2dmd,     0xA0A04444U, 0x7000A0A0U, warn__none},
+   {s2x2dmd,     0x4444A0A0U, 0x80000000U, warn__none},
+
+   {sdblrig,     0x0303C0C0U, 0x1000C0C0U, warn__none},
+   {sdblrig,     0x3030C0C0U, 0x2000C0C0U, warn__none},
+   {sbigbone,    0x3CF33F3CU, 0x1000030C,  warn__none},
+   {sbigbone,    0x0C30030CU, 0x2000030C,  warn__none},
+
    {nothing,     0,           0,       warn__none}};
 
 const siamese_item siamese_table_of_3[] = {
@@ -954,6 +1002,8 @@ void tandrec::unpack_us(
 
          bool invert_order =
             (((omask >> 1) + r0 + 1) & 2) && !m_no_unit_symmetry;
+
+         if (map_ptr->outsetup == sdbltrnglu && map_ptr->rot == 2) invert_order = !invert_order;
 
          // Figure out whether we are unpacking a single person or multiple people.
          int howmanytounpack = 1;
@@ -1105,7 +1155,7 @@ void tandrec::unpack_us(
       }
    }
    else
-      my_huge_map = identity24;
+      my_huge_map = identity32;
 
    if (!my_huge_map)
       fail("This would go to an impossible setup.");
@@ -1131,7 +1181,7 @@ void tandrec::unpack_us(
 
 // The canonical storage of the real people, while we are doing the virtual
 // call, is as follows:
-//    m_real_saved_people[0] gets person on left (lat=1) near person (lat=0).
+//    m_real_saved_people[0] gets person on left (lat=1) or near person (lat=0).
 //    m_real_saved_people[last] gets person on right (lat=1) or far person (lat=0).
 
 // This returns true if it found people facing the wrong way.  This can happen
@@ -1411,6 +1461,7 @@ extern void tandem_couples_move(
    int finalcount;
    setup ttt[8];
 
+   // This (little-endian) mask causes live people to be flagged as single.
    uint32_t special_mask = 0;
    result->clear_people();
    remove_z_distortion(ss);
@@ -1506,12 +1557,27 @@ extern void tandem_couples_move(
 
       {
          // ****** Maybe all this could be done in terms of "do_1x3_type_expansion".
+         // Note that livemask64 and directions64 are BIG_ENDIAN,
+         // instead of the usual little-endian.
+
+         // Use facing directions, if possible, to figure out who is single.
 
          if (mxn_bits == INHERITFLAGMXNK_2X1 || mxn_bits == INHERITFLAGMXNK_1X2) {
             people_per_group = 2;
             our_map_table = maps_isearch_twosome;
 
-            if (ss->kind == s2x3 || ss->kind == s1x6) {
+            if (ss->kind == s1x3) {
+               if (transformed_key == tandem_key_tand) directions64 ^= 0x15ULL;
+
+               if (((directions64 ^ 0x02ULL) & livemask64)== 0ULL ||
+                   ((directions64 ^ 0x28ULL) & livemask64)== 0ULL)
+                  special_mask |= 4;
+
+               if (((directions64 ^ 0x0AULL) & livemask64)== 0ULL ||
+                   ((directions64 ^ 0x20ULL) & livemask64)== 0ULL)
+                  special_mask |= 1;
+            }
+            else if (ss->kind == s2x3 || ss->kind == s1x6) {
                if (transformed_key == tandem_key_tand) directions64 ^= 0x555ULL;
 
                if (((directions64 ^ 0x0A8ULL) & livemask64)== 0ULL ||
@@ -1547,18 +1613,26 @@ extern void tandem_couples_move(
                   special_mask |= 011;
 
                if (special_mask != 011 && special_mask != 044 &&
-                   special_mask != 014 && special_mask != 041)
-                  special_mask = 0;
+                   special_mask != 014 && special_mask != 041) {
+                  // If only one person in one of the 1x3's is home, and that person is not centermost,
+                  // we make a guess that that person is single and the other 2 phantoms are paired..
+                  // Is this logically sound?  No, but (a) it's correct for 2x1 or 1x2 hinge, and
+                  // (b) it makes test wd38t, with its 2x1 stack the wheel, work.
+                  if (livemask64 == 00003 || livemask64 == 00300)
+                     special_mask = 044;
+                  else
+                     special_mask = 0;
+               }
             }
          }
          else if (mxn_bits == INHERITFLAGMXNK_3X1 || mxn_bits == INHERITFLAGMXNK_1X3) {
             people_per_group = 3;
             our_map_table = maps_isearch_threesome;
-            if (transformed_key == tandem_key_tand) directions64 ^= 0x555555ULL;
+            if (transformed_key == tandem_key_tand) directions64 ^= 0x55555555ULL;
 
             if (ss->kind == s2x4) {
-               if (((directions64 ^ 0x02A8) & livemask64) == 0ULL ||
-                   ((directions64 ^ 0xA802) & livemask64) == 0ULL)
+               if (((directions64 ^ 0x02A8ULL) & livemask64) == 0ULL ||
+                   ((directions64 ^ 0xA802ULL) & livemask64) == 0ULL)
                   special_mask |= 0x88;
 
                if (((directions64 ^ 0x2A80ULL) & livemask64) == 0ULL ||
@@ -1640,6 +1714,19 @@ extern void tandem_couples_move(
                   special_mask |= 0x11;
 
                if (special_mask != 0x11 && special_mask != 0x44) special_mask = 0;
+            }
+            else if (ss->kind == s2x7) {
+               if (((directions64 ^ 0x00A8080ULL) & livemask64) == 0ULL ||
+                   ((directions64 ^ 0x020002AULL) & livemask64) == 0ULL ||
+                   ((directions64 ^ 0x0202A00ULL) & livemask64) == 0ULL ||
+                   ((directions64 ^ 0xA800080ULL) & livemask64) == 0ULL)
+                  special_mask |= 0x0408;
+               else if (((directions64 ^ 0x00080A8ULL) & livemask64) == 0ULL ||
+                   ((directions64 ^ 0x02A0002ULL) & livemask64) == 0ULL)
+                  special_mask |= 0x2040;
+               else if (((directions64 ^ 0x2A02000ULL) & livemask64) == 0ULL ||
+                   ((directions64 ^ 0x8000A80ULL) & livemask64) == 0ULL)
+                  special_mask |= 0x0081;
             }
             else if (ss->kind == s3x1dmd) {
                if (((directions64 ^ 0x00A8ULL) & 0xFCFCULL & livemask64) == 0ULL ||
@@ -1834,7 +1921,7 @@ extern void tandem_couples_move(
    }
    else {    // Includes tandem_key_overlap_siam.
       people_per_group = 2;
-      our_map_table = maps_isearch_twosome;
+      our_map_table = maps_isearch_twosome+2;   // For wd38t.
    }
 
    if (attr::slimit(ss) < 0)
@@ -2363,6 +2450,7 @@ extern void tandem_couples_move(
          for (int j=0 ; j<=attr::klimit(incoming_map->insetup) ; j++) {
             setup sss = tandstuff.m_virtual_setup[k];
             sss.clear_people();
+            sss.cmd.cmd_misc3_flags |= CMD_MISC3__UNDER_MELDED;
             if (copy_person(&sss, j, &tandstuff.m_virtual_setup[k], j)) {
                if ((++tttcount) >= 8) fail("Sorry, too many tandem or as couples people.");
                impose_assumption_and_move(&sss, &ttt[tttcount], true);
@@ -2372,7 +2460,7 @@ extern void tandem_couples_move(
 
       fix_n_results(tttcount+1, -1, ttt, rotstate, pointclip, 0);
 
-      if (ttt[0].kind == nothing || !(rotstate & 0xF03))
+      if (ttt[0].kind == nothing)
          fail("Can't do this.");
 
       result->result_flags = get_multiple_parallel_resultflags(ttt, tttcount+1);
@@ -2762,12 +2850,15 @@ extern void tandem_couples_move(
 
    // Don't raise the "phantom tandem" warning if it's just a 2x4 to a 2x4
    // that splits into 1x2's.  That is, things like tandem hinge from clumps.
+   // And don't raise it if user gave a pg offset concept.
    if (tandstuff.m_maybe_raise_phantom_warning && !two_couple_calling) {
-      if (tandstuff.m_virtual_setup[0].kind != s2x4 ||
-          tandstuff.virtual_result.kind != s2x4 ||
-          (tandstuff.virtual_result.result_flags.split_info[0] &
-           tandstuff.virtual_result.result_flags.split_info[1]) != 1)
-         fail("Use \"phantom\" concept in front of this concept.");
+      if (!(tandstuff.m_virtual_setup[0].cmd.cmd_misc_flags & CMD_MISC__SAID_PG_OFFSET)) {
+         if (tandstuff.m_virtual_setup[0].kind != s2x4 ||
+             tandstuff.virtual_result.kind != s2x4 ||
+             (tandstuff.virtual_result.result_flags.split_info[0] &
+              tandstuff.virtual_result.result_flags.split_info[1]) != 1)
+            fail("Use \"phantom\" concept in front of this concept.");
+      }
    }
 
    result->clear_all_overcasts();
@@ -3308,7 +3399,7 @@ void mimic_move(
    int trial_number;
    setup trial_results[2];
    int trial_result_mask = 0;
-   error_flag_type err_from_execution;
+   error_flag_type err_from_execution = (error_flag_type) 0;
 
    switch (who) {
    case selector_centers:
@@ -3555,13 +3646,13 @@ void mimic_move(
    // Find out whether this is a call like "counter rotate", which would give deceptive results
    // if we were allowed to do it in smaller setups.  Counter rotate can be done in a 1x2 miniwave,
    // but we don't want to be deceived by that.  Get the "flags2" word of the call definition.
-   uint32_t flags2 = 0;
+   uint64_t flags1 = 0;
 
    if (ss->cmd.callspec)
-      flags2 = ss->cmd.callspec->the_defn.callflagsf;
+      flags1 = ss->cmd.callspec->the_defn.callflags1;
    else if (ss->cmd.parseptr && ss->cmd.parseptr->concept && ss->cmd.parseptr->concept->kind == marker_end_of_list &&
        ss->cmd.parseptr->call)
-      flags2 = ss->cmd.parseptr->call->the_defn.callflagsf;
+      flags1 = ss->cmd.parseptr->call->the_defn.callflags1;
 
    // Look for 2-person underlying calls that we can do with a single person.
    // Break up the incoming setup, whatever it is, into 1-person setups.
@@ -3573,7 +3664,7 @@ void mimic_move(
    clear_result_flags(result);
 
    // But don't do it if user requested any setup, or if this is a [split] counter rotate.
-   if (MI.groupsize <= 1 && MI.setup_hint == 0 && !(flags2 & CFLAG2_CAN_BE_ONE_SIDE_LATERAL)) {
+   if (MI.groupsize <= 1 && MI.setup_hint == 0 && !(flags1 & CFLAG1_CAN_BE_ONE_SIDE_LATERAL)) {
       try {
          for (i=0 ; i<=sizem1; i++) {
             if (ss->people[i].id1) {
@@ -3624,7 +3715,7 @@ void mimic_move(
       try {
          // Don't split into 1x2's if user requested C/L/W.
          if ((MI.setup_hint & (MIMIC_SETUP_LINES|MIMIC_SETUP_WAVES|MIMIC_SETUP_COLUMNS|MIMIC_SETUP_TIDAL_SETUP)) == 0 &&
-             !((MI.setup_hint & MIMIC_SETUP_BOXES) == 0 && (flags2 & CFLAG2_CAN_BE_ONE_SIDE_LATERAL))) {
+             !((MI.setup_hint & MIMIC_SETUP_BOXES) == 0 && (flags1 & CFLAG1_CAN_BE_ONE_SIDE_LATERAL))) {
             switch (ss->kind) {
             case s1x4:
                division_code = MAPCODE(s1x2,2,MPKIND__SPLIT,0);

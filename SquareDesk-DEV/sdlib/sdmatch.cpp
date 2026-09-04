@@ -476,7 +476,7 @@ void matcher_class::do_accelerator_spec(Cstring inputline, bool is_accelerator)
    if (!inputline[0] || inputline[0] == '\r' || inputline[0] == '\n' || inputline[0] == '#') return;   // This is a blank line or a comment.
 
    char key_name[MAX_FILENAME_LENGTH];
-   char *key_org;
+   char *key_org = (char *) 0;
    char junk_name[MAX_FILENAME_LENGTH];
    int ccount;
    int menu_type = call_list_any;
@@ -553,7 +553,7 @@ void matcher_class::do_accelerator_spec(Cstring inputline, bool is_accelerator)
    }
 
    if (is_accelerator) {
-      modifier_block **table_thing;
+      modifier_block **table_thing = (modifier_block **) 0;
 
       if (m_active_result.match.kind == ui_start_select) {
          table_thing = &m_fcn_key_table_start[keybindcode-FCN_KEY_TAB_LOW];
@@ -578,7 +578,7 @@ void matcher_class::do_accelerator_spec(Cstring inputline, bool is_accelerator)
       *table_thing = newthing;
    }
    else {
-      abbrev_block **table_thing;
+      abbrev_block **table_thing = (abbrev_block **) 0;
 
       if (m_active_result.match.kind == ui_start_select) {
          table_thing = &m_abbrev_table_start;
@@ -1987,7 +1987,8 @@ void matcher_class::match_pattern(Cstring pattern)
 
 void matcher_class::search_menu(uims_reply_kind kind)
 {
-   unsigned int i, menu_length;
+   unsigned int i;
+   unsigned int menu_length = 0;
    Cstring *menu;
    char uch = m_user_input[0];
    bool input_is_null = uch == '\0' && !m_showing;

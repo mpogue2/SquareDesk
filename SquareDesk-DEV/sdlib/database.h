@@ -5,7 +5,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2024  William B. Ackerman.
+//    Copyright (C) 1990-2026  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -45,7 +45,7 @@
 // database format version.
 
 #define DATABASE_MAGIC_NUM 21316
-#define DATABASE_FORMAT_VERSION 412
+#define DATABASE_FORMAT_VERSION 433
 
 
 // We used to do some stuff to cater to compiler vendors (e.g. Sun
@@ -263,6 +263,7 @@ enum base_call_index {
    base_call_extend_n,
    base_call_inrollcirc,
    base_call_outrollcirc,
+   base_call_withflow,
    base_call_uturnback,
    base_call_anyoneuturnback,
    num_base_call_indices    // Not an actual enumeration item.
@@ -374,6 +375,7 @@ const uint64_t INHERITFLAG_ZOOMROLL   = 0x0000080000000000ULL;
 const uint64_t INHERITFLAG_TRADE      = 0x0000100000000000ULL;
 const uint64_t INHERITFLAG_CROSSOVER  = 0x0000200000000000ULL;
 const uint64_t INHERITFLAG_RECTIFY    = 0x0000400000000000ULL;
+const uint64_t INHERITFLAG_STABLE     = 0x0000800000000000ULL;
 
 
 typedef uint64_t heritflags;
@@ -401,62 +403,57 @@ typedef uint64_t heritflags;
 // These flags go into the "callflags1" word of a callspec_block,
 // and the "topcallflags1" word of the parse_state.
 
-enum {
-   CFLAG1_VISIBLE_FRACTION_MASK     = 0x00000007U, // 3 bit field
-   CFLAG1_VISIBLE_FRACTION_BIT      = 0x00000001U, // its low bit
-   CFLAG1_12_16_MATRIX_MEANS_SPLIT  = 0x00000008U,
-   CFLAG1_PRESERVE_Z_STUFF          = 0x00000010U,
-   CFLAG1_SPLIT_LIKE_DIXIE_STYLE    = 0x00000020U,
-   CFLAG1_PARALLEL_CONC_END         = 0x00000040U,
-   CFLAG1_TAKE_RIGHT_HANDS          = 0x00000080U,
-   CFLAG1_TAKE_RIGHT_HANDS_AS_COUPLES= 0x00000100U,
-   CFLAG1_YOYO_FRACTAL_NUM          = 0x00000200U,
-   CFLAG1_FUDGE_TO_Q_TAG            = 0x00000400U,
-   CFLAG1_STEP_REAR_MASK            = 0x00003800U, // 3 bit field
-   CFLAG1_STEP_TO_WAVE              = 0x00000800U, // the encodings inside
-   CFLAG1_REAR_BACK_FROM_R_WAVE     = 0x00001000U,
-   CFLAG1_STEP_TO_NONPHAN_BOX       = 0x00001800U,
-   CFLAG1_REAR_BACK_FROM_QTAG       = 0x00002000U,
-   CFLAG1_REAR_BACK_FROM_EITHER     = 0x00002800U,
-   CFLAG1_STEP_TO_QTAG              = 0x00003000U,
-   CFLAG1_DISTRIBUTE_REPETITIONS    = 0x00004000U,
-   CFLAG1_NUMBER_MASK               = 0x00038000U, // 3 bit field
-   CFLAG1_NUMBER_BIT                = 0x00008000U, // its low bit
-   CFLAG1_LEFT_MEANS_TOUCH_OR_CHECK = 0x00040000U,
-   CFLAG1_SEQUENCE_STARTER          = 0x00080000U,
-   CFLAG1_SEQUENCE_STARTER_PROM     = 0x00100000U,
-   CFLAG1_DONT_USE_IN_RESOLVE       = 0x00200000U,
-   CFLAG1_DONT_USE_IN_NICE_RESOLVE  = 0x00400000U,
-   CFLAG1_SPLIT_LARGE_SETUPS        = 0x00800000U,
-   CFLAG1_SPLIT_IF_Z                = 0x01000000U,
-   CFLAG1_BASE_TAG_CALL_MASK        = 0x0E000000U, // 3 bit field
-   CFLAG1_BASE_TAG_CALL_BIT         = 0x02000000U, // its low bit
-   CFLAG1_BASE_CIRC_CALL            = 0x10000000U,
-   CFLAG1_ENDS_TAKE_RIGHT_HANDS     = 0x20000000U,
-   CFLAG1_FUNNY_MEANS_THOSE_FACING  = 0x40000000U,
-   CFLAG1_SPLIT_LIKE_SQUARE_THRU    = 0x80000000U
-};
+const uint64_t CFLAG1_VISIBLE_FRACTION_MASK     = 0x0000000000000007ULL; // 3 bit field
+const uint64_t CFLAG1_VISIBLE_FRACTION_BIT      = 0x0000000000000001ULL; // its low bit
+const uint64_t CFLAG1_12_16_MATRIX_MEANS_SPLIT  = 0x0000000000000008ULL;
+const uint64_t CFLAG1_PRESERVE_Z_STUFF          = 0x0000000000000010ULL;
+const uint64_t CFLAG1_SPLIT_LIKE_DIXIE_STYLE    = 0x0000000000000020ULL;
+const uint64_t CFLAG1_PARALLEL_CONC_END         = 0x0000000000000040ULL;
+const uint64_t CFLAG1_TAKE_RIGHT_HANDS          = 0x0000000000000080ULL;
+const uint64_t CFLAG1_TAKE_RIGHT_HANDS_AS_COUPLES= 0x0000000000000100ULL;
+const uint64_t CFLAG1_YOYO_FRACTAL_NUM          = 0x0000000000000200ULL;
+const uint64_t CFLAG1_FUDGE_TO_Q_TAG            = 0x0000000000000400ULL;
+const uint64_t CFLAG1_STEP_REAR_MASK            = 0x0000000000003800ULL; // 3 bit field
+const uint64_t CFLAG1_STEP_TO_WAVE              = 0x0000000000000800ULL; // the encodings inside
+const uint64_t CFLAG1_REAR_BACK_FROM_R_WAVE     = 0x0000000000001000ULL;
+const uint64_t CFLAG1_STEP_TO_NONPHAN_BOX       = 0x0000000000001800ULL;
+const uint64_t CFLAG1_REAR_BACK_FROM_QTAG       = 0x0000000000002000ULL;
+const uint64_t CFLAG1_REAR_BACK_FROM_EITHER     = 0x0000000000002800ULL;
+const uint64_t CFLAG1_STEP_TO_QTAG              = 0x0000000000003000ULL;
+const uint64_t CFLAG1_DISTRIBUTE_REPETITIONS    = 0x0000000000004000ULL;
+const uint64_t CFLAG1_NUMBER_MASK               = 0x0000000000038000ULL; // 3 bit field
+const uint64_t CFLAG1_NUMBER_BIT                = 0x0000000000008000ULL; // its low bit
+const uint64_t CFLAG1_LEFT_MEANS_TOUCH_OR_CHECK = 0x0000000000040000ULL;
+const uint64_t CFLAG1_SEQUENCE_STARTER          = 0x0000000000080000ULL;
+const uint64_t CFLAG1_SEQUENCE_STARTER_PROM     = 0x0000000000100000ULL;
+const uint64_t CFLAG1_DONT_USE_IN_RESOLVE       = 0x0000000000200000ULL;
+const uint64_t CFLAG1_DONT_USE_IN_NICE_RESOLVE  = 0x0000000000400000ULL;
+const uint64_t CFLAG1_SPLIT_LARGE_SETUPS        = 0x0000000000800000ULL;
+const uint64_t CFLAG1_SPLIT_IF_Z                = 0x0000000001000000ULL;
+const uint64_t CFLAG1_BASE_TAG_CALL_MASK        = 0x000000000E000000ULL; // 3 bit field
+const uint64_t CFLAG1_BASE_TAG_CALL_BIT         = 0x0000000002000000ULL; // its low bit
+const uint64_t CFLAG1_BASE_CIRC_CALL            = 0x0000000010000000ULL;
+const uint64_t CFLAG1_ENDS_TAKE_RIGHT_HANDS     = 0x0000000020000000ULL;
+const uint64_t CFLAG1_FUNNY_MEANS_THOSE_FACING  = 0x0000000040000000ULL;
+const uint64_t CFLAG1_SPLIT_LIKE_SQUARE_THRU    = 0x0000000080000000ULL;
+const uint64_t CFLAG1_NO_SEQ_IF_NO_FRAC         = 0xa000000100000000ULL;
+const uint64_t CFLAG1_CAN_BE_ONE_SIDE_LATERAL   = 0x0000000200000000ULL;
+const uint64_t CFLAG1_NO_ELONGATION_ALLOWED     = 0x0000000400000000ULL;
+const uint64_t CFLAG1_IMPRECISE_ROTATION        = 0x0000000800000000ULL;
+const uint64_t CFLAG1_CAN_BE_FAN                = 0x0000001000000000ULL;
+const uint64_t CFLAG1_EQUALIZE                  = 0x0000002000000000ULL;
+const uint64_t CFLAG1_ONE_PERSON_CALL           = 0x0000004000000000ULL;
+const uint64_t CFLAG1_YIELD_IF_AMBIGUOUS        = 0x0000008000000000ULL;
+const uint64_t CFLAG1_DO_EXCHANGE_COMPRESS      = 0x0000010000000000ULL;
+const uint64_t CFLAG1_IF_MOVE_CANT_ROLL         = 0x0000020000000000ULL;
+const uint64_t CFLAG1_FRACTIONAL_NUMBERS        = 0x0000040000000000ULL;
+const uint64_t CFLAG1_NO_RAISE_OVERCAST         = 0x0000080000000000ULL;
+const uint64_t CFLAG1_OVERCAST_TRANSPARENT      = 0x0000100000000000ULL;
+const uint64_t CFLAG1_IS_STAR_CALL              = 0x0000200000000000ULL;
+const uint64_t CFLAG1_CAN_DO_IN_Z               = 0x0000400000000000ULL;
+const uint64_t CFLAG1_WARN_ON_ELONGATION        = 0x0000800000000000ULL;
+const uint64_t CFLAG1_ALLOW_IF_CENTERS_ONLY     = 0x0001000000000000ULL;
 
-// These are the logical continuation of the "CFLAG1" bits, that have to overflow
-// into the "flagsf" word.  They must lie in the top 16 bits.
-enum {
-   CFLAG2_NO_SEQ_IF_NO_FRAC         = 0x00010000U,
-   CFLAG2_CAN_BE_ONE_SIDE_LATERAL   = 0x00020000U,
-   CFLAG2_NO_ELONGATION_ALLOWED     = 0x00040000U,
-   CFLAG2_IMPRECISE_ROTATION        = 0x00080000U,
-   CFLAG2_CAN_BE_FAN                = 0x00100000U,
-   CFLAG2_EQUALIZE                  = 0x00200000U,
-   CFLAG2_ONE_PERSON_CALL           = 0x00400000U,
-   CFLAG2_YIELD_IF_AMBIGUOUS        = 0x00800000U,
-   CFLAG2_DO_EXCHANGE_COMPRESS      = 0x01000000U,
-   CFLAG2_IF_MOVE_CANT_ROLL         = 0x02000000U,
-   CFLAG2_FRACTIONAL_NUMBERS        = 0x04000000U,
-   CFLAG2_NO_RAISE_OVERCAST         = 0x08000000U,
-   CFLAG2_OVERCAST_TRANSPARENT      = 0x10000000U,
-   CFLAG2_IS_STAR_CALL              = 0x20000000U,
-   CFLAG2_CAN_DO_IN_Z               = 0x40000000U,
-   CFLAG2_WARN_ON_ELONGATION        = 0x80000000U       // no spares!
-};
 
 // Beware!!  This list must track the table "matrixcallflagtab" in mkcalls.cpp .
 enum {
@@ -505,14 +502,16 @@ enum {
 
 
 // BEWARE!!  This list must track the table "leveltab" in mkcalls.cpp .
-// BEWARE!!  This list must track the table "getout_strings" in sdtables.cpp .
-// BEWARE!!  This list must track the table "old_filename_strings" in sdtables.cpp .
-// BEWARE!!  This list must track the table "filename_strings" in sdtables.cpp .
+// BEWARE!!  This list must track the table "getout_strings" in sdtop.cpp .
+// BEWARE!!  This list must track the table "old_filename_strings" in sdutil.cpp .
+// BEWARE!!  This list must track the table "filename_strings" in sdutil.cpp .
 // BEWARE!!  This list must track the table "level_threshholds_for_pick" in sdtop.cpp .
 
 enum dance_level {
+   l_xyz,    // Publicly called "Mainstream2026".
    l_mainstream,
    l_plus,
+   l_pqr,    // Publicly called "Plus2026".
    l_a1,
    l_a2,
    l_c1,
@@ -647,6 +646,7 @@ enum setup_kind {
    slinevbox,
    slineybox,
    slinefbox,
+   sdbltrnglu,
    sdbltrngl4,
    sboxdmd,
    sboxpdmd,
@@ -667,6 +667,7 @@ enum setup_kind {
    s3x8,
    s4x5,
    s4x6,
+   s4x8,
    s2x10,
    s2x12,
    sdeepqtg,
@@ -682,6 +683,7 @@ enum setup_kind {
    s_hyperbone, // Ditto.
    s_hyper3x4,  // Ditto.
    s_tinyhyperbone, // Ditto.
+   s_bighyperbone, // Ditto.
    s8x8,      // Ditto.
    sxequlize, // Ditto.
    sx1x6,   
@@ -695,8 +697,6 @@ enum setup_kind {
    shyper4x8b,// Ditto.
    shyper3x8, // Ditto.
    shyper2x16,// Ditto.
-   sfat2x8,   // Ditto.  These are big setups that are the size of 4x8's,
-   swide4x4,  // but only have 16 people.  The reason is to prevent loss of phantoms.
    s_323,
    s_343,
    s_3223,
@@ -724,6 +724,8 @@ enum setup_kind {
    sbig3dmd,
    sbig4dmd,
    sdblxwave,
+   sdblthar,
+   sdblalamo,
    sdblspindle,
    sdblbone,
    sdblrig,
@@ -853,6 +855,8 @@ enum begin_kind {
    b_5x4,
    b_4x6,
    b_6x4,
+   b_4x8,
+   b_8x4,
    b_2x10,
    b_10x2,
    b_2x12,
@@ -973,6 +977,8 @@ enum begin_kind {
    b_pbig4dmd,
    b_dblxwave,
    b_pdblxwave,
+   b_dblthar,
+   b_dblalamo,
    b_dblspindle,
    b_pdblspindle,
    b_dblbone,
@@ -1091,13 +1097,17 @@ enum call_restriction {
    cr_tall6,               // Actually not checked as qualifier or restriction.
    cr_ctr_pts_rh,          // Qualifier only.
    cr_ctr_pts_lh,          // Qualifier only.
+   cr_ctr_pts_rh_or_fake_it,// Qualifier only.
+   cr_ctr_pts_lh_or_fake_it,// Qualifier only.
    cr_extend_inroutl,      // Qualifier only.
    cr_extend_inloutr,      // Qualifier only.
    cr_said_dmd,            // Qualifier only.
    cr_said_tgl,            // Qualifier only.
    cr_didnt_say_tgl,       // Qualifier only.
-   cr_said_gal,            // Qualifier only.
+   cr_said_galaxy,         // Qualifier only.
+   cr_not_funny,           // Qualifier only.
    cr_didnt_say_matrix,    // Qualifier only.
+   cr_phantom_in_use,      // Qualifier only.
    cr_occupied_as_stars,   // Qualifier only.
    cr_occupied_as_clumps,  // Qualifier only.
    cr_occupied_as_blocks,  // Qualifier only.
@@ -1113,7 +1123,12 @@ enum call_restriction {
    cr_ripple_both_ends_1x4_only, // Qualifier only.
    cr_ripple_both_centers, // Qualifier only.
    cr_ripple_any_centers,  // Qualifier only.
-   cr_people_1_and_5_real, // Qualifier only.
+   cr_people_1_opp_real,   // Qualifier only.
+   cr_people_12_opp_real,  // Qualifier only.
+   cr_people_34_opp_real,  // Qualifier only.
+   cr_people_0_opp_phan,   // Qualifier only.
+   cr_consistent_roll,     // Qualifier only.
+   cr_slide_seems_good,
    cr_ctrs_sel,
    cr_ends_sel,
    cr_all_sel,
@@ -1139,6 +1154,7 @@ enum call_restriction {
    cr_ends_didnt_move,
    cr_facing_someone,
    cr_levelplus,
+   cr_levelpqr,
    cr_levela1,
    cr_levela2,
    cr_levelc1,
@@ -1149,6 +1165,7 @@ enum call_restriction {
    cr_levelc4,
    cr_not_tboned,          // Restriction only.
    cr_opposite_sex,
+   cr_have_roll_info,
    cr_quarterbox,
    cr_threequarterbox,
    cr_quarterbox_or_col,   // Restriction only.
@@ -1201,6 +1218,8 @@ enum calldef_schema {
    schema_grand_single_cross_concentric,
    schema_single_concentric_together,
    schema_single_cross_concentric_together,
+   schema_single_concentric_together_nosplit,
+   schema_single_cross_concentric_together_nosplit,
    schema_maybe_6x2_single_conc_together,
    schema_maybe_matrix_single_concentric_together,
    schema_maybe_single_concentric,
@@ -1242,6 +1261,7 @@ enum calldef_schema {
    schema_concentric_4_2_prefer_1x4,
    schema_cross_concentric_4_2,
    schema_concentric_4_2_or_normal,
+   schema_concentric_6_2_or_normal,
    schema_concentric_or_2_6,
    schema_concentric_with_number,
    schema_concentric_8_4,        // Not for public use!
@@ -1302,6 +1322,7 @@ enum calldef_schema {
    schema_3x3_in_out_triple_squash,
    schema_4x4_in_out_triple_squash,
    schema_in_out_triple,
+   schema_in_out_triple_1x3s,
    schema_sgl_in_out_triple,
    schema_3x3_in_out_triple,
    schema_4x4_in_out_triple,

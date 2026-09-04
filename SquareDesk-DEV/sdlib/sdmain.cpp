@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2024  William B. Ackerman.
+//    Copyright (C) 1990-2026  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -44,8 +44,8 @@
 //    string is also required by paragraphs 2(a) and 2(c) of the GNU
 //    General Public License if you distribute the file.
 
-#define VERSION_STRING "39.71a"
-#define TIME_STAMP "wba@alum.mit.edu Jan 10 2025 $"
+#define VERSION_STRING "39.84"
+#define TIME_STAMP "wba@alum.mit.edu Jul 4 2026 $"
 
 /* This defines the following functions:
    sd_version_string
@@ -238,6 +238,8 @@ startup_list_menu_item startup_menu[] = {
    {"heads 1p2p",                  start_select_h1p2p, -1},
    {"sides 1p2p",                  start_select_s1p2p, -1},
    {"just as they are",            start_select_as_they_are, -1},
+   {"Heads face (while the sides move in and) ...", start_select_headsface, -1},
+   {"Sides face (while the heads move in and) ...", start_select_sidesface, -1},
    {"two couples only",            start_select_two_couple, -1},
    {"toggle concept levels",       start_select_toggle_conc, ID_COMMAND_TOGGLE_CONC},
    {"toggle active phantoms",      start_select_toggle_act, ID_COMMAND_TOGGLE_PHAN},
@@ -431,7 +433,7 @@ static bool find_numbers(int howmanynumbers, bool forbid_zero,
 extern bool deposit_call(call_with_name *call, const call_conc_option_state *options)
 {
    parse_block *new_block;
-   call_with_name *tagger_call;
+   call_with_name *tagger_call = (call_with_name *) 0;
    uint32_t tagg = 0;
    who_list sel;
    direction_kind dir = direction_uninitialized;

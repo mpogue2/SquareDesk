@@ -217,6 +217,8 @@ int begin_sizes[] = {
    20,         // b_5x4
    24,         // b_4x6
    24,         // b_6x4
+   32,         // b_4x8
+   32,         // b_8x4
    20,         // b_2x10
    20,         // b_10x2
    24,         // b_2x12
@@ -337,6 +339,8 @@ int begin_sizes[] = {
    24,         // b_pbig4dmd
    16,         // b_dblxwave
    16,         // b_pdblxwave
+   16,         // b_dblthar
+   16,         // b_dblalamo
    16,         // b_dblspindle
    16,         // b_pdblspindle
    16,         // b_dblbone

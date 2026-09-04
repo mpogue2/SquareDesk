@@ -361,6 +361,8 @@ extern bool selectp(const setup *ss, int place, int allow_some /*= 0*/) THROW_DE
       else if ((pid2 & (ID2_CTR4|ID2_OUTRPAIRS)) == ID2_OUTRPAIRS) return false;
       else if ((pid2 & (ID2_CTR4|ID2_END)) == ID2_CTR4) return true;
       else if ((pid2 & (ID2_CTR4|ID2_END)) == ID2_END) return false;
+      else if ((pid2 & (ID2_CTR4|ID2_NCTR1X4)) == ID2_CTR4) return true;
+      else if ((pid2 & (ID2_CTR4|ID2_NCTR1X4)) == ID2_NCTR1X4) return false;
       break;
    case selector_outerpairs:
       if (ss->kind == s1x6) {
@@ -1212,11 +1214,14 @@ static const int32_t dbl_tab21n[5]       = {2, 1, 1, 0, 1};
 static const int32_t x22tabtandem[6]     = {3, 0, 1, 0,      0, 0};
 static const int32_t x22tabantitandem[6] = {3, 2, 1, 0,      0, 0};
 static const int32_t x22tabfacing[6]     = {3, 2, 1, 0x1B,   0, 0};
+static const int32_t x24tabfacediag[6]   = {99, 2, 0, 0,     0, 0};
 static const int32_t x24tabtandem[6]     = {7, 0, 1, 0,      0, 0};
 static const int32_t x24tabantitandem[6] = {7, 2, 1, 0,      0, 0};
 static const int32_t x24tabfacing[6]     = {7, 2, 1, 0x1B1B, 0, 0};
 static const int32_t x21tabfacing[6]     = {7, 2, 1, 0,      (int32_t) 0x00000001L, (int32_t) 0x000000F0L};
+static const int32_t x31tabfacing[6]     = {7, 2, 1, 0,      (int32_t) 0x00000011L, (int32_t) 0x00000FF0L};
 static const int32_t x41tabfacing[6]     = {7, 2, 1, 0,      (int32_t) 0x0000F021L, (int32_t) 0x0000E1F0L};
+static const int32_t x61tabfacing[6]     = {7, 2, 1, 0,      (int32_t) 0x00FF0311L, (int32_t) 0x00D11FF0L};
 static const int32_t x81tabfacing[6]     = {7, 2, 1, 0,      (int32_t) 0xE1F0F421L, (int32_t) 0xFC21E1F0L};
 
 static const int32_t boystuff_no_rh[3]   = {ID2_PERM_BOY,  ID2_PERM_GIRL, 0};
@@ -1552,6 +1557,12 @@ static bool facing_test(setup *real_people, int real_index,
       if (delta == 0)
          return false;
       other_index = (real_index+delta)&0xF;
+   }
+   else if (extra_stuff[0] == 99)  {
+      // Doing the "2x4_facing_diag" test.
+
+      if (northified_index < 4) return false;
+      other_index = (real_index & 1) | ((real_index & 6) ^ 6);
    }
    else {
       // Not doing the special "facing someone directly" stuff.
@@ -2693,6 +2704,13 @@ static bool outposter_is_ccw(setup *real_people, int real_index,
                real_people->cmd.cmd_assume.assump_both == 2)
          return false;
 
+      if ((real_direction & 1) == 0 && real_index == (real_direction << 1))
+         return true;    // I am the outposter.
+
+      if ((real_direction & 1) == 0 && real_index == (real_direction << 1) + 1 &&
+          (real_people->people[real_index-1].id1 & 3) == (uint32_t) real_direction)
+         return true;    // Outposter is next to me.
+
       outroll_direction = 012 - ((real_index & 4) >> 1);
 
       // Demand that cw_end be looking in -- otherwise "outposter_is_cw"
@@ -3206,7 +3224,7 @@ static bool q_tag_check(setup *real_people, int real_index,
 // BEWARE!!  This list must track the array "predtab" in mkcalls.cpp.
 // BEWARE!!  Obey the correctness of SELECTOR_PREDS.
 
-// BEWARE!!!!!!  Some things below are tagged as #57 or so.  See sdtop\4080 and START_OF_FACING_TESTS.
+// BEWARE!!!!!!  Some things below are tagged as #57 or so.  See sdtop\4099 and START_OF_FACING_TESTS.
 // Note that START_OF_FACING_TESTS is defined both here and in sdtop.
 // This is, needless to say, extremely dangerous.  Will fix someday.
 
@@ -3275,9 +3293,12 @@ predicate_descriptor pred_table[] = {
       {facing_test,                    x22tabfacing},            // "2x2_facing_someone"
       {facing_test,                    x24tabtandem},            // "2x4_tandem_with_someone"
       {facing_test,                    x24tabantitandem},        // "2x4_antitandem"
-      {facing_test,                    x21tabfacing},            // "2x1_facing_someone"   // WARNING!!  This is tagged as #57.
-      {facing_test,                    x41tabfacing},            // "4x1_facing_someone"   // WARNING!!  This is tagged as #58.
-      {facing_test,                    x81tabfacing},            // "8x1_facing_someone"   // WARNING!!  This is tagged as #59.
+      {facing_test,                    x21tabfacing},            // "2x1_facing_someone"   // WARNING!!  This is tagged as START+5.
+      {facing_test,                    x31tabfacing},            // "3x1_facing_someone"   // WARNING!!  This is tagged as START+6.
+      {facing_test,                    x41tabfacing},            // "4x1_facing_someone"   // WARNING!!  This is tagged as START+7.
+      {facing_test,                    x61tabfacing},            // "6x1_facing_someone"   // WARNING!!  This is tagged as START+8.
+      {facing_test,                    x81tabfacing},            // "8x1_facing_someone"   // WARNING!!  This is tagged as START+9.
+      {facing_test,                    x24tabfacediag},          // "2x4_facing_diag"
       {facing_test,                    x24tabfacing},            // "2x4_facing_someone"
       {always,                       (const int32_t *) 0},       // "always"
       {plus_mod_real,                 &iden_tab[1]},             // "person_real_plus1"
