@@ -1039,14 +1039,22 @@ void MainWindow::maybeLoadCSSfileIntoTextBrowser(bool useSquareDeskCSS) {
 
     // ------------------------------------------------------------------
     // NOTE: For correct operation of the Lyrics editor, the colors must be distinct from each other
+    // NOTE: every content class repeats "font-family: Verdana", even though BODY already says it.
+    //   The style buttons work by cursor.insertHtml("<SPAN class=...>"), and Qt builds that fragment
+    //   in a throwaway QTextDocument that has no BODY, so the BODY rule can't be inherited -- the
+    //   newly styled run would come out in the application's UI font instead of Verdana, which reads
+    //   as "the text got slightly smaller" until a Save-and-reload put it back on the BODY rule.
+    //   Naming the family in each class makes the styled run match its surroundings immediately.
+    //   (postProcessHTMLtoSemanticHTML() strips "font-family:'Verdana';" before it does the semantic
+    //   replacements, so the saved HTML is unchanged by this.) (#1716)
     QString css = "body, p, font { font-family: Verdana; font-size: large; font-weight: Normal; color: #000000; background: #FFFFE0; margin-top: 0px; margin-bottom: 0px;}\n"
-                  ".title        { font-size: x-large; font-weight: 699;    color: #010101;}\n"
-                  ".label        { font-size: medium;  font-weight: Normal; color: #60C060;}\n"
-                  ".artist       { font-size: medium;  font-weight: Normal; color: #0000FF;}\n"
-                  ".hdr          { font-size: x-large; font-weight: Normal; color: #FF0002;}\n"
-                  ".lyrics       { font-size: large;   font-weight: Normal; color: #030303; background-color: #FFC0CB;}\n"
-                  ".lyrics2      { font-size: large;   font-weight: Normal; color: #040404; background-color: #C0D9FF;}\n"
-                  ".lyrics3      { font-size: large;   font-weight: Normal; color: #050505; background-color: #C0FFD9;}\n"
+                  ".title        { font-family: Verdana; font-size: x-large; font-weight: 699;    color: #010101;}\n"
+                  ".label        { font-family: Verdana; font-size: medium;  font-weight: Normal; color: #60C060;}\n"
+                  ".artist       { font-family: Verdana; font-size: medium;  font-weight: Normal; color: #0000FF;}\n"
+                  ".hdr          { font-family: Verdana; font-size: x-large; font-weight: Normal; color: #FF0002;}\n"
+                  ".lyrics       { font-family: Verdana; font-size: large;   font-weight: Normal; color: #030303; background-color: #FFC0CB;}\n"
+                  ".lyrics2      { font-family: Verdana; font-size: large;   font-weight: Normal; color: #040404; background-color: #C0D9FF;}\n"
+                  ".lyrics3      { font-family: Verdana; font-size: large;   font-weight: Normal; color: #050505; background-color: #C0FFD9;}\n"
                   ".bold         { font-weight: bold; }\n"
                   ".italic       { font-style: italic; }";
 
