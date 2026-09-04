@@ -11,7 +11,7 @@ mac {
 # M1MAC: USE THIS LINE FOR M1 Silicon BUILDS ONLY
 SUBDIRS += # quazip
 
-## what subproject depends on others -- test123 and sdApp depend on sd, test123 also depends on taglib
+## what subproject depends on others -- test123 depends on sdlib and taglib
 test123.depends = taglib sdlib
 
 # TEMPORARILY TURN OFF THE VERSION CHECK FOR MACOS 11
