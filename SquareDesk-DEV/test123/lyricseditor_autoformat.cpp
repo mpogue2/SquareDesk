@@ -533,17 +533,21 @@ void MainWindow::on_actionAuto_format_Lyrics_triggered()
     QString headerStart("<span style=\" font-family:'Verdana'; font-size:x-large; color:#ff0002;\">"); // should that 25 be 23?
     QString headerEnd("</span>");
 
+    // Headers are matched at the START OF A LINE (^ with MultilineOption), NOT by looking for a preceding
+    //   "<BR>\n".  Otherwise a header on the very first line (common when the user Auto Formats just a
+    //   highlighted portion of the cuesheet) has nothing in front of it, and never gets Header style.
+    // NOTE: longest match must come first, or e.g. "FIGURE 1" gets split into "<span>FIGURE</span> 1"
+    QRegularExpression::PatternOptions headerOptions =
+        QRegularExpression::CaseInsensitiveOption | QRegularExpression::MultilineOption;
+
     selected
-        .replace(QRegularExpression("<BR>\nOPENER",       QRegularExpression::CaseInsensitiveOption),   "<BR>\n" + headerStart + "OPENER" + headerEnd)
-        .replace(QRegularExpression("<BR>\nFIGURE",       QRegularExpression::CaseInsensitiveOption),   "<BR>\n" + headerStart + "FIGURE" + headerEnd)
-        .replace(QRegularExpression("<BR>\nFIGURE 1",     QRegularExpression::CaseInsensitiveOption),   "<BR>\n" + headerStart + "FIGURE 1" + headerEnd)
-        .replace(QRegularExpression("<BR>\nFIGURE 2",     QRegularExpression::CaseInsensitiveOption),   "<BR>\n" + headerStart + "FIGURE 2" + headerEnd)
-        .replace(QRegularExpression("<BR>\nBREAK",        QRegularExpression::CaseInsensitiveOption),   "<BR>\n" + headerStart + "MIDDLE BREAK" + headerEnd)
-        .replace(QRegularExpression("<BR>\nMIDDLE BREAK", QRegularExpression::CaseInsensitiveOption),   "<BR>\n" + headerStart + "MIDDLE BREAK" + headerEnd)
-        .replace(QRegularExpression("<BR>\nFIGURE 3",     QRegularExpression::CaseInsensitiveOption),   "<BR>\n" + headerStart + "FIGURE 3" + headerEnd)
-        .replace(QRegularExpression("<BR>\nFIGURE 4",     QRegularExpression::CaseInsensitiveOption),   "<BR>\n" + headerStart + "FIGURE 4" + headerEnd)
-        .replace(QRegularExpression("<BR>\nCLOSER",       QRegularExpression::CaseInsensitiveOption),   "<BR>\n" + headerStart + "CLOSER" + headerEnd)
-        .replace(QRegularExpression("<BR>\nTAG",          QRegularExpression::CaseInsensitiveOption),   "<BR>\n" + headerStart + "TAG"    + headerEnd)
+        .replace(QRegularExpression("^OPENER",        headerOptions),   headerStart + "OPENER" + headerEnd)
+        .replace(QRegularExpression("^FIGURE +(\\d+)", headerOptions),  headerStart + "FIGURE \\1" + headerEnd)
+        .replace(QRegularExpression("^FIGURE",        headerOptions),   headerStart + "FIGURE" + headerEnd)
+        .replace(QRegularExpression("^MIDDLE BREAK",  headerOptions),   headerStart + "MIDDLE BREAK" + headerEnd)
+        .replace(QRegularExpression("^BREAK",         headerOptions),   headerStart + "MIDDLE BREAK" + headerEnd)
+        .replace(QRegularExpression("^CLOSER",        headerOptions),   headerStart + "CLOSER" + headerEnd)
+        .replace(QRegularExpression("^TAG",           headerOptions),   headerStart + "TAG"    + headerEnd)
         .replace(QRegularExpression("HEADS ",           QRegularExpression::CaseInsensitiveOption),   "HEADS ")
         .replace(QRegularExpression("SIDES ",           QRegularExpression::CaseInsensitiveOption),   "SIDES ")
         .replace(QRegularExpression("BOYS ",            QRegularExpression::CaseInsensitiveOption),   "BOYS ")
