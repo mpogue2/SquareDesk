@@ -1489,6 +1489,8 @@ double MainWindow::computeCuesheetCrossoverFrac(QTextDocument *doc, int splitPos
     return qBound(0.1, static_cast<double>(sungLinesBeforeSplit) / static_cast<double>(sungLinesTotal), 0.9);
 }
 
+static const int CUESHEET_COLUMN_GUTTER = 24; // total horizontal space between the two columns, in px
+
 void MainWindow::renderCuesheetTwoColumns() {
     if (cuesheetIsTwoColumnRendered) {
         return; // already showing 2 columns
@@ -1557,19 +1559,60 @@ void MainWindow::renderCuesheetTwoColumns() {
     c.select(QTextCursor::Document);
     c.removeSelectedText();
 
+    // the only padding we want is the gutter BETWEEN the two columns; a uniform cell padding
+    //   would also waste a dozen pixels at the top and bottom of the cuesheet, and would indent
+    //   column 1 so that it no longer lines up with the 1-column view (#1706)
     QTextTableFormat tf;
     tf.setBorder(0);
     tf.setBorderStyle(QTextFrameFormat::BorderStyle_None);
     tf.setCellSpacing(0);
-    tf.setCellPadding(12);
+    tf.setCellPadding(0);
+    tf.setTopMargin(0);
+    tf.setBottomMargin(0);
+    tf.setLeftMargin(0);
+    tf.setRightMargin(0);
     tf.setWidth(QTextLength(QTextLength::PercentageLength, 100));
     tf.setColumnWidthConstraints(QList<QTextLength>()
                                  << QTextLength(QTextLength::PercentageLength, 50)
                                  << QTextLength(QTextLength::PercentageLength, 50));
     QTextTable *table = c.insertTable(1, 2, tf);
+
+    QTextTableCellFormat leftCellFormat;
+    leftCellFormat.setTopPadding(0);
+    leftCellFormat.setBottomPadding(0);
+    leftCellFormat.setLeftPadding(0);
+    leftCellFormat.setRightPadding(CUESHEET_COLUMN_GUTTER / 2);
+    table->cellAt(0, 0).setFormat(leftCellFormat);
+
+    QTextTableCellFormat rightCellFormat;
+    rightCellFormat.setTopPadding(0);
+    rightCellFormat.setBottomPadding(0);
+    rightCellFormat.setLeftPadding(CUESHEET_COLUMN_GUTTER / 2);
+    rightCellFormat.setRightPadding(0);
+    table->cellAt(0, 1).setFormat(rightCellFormat);
+
     table->cellAt(0, 0).firstCursorPosition().insertFragment(leftColumn);
     table->cellAt(0, 1).firstCursorPosition().insertFragment(rightColumn);
     c.endEditBlock();
+
+    // insertTable() always leaves an empty block above the table, and for cuesheets whose lines
+    //   are separate blocks (rather than one block of <BR>-separated lines) that block is laid
+    //   out at full body line height, so the cuesheet starts a whole line of yellow lower than
+    //   it does in 1-column mode.  It can't be deleted -- removing it across the frame boundary
+    //   takes the table with it -- so collapse it to nothing instead. (#1706)
+    QTextBlock blockAboveTable = doc->firstBlock();
+    if (blockAboveTable.isValid() && blockAboveTable.length() == 1
+        && blockAboveTable.position() < table->firstPosition()) {
+        QTextCursor collapse(blockAboveTable);
+        QTextCharFormat tinyFont;
+        tinyFont.setFontPointSize(1);
+        collapse.setBlockCharFormat(tinyFont);
+        QTextBlockFormat noHeight = collapse.blockFormat();
+        noHeight.setTopMargin(0);
+        noHeight.setBottomMargin(0);
+        noHeight.setLineHeight(1, QTextBlockFormat::FixedHeight);
+        collapse.setBlockFormat(noHeight);
+    }
 
     doc->clearUndoRedoStacks();
     doc->setModified(false);
