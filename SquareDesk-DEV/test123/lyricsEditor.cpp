@@ -902,7 +902,15 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     // <body style=" font-family:'.AppleSystemUIFont'; font-size:23pt; font-weight:400; font-style:normal;" bgcolor="#ffffe0">
 //    cuesheet3.replace("<BODY bgcolor=\"#FFFFE0\" style=\"font-family:'.SF NS Text'; font-size:13pt; font-weight:400; font-style:normal;\">","<BODY>");  // must go back to USER'S choices in cuesheet2.css
 
-    QRegularExpression BodyRegExp("<body style=\" font-family:'.AppleSystemUIFont'; font-size:2[0-9]pt; font-weight:400; font-style:normal;\" bgcolor=\"#ffffe0\">",
+    // NOTE: this used to match only the exact tag above (Mac system font, font-size:2[0-9]pt, that
+    //   exact bgcolor).  The cuesheet zoom level plus the per-cuesheet font size offset (#1682) can
+    //   put the exported font-size anywhere from about 1pt to 57pt, and the font family differs by
+    //   platform, so the narrow match let a "<body style=...font-size:NNpt...>" tag through to disk.
+    //   That absolute point size is inherited by every character in the file when it's read back in,
+    //   which pins the whole cuesheet to one zoom level forever (#1716).  Match ANY opening BODY tag
+    //   that has attributes, so the styling always goes back to the USER'S choices in cuesheet2.css.
+    //   (a bare "<BODY>" has no attributes, so it is left alone, rather than being re-indented.)
+    QRegularExpression BodyRegExp("<body\\s[^>]*>",
                                     QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption );
     cuesheet3.replace(BodyRegExp, "\n\n<BODY>");  // must go back to USER'S choices in cuesheet2.css
     cuesheet3.replace("</body>", "\n</BODY>");
@@ -1622,11 +1630,31 @@ void MainWindow::renderCuesheetTwoColumns() {
     cuesheetIsTwoColumnRendered = true;
 }
 
+// Cuesheet text is sized RELATIVELY: cuesheet2.css says "font-size: large" (or x-large/medium),
+//   which Qt stores as QTextFormat::FontSizeAdjustment, and applyCuesheetZoom() resizes the whole
+//   cuesheet just by changing the widget's font.  toHtml(), though, always writes the widget's
+//   CURRENT (zoomed) point size into the <body> tag, e.g.
+//     <body style=" font-family:'.AppleSystemUIFont'; font-size:19pt; font-weight:400; ...">
+//   and setHtml()'ing that back gives every character an ABSOLUTE FontPointSize on top of its
+//   relative FontSizeAdjustment.  The cuesheet still LOOKS right (the adjustment wins when Qt
+//   resolves the font), but the HTML exporter prefers the absolute size, so the clipboard ends up
+//   with "font-size:19pt" on everything, and pasted text is pinned to the zoom level that was in
+//   effect when the snapshot was taken -- it stops tracking the font size buttons entirely, until
+//   a Save rewrites the file semantically.  Dropping the point size here keeps the round trip
+//   purely relative. (#1716)
+static QString stripAbsoluteBodyFontSize(QString html) {
+    static const QRegularExpression bodyPointSize("(<body\\b[^>]*?)\\s*font-size:\\d+(\\.\\d+)?pt;",
+                                                  QRegularExpression::CaseInsensitiveOption);
+    return html.replace(bodyPointSize, "\\1");
+}
+
 void MainWindow::restoreCuesheetOneColumn() {
     if (!cuesheetIsTwoColumnRendered) {
         return; // already showing the real 1-column document
     }
-    ui->textBrowserCueSheet->setHtml(cuesheetOneColumnHTML);
+    // NOTE: cuesheetOneColumnHTML itself is left alone, because saving and printing both want the
+    //   snapshot exactly as Qt wrote it; only what goes back into the widget is stripped.
+    ui->textBrowserCueSheet->setHtml(stripAbsoluteBodyFontSize(cuesheetOneColumnHTML));
     ui->textBrowserCueSheet->document()->setModified(false);
     ui->textBrowserCueSheet->moveCursor(QTextCursor::Start);
     ui->textBrowserCueSheet->verticalScrollBar()->setValue(0);
