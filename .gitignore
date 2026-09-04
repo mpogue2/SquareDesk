@@ -43,3 +43,7 @@ SquareDesk-DEV/test123/.vscode/
 #   is real, tracked source.
 **/.qtc_clangd/
 compile_commands.json
+
+# Scratch commit message written by Taminations/update_taminations.sh on every
+#   run, for the user to pass to `git commit -F` afterwards. Not source.
+/SquareDesk-DEV/Taminations/.update_taminations_commit_msg.txt
