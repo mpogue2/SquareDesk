@@ -9,6 +9,7 @@
 # The recipe implemented here comes from:
 #   https://github.com/mpogue2/SquareDesk/issues/1415  (packaging + ?Speed=Fast)
 #   https://github.com/mpogue2/SquareDesk/issues/1467  (fully-offline build)
+#   https://github.com/mpogue2/SquareDesk/issues/1612  (offline default Roboto)
 #   https://github.com/mpogue2/SquareDesk/issues/1456  (default sequencer speed)
 #
 # At SquareDesk build time, qmake unzips web.zip into
@@ -529,6 +530,78 @@ tag. Read issue #1415 and inject the URL-parameter snippet by hand; without it
 the sequencer will not default to Fast speed."
 ok "index.html: URL parameter script injected"
 
+step "Patching FontManifest.json for the engine's default Roboto (issue #1612)"
+
+# This is NOT the same thing as the google_fonts patch in main.dart.js above.
+# Independently of the google_fonts package, the Flutter *engine* registers its
+# own default "Roboto" family at startup, and unless the app's FontManifest
+# already declares a family by that name it downloads it from the CDN:
+#
+#   r($,"cg1","bN2",()=>A.eM().ga82()+"roboto/v32/KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2")
+#   ...
+#   if (family.name === "Roboto") m = true;  ...  if (!m) load("Roboto", $.bN2(), ...)
+#
+# where ga82() is the fontFallbackBaseUrl config, defaulting to
+# "https://fonts.gstatic.com/s/". Declaring the family here makes the engine
+# skip the fetch and use the Roboto TTF that google_fonts already bundled.
+#
+# The alternative -- setting fontFallbackBaseUrl to a local directory and
+# vendoring that .woff2 -- was rejected: the hashed filename changes with every
+# Flutter SDK bump, so it would rot silently. See issue #1612.
+#
+# Only Regular is registered, which is exactly what the engine used to fetch;
+# bold and italic stay synthesized, so rendering is unchanged.
+
+python3 - "$BUILD_WEB/assets/FontManifest.json" "$BUILD_WEB/assets/google_fonts/Roboto-Regular.ttf" <<'PY'
+import json, os, sys
+
+manifest_path, roboto_path = sys.argv[1], sys.argv[2]
+
+if not os.path.isfile(manifest_path):
+    print("FAIL:no assets/FontManifest.json in the build")
+    raise SystemExit(0)
+if not os.path.isfile(roboto_path):
+    print("FAIL:no assets/google_fonts/Roboto-Regular.ttf in the build")
+    raise SystemExit(0)
+
+# Asset keys in FontManifest are relative to web/assets/ -- the MaterialIcons
+# entry upstream generates is "fonts/MaterialIcons-Regular.otf".
+asset = "google_fonts/Roboto-Regular.ttf"
+
+try:
+    families = json.load(open(manifest_path, encoding="utf-8"))
+except Exception as e:
+    print("FAIL:could not parse FontManifest.json: %s" % e)
+    raise SystemExit(0)
+
+if any(f.get("family") == "Roboto" for f in families):
+    print("SKIP:already declared")
+    raise SystemExit(0)
+
+families.append({"family": "Roboto", "fonts": [{"asset": asset}]})
+json.dump(families, open(manifest_path, "w", encoding="utf-8"), separators=(",", ":"))
+print("OK:patched")
+PY
+
+FONTMANIFEST_OK="$(python3 - "$BUILD_WEB/assets/FontManifest.json" <<'PY'
+import json, sys
+try:
+    families = json.load(open(sys.argv[1], encoding="utf-8"))
+except Exception:
+    print("NO")
+else:
+    print("YES" if any(f.get("family") == "Roboto" for f in families) else "NO")
+PY
+)"
+[ "$FONTMANIFEST_OK" = "YES" ] \
+    || die "FontManifest.json patch failed.
+Either the build has no assets/google_fonts/Roboto-Regular.ttf (did the
+google_fonts patch above stop taking effect?) or the generated FontManifest.json
+has an unexpected shape. Read issue #1612 and declare the Roboto family by hand;
+without it the engine downloads Roboto from fonts.gstatic.com on every launch
+and Taminations shows no text offline."
+ok "FontManifest.json: Roboto declared from the bundled TTF"
+
 # ------------------------------------------------------- offline checks -----
 
 step "Checking that the build is self-contained (issue #1467)"
@@ -559,6 +632,34 @@ if [ ! -f "$BUILD_WEB/canvaskit/canvaskit.js" ]; then
     warn "canvaskit/canvaskit.js is missing -- CanvasKit would be fetched from the network"
     OFFLINE_OK=0
 fi
+
+# Belt and braces for #1612: main.dart.js still *contains* the gstatic default
+# (it is the fallback branch of the fontFallbackBaseUrl getter), so the only
+# thing worth checking is that the FontManifest declares Roboto, which is what
+# stops that branch from ever being taken.
+ROBOTO_DECLARED="$(python3 - "$BUILD_WEB/assets/FontManifest.json" <<'PY'
+import json, sys
+try:
+    families = json.load(open(sys.argv[1], encoding="utf-8"))
+except Exception:
+    print("NO")
+else:
+    print("YES" if any(f.get("family") == "Roboto" for f in families) else "NO")
+PY
+)"
+if [ "$ROBOTO_DECLARED" = "YES" ] && [ -f "$BUILD_WEB/assets/google_fonts/Roboto-Regular.ttf" ]; then
+    info "FontManifest declares Roboto from a bundled TTF"
+else
+    warn "Roboto is not declared in assets/FontManifest.json -- the engine would"
+    warn "fetch it from fonts.gstatic.com and Taminations would show no text offline"
+    OFFLINE_OK=0
+fi
+
+# Not covered, and deliberately so: the engine's Noto glyph-fallback service
+# (fonts.gstatic.com/s/a/<hash>.ttf) still reaches out for glyphs that are in
+# none of the loaded fonts -- i.e. if a user switches Taminations to Japanese.
+# Covering it would mean vendoring the whole Noto fallback set. Offline it
+# degrades to tofu rather than breaking. See issue #1612.
 
 if [ "$OFFLINE_OK" -eq 1 ]; then
     ok "Build looks self-contained."
