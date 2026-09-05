@@ -35,8 +35,9 @@ extern const char *danceprogram_a1[];
 extern const char *danceprogram_a2[];
 
 // as of the Sept 2026 Callerlab definitions, these are the only Dance Programs
-//   that we create in the reference folder.  The ones above are deprecated, and
-//   are kept only so that timings and existing user files still make sense.
+//   that we create in the reference folder (as 031.Mainstream26.txt, 041.Plus26.txt,
+//   050.A1-26.txt, and 060.A2-26.txt).  The ones above are deprecated, and are kept
+//   only so that timings and existing user files still make sense.
 extern const char *danceprogram_mainstream26[];
 extern const char *danceprogram_plus26[];
 extern const char *danceprogram_a1_26[];

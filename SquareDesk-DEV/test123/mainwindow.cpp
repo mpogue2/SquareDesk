@@ -779,13 +779,30 @@ static QString findTimingForCall(QString danceProgram, const QString &call)
     if (0 == danceProgram.compare("mainstream", Qt::CaseInsensitive))
         danceProgram = "ms";
 
-    // the Sept 2026 Callerlab dance programs map to the same timing data as their predecessors.
-    //   Calls that changed program (e.g. Turn Thru, which is now Plus26, but whose timing is
-    //   listed under "ms") are still found by the program-agnostic search below.
+    // The Sept 2026 Mainstream/Plus programs have their own timing data, taken from the 2026
+    //   Callerlab definitions documents, and keyed to the exact teaching order names (#1717).
+    //   If a call isn't in those tables, we fall back to the pre-2026 timing data below.
+    QString program26;
     if (0 == danceProgram.compare("mainstream26", Qt::CaseInsensitive))
-        danceProgram = "ms";
-    if (0 == danceProgram.compare("plus26", Qt::CaseInsensitive))
-        danceProgram = "plus";
+        program26 = "ms26";
+    else if (0 == danceProgram.compare("plus26", Qt::CaseInsensitive))
+        program26 = "plus26";
+
+    if (!program26.isEmpty())
+    {
+        for (int i = 0; danceprogram_callinfo[i].name; ++i)
+        {
+            if ((0 == program26.compare(danceprogram_callinfo[i].program, Qt::CaseInsensitive))
+                && (0 == call.compare(danceprogram_callinfo[i].name, Qt::CaseInsensitive))
+                && danceprogram_callinfo[i].timing)
+            {
+                return danceprogram_callinfo[i].timing;
+            }
+        }
+        danceProgram = (program26 == "ms26" ? "ms" : "plus");  // not found: use the older timing data
+    }
+
+    // A1/A2 definitions did not change in 2026, so those use the existing timing data as-is.
     if (0 == danceProgram.compare("a1-26", Qt::CaseInsensitive))
         danceProgram = "a1";
     if (0 == danceProgram.compare("a2-26", Qt::CaseInsensitive))
@@ -4115,31 +4132,11 @@ static void addToProgramsAndWriteTextFile(QStringList &programs, QDir outputDir,
     // BUT, if there are updates from us, the user will now have to manually
     //   delete those files, so that they will be recreated from the newer versions.
 
+    // NOTE: the ONLY test is the exact filename.  We intentionally do NOT skip creation just
+    //   because some other numbered file with the same program name exists (e.g. an older
+    //   030.Mainstream26.txt does not suppress the new 031.Mainstream26.txt).  See issue #1717.
+
     QString outputFile = outputDir.canonicalPath() + "/" + filename;
-
-    QString programName = QString(filename).split('.').at(1);
-    // qDebug() << "programName:" << programName;
-
-    // Pattern: number.string.txt (e.g., "0.myapp.txt", "123.config.txt")
-    QRegularExpression pattern("^\\d+\\..*\\.txt$");
-
-    // Get all files matching the pattern
-    QStringList allFiles = outputDir.entryList(QDir::Files);
-
-    for (const QString& filename : allFiles) {
-        if (pattern.match(filename).hasMatch()) {
-            // Check if filename starts with "0" and contains programName
-            if (filename.startsWith("0") && filename.contains(QString('.') + programName + ".")) {
-                // qDebug() << "haveFileAlready:" << programName;
-                return;
-            } else {
-                // qDebug() << "did not match!" << filename;
-            }
-        }
-    }
-
-    // else we need to make one
-    // qDebug() << "making a file for program:" << programName;
 
     QFileInfo info(outputFile);
     if (!info.exists()) {
@@ -4202,10 +4199,12 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
     //   are deprecated.  We no longer create them, but any that are already in the user's
     //   reference folder are still found by the scan above, and still appear in the pulldown,
     //   until the user deletes them.
-    // NOTE: A1/A2 must use new filenames, because addToProgramsAndWriteTextFile() never overwrites
-    //   an existing file, so existing users would otherwise never see the updated A1 list.
-    addToProgramsAndWriteTextFile(programs, outputDir, "030.Mainstream26.txt", danceprogram_mainstream26);
-    addToProgramsAndWriteTextFile(programs, outputDir, "040.Plus26.txt",       danceprogram_plus26);
+    // NOTE: all four use new filenames, because addToProgramsAndWriteTextFile() never overwrites
+    //   an existing file, so existing users would otherwise never see the updated lists.  The
+    //   Mainstream26/Plus26 numbers are 031/041, so that they sort just after any deprecated
+    //   030.mainstream.txt/040.plus.txt the user has not deleted yet.  See issue #1717.
+    addToProgramsAndWriteTextFile(programs, outputDir, "031.Mainstream26.txt", danceprogram_mainstream26);
+    addToProgramsAndWriteTextFile(programs, outputDir, "041.Plus26.txt",       danceprogram_plus26);
     addToProgramsAndWriteTextFile(programs, outputDir, "050.A1-26.txt",        danceprogram_a1_26);
     addToProgramsAndWriteTextFile(programs, outputDir, "060.A2-26.txt",        danceprogram_a2_26);
 
