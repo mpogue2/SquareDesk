@@ -36,6 +36,7 @@
 #include "utility.h"
 #include "songlistmodel.h"
 #include "tablenumberitem.h"
+#include "playlistnumberdelegate.h"
 #include "songtitlelabel.h"
 #include "playlist_constants.h"
 #include "playlistexport.h"
@@ -268,6 +269,59 @@ bool MainWindow::shouldIndentPlaylistRow(QTableWidget *table, int rowNum) {
     }
 
     return false;  // No marker found above us
+}
+
+// ============================================================================================================
+// Tip numbers in the # column of a playlist slot (issue #1714)
+//
+// The # item's text stays the true sequential line number, because MyTableWidget's move/reorder
+//   code swaps those numbers and then sortItems(0)'s on them.  What the user SEES is stashed in
+//   PLAYLIST_TIPNUMBER_ROLE and painted by PlaylistNumberDelegate instead.  Clearing that role
+//   puts the line number back on screen.
+//
+// When the pref is ON and the playlist contains at least one marker, each marker row shows the
+//   next tip number (1, 2, 3, ...) and every song row shows nothing at all.
+void MainWindow::updatePlaylistTipNumbers(QTableWidget *theTable) {
+    if (theTable == nullptr) {
+        return;
+    }
+
+    bool useTipNumbers = prefsManager.GetuseTipNumbers();
+
+    // Does this playlist have any markers in it?  If not, line numbers are all we can show.
+    bool hasMarkers = false;
+    if (useTipNumbers) {
+        for (int i = 0; i < theTable->rowCount(); i++) {
+            QTableWidgetItem *pathItem = theTable->item(i, COLUMN_PATH);
+            if (pathItem != nullptr && isPlaylistMarker(pathItem->text())) {
+                hasMarkers = true;
+                break;
+            }
+        }
+    }
+
+    int tipNumber = 0;
+    for (int i = 0; i < theTable->rowCount(); i++) {
+        QTableWidgetItem *numItem = theTable->item(i, COLUMN_NUMBER);
+        if (numItem == nullptr) {
+            continue;  // a row with no # item has nothing to relabel, but it must not crash us either
+        }
+
+        if (!useTipNumbers || !hasMarkers) {
+            numItem->setData(PLAYLIST_TIPNUMBER_ROLE, QVariant());  // clear it, show the line number
+            continue;
+        }
+
+        QTableWidgetItem *pathItem = theTable->item(i, COLUMN_PATH);
+        if (pathItem != nullptr && isPlaylistMarker(pathItem->text())) {
+            tipNumber++;
+            numItem->setData(PLAYLIST_TIPNUMBER_ROLE, QString::number(tipNumber));
+        } else {
+            numItem->setData(PLAYLIST_TIPNUMBER_ROLE, QString(""));  // songs show nothing in the # column
+        }
+    }
+
+    theTable->resizeColumnToContents(COLUMN_NUMBER);
 }
 
 // ============================================================================================================
@@ -851,6 +905,7 @@ void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativ
     theTableWidget->setRowCount(songCount); // drop the unused rows left over from the pre-size
 
     theTableWidget->resizeColumnToContents(COLUMN_NUMBER);
+    updatePlaylistTipNumbers(theTableWidget); // issue #1714
 
     // NOTE: sorting stays OFF on palette slot tables (issue #1701).  It used to be turned back ON
     //   here, but nothing ever turned it off again, so a slot that had once held a Track Filter kept
@@ -967,6 +1022,7 @@ void MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString 
     }
 
     theTableWidget->resizeColumnToContents(COLUMN_NUMBER);
+    updatePlaylistTipNumbers(theTableWidget); // issue #1714
 
     QString theRelativePath = relativePath.replace(APPLE_MUSIC_PATH_PREFIX,"").replace(CSV_FILE_EXTENSION,"");
     theLabel->setText(QString("<img src=\":/graphics/icons8-apple-48.png\" width=\"%1\" height=\"%2\">").arg(APPLE_MUSIC_ICON_WIDTH).arg(APPLE_MUSIC_ICON_HEIGHT) + theRelativePath);
@@ -1123,6 +1179,7 @@ void MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString rel
         inputFile.close();
 
         theTableWidget->resizeColumnToContents(COLUMN_NUMBER);
+        updatePlaylistTipNumbers(theTableWidget); // issue #1714
 
         QString theRelativePath = relativePath.replace(PLAYLISTS_PATH_PREFIX,"").replace(CSV_FILE_EXTENSION,"");
         theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"%1\" height=\"%2\">").arg(PLAYLIST_ICON_WIDTH).arg(PLAYLIST_ICON_HEIGHT) + theRelativePath);
@@ -1901,6 +1958,10 @@ void MainWindow::refreshAllPlaylists() {
     for (int i = 0; i < 3; i++) {
         // qDebug() << "LOOK AT SLOT:" << i;
 
+        // Tip numbers depend only on which rows are markers, so they're valid for every kind of
+        //   slot, and they must be redone here because rows may have just moved (issue #1714)
+        updatePlaylistTipNumbers(playlistTables[i]);
+
         // Apple Music slots store absolute paths outside musicRootPath; re-deriving titles from
         // filenames would overwrite the Apple Music titles (with track numbers, no colons). Skip them.
         if (relPathInSlot[i].startsWith(APPLE_MUSIC_PATH_PREFIX)) {
@@ -2290,6 +2351,7 @@ void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, 
     destTableWidget->setItem(insertRowNum, COLUMN_LOADED, loaded);
 
     destTableWidget->resizeColumnToContents(COLUMN_NUMBER); // FIX: perhaps only if this is the first row?
+    updatePlaylistTipNumbers(destTableWidget); // issue #1714
     //    theTableWidget->resizeColumnToContents(COLUMN_PITCH);
     //    theTableWidget->resizeColumnToContents(COLUMN_TEMPO);
 

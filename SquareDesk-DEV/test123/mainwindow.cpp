@@ -4678,6 +4678,10 @@ void MainWindow::on_actionPreferences_triggered()
             reloadPaletteSlots();
         }
 
+        // The tip numbers vs. line numbers setting may have just changed, so relabel the # column
+        //   of each palette slot right now, rather than waiting for the next reload (issue #1714)
+        refreshAllPlaylists();
+
         if (prefsManager.GetenableAutoAirplaneMode()) {
             // if the user JUST set the preference, turn Airplane Mode on RIGHT NOW (radios OFF).
             airplaneMode(true);
@@ -8674,6 +8678,8 @@ void MainWindow::darkAddPlaylistItemsToBottom(int whichSlot) { // slot is 0 - 2
     //    theTableWidget->resizeColumnToContents(COLUMN_TEMPO);
     }
 
+    updatePlaylistTipNumbers(theTableWidget); // issue #1714
+
     QTimer::singleShot(250, [theTableWidget]{
         // NOTE: We have to do it this way with a single-shot timer, because you can't scroll immediately to a new item, until it's been processed
         //   after insertion by the table.  So, there's a delay.  Yeah, this is kludgey, but it works.
@@ -8747,6 +8753,7 @@ void MainWindow::darkAddPlaylistItemToBottom(int whichSlot, QString title, QStri
     theTableWidget->setItem(songCount-1, COLUMN_LOADED, loaded);
 
     theTableWidget->resizeColumnToContents(COLUMN_NUMBER); // FIX: perhaps only if this is the first row?
+    updatePlaylistTipNumbers(theTableWidget); // issue #1714
 //    theTableWidget->resizeColumnToContents(COLUMN_PITCH);
 //    theTableWidget->resizeColumnToContents(COLUMN_TEMPO);
 

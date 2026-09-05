@@ -111,6 +111,8 @@ CONFIG_ATTRIBUTE_BOOLEAN(useTimeRemainingCheckbox,useTimeRemaining, false)
 
 CONFIG_ATTRIBUTE_BOOLEAN(enableAppleMusicCheckbox,enableAppleMusic, false)
 
+CONFIG_ATTRIBUTE_BOOLEAN(useTipNumbersCheckbox,useTipNumbers, false) // issue #1714
+
 //CONFIG_ATTRIBUTE_BOOLEAN(enableFlashCallsCheckbox,enableFlashCalls, false)
 
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(normalizeTrackAudio, false);

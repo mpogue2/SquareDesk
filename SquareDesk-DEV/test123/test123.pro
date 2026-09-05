@@ -124,6 +124,7 @@ SOURCES += main.cpp\
     svgVUmeter.cpp \
     svgWaveformSlider.cpp \
     tablenumberitem.cpp \
+    playlistnumberdelegate.cpp \
     myslider.cpp \
     levelmeter.cpp \
     prefsmanager.cpp \
@@ -215,6 +216,7 @@ HEADERS  += mainwindow.h \
     mytreewidget.h \
     songdraginfo.h \
     tablenumberitem.h \
+    playlistnumberdelegate.h \
     levelmeter.h \
     common_enums.h \
     prefs_options.h \

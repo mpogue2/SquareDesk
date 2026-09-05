@@ -1209,6 +1209,25 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
           </widget>
          </item>
+         <item row="12" column="0">
+          <widget class="QLabel" name="playlistsLabel">
+           <property name="font">
+            <font>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Playlists:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="12" column="1" colspan="5">
+          <widget class="QCheckBox" name="useTipNumbersCheckbox">
+           <property name="text">
+            <string>Use tip numbers (instead of line numbers) for playlists that contain markers (e.g. &quot;MS - =====&quot;)</string>
+           </property>
+          </widget>
+         </item>
          <item row="19" column="0">
           <widget class="QLabel" name="otherLabel">
            <property name="font">

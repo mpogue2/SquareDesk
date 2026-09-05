@@ -492,6 +492,7 @@ public slots:
     bool addItemsToPlaylistFile(const QString &playlistRelPath, const QList<SongDragInfo> &songs);
     void darkRevealInFinder();
     void refreshAllPlaylists();  // Issue #1547: refresh indentation after moves
+    void updatePlaylistTipNumbers(QTableWidget *theTable);  // Issue #1714: tip numbers in the # column
 
     // ============================================================================
     // LYRICS & CUESHEET SLOTS
