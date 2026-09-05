@@ -104,36 +104,6 @@
      style="opacity:1;fill:#282828;fill-opacity:1;stroke-width:1.01100147"
      id="path36"
      d="M 18.077475,8.4052397 A 10.690954,10.775167 8.0144789 1 1 21.922088,29.591131 10.690954,10.775167 8.0144789 1 1 18.077475,8.4052397 Z" />
-  <text
-     xml:space="preserve"
-     style="font-style:normal;font-weight:normal;font-size:40px;line-height:0px;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
-     x="44.084747"
-     y="-35.947918"
-     id="text935"><tspan
-       x="44.084747"
-       y="-35.947918"
-       style="font-size:3.33333325px;line-height:0px"
-       id="tspan937">Align this rectangle with page borders to copy all paths to btn_embedded</tspan><tspan
-       x="44.084747"
-       y="-26.423178"
-       style="font-size:3.33333325px;line-height:0px"
-       id="tspan947" /><tspan
-       x="44.084747"
-       y="-26.423178"
-       style="font-size:3.33333325px;line-height:0px"
-       id="tspan949" /><tspan
-       x="44.084747"
-       y="-26.423178"
-       style="font-size:3.33333325px;line-height:0px"
-       id="tspan951" /><tspan
-       x="44.084747"
-       y="-26.423178"
-       style="font-size:3.33333325px;line-height:0px"
-       id="tspan945">(shift + Up/Down),</tspan><tspan
-       x="44.084747"
-       y="-16.898439"
-       style="font-size:3.33333325px;line-height:0px"
-       id="tspan941" /></text>
   <path
      transform="matrix(1,0,0,1.0035472,0.09951893,-0.38973691)"
      d="M 9.1115125,22.795856 A 11.451207,11.541409 89.071998 1 1 30.888027,15.200519 11.451207,11.541409 89.071998 1 1 9.1115125,22.795856 Z"

@@ -37,12 +37,12 @@
     <rect id="inside-vein" serif:id="inside vein" x="20.305" y="7.305" width="1.39" height="92.39" style="fill:rgb(145,145,145);fill-rule:nonzero;stroke:rgb(145,145,145);stroke-width:3px;"/>
     <g transform="matrix(1,0,0,1,-0.7141,9.12828)">
         <g id="plus">
-            <text x="0px" y="0px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(0,1,255);stroke:rgb(0,1,255);stroke-width:1px;stroke-linejoin:miter;">+</text>
+            <text x="0px" y="0px" style="font-family:Arial;font-size:12px;fill:rgb(0,1,255);stroke:rgb(0,1,255);stroke-width:1px;stroke-linejoin:miter;">+</text>
         </g>
     </g>
     <g transform="matrix(1,0,0,1,0.519329,97.4045)">
         <g id="minus">
-            <text x="0px" y="0px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:10.667px;fill:rgb(0,1,255);stroke:rgb(0,1,255);stroke-width:1px;stroke-linejoin:miter;">_</text>
+            <text x="0px" y="0px" style="font-family:Arial;font-size:10.667px;fill:rgb(0,1,255);stroke:rgb(0,1,255);stroke-width:1px;stroke-linejoin:miter;">_</text>
         </g>
     </g>
 </svg>
