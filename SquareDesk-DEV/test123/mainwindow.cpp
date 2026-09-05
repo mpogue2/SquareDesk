@@ -6226,7 +6226,7 @@ void MainWindow::maybeInstallReferencefiles() {
     }
 
     if (!hasSDpdf && !hasNOSD) {
-        qDebug() << "Copying in...";
+        // qDebug() << "Copying in...";
         QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToResources + "/sd_doc.pdf";
         QString destination = referenceDir + "/" + latestSDFilename;
         QFile::copy(source, destination);
