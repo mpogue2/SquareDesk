@@ -1100,6 +1100,16 @@ bool MainWindow::findMusic(QString mainRootDir, bool refreshDatabase, bool force
     t.elapsed(__LINE__);
     t.stop(__LINE__);
 
+    // STATUS MESSAGE: END
+    // If we put up the "Scanning Music Directory...." message above, we must take it back down
+    //   again here.  Most callers overwrite the status bar themselves right after we return, but
+    //   the Preferences dialog and the startup wizard did not, so the message stayed up forever
+    //   (Issue #1719).  Doing it here means every caller is covered; the ones that set their own
+    //   message afterwards simply overwrite this one, exactly as before.
+    if (didFullScan) {
+        ui->statusBar->showMessage(QString("Songs found: %1").arg(QString::number(pathStack->size())));
+    }
+
     return didFullScan;
 
     // // DEBUG DEBUG DEBUG =========

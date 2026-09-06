@@ -4588,7 +4588,11 @@ void MainWindow::on_actionPreferences_triggered()
         }
         populateMenuSessionOptions();
 
-        findMusic(musicRootPath, true); // always refresh the songTable after the Prefs dialog returns with OK
+        // always refresh the songTable after the Prefs dialog returns with OK.  musicDirChanged is
+        //   true iff a full scan actually ran, i.e. something changed on disk while the dialog was
+        //   open (or since the last scan) -- the darkSongTable must be reloaded in that case, or the
+        //   new songs sit in the pathStack unseen (Issue #1719).
+        bool musicDirChanged = findMusic(musicRootPath, true);
         switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
 
         // FileWatcher on/off (Issue #1669): watch paths are only registered while the
@@ -4670,10 +4674,13 @@ void MainWindow::on_actionPreferences_triggered()
         }
         songFilenameFormat = static_cast<enum SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
-        if (prefDialog->songTableReloadNeeded) {
+        if (prefDialog->songTableReloadNeeded || musicDirChanged) {
 //            qDebug() << "LOAD MUSIC LIST TRIGGERED FROM PREFERENCES TRIGGERED";
 
             darkLoadMusicList(nullptr, currentTypeFilter, true, true); // just refresh whatever is there
+            darkFilterMusic();  // and re-apply whatever is in the search field, because darkLoadMusicList
+                                //   makes every row visible again (Issue #1719).  This is the same
+                                //   load-then-filter pair that musicRootModified() does.
             reloadPaletteSlots();
         }
 
