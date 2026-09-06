@@ -34,6 +34,7 @@
 #include <QDateTime>
 //#include <QDesktopWidget>
 #include <QElapsedTimer>
+#include <QEventLoop>
 #include <QHostInfo>
 #include <QMap>
 #include <QMapIterator>
@@ -1052,14 +1053,34 @@ bool MainWindow::findMusic(QString mainRootDir, bool refreshDatabase, bool force
     // each directory's entry listing), load the scan results from the pathStack cache instead of
     // walking the whole tree (Issue #1669). A MANUAL_RESCAN bypasses the cache.
     bool didFullScan = forceRescan || !loadPathStackCacheIfValid();
+
+    // STATUS MESSAGE: START (and progress)
+    // Add one more dot to "Scanning Music Directory" as each phase of the scan finishes, so a
+    //   long scan grows "." -> "....." instead of sitting frozen on a fixed message.
+    // Phases rather than a percentage: findFilesRecursively() discovers the tree as it walks it,
+    //   so nothing here knows the total up front.  The dots are therefore NOT equal slices of
+    //   time -- they just show that we are still making forward progress.
+    // Nothing is shown on the cache-hit path: that is a ~50ms no-op, and flashing a scan message
+    //   for it is exactly the flicker that Issue #1669 got rid of.
+    // ExcludeUserInputEvents: we need the event loop to run far enough to repaint the status bar,
+    //   but NOT far enough to deliver a click or a menu action that would re-enter findMusic()
+    //   from inside the scan.
+    int scanPhase = 0;
+    auto scanProgress = [&]() {
+        if (!didFullScan) {
+            return;
+        }
+        ui->statusBar->showMessage("Scanning Music Directory" + QString(++scanPhase, '.'));
+        QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+    };
+
+    scanProgress(); // "." -- starting the disk walk
     if (didFullScan) {
-
-        // STATUS MESSAGE: START
-        ui->statusBar->showMessage("Scanning Music Directory....");
-        QCoreApplication::processEvents(); // show the message
-
         findFilesRecursively(rootDir1, pathStack, pathStackCuesheets, pathStackReference, "", ui, &soundFXfilenames, &soundFXname);  // appends to the pathstack
+        scanProgress(); // ".." -- tree walked, every cuesheet opened and levelled
+
         savePathStackCache(); // must happen BEFORE Apple Music / playlist entries get appended below
+        scanProgress(); // "..." -- cache rewritten
     }
 
     t.elapsed(__LINE__);
@@ -1073,6 +1094,7 @@ bool MainWindow::findMusic(QString mainRootDir, bool refreshDatabase, bool force
     } else {
         songLevelsByPath.clear();
     }
+    scanProgress(); // "...." -- Levels column computed (or skipped, if it's not in use)
 
     t.elapsed(__LINE__);
 
@@ -1085,6 +1107,7 @@ bool MainWindow::findMusic(QString mainRootDir, bool refreshDatabase, bool force
         getAppleMusicInfo(); // and add them to the pathStack and pathStackPlaylists, with newType == "AppleMusicPlaylistName$!$AppleMusicTitle", and fullPath = path to MP3 file on disk
 #endif
     }
+    scanProgress(); // "....." -- Apple Music read (or skipped, if it's not enabled)
 
     t.elapsed(__LINE__);
 
