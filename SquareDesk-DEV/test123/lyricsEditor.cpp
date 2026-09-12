@@ -1701,6 +1701,10 @@ void MainWindow::applyCuesheetZoom() {
                                                       : QString::number(cuesheetFontOffset));
     ui->toolButtonCuesheetFontBigger->setToolTip("Bigger cuesheet text" + current);
     ui->toolButtonCuesheetFontSmaller->setToolTip("Smaller cuesheet text" + current);
+
+    // #1725: nothing to reset when this cuesheet is already at the default, so the menu item's
+    //   enabled state doubles as the "am I back to normal?" readout that the tooltip alone was
+    ui->actionResetCuesheetFontSize->setEnabled(cuesheetFontOffset != 0);
 }
 
 void MainWindow::adjustCuesheetFontOffset(int delta) {
@@ -1714,6 +1718,22 @@ void MainWindow::adjustCuesheetFontOffset(int delta) {
     applyCuesheetZoom();
 
     // remember it for this cuesheet (a no-op when no cuesheet is loaded)
+    songSettings.setCuesheetFontOffset(loadedCuesheetNameWithPath, cuesheetFontOffset);
+}
+
+// #1725: there is no toolbar room for a third font button, so the escape hatch lives in
+//   Cuesheet > Font, next to the other cuesheet font controls.  NOTE: View > Reset (Cmd+0)
+//   deliberately does NOT do this -- it resets the global zoom level and leaves per-cuesheet
+//   offsets alone, because those are user data (#1682, and see on_actionReset_triggered).
+void MainWindow::on_actionResetCuesheetFontSize_triggered() {
+    if (cuesheetFontOffset == 0) {
+        return;  // already at the default (the menu item is disabled, but belt and braces)
+    }
+    cuesheetFontOffset = 0;
+    applyCuesheetZoom();
+
+    // a no-op when no cuesheet is loaded, and it drops this cuesheet's row if nothing else in it
+    //   is customized any more
     songSettings.setCuesheetFontOffset(loadedCuesheetNameWithPath, cuesheetFontOffset);
 }
 

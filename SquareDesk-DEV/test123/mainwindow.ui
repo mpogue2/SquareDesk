@@ -4723,6 +4723,8 @@
      </property>
      <addaction name="actionBold"/>
      <addaction name="actionItalic"/>
+     <addaction name="separator"/>
+     <addaction name="actionResetCuesheetFontSize"/>
     </widget>
     <addaction name="actionSave_Cuesheet"/>
     <addaction name="actionSave_Cuesheet_As"/>
@@ -5850,6 +5852,17 @@
   <action name="actionClear_Recent">
    <property name="text">
     <string>Clear Recent</string>
+   </property>
+  </action>
+  <action name="actionResetCuesheetFontSize">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Reset Cuesheet Font Size</string>
+   </property>
+   <property name="toolTip">
+    <string>Put this cuesheet's font size back to normal (View &gt; Reset affects the global zoom, not this)</string>
    </property>
   </action>
   <action name="actionBold">

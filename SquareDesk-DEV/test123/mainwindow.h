@@ -825,6 +825,7 @@ private slots:
     void on_comboBoxCallListProgram_currentIndexChanged(int currentIndex);
     void action_session_change_triggered();
     void on_actionDownload_Cuesheets_triggered();
+    void on_actionResetCuesheetFontSize_triggered();
     void on_actionBold_triggered();
     void on_actionItalic_triggered();
     void on_actionClear_Recent_triggered();
