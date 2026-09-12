@@ -128,12 +128,19 @@ public:
     int getCuesheetFontOffset(const QString &filenameWithPath);                // 0, if never customized
     void setCuesheetFontOffset(const QString &filenameWithPath, int offset);   // 0 deletes the row
 
+    // per-cuesheet auto-scroll override (#1724).  Tri-state, because most cuesheets should keep
+    //   following the global default in Preferences; only overridden cuesheets get a stored value.
+    int getCuesheetAutoScroll(const QString &filenameWithPath);                // -1 follow default, 0 never, 1 always
+    void setCuesheetAutoScroll(const QString &filenameWithPath, int state);    // -1 stores SQL NULL
+
     bool isDatabaseOpened() {
         return(databaseOpened);
     }
 
 private:
     bool debugErrors(const char *where, QSqlQuery &q);
+    // a cuesheets row exists only while SOME per-cuesheet setting is non-default (#1724)
+    void deleteCuesheetRowIfAllDefault(const QString &relativePath);
     void exec(const char *where, QSqlQuery &q);
     void exec(const char *where, QSqlQuery &q, const QString &str);
     QString tagsBackgroundColorString;

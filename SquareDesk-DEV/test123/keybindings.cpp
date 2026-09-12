@@ -125,6 +125,17 @@ QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings(int revisionNu
     // prefixed with a break like this + 1. Then increment the constant
     // CURRENT_VERSION_OF_KEY_DEFAULTS in keybindings.h
 
+    if (revisionNumber > 3)
+        return keyMappings;
+
+    // #1724: the Autoscroll action was renamed when it became a 3-state cycle, and hotkeys are
+    //   persisted by that description string (see PreferencesManager::GetHotkeyMappings).  The old
+    //   stored name no longer resolves to any action, so every existing user silently lost their
+    //   "A" binding.  Re-assert it here so it comes back exactly once; anyone who has since bound
+    //   "A" to something else keeps their choice, because stored settings are layered on top of
+    //   these defaults.
+    keyMappings[QKeySequence(Qt::Key_A).toString()] = &keyaction_KeyActionAutoscrollToggle;
+
     if (revisionNumber > 2)
         return keyMappings;
     

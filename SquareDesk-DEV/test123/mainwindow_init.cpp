@@ -265,6 +265,10 @@ void MainWindow::initializeUI() {
     //   is the first thing to call applyCuesheetZoom()
     cuesheetFontOffset = 0;
     cuesheetAppliedZoom = 0;
+    // likewise for auto-scroll (#1724): loadCuesheetSettings() can run before the button is set
+    //   up further down, and effectiveAutoScroll() reads both of these
+    cuesheetAutoScrollState = -1;
+    autoScrollCuesheetsByDefault = prefsManager.Getenableautoscrolllyrics();
     // darkmode = dark; // true if we're using the new dark UX
     darkmode = true; // true if we're using the new dark UX
 
@@ -680,8 +684,6 @@ void MainWindow::initializeMusicPlaybackControls() {
     on_monoButton_toggled(prefsManager.Getforcemono());
     on_actionNormalize_Track_Audio_toggled(prefsManager.GetnormalizeTrackAudio());
 
-    on_actionAuto_scroll_during_playback_toggled(prefsManager.Getenableautoscrolllyrics());
-    autoScrollLyricsEnabled = prefsManager.Getenableautoscrolllyrics();
 
     ui->theSVGClock->setTimerLabel(ui->warningLabelCuesheet, ui->warningLabelSD, ui->darkWarningLabel);  // tell the clock which labels to use for the main patter timer
 
@@ -1629,6 +1631,18 @@ void MainWindow::initializeCuesheetTab() {
             this, [this]() { adjustCuesheetFontOffset(2); });
     connect(ui->toolButtonCuesheetFontSmaller, &QToolButton::clicked,
             this, [this]() { adjustCuesheetFontOffset(-2); });
+
+    // per-cuesheet auto-scroll button (#1724) ---------
+    //   (icons are set per-theme in Themes.qss, keyed on the autoScrollIcon dynamic property)
+    //   NOTE: the button is checkable, but it is NOT a plain toggle -- it cycles three states,
+    //     and its checked state reflects the EFFECTIVE auto-scroll, so it is always driven by
+    //     updateAutoScrollButton() rather than by the click itself.
+    ui->toolButtonCuesheetAutoScroll->setIcon(QIcon(":/graphics/cuesheet_autoscroll_inherit_on.svg"));
+
+    connect(ui->toolButtonCuesheetAutoScroll, &QToolButton::clicked,
+            this, [this]() { cycleCuesheetAutoScroll(); });
+
+    updateAutoScrollButton();
 
     connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
             this, SLOT(LyricsCopyAvailable(bool)));

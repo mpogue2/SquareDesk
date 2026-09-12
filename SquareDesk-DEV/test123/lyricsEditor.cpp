@@ -38,6 +38,8 @@
 #include <QTextBlock>
 #include <QTextTable>
 #include <QScrollBar>
+#include <QStyle>
+#include <QToolButton>
 #include <climits>
 
 // START LYRICS EDITOR STUFF
@@ -1281,7 +1283,7 @@ void MainWindow::loadCuesheet(const QString cuesheetFilename)
 
     ui->textBrowserCueSheet->document()->setModified(false);
 
-    loadCuesheetFontOffset(loadedCuesheetNameWithPath);  // this cuesheet's own font size offset, if it has one (#1682)
+    loadCuesheetSettings(loadedCuesheetNameWithPath);  // this cuesheet's own font size offset and auto-scroll state, if it has them (#1682, #1724)
     cuesheetIsTwoColumnRendered = false;  // fresh 1-column content was just loaded
     applyCuesheetColumnModeToView();      // re-render as 2 columns, if that mode is selected
 
@@ -1716,10 +1718,72 @@ void MainWindow::adjustCuesheetFontOffset(int delta) {
 }
 
 // called whenever a different cuesheet is displayed (including "no cuesheet", where
-//   cuesheetFilename is empty and the offset goes back to the default of 0)
-void MainWindow::loadCuesheetFontOffset(const QString &cuesheetFilename) {
+//   cuesheetFilename is empty and everything goes back to its default)
+void MainWindow::loadCuesheetSettings(const QString &cuesheetFilename) {
     cuesheetFontOffset = songSettings.getCuesheetFontOffset(cuesheetFilename);
     applyCuesheetZoom();
+
+    cuesheetAutoScrollState = songSettings.getCuesheetAutoScroll(cuesheetFilename);  // #1724
+    updateAutoScrollButton();
+}
+
+// PER-CUESHEET AUTO-SCROLL (#1724) -------------------------------------------
+// Three stored states, but FOUR appearances, because an inheriting cuesheet looks different
+//   depending on what it is inheriting:
+//
+//      stored          page outline   slash   background
+//      NULL, def ON    dashed         no      green
+//      NULL, def OFF   dashed         yes     plain
+//      1 (always)      solid          no      green
+//      0 (never)       solid          yes     plain
+//
+//   Slash vs no slash says what auto-scroll will DO; dashed vs solid says whether this cuesheet
+//   chose that or is following Preferences.  Two independent axes, so no appearance rests on a
+//   single cue -- in particular the green is reinforcement, not the only thing separating the
+//   two inheriting appearances.
+
+void MainWindow::updateAutoScrollButton() {
+    bool effective = effectiveAutoScroll();
+
+    // NOTE: this property names the APPEARANCE, not the stored state, because the inheriting
+    //   state has two drawings.  Themes.qss maps it (crossed with the theme) to an icon.
+    const char *iconState = (cuesheetAutoScrollState < 0) ? (effective ? "inherit-on" : "inherit-off")
+                          : (cuesheetAutoScrollState == 1) ? "always"
+                                                           : "never";
+
+    QToolButton *b = ui->toolButtonCuesheetAutoScroll;
+    b->setProperty("autoScrollIcon", iconState);
+    b->style()->unpolish(b);   // force QSS to re-evaluate the dynamic property
+    b->style()->polish(b);
+
+    b->setChecked(effective);                                   // drives the green background
+    b->setEnabled(!loadedCuesheetNameWithPath.isEmpty());       // nothing to override with no cuesheet
+
+    QString state;
+    if (cuesheetAutoScrollState < 0) {
+        state = effective ? "following default (On)" : "following default (Off)";
+    } else {
+        state = (cuesheetAutoScrollState == 1) ? "always, for this cuesheet"
+                                               : "never, for this cuesheet";
+    }
+    b->setToolTip("Auto-scroll: " + state + "\nClick or press A to change.");
+}
+
+// default -> always -> never -> default.  The order is FIXED rather than relative to the global
+//   default, so that repeated presses always land in the same place regardless of Preferences.
+void MainWindow::cycleCuesheetAutoScroll() {
+    if (loadedCuesheetNameWithPath.isEmpty()) {
+        return;  // no cuesheet on screen, so there is nothing to override
+    }
+
+    switch (cuesheetAutoScrollState) {
+        case -1: cuesheetAutoScrollState =  1; break;   // default -> always
+        case  1: cuesheetAutoScrollState =  0; break;   // always  -> never
+        default: cuesheetAutoScrollState = -1; break;   // never   -> back to following the default
+    }
+
+    songSettings.setCuesheetAutoScroll(loadedCuesheetNameWithPath, cuesheetAutoScrollState);
+    updateAutoScrollButton();
 }
 
 // SAVE LYRICS ------------------------------

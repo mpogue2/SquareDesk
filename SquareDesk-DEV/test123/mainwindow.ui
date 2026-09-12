@@ -3267,6 +3267,35 @@
              </widget>
             </item>
             <item>
+             <widget class="Line" name="lineAutoScroll">
+              <property name="orientation">
+               <enum>Qt::Orientation::Vertical</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="toolButtonCuesheetAutoScroll">
+              <property name="minimumSize">
+               <size>
+                <width>32</width>
+                <height>26</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Auto-scroll this cuesheet</string>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>18</width>
+                <height>18</height>
+               </size>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="horizontalSpacer">
               <property name="orientation">
                <enum>Qt::Orientation::Horizontal</enum>
@@ -4704,8 +4733,6 @@
     <addaction name="separator"/>
     <addaction name="actionLyricsCueSheetRevert_Edits"/>
     <addaction name="separator"/>
-    <addaction name="actionAuto_scroll_during_playback"/>
-    <addaction name="separator"/>
     <addaction name="actionExplore_Cuesheet_Matching"/>
    </widget>
    <widget class="QMenu" name="menuSession">
@@ -5143,14 +5170,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+;</string>
-   </property>
-  </action>
-  <action name="actionAuto_scroll_during_playback">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Auto-scroll cuesheet</string>
    </property>
   </action>
   <action name="actionAt_TOP">

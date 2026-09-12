@@ -1921,7 +1921,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 
         // NOTE: only auto-scroll when the lyrics are LOCKED (if not locked, you're probably editing).
         //   AND you must be playing.  If you're not playing, we're not going to override the InfoBar position.
-        if (autoScrollLyricsEnabled &&
+        if (effectiveAutoScroll() &&
                 !ui->pushButtonEditLyrics->isChecked() &&
                 cBass->currentStreamState() == BASS_ACTIVE_PLAYING &&
                 !lyricsForDifferentSong) {
@@ -3206,8 +3206,8 @@ void MainWindow::actionFilterSongsToSingers()
 
 void MainWindow::actionToggleCuesheetAutoscroll()
 {
-    // toggle automatic scrolling of the cuesheet
-    ui->actionAuto_scroll_during_playback->setChecked(!ui->actionAuto_scroll_during_playback->isChecked());
+    // cycle THIS cuesheet through: follow the Preferences default -> always -> never (#1724)
+    cycleCuesheetAutoScroll();
 }
 
 
@@ -4497,6 +4497,11 @@ void MainWindow::on_actionPreferences_triggered()
         // Save the new value for musicPath --------
         prefsManager.extractValuesFromPreferencesDialog(prefDialog);
         songSettings.setTagColors(prefsManager.getTagColors());
+
+        // #1724: the auto-scroll default changes what EVERY non-overridden cuesheet does, and
+        //   changes the auto-scroll button's icon (not just its background) for the open one.
+        autoScrollCuesheetsByDefault = prefsManager.Getenableautoscrolllyrics();
+        updateAutoScrollButton();
         QHash<QString, KeyAction *> hotkeyMappings = prefsManager.GetHotkeyMappings();
         SetKeyMappings(hotkeyMappings, hotkeyShortcuts);
         updateHotkeyTooltips(); // tooltips reflect the actual current key bindings (issue #1644)
@@ -5882,21 +5887,6 @@ void MainWindow::initReftab() {
 void MainWindow::initSDtab() {
     // SD -------------------------------------------
     copyrightShown = false;  // haven't shown it once yet
-}
-
-void MainWindow::on_actionAuto_scroll_during_playback_toggled(bool checked)
-{
-    if (checked) {
-        ui->actionAuto_scroll_during_playback->setChecked(true);
-        autoScrollLyricsEnabled = true;
-    }
-    else {
-        ui->actionAuto_scroll_during_playback->setChecked(false);
-        autoScrollLyricsEnabled = false;
-    }
-
-    // the Enable Auto-scroll during playback setting is persistent across restarts of the application
-    prefsManager.Setenableautoscrolllyrics(ui->actionAuto_scroll_during_playback->isChecked());
 }
 
 // ==========================================================

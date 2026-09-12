@@ -1739,7 +1739,6 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
 //        ui->actionFilePrint->setText("Print Patter...");
 //        ui->actionSave_Lyrics->setText("Save Patter");
 //        ui->actionSave_Lyrics_As->setText("Save Patter As...");
-        ui->actionAuto_scroll_during_playback->setText("Auto-scroll Cuesheet");
 
         if (!hasLyrics || lyricsTabNumber == -1) {
 
@@ -1753,7 +1752,7 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
                     ui->textBrowserCueSheet->setHtml("No cuesheet for this patter song.");
                     cuesheetIsTwoColumnRendered = false; // placeholder replaced any 2-column view
                     loadedCuesheetNameWithPath = "";
-                    loadCuesheetFontOffset(loadedCuesheetNameWithPath); // no cuesheet: back to the plain global zoom (#1682)
+                    loadCuesheetSettings(loadedCuesheetNameWithPath); // no cuesheet: back to the plain global zoom and the default auto-scroll (#1682, #1724)
                 } else {
                 }
             }
@@ -1762,7 +1761,6 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
     } else /* if (currentSongIsSinger || currentSongIsVocal) */ {
         // ----- SINGING CALL OR RATHER "NOT PATTER" -----
 //        ui->menuLyrics->setTitle("Cuesheet");
-        ui->actionAuto_scroll_during_playback->setText("Auto-scroll Cuesheet");
 
         if (!hasLyrics || lyricsTabNumber == -1) {
 
@@ -1774,7 +1772,7 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
                 ui->textBrowserCueSheet->setHtml("No cuesheet found for this song.");
                 cuesheetIsTwoColumnRendered = false; // placeholder replaced any 2-column view
                 loadedCuesheetNameWithPath = "";
-                loadCuesheetFontOffset(loadedCuesheetNameWithPath); // no cuesheet: back to the plain global zoom (#1682)
+                loadCuesheetSettings(loadedCuesheetNameWithPath); // no cuesheet: back to the plain global zoom and the default auto-scroll (#1682, #1724)
             } else {
                 // ui->textBrowserCueSheet->setHtml(lyricsTemplate);
                 loadedCuesheetNameWithPath = musicRootPath + "/lyrics/templates/lyrics.template.html";  // this is now allowed to be the full path

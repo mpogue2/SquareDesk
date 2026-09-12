@@ -882,3 +882,42 @@ QToolTip {
 	qproperty-veinColor: "#00797B";
 	qproperty-centerVeinType: false;
 }
+
+/* Cuesheet per-cuesheet auto-scroll button (#1724) */
+/*   Four appearances from three states: the icon carries two axes -- slash/no-slash says what
+     auto-scroll will DO, dashed/solid page says whether this cuesheet chose it or is following
+     the Preferences default.  The :checked green below reinforces the first axis.
+     The autoScrollIcon property names the APPEARANCE, and is set in updateAutoScrollButton(). */
+QToolButton#toolButtonCuesheetAutoScroll[autoScrollIcon="inherit-on"][theme="Dark"] {
+    qproperty-icon: url(:/graphics/cuesheet_autoscroll_inherit_on_white.svg);
+}
+QToolButton#toolButtonCuesheetAutoScroll[autoScrollIcon="inherit-on"][theme="Light"] {
+    qproperty-icon: url(:/graphics/cuesheet_autoscroll_inherit_on.svg);
+}
+QToolButton#toolButtonCuesheetAutoScroll[autoScrollIcon="inherit-off"][theme="Dark"] {
+    qproperty-icon: url(:/graphics/cuesheet_autoscroll_inherit_off_white.svg);
+}
+QToolButton#toolButtonCuesheetAutoScroll[autoScrollIcon="inherit-off"][theme="Light"] {
+    qproperty-icon: url(:/graphics/cuesheet_autoscroll_inherit_off.svg);
+}
+QToolButton#toolButtonCuesheetAutoScroll[autoScrollIcon="always"][theme="Dark"] {
+    qproperty-icon: url(:/graphics/cuesheet_autoscroll_always_white.svg);
+}
+QToolButton#toolButtonCuesheetAutoScroll[autoScrollIcon="always"][theme="Light"] {
+    qproperty-icon: url(:/graphics/cuesheet_autoscroll_always.svg);
+}
+QToolButton#toolButtonCuesheetAutoScroll[autoScrollIcon="never"][theme="Dark"] {
+    qproperty-icon: url(:/graphics/cuesheet_autoscroll_never_white.svg);
+}
+QToolButton#toolButtonCuesheetAutoScroll[autoScrollIcon="never"][theme="Light"] {
+    qproperty-icon: url(:/graphics/cuesheet_autoscroll_never.svg);
+}
+
+QToolButton#toolButtonCuesheetAutoScroll:checked[theme="Dark"] {
+    background-color: qlineargradient(x1:0 y1:1, x2:0 y2:0, stop:0 #2a5a2a, stop:1 #3a7a3a);
+    border: 2px solid #4a9a4a;
+}
+QToolButton#toolButtonCuesheetAutoScroll:checked[theme="Light"] {
+    background-color: #c8e6c8;
+    border: 2px solid #4a9a4a;
+}

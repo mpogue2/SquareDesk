@@ -32,5 +32,13 @@
         <file>graphics/font_increase_white.svg</file>
         <file>graphics/font_decrease.svg</file>
         <file>graphics/font_decrease_white.svg</file>
+        <file>graphics/cuesheet_autoscroll_inherit_on.svg</file>
+        <file>graphics/cuesheet_autoscroll_inherit_on_white.svg</file>
+        <file>graphics/cuesheet_autoscroll_inherit_off.svg</file>
+        <file>graphics/cuesheet_autoscroll_inherit_off_white.svg</file>
+        <file>graphics/cuesheet_autoscroll_always.svg</file>
+        <file>graphics/cuesheet_autoscroll_always_white.svg</file>
+        <file>graphics/cuesheet_autoscroll_never.svg</file>
+        <file>graphics/cuesheet_autoscroll_never_white.svg</file>
     </qresource>
 </RCC>

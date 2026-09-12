@@ -767,7 +767,6 @@ private slots:
     void on_actionTempo_toggled(bool arg1);
     void on_actionShow_All_Ages_triggered(bool checked);
     void on_actionIn_Out_Loop_points_to_default_triggered(bool checked);
-    void on_actionAuto_scroll_during_playback_toggled(bool arg1);
     void on_actionShow_group_station_toggled(bool arg1);
     void on_actionShow_order_sequence_toggled(bool arg1);
     void on_actionZoom_In_triggered();
@@ -965,7 +964,17 @@ private:
     int cuesheetAppliedZoom;                            // zoom actually applied to textBrowserCueSheet right now
     void applyCuesheetZoom();                           // widget zoom := totalZoom + cuesheetFontOffset
     void adjustCuesheetFontOffset(int delta);           // +2/-2 per font size button press, then persist
-    void loadCuesheetFontOffset(const QString &cuesheetFilename);  // fetch this cuesheet's offset from the DB, and apply it
+    void loadCuesheetSettings(const QString &cuesheetFilename);  // fetch this cuesheet's per-cuesheet settings from the DB, and apply them
+
+    // per-cuesheet auto-scroll (#1724): tri-state, on top of the global default in Preferences.
+    //   The button shows the EFFECTIVE state, so it stays meaningful even when nothing is overridden.
+    int cuesheetAutoScrollState;                        // -1 follow the default, 0 never, 1 always
+    bool effectiveAutoScroll() const {                  // what auto-scroll will actually do right now
+        return cuesheetAutoScrollState < 0 ? autoScrollCuesheetsByDefault
+                                           : (cuesheetAutoScrollState == 1);
+    }
+    void cycleCuesheetAutoScroll();                     // default -> always -> never -> default, then persist
+    void updateAutoScrollButton();                      // icon, checked state, enabled state and tooltip
     void setCuesheetColumnMode(int nColumns);           // toolbutton handler; saves pref + re-renders
     void applyCuesheetColumnModeToView();               // render per pref (only when locked for editing)
     void renderCuesheetTwoColumns();
@@ -1309,7 +1318,7 @@ private:
     QString ageToIntString(QString ageString);
     QDateTime recentFenceDateTime;
     void reloadSongAges(bool show_all_sessions);
-    bool autoScrollLyricsEnabled;
+    bool autoScrollCuesheetsByDefault;  // #1724: global default from Preferences; each cuesheet may override
     void loadDanceProgramList(QString lastDanceProgram);
     Qt::ApplicationState currentApplicationState;
 

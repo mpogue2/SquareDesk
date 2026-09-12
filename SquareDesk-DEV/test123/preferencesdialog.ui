@@ -527,6 +527,16 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
           </widget>
          </item>
+         <item row="16" column="2" colspan="3">
+          <widget class="QCheckBox" name="enableAutoScrollCuesheetsCheckbox">
+           <property name="toolTip">
+            <string>Individual cuesheets can override this, using the auto-scroll button on the Cuesheet tab.</string>
+           </property>
+           <property name="text">
+            <string>Auto-scroll cuesheets by default</string>
+           </property>
+          </widget>
+         </item>
          <item row="13" column="2" colspan="4">
           <widget class="QLineEdit" name="lineEditToggleSequence"/>
          </item>

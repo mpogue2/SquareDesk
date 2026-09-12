@@ -33,7 +33,12 @@
  *  Each "KEYACTION" mapping here takes 3 arguments:
  *  1. a name used symbolically internally (also for the
  *     defaultKeyToActionMappings table key bindings.cpp)
- *  2. a string describing the action for the hotkeys setting
+ *  2. a string describing the action for the hotkeys setting.  WARNING: this string is also the
+ *     PERSISTENCE KEY for the user's hotkey settings -- GetHotkeyMappings() resolves the stored
+ *     "hotkey_<key>" value back to an action by matching this exact text.  Changing it orphans
+ *     every existing user's binding for that action, and SetHotkeyMappings() then deletes the
+ *     orphaned setting.  If you must rename one, add a new defaults revision in keybindings.cpp
+ *     to re-assert the binding (see the #1724 block there for an example).
  *  3. the code to run when that operation is triggered, usually a
  *     function on the main window via "mw->". Note that this can be a
  *     private function, all of these actions are declared as friends of the
@@ -73,7 +78,7 @@ KEYACTION(FilterPatter, "Filter Songs to Patter", mw->actionFilterSongsToPatter(
 KEYACTION(FilterSingers, "Filter Songs to Singing", mw->actionFilterSongsToSingers())
 KEYACTION(FilterToggle, "Toggle Songs Filter", mw->actionFilterSongsPatterSingersToggle())
 
-KEYACTION(AutoscrollToggle, "Toggle Cuesheet Auto-scrolling", mw->actionToggleCuesheetAutoscroll())
+KEYACTION(AutoscrollToggle, "Cycle Cuesheet Auto-scroll (default / always / never)", mw->actionToggleCuesheetAutoscroll())
 
 KEYACTION(SDSquareYourSets, "SD Square Your Sets", mw->on_actionSDSquareYourSets_triggered())
 KEYACTION(SDHeadsStart, "SD Heads Start", mw->on_actionSDHeadsStart_triggered())

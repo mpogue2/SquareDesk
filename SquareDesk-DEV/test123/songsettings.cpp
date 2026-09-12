@@ -295,12 +295,13 @@ TableDefinition markers_table("markers", markers_rows);
 //      - a cuesheet can be displayed when there is no songs row at all (patter cuesheets, the
 //          lyrics template, or a cuesheet chosen from the dropdown for a never-saved song)
 //    Relative keying also means these settings survive a move of the musicRoot.
-//  Rows only exist for cuesheets the user has actually customized; an offset that returns to the
-//    default deletes its row (see setCuesheetFontOffset).
+//  Rows only exist for cuesheets the user has actually customized; once EVERY setting in the row
+//    is back to its default, the row is dropped (see deleteCuesheetRowIfAllDefault).
 RowDefinition cuesheet_rows[] =
 {
     RowDefinition("relative_path", "text PRIMARY KEY"),  // e.g. "/lyrics/BS 2623 - Besame Mucho.html"
     RowDefinition("fontSizeOffset", "int"),              // points, on top of the global zoom level; 0 = default
+    RowDefinition("autoScroll", "int"),                  // per-cuesheet auto-scroll (#1724); NULL = follow the Preferences default, 0 = never, 1 = always
     RowDefinition(nullptr, nullptr), // NULL, NULL),
 };
 TableDefinition cuesheet_table("cuesheets", cuesheet_rows);
@@ -1415,10 +1416,13 @@ void SongSettings::setCuesheetFontOffset(const QString &filenameWithPath, int of
     QSqlQuery q(m_db);
     if (offset == 0)
     {
-        // back to the default, so don't keep a row around just to say "normal"
-        q.prepare("DELETE FROM cuesheets WHERE relative_path=:relative_path");
+        // back to the default.  NOTE: we can't just delete the row here, because it may still be
+        //   carrying this cuesheet's auto-scroll override (#1724); only drop it if EVERYTHING is
+        //   back to default.
+        q.prepare("UPDATE cuesheets SET fontSizeOffset=0 WHERE relative_path=:relative_path");
         q.bindValue(":relative_path", removeRootDirs(filenameWithPath));
-        exec("setCuesheetFontOffset DELETE", q);
+        exec("setCuesheetFontOffset ZERO", q);
+        deleteCuesheetRowIfAllDefault(removeRootDirs(filenameWithPath));
         return;
     }
 
@@ -1430,5 +1434,69 @@ void SongSettings::setCuesheetFontOffset(const QString &filenameWithPath, int of
     q.bindValue(":fontSizeOffset", offset);
     q.bindValue(":fontSizeOffset2", offset);
     exec("setCuesheetFontOffset UPSERT", q);
+}
+
+// returns this cuesheet's auto-scroll override: -1 = follow the global default from Preferences
+//   (the common case -- most cuesheets are never overridden), 0 = never, 1 = always
+int SongSettings::getCuesheetAutoScroll(const QString &filenameWithPath)
+{
+    if (filenameWithPath.isEmpty() || !databaseOpened) {
+        return -1;  // no cuesheet is loaded (or no DB yet), so follow the default
+    }
+
+    QSqlQuery q(m_db);
+    q.prepare("SELECT autoScroll FROM cuesheets WHERE relative_path=:relative_path");
+    q.bindValue(":relative_path", removeRootDirs(filenameWithPath));
+    exec("getCuesheetAutoScroll", q);
+
+    if (q.next() && !q.value(0).isNull())
+    {
+        return q.value(0).toInt();
+    }
+    return -1;  // no row for this cuesheet yet, or the column is NULL: follow the default
+}
+
+void SongSettings::setCuesheetAutoScroll(const QString &filenameWithPath, int state)
+{
+    if (filenameWithPath.isEmpty() || !databaseOpened) {
+        return;  // no cuesheet is loaded (or no DB yet), so there's nothing to remember it against
+    }
+
+    QSqlQuery q(m_db);
+    if (state < 0)
+    {
+        // back to following the default.  As above, the row might still be carrying a font size
+        //   offset, so NULL the column out and only then consider dropping the row.
+        q.prepare("UPDATE cuesheets SET autoScroll=NULL WHERE relative_path=:relative_path");
+        q.bindValue(":relative_path", removeRootDirs(filenameWithPath));
+        exec("setCuesheetAutoScroll NULL", q);
+        deleteCuesheetRowIfAllDefault(removeRootDirs(filenameWithPath));
+        return;
+    }
+
+    // NOTE: a real UPSERT here (rather than INSERT OR REPLACE), so that this cuesheet's font size
+    //   offset isn't silently wiped when only the auto-scroll state is being written.
+    q.prepare("INSERT INTO cuesheets(relative_path, autoScroll) VALUES (:relative_path,:autoScroll)"
+              " ON CONFLICT(relative_path) DO UPDATE SET autoScroll=:autoScroll2");
+    q.bindValue(":relative_path", removeRootDirs(filenameWithPath));
+    q.bindValue(":autoScroll", state);
+    q.bindValue(":autoScroll2", state);
+    exec("setCuesheetAutoScroll UPSERT", q);
+}
+
+// A cuesheets row is pure user customization, so it should not linger once the user has put
+//   everything back the way it was.  Every per-cuesheet setting has to be checked together --
+//   deleting on just the one being written would silently discard the others (#1682, #1724).
+void SongSettings::deleteCuesheetRowIfAllDefault(const QString &relativePath)
+{
+    if (relativePath.isEmpty() || !databaseOpened) {
+        return;
+    }
+
+    QSqlQuery q(m_db);
+    q.prepare("DELETE FROM cuesheets WHERE relative_path=:relative_path"
+              " AND IFNULL(fontSizeOffset,0)=0 AND autoScroll IS NULL");
+    q.bindValue(":relative_path", relativePath);
+    exec("deleteCuesheetRowIfAllDefault", q);
 }
 
