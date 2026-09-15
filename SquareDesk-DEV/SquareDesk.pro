@@ -18,13 +18,6 @@ test123.depends = taglib sdlib
 CONFIG+=sdk_no_version_check
 }
 
-# WIN32: where to find the sub projects -----------------
+# where to find the sub projects -----------------
 taglib.subdir = taglib/taglib
 test123.subdir = test123
-
-win32 {
-#SUBDIRS += sd
-#sd.subdir = sd
-#test123.depends = sd taglib
-test123.depends = taglib
-}

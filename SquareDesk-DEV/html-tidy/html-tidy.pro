@@ -28,20 +28,6 @@ html-tidy.commands = \
 QMAKE_EXTRA_TARGETS += html-tidy
 }
 
-win32: {
-# Windows: install tidy by hand to local_win32
-#
-#html-tidy.target = html-tidy
-#html-tidy.commands = cd $$PWD/../html-tidy/build/cmake && \
-#   del CMakeCache.txt && \
-#   cmake ../.. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$$PWD/../local_win32 && \
-#   cmake --build . --config Release && \
-#   cmake --build . --config Release --target INSTALL
-
-#QMAKE_EXTRA_TARGETS += html-tidy
-#PRE_TARGETDEPS += html-tidy
-}
-
 unix:!macx: {
 # Linux
 html-tidy.target = html-tidy
