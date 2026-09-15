@@ -397,68 +397,53 @@ ICON = $$PWD/desk1d.icns
 DISTFILES += desk1d.icns
 DISTFILES += $$PWD/allcalls.csv  # RESOURCE: list of calls, and which level they are
 
-# LYRICS AND PATTER TEMPLATES --------------------------------------------
-# Copy the lyrics.template*.html files to the right place
-copydata0a.commands = $(COPY) $$PWD/lyrics.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
-copydata0b.commands = $(COPY) $$PWD/cuesheet2.css        $$OUT_PWD/SquareDesk.app/Contents/Resources
-copydata0d.commands = $(COPY) $$PWD/lyrics.template.2col.html $$OUT_PWD/SquareDesk.app/Contents/Resources
+# FILES COPIED INTO THE APP BUNDLE --------------------------------------------------------
+#
+#   QMAKE_BUNDLE_DATA emits one real Makefile rule per file, with the source file as a
+#   prerequisite, so each file is re-copied only when it actually changes and the
+#   destination directory is created automatically.  To deploy a new file, add it to the
+#   right .files list below -- that is the only edit needed.
+#
+#   NOTE: sd_calls.dat and sd_doc.pdf must land in Resources, NOT MacOS, so that SDP can
+#   find them and start up sd.
 
-# THEMES ----------------------------------------
-copydata0e.commands = $(COPY) $$PWD/themes/Themes.qss $$OUT_PWD/SquareDesk.app/Contents/Resources
+bundle_resources.path  = Contents/Resources
+bundle_resources.files = \
+    $$PWD/lyrics.template.html \
+    $$PWD/lyrics.template.2col.html \
+    $$PWD/cuesheet2.css \
+    $$PWD/themes/Themes.qss \
+    $$PWD/sd_calls.dat \
+    $$PWD/allcalls.csv \
+    $$PWD/abbrevs.txt \
+    $$PWD/squareDanceLabelIDs.csv \
+    $$PWD/../sdlib/sd_doc.pdf
 
-# SD --------------------------------------------
-# NEW REQ'T: Copy the SD sd_calls.dat data file to the Resources folder, NOT the MacOS folder
-#  (inside the SquareDesk.app bundle)
-# Also copy the PDF file into the Resources folder, so we can stick it into the Reference folder
-# This way, it's easy for SDP to find the executable for sd, and it's easy for SDP to start up sd.
-# MAKE SURE THAT MACOS DIRECTORY EXISTS BEFORE TRYING TO COPY
-copydata1dir.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/MacOS || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS
-copydata1.commands = $(COPY) $$PWD/sd_calls.dat        $$OUT_PWD/SquareDesk.app/Contents/Resources
-copydata2.commands = $(COPY) $$PWD/../sdlib/sd_doc.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources
-copydata3.commands = $(COPY) $$PWD/allcalls.csv        $$OUT_PWD/SquareDesk.app/Contents/Resources
-copydata4s.commands = $(COPY) $$PWD/abbrevs.txt        $$OUT_PWD/SquareDesk.app/Contents/Resources
+# SVG resources for the knobs and sliders
+bundle_knobs.path    = Contents/Resources/knobs
+bundle_knobs.files   = $$files($$PWD/graphics/knobs/*.svg)
 
-# DATA --------------------------------------------
-# Copy the squareDanceLabelIDs.csv file to the Resources spot in bundle
-copydata5.commands = $(COPY) $$PWD/squareDanceLabelIDs.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
+bundle_sliders.path  = Contents/Resources/sliders
+bundle_sliders.files = $$files($$PWD/graphics/sliders/*.svg)
 
-# NOTE: If we get an error here, that MacOS already exists, it's probably because we just switched to a new version of
-#  Qt, and we have a new build directory, and within that build directory we have a new squaredesk.app/Contents,
-#  and the copy of sd_calls.dat tried to copy to SquareDesk.app/Contents/MacOS (the FILE), and it should have been
-#  an already-existing SquareDesk.app/Contents/MacOS (the FOLDER).  To fix this, just delete the MacOS FILE, and
-#  create a folder called MacOS in Contents.  Then, the build should finish properly.
+# Sound FX starter set
+bundle_soundfx.path  = Contents/soundfx
+bundle_soundfx.files = $$files($$PWD/soundfx/*.mp3)
 
-# SOUNDFX STARTER SET --------------------------------------------
-copydata10.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/soundfx || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/soundfx
-copydata11a.commands = $(COPY_DIR) $$PWD/soundfx/1.whistle.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/1.whistle.mp3
-copydata11b.commands = $(COPY_DIR) $$PWD/soundfx/2.clown_honk.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/2.clown_honk.mp3
-copydata11c.commands = $(COPY_DIR) $$PWD/soundfx/3.submarine.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/3.submarine.mp3
-copydata11d.commands = $(COPY_DIR) $$PWD/soundfx/4.applause.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/4.applause.mp3
-copydata11e.commands = $(COPY_DIR) $$PWD/soundfx/5.fanfare.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/5.fanfare.mp3
-copydata11f.commands = $(COPY_DIR) $$PWD/soundfx/6.fade.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/6.fade.mp3
-copydata11f2.commands = $(COPY_DIR) $$PWD/soundfx/7.short_bell.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/7.short_bell.mp3
-copydata11f3.commands = $(COPY_DIR) $$PWD/soundfx/8.ding_ding.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/8.ding_ding.mp3
-copydata11g.commands = $(COPY_DIR) $$PWD/soundfx/break_over.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/break_over.mp3
-copydata11h.commands = $(COPY_DIR) $$PWD/soundfx/long_tip.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/long_tip.mp3
-copydata12h.commands = $(COPY_DIR) $$PWD/soundfx/thirty_second_warning.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx/thirty_second_warning.mp3
+# PDF viewer (qpdfjs): its "build" and "web" trees
+bundle_pdfjs.path    = Contents/Resources/minified
+bundle_pdfjs.files   = $$PWD/../qpdfjs/minified/build $$PWD/../qpdfjs/minified/web
 
-first.depends += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
+# VAMP, for beat/measure detection and segmentation.
+#   NOTE: the dylibs and the vamp-simple-host executable are ARM64 binaries; segmentino and
+#   the QM plugins are universal binaries.  Listed by pattern rather than as one glob so a
+#   stray file in that directory cannot silently end up inside a signed bundle.
+VAMP_DIR = $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone
+bundle_vamp.path     = Contents/MacOS
+bundle_vamp.files    = $$files($$VAMP_DIR/*.dylib) $$VAMP_DIR/vamp-simple-host
 
-export(first.depends)
-export(copydata10.commands)
-export(copydata11a.commands)
-export(copydata11b.commands)
-export(copydata11c.commands)
-export(copydata11d.commands)
-export(copydata11e.commands)
-export(copydata11f.commands)
-export(copydata11f2.commands)
-export(copydata11f3.commands)
-export(copydata11g.commands)
-export(copydata11h.commands)
-export(copydata12h.commands)
-
-QMAKE_EXTRA_TARGETS += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
+QMAKE_BUNDLE_DATA += bundle_resources bundle_knobs bundle_sliders bundle_soundfx \
+                     bundle_pdfjs bundle_vamp
 
 # ----------------------------------------------------------------------------------------
 # For the Mac OS X DMG installer build, we need these files stuck into the results directory
@@ -472,14 +457,6 @@ installer6.commands = $(COPY) $$PWD/releaseSquareDesk.command     $$OUT_PWD/rele
 
 first.depends += installer1 installer2 installer3 installer4 installer5 installer6
 
-export(first.depends)
-export(installer1.commands)
-export(installer2.commands)
-export(installer3.commands)
-export(installer4.commands)
-export(installer5.commands)
-export(installer6.commands)
-
 QMAKE_EXTRA_TARGETS += first installer1 installer2 installer3 installer4 installer5 installer6
 }
 
@@ -492,101 +469,34 @@ macx {
     DEFINES += QT_NO_USE_NODISCARD_FILE_OPEN
     QT += multimedia
 
-    first.depends += copydata1dir copydata0a copydata0b copydata0d copydata0e copydata1 copydata2 copydata3 copydata4s copydata5
+    # POST-PROCESSING OF THE FINISHED BUNDLE ----------------------------------------------
+    #
+    #   The deployment steps that are not plain file copies, and so cannot be expressed as
+    #   QMAKE_BUNDLE_DATA.  These used to be ordered by "sleep 1" / "sleep 2" / "sleep 3" /
+    #   "sleep 5" inside the recipes, which guarantees nothing under a parallel build
+    #   (make -j) and cost ~16 seconds on every build.  They are now chained with real
+    #   dependencies, and the head of the chain depends on "all", so the whole chain runs
+    #   after every bundle file has been copied and the app has been linked.
 
-    # lyrics and patter templates
-    export(copydata0a.commands)
-    export(copydata0b.commands)
-    export(copydata0d.commands)
+    # pdf.js ships a large sample PDF that we do not need.
+    stripPDFJS.target   = stripPDFJS
+    stripPDFJS.depends  = all
+    stripPDFJS.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/Resources/minified/web/compressed.*.pdf
 
-# themes
-    export(copydata0e.commands)
+    # Taminations: unzip web.zip into Resources/Taminations ("unzip -d" creates the folder).
+    taminations.target   = taminations
+    taminations.depends  = stripPDFJS
+    taminations.commands = unzip -o -q $$PWD/../Taminations/web.zip -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations
 
-    # sd_calls.dat, allcalls.csv, sd_doc.pdf
-    export(copydata1dir.commands)
-    export(copydata1.commands)
-    export(copydata2.commands)
-    export(copydata3.commands)
-    export(copydata4s.commands)
-    export(copydata5.commands)
+    # Strip AppleDouble files and build cruft, which otherwise break signing and notarizing.
+    bundleCleanup.target   = bundleCleanup
+    bundleCleanup.depends  = taminations
+    bundleCleanup.commands = dot_clean $$OUT_PWD/SquareDesk.app $$escape_expand(\n\t) \
+                             find $$OUT_PWD/SquareDesk.app/Contents -name \".last_build_id\" -type f -delete $$escape_expand(\n\t) \
+                             find $$OUT_PWD/SquareDesk.app/Contents -name \".DS_Store\" -type f -delete
 
-    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0d copydata0e copydata1dir copydata1 copydata2 copydata3 copydata4s copydata5
-
-    # For the PDF viewer -----------------
-    copydata1p.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/Resources/minified/web || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/minified/web
-    copydata2p.commands = sleep 2;$(COPY_DIR) $$PWD/../qpdfjs/minified/*   $$OUT_PWD/SquareDesk.app/Contents/Resources/minified
-    copydata4p.commands = sleep 2;$(RM) $$OUT_PWD/SquareDesk.app/Contents/Resources/minified/web/compressed.*.pdf
-
-    first.depends += copydata1p copydata2p copydata4p
-    export(first.depends)
-    export(copydata1p.commands)
-    export(copydata2p.commands)
-    export(copydata4p.commands)
-    QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata4p
-
-    # SVG Resources for sliders and knobs -----------------
-    copydata1sk.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/Resources/knobs || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/knobs
-    copydata2sk.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/Resources/sliders || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/sliders
-    copydata3sk.commands = $(COPY_DIR) $$PWD/graphics/knobs   $$OUT_PWD/SquareDesk.app/Contents/Resources
-    copydata4sk.commands = $(COPY_DIR) $$PWD/graphics/sliders $$OUT_PWD/SquareDesk.app/Contents/Resources
-
-    first.depends += copydata1sk copydata2sk copydata3sk copydata4sk
-    export(first.depends)
-    export(copydata1sk.commands)
-    export(copydata2sk.commands)
-    export(copydata3sk.commands)
-    export(copydata4sk.commands)
-    QMAKE_EXTRA_TARGETS += copydata1sk copydata2sk copydata3sk copydata4sk
-
-    # TAMINATIONS ----------------
-    #  unzip the web.zip file into the Resources/Taminations/web folder
-    copydata1tam.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations
-    copydata2tam.commands = sleep 1;unzip -o -q $$PWD/../Taminations/web.zip -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations
-    copydata3tam.commands = sleep 3;dot_clean $$OUT_PWD/SquareDesk.app
-    copydata4tam.commands = sleep 5;find $$OUT_PWD/SquareDesk.app/Contents -name \".last_build_id\" -type f -delete
-    copydata5tam.commands = sleep 5;find $$OUT_PWD/SquareDesk.app/Contents -name \".DS_Store\" -type f -delete
-
-    first.depends += copydata1tam copydata2tam copydata3tam copydata4tam copydata5tam
-
-    export(first.depends)
-
-    export(copydata1tam.commands)
-    export(copydata2tam.commands)
-    export(copydata3tam.commands)
-    export(copydata4tam.commands)
-    export(copydata5tam.commands)
-
-    QMAKE_EXTRA_TARGETS += copydata1tam copydata2tam copydata3tam copydata4tam copydata5tam
-
-    # Binary Resources for VAMP (beat/measure detection and segmentation) -----------------
-    #  NOTE: The dylibs and the vamp-simple-host executable are all ARM64 binaries.  Segmentino and QM plugins are universal binaries.
-    copydata1vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/vamp-simple-host      $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata2vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/qm-vamp-plugins.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata3vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/segmentino.dylib      $$OUT_PWD/SquareDesk.app/Contents/MacOS
-
-    copydata4vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/libFLAC.14.dylib        $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata5vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/libmp3lame.0.dylib      $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata6vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/libmpg123.0.dylib       $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata7vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/libogg.0.dylib      $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata8vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/libopus.0.dylib         $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata9vamp.commands  = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/libsndfile.1.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata10vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/libvorbis.0.dylib       $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata11vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/cleanVAMPfiles/vamp-standalone/libvorbisenc.2.dylib    $$OUT_PWD/SquareDesk.app/Contents/MacOS
-
-    first.depends += copydata1vamp copydata2vamp copydata3vamp copydata4vamp copydata5vamp copydata6vamp copydata7vamp copydata8vamp copydata9vamp copydata10vamp copydata11vamp
-    export(first.depends)
-    export(copydata1vamp.commands)
-    export(copydata2vamp.commands)
-    export(copydata3vamp.commands)
-    export(copydata4vamp.commands)
-    export(copydata5vamp.commands)
-    export(copydata6vamp.commands)
-    export(copydata7vamp.commands)
-    export(copydata8vamp.commands)
-    export(copydata9vamp.commands)
-    export(copydata10vamp.commands)
-    export(copydata11vamp.commands)
-    QMAKE_EXTRA_TARGETS += copydata1vamp copydata2vamp copydata3vamp copydata4vamp copydata5vamp copydata6vamp copydata7vamp copydata8vamp copydata9vamp copydata10vamp copydata11vamp
+    QMAKE_EXTRA_TARGETS += stripPDFJS taminations bundleCleanup
+    first.depends += bundleCleanup
 
     # Re-sign the app bundle with the Apple Music entitlement after each build --------
     # Required so that macOS grants, and then remembers, Media & Apple Music permission.
