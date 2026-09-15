@@ -102,11 +102,3 @@ DISTRIBUTING SQUAREDESK FOR MAC
 DISTRIBUTING SQUAREDESK FOR LINUX
 
 	* This section needs to be written
-
-DISTRIBUTING SQUAREDESK FOR WINDOWS (deprecated)
-
-	* NOTE: top-of-tree Master branch does NOT compile or run on Windows at this time, 
-		so the following info is only for historical purposes
-	* After the build is tested, create a Windows installation package using 
-		Inno Setup (https://jrsoftware.org/isinfo.php) and the .iss file located here:
-		SquareDesk-DEV/test123/setup_win32.iss .

@@ -30,7 +30,7 @@
 - **Language**: C++11/C++17
 - **Framework**: Qt 6.x (widgets, multimedia, webengine, network, svg, sql, httpserver)
 - **Build System**: qmake (.pro files)
-- **Platform**: macOS 12.0+ (primary), Linux (supported), Windows (now obsolete)
+- **Platform**: macOS 12.0+ (primary), Linux (supported), Windows (support removed)
 
 ### Main Components
 
@@ -104,7 +104,6 @@ SquareDesk-DEV/
 ├── libJUCEstatic/             # JUCE audio library (static build)
 ├── Taminations/               # Dance animation web app (web.zip)
 ├── local_macosx/              # macOS-specific binaries (VAMP, etc.)
-├── local_win32/               # Windows libraries (obsolete)
 └── SquareDesk.pro             # Top-level project file
 ```
 
@@ -114,7 +113,7 @@ SquareDesk-DEV/
 
 - **SquareDesk.pro** - Top-level project (TEMPLATE = subdirs)
 - **test123/test123.pro** - Main application
-- Platform-specific sections (macx, win32, unix:!macx)
+- Platform-specific sections (macx, unix:!macx)
 - Extensive custom build steps (copy resources, deploy scripts)
 
 ### Key Build Settings
@@ -259,9 +258,10 @@ The main window logic is split across multiple files for maintainability:
 
 ### Windows (Obsolete)
 
-- No longer maintained as of 2025
-- Used BASS audio library
-- Inno Setup for installers (`setup_win32.iss`)
+- No longer maintained as of 2025; all Windows build files, project-file
+  scopes and prebuilt binaries were removed in issue #1727
+- Recoverable from git history if it is ever revived
+- Used the BASS audio library and Inno Setup for installers
 
 ## Known Issues and Quirks
 
