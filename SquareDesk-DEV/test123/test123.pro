@@ -22,29 +22,17 @@ macx {
 macx {
   # VARIABLE REFERENCE: https://doc.qt.io/qt-6/qmake-variable-reference.html
   #
-  # NOTE:  The QMAKE_MAC_SDK MUST MUST MUST BE ALL LOWER CASE.
-  #  otherwise, this command issued by <QtDir>/macos/mkspecs/features/macos/sdk.prf
-  #   "/usr/bin/xcrun --sdk macosx14.0 --show-sdk-version" will fail.  If it fails,
-  #   we'll get an error message like: "Could not resolve SDK SDKVersion for 'MacOSX14.0' using --show-sdk-version"
+  # NOTE: QMAKE_MAC_SDK MUST BE ALL LOWER CASE, and fully spelled out ("macosx27.0", not
+  #   "macosx27").  Otherwise the command that <QtDir>/macos/mkspecs/features/macos/sdk.prf
+  #   issues, "/usr/bin/xcrun --sdk macosx27.0 --show-sdk-version", fails with:
+  #   "Could not resolve SDK SDKVersion for 'MacOSX27.0' using --show-sdk-version"
   #
-  # To fix this, make the QMAKE_MAC_SDK number match the latest SDK version in:
+  # When Apple ships a new SDK, make this match the latest version in:
   #   ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs
   #
-  # NOTE: We can't just say "macosx14", it has to be something like "macosx14.4", fully spelled out.
-  #
-  contains(QMAKE_HOST.arch, x86_64) {
-    message("X86_64 BUILD MACHINE DETECTED!")
-    ARCHDIR = "x86_64"
-    QMAKE_MAC_SDK = macosx27.0
-    set(CMAKE_C_STANDARD 99)
-    set(CMAKE_CXX_FLAGS "-std=c++17 -stdlib=libc++")
-  }
-  contains(QMAKE_HOST.arch, arm64) {
-    message("ARM64 BUILD MACHINE DETECTED!")
-    ARCHDIR = "arm64"
-    QMAKE_MAC_SDK = macosx27.0
-  }
-  message("ARCHDIR = " $${ARCHDIR} ", QMAKE_MAC_SDK = " $${QMAKE_MAC_SDK})
+  # NOTE: when this changes, you must delete the stale .qmake.stash in the BUILD directory by
+  #   hand.  It lives one level above test123, so it is not regenerated.  See QTBUG-43015.
+  QMAKE_MAC_SDK = macosx27.0
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -57,12 +45,10 @@ DEFINES += QT_QML_DEBUG_NO_WARNING
 
 
 SOURCES += main.cpp\
-#    AppleMusicLibraryXMLReader.cpp \  # no longer need this
     addcommentdialog.cpp \
     audiodecoder.cpp \
     auditionbutton.cpp \
     flexible_audio.cpp \
-#    bass_audio.cpp \  # this is now #include'd by flexible_audio.cpp on non-M1-based Macs
     embeddedserver.cpp \
     lyricsEditor.cpp \
     lyricseditor_autoformat.cpp \
@@ -70,7 +56,6 @@ SOURCES += main.cpp\
     mainwindow_audio.cpp \
     mainwindow_init.cpp \
     mainwindow_nowplaying.cpp \
-#    miniBPM/MiniBpm.cpp \
     mainwindow_JUCE.cpp \
     mainwindow_bulk.cpp \
     mainwindow_choreo1.cpp \
@@ -124,7 +109,6 @@ SOURCES += main.cpp\
     typetracker.cpp \
     console.cpp \
     squaredancerscene.cpp \
-#    renderarea.cpp \
     sdhighlighter.cpp \
     updateid3tagsdialog.cpp \
     updateid3tagsmanager.cpp \
@@ -157,7 +141,6 @@ QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../,-rpath,@executable_path/../ #,-rpath
 }
 
 HEADERS  += mainwindow.h \
-#    ../miniBPM/MiniBpm.h \
     addcommentdialog.h \
     audiodecoder.h \
     auditionbutton.h \
@@ -219,7 +202,6 @@ HEADERS  += mainwindow.h \
     typetracker.h \
     console.h \
     squaredancerscene.h \
-#    renderarea.h \
     common.h \
     sdhighlighter.h \
     danceprograms.h \
@@ -317,7 +299,6 @@ macx {
 LIBS += -framework CoreFoundation
 LIBS += -framework AppKit
 LIBS += -framework MediaPlayer
-#LIBS += -framework Accelerate  # needed just for RubberBand, for vDSP FFT
 
 # TAGLIB ----------------------------------------
 LIBS += -L$$OUT_PWD/../taglib -ltaglib
@@ -388,50 +369,10 @@ ICON = $$PWD/desk1d.icns
 DISTFILES += desk1d.icns
 DISTFILES += $$PWD/allcalls.csv  # RESOURCE: list of calls, and which level they are
 
-# ERROR: Could not resolve SDK Path for 'macosx10.14'
-# https://forum.qt.io/topic/58926/solved-xcode-7-and-qt-error/2
-# Every time you get this error, do "ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/"
-#   in Terminal and change the QMAKE_MAC_SDK variable below accordingly.
-#
-# NOTE: this has to be done every time that Apple updates the SDK.
-#
-# If you get an error message, like "could not find Squaredesk", you'll want to run qmake again on everything.
-# You will almost certainly have to clear the .qmake* files first, like the error message says:
-# cd ~/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_15_2_clang_64bit-Debug; rm .qmake*
-# cd ~/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_15_2_clang_64bit-Release; rm .qmake*
-# Then, Build > Clean All Projects.  Then rebuild everything.
-#
-# NOTE: if you get errors like "string.h not found" or "IOKit/IOReturn.h not found", you probably have a
-#   stale .qmake.stash file in the BUILD directory.  This file is supposed to be regenerated when the kit changes,
-#   but it's one level higher than the Mac OS X SDK selector (which is in test123), so it doesn't get regenerated.
-#   You must delete that file manually right now, when the MAC SDK version changes.
-#   See: https://bugreports.qt.io/browse/QTBUG-43015
-#
-# So far, it looks like we can ignore this warning:
-#    Project WARNING: Qt has only been tested with version 10.15 of the platform SDK, you're using 11.1.
-#    Project WARNING: This is an unsupported configuration. You may experience build issues, and by using
-#    Project WARNING: the 11.1 SDK you are opting in to new features that Qt has not been prepared for.
-#    Project WARNING: Please downgrade the SDK you use to build your app to version 10.15, or configure
-#    Project WARNING: with CONFIG+=sdk_no_version_check when running qmake to silence this warning.
-
-# NOTE: TEMPORARY TURNING OFF THE VERSION CHECK
-
-# The following SDK must exist in /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
-# If it does not exist, change the following to match the SDK you want to compile with.
-#   QMAKE_MAC_SDK = macosx10.15
-#   QMAKE_MAC_SDK = macosx11.1
-# QMAKE_MAC_SDK = macosx11.3
-
-
-# If you get the error: "dyld: Symbol not found: __cg_jpeg_resync_to_restart"
-# the fix is here: https://stackoverflow.com/questions/35509731/dyld-symbol-not-found-cg-jpeg-resync-to-restart
-# "If using Qt Creator, you have to uncheck the Add build library search path to DYLD_LIBRARY_PATH and DYLD_FRAMEWORK_PATH option from the Run section in the Projects tab:"
-
 # LYRICS AND PATTER TEMPLATES --------------------------------------------
 # Copy the lyrics.template*.html files to the right place
 copydata0a.commands = $(COPY) $$PWD/lyrics.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata0b.commands = $(COPY) $$PWD/cuesheet2.css        $$OUT_PWD/SquareDesk.app/Contents/Resources
-#copydata0c.commands = $(COPY) $$PWD/patter.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata0d.commands = $(COPY) $$PWD/lyrics.template.2col.html $$OUT_PWD/SquareDesk.app/Contents/Resources
 
 # THEMES ----------------------------------------
@@ -443,7 +384,6 @@ copydata0e.commands = $(COPY) $$PWD/themes/Themes.qss $$OUT_PWD/SquareDesk.app/C
 # Also copy the PDF file into the Resources folder, so we can stick it into the Reference folder
 # This way, it's easy for SDP to find the executable for sd, and it's easy for SDP to start up sd.
 # MAKE SURE THAT MACOS DIRECTORY EXISTS BEFORE TRYING TO COPY
-# copydata1dir.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS
 copydata1dir.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/MacOS || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS
 copydata1.commands = $(COPY) $$PWD/sd_calls.dat        $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata2.commands = $(COPY) $$PWD/../sdlib/sd_doc.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources
@@ -453,9 +393,6 @@ copydata4s.commands = $(COPY) $$PWD/abbrevs.txt        $$OUT_PWD/SquareDesk.app/
 # DATA --------------------------------------------
 # Copy the squareDanceLabelIDs.csv file to the Resources spot in bundle
 copydata5.commands = $(COPY) $$PWD/squareDanceLabelIDs.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
-
-# SquareDesk Manual (PDF)
-# copydata2b.commands = $(COPY) $$PWD/docs/SquareDeskManual.0.9.1.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources/squaredesk.pdf
 
 # NOTE: If we get an error here, that MacOS already exists, it's probably because we just switched to a new version of
 #  Qt, and we have a new build directory, and within that build directory we have a new squaredesk.app/Contents,
@@ -527,12 +464,11 @@ macx {
     DEFINES += QT_NO_USE_NODISCARD_FILE_OPEN
     QT += multimedia
 
-    first.depends += copydata1dir copydata0a copydata0b copydata0c copydata0d copydata0e copydata1 copydata2 copydata3 copydata4s copydata5 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
+    first.depends += copydata1dir copydata0a copydata0b copydata0d copydata0e copydata1 copydata2 copydata3 copydata4s copydata5
 
     # lyrics and patter templates
     export(copydata0a.commands)
     export(copydata0b.commands)
-    export(copydata0c.commands)
     export(copydata0d.commands)
 
 # themes
@@ -542,27 +478,22 @@ macx {
     export(copydata1dir.commands)
     export(copydata1.commands)
     export(copydata2.commands)
-    # export(copydata2b.commands)
     export(copydata3.commands)
     export(copydata4s.commands)
     export(copydata5.commands)
 
-    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata0d copydata0e copydata1dir copydata1 copydata2 copydata3 copydata4s copydata5
+    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0d copydata0e copydata1dir copydata1 copydata2 copydata3 copydata4s copydata5
 
     # For the PDF viewer -----------------
     copydata1p.commands = test -d $$OUT_PWD/SquareDesk.app/Contents/Resources/minified/web || $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/minified/web
     copydata2p.commands = sleep 2;$(COPY_DIR) $$PWD/../qpdfjs/minified/*   $$OUT_PWD/SquareDesk.app/Contents/Resources/minified
-    #copydata3p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/build $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
     copydata4p.commands = sleep 2;$(RM) $$OUT_PWD/SquareDesk.app/Contents/Resources/minified/web/compressed.*.pdf
 
-    #first.depends += copydata1p copydata2p copydata3p copydata4p
     first.depends += copydata1p copydata2p copydata4p
     export(first.depends)
     export(copydata1p.commands)
     export(copydata2p.commands)
-    #export(copydata3p.commands)
     export(copydata4p.commands)
-    #QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p copydata4p
     QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata4p
 
     # SVG Resources for sliders and knobs -----------------
@@ -629,19 +560,6 @@ macx {
     export(copydata11vamp.commands)
     QMAKE_EXTRA_TARGETS += copydata1vamp copydata2vamp copydata3vamp copydata4vamp copydata5vamp copydata6vamp copydata7vamp copydata8vamp copydata9vamp copydata10vamp copydata11vamp
 
-    # For the Beat/Bar Detector (Vamp): modify the VAMPPATH according to where you built the executable and dylib --------------
-    #  FIX: THIS PATH IS TEMPORARY AND SPECIFIC TO MY MACHINE (this will change when VAMP is checked into our repo)
-    #  For now, for manual VAMP build instructions for MAC OS X, see AudioDecoder.cpp:L1085
-    #  If you don't want beat/bar detection right now, just comment out the following 8 lines:
-#    VAMPPATH="/Users/mpogue/_____BarBeatDetect/qm-vamp-plugins-1.8.0"
-#    copydata1v.commands = $(COPY_DIR) $${VAMPPATH}/lib/vamp-plugin-sdk/host/vamp-simple-host    $$OUT_PWD/SquareDesk.app/Contents/MacOS
-#    copydata2v.commands = $(COPY_DIR) $${VAMPPATH}/qm-vamp-plugins.dylib                        $$OUT_PWD/SquareDesk.app/Contents/MacOS
-#    first.depends += copydata1v copydata2v
-#    export(first.depends)
-#    export(copydata1v.commands)
-#    export(copydata2v.commands)
-#    QMAKE_EXTRA_TARGETS += copydata1v copydata2v
-
     # Re-sign the app bundle with Apple Music entitlement after each build --------
     # This is required so that macOS grants (and remembers) Media & Apple Music permission.
     # Using a named Developer certificate keeps the TCC permission grant stable across rebuilds.
@@ -665,99 +583,8 @@ macx {
     QMAKE_POST_LINK += codesign --force --sign \'Apple Development: Michael Pogue (6K9PD3928V)\' --entitlements $$PWD/SquareDesk.entitlements $$OUT_PWD/SquareDesk.app ;
 }
 
-# USE THIS ONE FOR STUFF THAT IS FOR NON-M1 (i.e. X86_64) MACS ONLY *********
-#macx {
-#    # LIBBASS, LIBBASS_FX, LIBBASSMIX ---------------
-#    # http://stackoverflow.com/questions/1361229/using-a-static-library-in-qt-creator
-#    LIBS += $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
-#    LIBS += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
-
-#    mylib.path = Contents/MacOS
-#    mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
-#    mylib.files += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
-#    QMAKE_BUNDLE_DATA += mylib
-
-#    # NOTE: I compiled QuaZIP in the Qt environment, then copied the Quazip.1.0.0.dylib to the test123 directory with
-#    #   with the name quazip.1.dylib .  This allows it to link.  There's gotta be a better way to reference these
-#    #   libs that is cross platform.  Maybe here is a clue:  https://www.youtube.com/watch?v=mxlcKmvMK9Q&ab_channel=VoidRealms
-
-#    INCLUDEPATH += $$PWD/../quazip/quazip  # reference includes like this:  #include "JlCompress.h"
-
-#    # ZLIB ------------------------------------------
-#    #  do "brew install zlib"
-#    # LIBS += /usr/lib/libz.dylib
-#    LIBS += /usr/local/opt/zlib/lib/libz.dylib
-
-#    # PS --------------------------------------------
-#    # SEE the postBuildStepMacOS for a description of how pocketsphinx is modified for embedding.
-#    #   https://github.com/auriamg/macdylibbundler  <-- BEST, and the one I used
-#    #   https://doc.qt.io/archives/qq/qq09-mac-deployment.html
-#    #   http://stackoverflow.com/questions/1596945/building-osx-app-bundle
-#    #   http://www.chilkatforum.com/questions/4235/how-to-distribute-a-dylib-with-a-mac-os-x-application
-#    #   http://stackoverflow.com/questions/2092378/macosx-how-to-collect-dependencies-into-a-local-bundle
-
-#    # Copy the ps executable and the libraries it depends on (into the SquareDesk.app bundle)
-#    # ***** WARNING: the path to pocketsphinx source files is specific to my particular laptop! *****
-#    copydata4.commands = $(COPY_DIR) $$PWD/../pocketsphinx/binaries/macosx_yosemite/exe/pocketsphinx_continuous $$OUT_PWD/SquareDesk.app/Contents/MacOS
-#    copydata5.commands = $(COPY_DIR) $$PWD/../pocketsphinx/binaries/macosx_yosemite/libs $$OUT_PWD/SquareDesk.app/Contents
-
-#    copydata6a.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/models/en-us
-#    copydata6b.commands = $(COPY_DIR) $$PWD/../pocketsphinx/binaries/macosx_yosemite/models/en-us $$OUT_PWD/SquareDesk.app/Contents/models
-
-#    # SQUAREDESK-SPECIFIC DICTIONARY, LANGUAGE MODEL --------------------------------------------
-#    copydata7.commands = $(COPY_DIR) $$PWD/5365a.dic $$OUT_PWD/SquareDesk.app/Contents/MacOS
-#    copydata8.commands = $(COPY_DIR) $$PWD/plus.jsgf $$OUT_PWD/SquareDesk.app/Contents/MacOS
-
-#    first.depends = $(first) copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
-
-#    #export(first.depends)
-#    export(copydata0a.commands)
-#    export(copydata0b.commands)
-#    export(copydata0c.commands)
-#    export(copydata1.commands)
-#    export(copydata2.commands)
-#    export(copydata2b.commands)
-#    export(copydata3.commands)
-#    export(copydata4.commands)
-#    export(copydata5.commands)
-#    export(copydata6a.commands)
-#    export(copydata6b.commands)
-#    export(copydata7.commands)
-#    export(copydata8.commands)
-
-#    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
-
-#    # For the PDF viewer -----------------
-#    copydata1p.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
-#    copydata2p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/web   $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
-#    copydata3p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/build $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
-#    copydata4p.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web/compressed.*.pdf
-
-#    first.depends += copydata1p copydata2p copydata3p copydata4p
-#    export(first.depends)
-#    export(copydata1p.commands)
-#    export(copydata2p.commands)
-#    export(copydata3p.commands)
-#    export(copydata4p.commands)
-#    QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p copydata4p
-
-#    # For the QUAZIP library -- we need exactly the right name on the library -----------------
-#    # yes, this is a rename.  I don't know how to do this in QMake directly.
-#    copydata1q.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.dylib
-#    copydata2q.commands = $(COPY) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.0.0.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.dylib
-#    copydata3q.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.0.0.dylib
-#    first.depends += copydata1q copydata2q copydata3q
-#    export(first.depends)
-#    export(copydata1q.commands)
-#    export(copydata2q.commands)
-#    export(copydata3q.commands)
-#    QMAKE_EXTRA_TARGETS += copydata1q copydata2q copydata3q
-
 RESOURCES += resources.qrc
 RESOURCES += startupwizard.qrc
-
-#DISTFILES += \
-#    README.txt
 
 OBJECTIVE_SOURCES += \
     macUtils.mm \
@@ -781,7 +608,6 @@ DISTFILES += \
     notarizeSquareDesk.command \
     patter.template.html \
     releaseSquareDesk.command \
-    signSquareDesk.command \
     soundtouch/include/soundtouch_config.h.in \
     squareDanceLabelIDs.csv \
     themes/Themes.qss
