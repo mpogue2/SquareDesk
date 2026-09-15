@@ -23,8 +23,8 @@
 **
 ****************************************************************************/
 
-// IMPORTANT: If we're compiling for an M1 Silicon MAC, then use THIS FILE.  Else use contents of bass_audio.cpp
-//   This is a short term thing, until the flexible audio class comes up to the same level as bass_audio.
+// NOTE: The BASS audio backend (bass_audio.cpp) has been removed; this file is
+//   now the audio implementation on all platforms.
 // M1MAC is defined only on Mac's and only on M1 Silicon Macs.
 
 #include "flexible_audio.h"

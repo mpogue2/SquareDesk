@@ -1804,8 +1804,6 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         sectionName << "Intro" << "Opener" << "Figure 1" << "Figure 2"
                     << "Break" << "Figure 3" << "Figure 4" << "Closer" << "Tag";
 
-        // TODO: all the other stuff from AnalogClock::redrawTimerExpired() *****
-
         // if (cBass->currentStreamState() == BASS_ACTIVE_PLAYING && (currentSongIsSinger || currentSongIsVocal)) {
         if (currentSongIsSinger || currentSongIsVocal) {
             // if singing call OR called, then tell the clock to show the section type
