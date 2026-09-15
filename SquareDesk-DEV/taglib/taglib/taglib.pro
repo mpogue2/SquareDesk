@@ -274,7 +274,3 @@ CONFIG(debug, debug|release) {
     DESTDIR = ../
     OBJECTS_DIR = ./release-o
 }
-
-win32 {
-    CONFIG += dll
-}

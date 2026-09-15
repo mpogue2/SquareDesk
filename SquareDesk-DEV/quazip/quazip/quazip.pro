@@ -4,7 +4,7 @@ QT -= gui
 
 # The ABI version.
 
-!win32:VERSION = 1.0.0
+VERSION = 1.0.0
 
 # 1.0.0 is the first stable ABI.
 # The next binary incompatible change will be 2.0.0 and so on.
@@ -40,31 +40,6 @@ macx {
 # Input
 include(quazip.pri)
 
-
-win32:CONFIG(debug, debug|release) {
-TARGET = $$join(TARGET,,,d)
-INCLUDEPATH += $$PWD/ $$PWD/../../local_win32/include
-DEPENDPATH += $$PWD/ $$PWD/../../local_win32/include
-LIBS += -L$$PWD/ -L$$PWD/../../local_win32/lib -lzlib
-}
-
-win32:CONFIG(release, debug|release) {
-#     win32: TARGET = $$join(TARGET,,,d)
-INCLUDEPATH += $$PWD/ $$PWD/../../local_win32/include
-DEPENDPATH += $$PWD/ $$PWD/../../local_win32/include
-LIBS += -L$$PWD/ -L$$PWD/../../local_win32/lib -lzlib
-
-# copy out to the local_win32 location, where it will be picked up by test123.pro
-    copydata3q.commands = xcopy /q /y $$shell_path($$OUT_PWD\release\quazip.dll) $$shell_path($$PWD/../../local_win32/bin)
-    copydata3r.commands = xcopy /q /y $$shell_path($$PWD\*.h) $$shell_path($$PWD/../../local_win32/include)
-    copydata3s.commands = xcopy /q /y $$shell_path($$OUT_PWD\release\quazip*.lib) $$shell_path($$PWD/../../local_win32/lib)
-    first.depends = $(first) copydata3q copydata3r copydata3s
-    export(copydata3q.commands)
-    export(copydata3r.commands)
-    export(copydata3s.commands)
-    QMAKE_EXTRA_TARGETS += first copydata3q copydata3r copydata3s
-}
-
 unix:!symbian {
     headers.path=$$PREFIX/include/quazip
     headers.files=$$HEADERS
@@ -74,15 +49,6 @@ unix:!symbian {
         OBJECTS_DIR=.obj
         MOC_DIR=.moc
 
-}
-
-win32 {
-    headers.path=$$PREFIX/include/quazip
-    headers.files=$$HEADERS
-    target.path=$$PREFIX/lib
-    INSTALLS += headers target
-    # workaround for qdatetime.h macro bug
-    DEFINES += NOMINMAX
 }
 
 

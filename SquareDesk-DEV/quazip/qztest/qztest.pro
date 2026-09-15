@@ -6,11 +6,7 @@ CONFIG += console
 CONFIG -= app_bundle
 DEPENDPATH += .
 INCLUDEPATH += .
-!win32: LIBS += -lz
-win32 {
-    # workaround for qdatetime.h macro bug
-    DEFINES += NOMINMAX
-}
+LIBS += -lz
 
 CONFIG(staticlib): DEFINES += QUAZIP_STATIC
 
@@ -40,9 +36,7 @@ testquazipfile.cpp \
 OBJECTS_DIR = .obj
 MOC_DIR = .moc
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../quazip/release/ -lquazip
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../quazip/debug/ -lquazipd
-else:mac:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../quazip/debug/ -lquazip_debug
+mac:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../quazip/debug/ -lquazip_debug
 else:unix: LIBS += -L$$OUT_PWD/../quazip/ -lquazip
 
 INCLUDEPATH += $$PWD/..
