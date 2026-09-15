@@ -4,7 +4,7 @@
 
 **SquareDesk** is a comprehensive music player and choreography tool designed specifically for square dance callers. It provides advanced audio playback features, music library management, lyrics/cuesheet editing, and two integrated square dance choreography engines (SD & Taminations).
 
-**Primary Authors**: Mike Pogue, Dan Lyke (2016-2025)
+**Primary Authors**: Mike Pogue, Dan Lyke (2016-2026)
 **License**: Dual GPL2/GPL3 and Commercial
 **Current Status**: Active development, macOS ARM64 (M1/M2/M3/M4) primary platform
 

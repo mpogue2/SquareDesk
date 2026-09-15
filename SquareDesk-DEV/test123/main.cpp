@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2025 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2026 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -111,7 +111,6 @@ int main(int argc, char *argv[])
 #endif
 
     // splash screen ------
-    // QPixmap pixmap(":/graphics/SplashScreen2025.png");
 
     // //  draw the version number into the splashscreen pixmap
     // QPainter painter( &pixmap );

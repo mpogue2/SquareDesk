@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2025 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2026 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -19,7 +19,7 @@
 ** Foundation and appear in the file LICENSE.GPL2 and LICENSE.GPL3
 ** included in the packaging of this file.
 **
-** $SQUAREDESK_BEGIN_LICENSE$
+** $SQUAREDESK_END_LICENSE$
 **
 ****************************************************************************/
 

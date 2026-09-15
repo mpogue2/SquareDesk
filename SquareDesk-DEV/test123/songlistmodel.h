@@ -1,10 +1,6 @@
-/* THIS IS A PLACEHOLDER FOR EVENTUALLY MOVING TO A MODEL VIEW FOR THE
- * SONG LIST - IGNORE FOR NOW - Dan 2018-06-29
- */
-
 /****************************************************************************
 **
-** Copyright (C) 2016-2025 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2026 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -26,6 +22,10 @@
 ** $SQUAREDESK_END_LICENSE$
 **
 ****************************************************************************/
+
+/* THIS IS A PLACEHOLDER FOR EVENTUALLY MOVING TO A MODEL VIEW FOR THE
+ * SONG LIST - IGNORE FOR NOW - Dan 2018-06-29
+ */
 
 #ifndef SONGLISTMODEL_H_INCLUDED
 #define SONGLISTMODEL_H_INCLUDED

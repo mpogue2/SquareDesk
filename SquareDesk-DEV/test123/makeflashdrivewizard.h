@@ -1,8 +1,6 @@
-#ifndef MAKEFLASHDRIVEWIZARD_H
-#define MAKEFLASHDRIVEWIZARD_H
 /****************************************************************************
 **
-** Copyright (C) 2016-2025 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2026 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -24,6 +22,9 @@
 ** $SQUAREDESK_END_LICENSE$
 **
 ****************************************************************************/
+
+#ifndef MAKEFLASHDRIVEWIZARD_H
+#define MAKEFLASHDRIVEWIZARD_H
 
 #include <QWizard>
 #include <QDir>

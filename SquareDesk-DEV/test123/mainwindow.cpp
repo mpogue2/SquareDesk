@@ -1,13 +1,13 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2025 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2026 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
 **
 ** $SQUAREDESK_BEGIN_LICENSE$
 **
-** Commercial License Usages
+** Commercial License Usage
 ** For commercial licensing terms and conditions, contact the authors via the
 ** email address above.
 **
