@@ -67,7 +67,6 @@ SOURCES += main.cpp\
     clickablelabel.cpp \
     songsettings.cpp \
     typetracker.cpp \
-    console.cpp \
     squaredancerscene.cpp \
     sdhighlighter.cpp \
     updateid3tagsdialog.cpp \
@@ -157,14 +156,12 @@ HEADERS  += mainwindow.h \
     mainwindow_applemusic.h \
     clickablelabel.h \
     typetracker.h \
-    console.h \
     squaredancerscene.h \
     common.h \
     sdhighlighter.h \
     danceprograms.h \
     startupwizard.h \
     songsettings.h \
-    platform.h \
     keybindings.h \
     calllistcheckbox.h \
     sdlineedit.h \
@@ -183,7 +180,13 @@ HEADERS  += mainwindow.h \
     keyactions.h \
     songsetting_attributes.h \
     tablelabelitem.h \
-    wav_file.h
+    wav_file.h \
+    dragicon.h \
+    globaleventfilter.h \
+    playlistexport.h \
+    sddancer.h \
+    selectionretainer.h \
+    xxhash64.h
 
 unix {
 HEADERS += ../qpdfjs/src/communicator.h

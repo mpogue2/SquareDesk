@@ -95,7 +95,6 @@
 #include "updateid3tagsdialog.h"
 
 #include "levelmeter.h"
-// #include "console.h"
 #include "songsettings.h"
 
 // Forward declaration for debug dialog
@@ -110,8 +109,6 @@ struct SongMatchInfo;
 #include <stdio.h>
 // #include <errno.h>
 #endif
-//#include <tidy/tidy.h>
-//#include <tidy/tidybuffio.h>
 
 #ifdef USE_JUCE
 #ifdef Q_OS_LINUX
