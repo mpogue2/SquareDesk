@@ -19,6 +19,34 @@ macx {
     QT += httpserver
 }
 
+# =========================================================================================
+# BUILD CONFIGURATION
+#
+#   Every value here can be overridden on the qmake command line, or in QtCreator under
+#   Projects > Build & Run > Build > qmake step > "Additional arguments", e.g.
+#       qmake ... CODESIGN_ID=- JUCE_ROOT=$HOME/JUCE/libJUCEstatic
+#   so that nobody has to edit this file just to build on their own machine.
+#
+macx {
+    # Apple SDK to build against.  See the NOTE in the next block before changing it.
+    isEmpty(MAC_SDK):      MAC_SDK = macosx27.0
+
+    # Where ../juce-install puts the static JUCE library, and where the JUCE modules live.
+    isEmpty(JUCE_ROOT):    JUCE_ROOT = $$(HOME)/JUCEProjects/libJUCEstatic
+    isEmpty(JUCE_MODULES): JUCE_MODULES = /Applications/JUCE
+
+    # Which libJUCEstatic build to link against.
+    #   NOTE: this is the Debug build even for Release builds of SquareDesk, which is what
+    #   this project has always done.  See issue #1729 before changing it.
+    isEmpty(JUCE_BUILD):   JUCE_BUILD = Debug
+    isEmpty(JUCE_LIB):     JUCE_LIB = JUCE_debug
+
+    # Code signing identity for the post-link re-sign (see the codesign section, far below).
+    #   To find yours:  security find-identity -v -p codesigning | grep "Apple Development"
+    #   Use CODESIGN_ID=- for ad-hoc signing if you have no Apple Developer certificate.
+    isEmpty(CODESIGN_ID):  CODESIGN_ID = "Apple Development: Michael Pogue (6K9PD3928V)"
+}
+
 macx {
   # VARIABLE REFERENCE: https://doc.qt.io/qt-6/qmake-variable-reference.html
   #
@@ -32,7 +60,7 @@ macx {
   #
   # NOTE: when this changes, you must delete the stale .qmake.stash in the BUILD directory by
   #   hand.  It lives one level above test123, so it is not regenerated.  See QTBUG-43015.
-  QMAKE_MAC_SDK = macosx27.0
+  QMAKE_MAC_SDK = $$MAC_SDK
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -250,7 +278,7 @@ macx {
   plist.depends = $$PWD/Info.plist # "$$OUT_PWD/SquareDesk.app/Contents/Info.plist"
   plist.commands = $(DEL_FILE) \"$$OUT_PWD/SquareDesk.app/Contents/Info.plist\" $$escape_expand(\n\t) \
                          $(COPY_FILE) $$PWD/Info.plist \"$$OUT_PWD/SquareDesk.app/Contents/Info.plist\"
-  QMAKE_EXTRA_TARGETS = plist
+  QMAKE_EXTRA_TARGETS += plist
   PRE_TARGETDEPS += $$plist.target
 }
 
@@ -260,7 +288,7 @@ INCLUDEPATH += $$PWD/ $$PWD/../local_macosx/include
 DEPENDPATH += $$PWD/ $$PWD/../local_macosx/include
 
 # FOR JUCE:
-INCLUDEPATH += $$(HOME)/JUCEProjects/libJUCEstatic/JuceLibraryCode /Applications/JUCE/modules
+INCLUDEPATH += $$JUCE_ROOT/JuceLibraryCode $$JUCE_MODULES/modules
 }
 
 unix:!macx {
@@ -311,7 +339,7 @@ INCLUDEPATH += $$PWD/../taglib/taglib/riff
 INCLUDEPATH += $$PWD/../taglib/taglib/riff/wav
 
 # JUCE ------------
-LIBS += -L$$(HOME)/JUCEProjects/libJUCEstatic/Builds/MacOSX/build/Debug -lJUCE_debug
+LIBS += -L$$JUCE_ROOT/Builds/MacOSX/build/$$JUCE_BUILD -l$$JUCE_LIB
 LIBS += -framework QuartzCore
 LIBS += -framework Security
 LIBS += -framework Accelerate
@@ -345,10 +373,10 @@ macx {
 
 macx {
     QMAKE_EXTRA_TARGETS += libJUCE JUCE
-    libJUCE.target = $$(HOME)/JUCEProjects/libJUCEstatic
+    libJUCE.target = $$JUCE_ROOT
     libJUCE.depends =
     libJUCE.commands = zsh $$PWD/../juce-install
-    JUCE.target = /Applications/JUCE
+    JUCE.target = $$JUCE_MODULES
     JUCE.depends =
     JUCE.commands = zsh $$PWD/../juce-install
     PRE_TARGETDEPS += $$libJUCE.target
@@ -560,27 +588,15 @@ macx {
     export(copydata11vamp.commands)
     QMAKE_EXTRA_TARGETS += copydata1vamp copydata2vamp copydata3vamp copydata4vamp copydata5vamp copydata6vamp copydata7vamp copydata8vamp copydata9vamp copydata10vamp copydata11vamp
 
-    # Re-sign the app bundle with Apple Music entitlement after each build --------
-    # This is required so that macOS grants (and remembers) Media & Apple Music permission.
-    # Using a named Developer certificate keeps the TCC permission grant stable across rebuilds.
-    # Ad-hoc signing (--sign -) works but macOS treats each re-sign as a new app and re-prompts every build.
+    # Re-sign the app bundle with the Apple Music entitlement after each build --------
+    # Required so that macOS grants, and then remembers, Media & Apple Music permission.
+    # Signing with a named Developer certificate keeps the TCC grant stable across rebuilds;
+    #   ad-hoc signing (CODESIGN_ID=-) also works, but macOS treats every ad-hoc signature as
+    #   a new app and re-prompts on every build.  Set CODESIGN_ID at the top of this file.
     #
-    # To find your certificate name, run:  security find-identity -v -p codesigning | grep "Apple Development"
-    # Then replace the name below with your own, keeping the escaped single quotes around it.
-    #
-    # After your first build, go to System Settings > Privacy & Security > Media & Apple Music,
-    # remove any old SquareDesk entry, run SquareDesk, and grant permission once.
-    # Subsequent rebuilds will keep the grant as long as you use the same certificate.
-    #
-    #    QMAKE_POST_LINK += codesign --force --sign \'Apple Development: Your Name (XXXXXXXXXX)\' --entitlements $$PWD/SquareDesk.entitlements $$OUT_PWD/SquareDesk.app ;
-    #
-    # If you don't have an Apple Developer account / certificate, use ad-hoc signing (--sign -)
-    # instead. Ad-hoc signing works but macOS will re-prompt for Media & Apple Music permission
-    # after every build (because each ad-hoc signature is unique and TCC treats it as a new app).
-    # Just click Allow each time, or create a free Apple Developer account to get a proper cert.
-    #
-    #    QMAKE_POST_LINK += codesign --force --sign - --entitlements $$PWD/SquareDesk.entitlements $$OUT_PWD/SquareDesk.app ;
-    QMAKE_POST_LINK += codesign --force --sign \'Apple Development: Michael Pogue (6K9PD3928V)\' --entitlements $$PWD/SquareDesk.entitlements $$OUT_PWD/SquareDesk.app ;
+    # After your first build: System Settings > Privacy & Security > Media & Apple Music,
+    #   remove any old SquareDesk entry, run SquareDesk, and grant permission once.
+    QMAKE_POST_LINK += codesign --force --sign \'$$CODESIGN_ID\' --entitlements $$PWD/SquareDesk.entitlements $$OUT_PWD/SquareDesk.app ;
 }
 
 RESOURCES += resources.qrc
@@ -612,7 +628,7 @@ DISTFILES += \
     squareDanceLabelIDs.csv \
     themes/Themes.qss
 
-CONFIG += c++11
+CONFIG += c++17
 
 # =========================================================================================
 # ADDRESS SANITIZER BUILD (Issue #1686)
