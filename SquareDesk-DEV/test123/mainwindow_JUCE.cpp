@@ -133,6 +133,21 @@ public:
 #endif
 
 
+// True while the FX window's visibility is being changed on purpose.  Hiding the FX
+//   window with [NSWindow orderOut:] makes the main window key again, and Qt delivers
+//   the resulting QEvent::ActivationChange SYNCHRONOUSLY, from inside orderOut:.  That
+//   re-enters MainWindow::eventFilter() in the middle of the hide, where it used to
+//   re-show and re-parent the very window that was on its way out (Issue #1739).
+static bool FXWindowVisibilityChangeInProgress = false;
+
+class FXWindowVisibilityChangeScope
+{
+public:
+    FXWindowVisibilityChangeScope()  { FXWindowVisibilityChangeInProgress = true; }
+    ~FXWindowVisibilityChangeScope() { FXWindowVisibilityChangeInProgress = false; }
+};
+
+
 class PluginWindow : public juce::DocumentWindow
 {
 public:
@@ -149,10 +164,20 @@ public:
 
     void closeButtonPressed() override
     {
+        // Uncheck the button FIRST.  juce::Component::setVisible(false) clears the
+        //   visible flag and only then tells the peer to orderOut:, and Qt delivers the
+        //   activation change that orderOut: causes synchronously, so MainWindow's event
+        //   filter runs before we get to the end of this function.  If FXbutton is still
+        //   checked at that moment, the filter re-shows and re-parents this window while
+        //   AppKit is still ordering it out, which takes the whole app down with it
+        //   (Issue #1739).
+        ui->FXbutton->setChecked(false);
+
+        FXWindowVisibilityChangeScope inProgress;
+
         // Just hide the window instead of destroying it
         detachFromMainWindow();
         setVisible(false);
-        ui->FXbutton->setChecked(false);
     }
 
     // Mark this window as one that is allowed to appear over a Full Screen window.
@@ -453,6 +478,7 @@ void MainWindow::scanForPlugins() {
                                           p.y() + ui->FXbutton->height() + 30,
                                           loudMaxWin->getWidth(),
                                           loudMaxWin->getHeight());
+                    FXWindowVisibilityChangeScope inProgress;
                     loudMaxWin->setVisible (true); // show the window!
 
                     // Re-parent to the main window every time we show it.  Hiding the window
@@ -460,6 +486,7 @@ void MainWindow::scanForPlugins() {
                     //   not a one-time setup.
                     static_cast<PluginWindow*>(loudMaxWin.get())->attachToMainWindow(windowHandle());
                 } else {
+                    FXWindowVisibilityChangeScope inProgress;
                     static_cast<PluginWindow*>(loudMaxWin.get())->detachFromMainWindow();
                     loudMaxWin->setVisible (false); // hide the window!
                 }
@@ -505,7 +532,12 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
     //   parent/child relationship is still in place -- these calls are no-ops if it is.
     //   (Doing more than this, in particular ordering the FX window in by hand, is what
     //   switched Spaces out from under a Full Screen user in Issue #1707.)
+    //   We must also not run while a show/hide of the FX window is already in progress:
+    //   Qt delivers ActivationChange synchronously from inside [NSWindow orderOut:], so
+    //   without this guard we re-show and re-parent the FX window in the middle of the
+    //   hide that is closing it (Issue #1739).
     if (watched == this &&
+        !FXWindowVisibilityChangeInProgress &&
         (event->type() == QEvent::WindowStateChange || event->type() == QEvent::ActivationChange)) {
 
         bool isMinimized = (windowHandle() != nullptr) &&
