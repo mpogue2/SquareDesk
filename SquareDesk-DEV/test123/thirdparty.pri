@@ -10,9 +10,8 @@ QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../,-rpath,@executable_path/../ #,-rpath
 }
 
 macx {
-# This is just for libtidy at this point... (NOTE: libtidy no longer needed)
-INCLUDEPATH += $$PWD/ $$PWD/../local_macosx/include
-DEPENDPATH += $$PWD/ $$PWD/../local_macosx/include
+INCLUDEPATH += $$PWD/
+DEPENDPATH += $$PWD/
 
 # FOR JUCE:
 INCLUDEPATH += $$JUCE_ROOT/JuceLibraryCode $$JUCE_MODULES/modules
