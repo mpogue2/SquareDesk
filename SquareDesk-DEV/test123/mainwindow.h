@@ -1037,6 +1037,7 @@ private:
     QSet<QString> allAppleMusicSmartPlaylistNames; // hierarchical names of the SMART ones (issue #1740)
     QHash<QString, QString> appleMusicTitleByPath;  // absolute path -> title as Apple Music knows it
     QString appleMusicTitleAsRelativePath(const QString &absPath);
+    void updateAppleMusicMenuItems(); // File > Resync is only shown when Apple Music sync is enabled (issue #1740)
 
     // ============================================================================
     // FONT & UI MANAGEMENT

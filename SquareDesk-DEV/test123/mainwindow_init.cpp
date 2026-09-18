@@ -1569,6 +1569,8 @@ void MainWindow::initializeCuesheetTab() {
     // switchToLyricsOnPlay = false;
     switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
 
+    updateAppleMusicMenuItems(); // hide File > "Resync with Apple Music" if sync is off (issue #1740)
+
     ui->textBrowserCueSheet->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->textBrowserCueSheet, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customLyricsMenuRequested(QPoint)));
 

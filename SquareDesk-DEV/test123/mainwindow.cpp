@@ -4618,6 +4618,7 @@ void MainWindow::on_actionPreferences_triggered()
         //   new songs sit in the pathStack unseen (Issue #1719).
         bool musicDirChanged = findMusic(musicRootPath, true);
         switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
+        updateAppleMusicMenuItems(); // the "Resync with Apple Music" item follows the Apple Music pref
 
         // FileWatcher on/off (Issue #1669): watch paths are only registered while the
         // "Rescan Music Directory when new songs are added" pref is ON (registering them
@@ -9202,6 +9203,14 @@ void MainWindow::handleNewSort(QString newSortString) {
 void MainWindow::on_actionReset_Patter_Timer_triggered()
 {
     on_darkWarningLabel_clicked();
+}
+
+// The File > "Resync with Apple Music" menu item is meaningless when the user has turned
+//   Apple Music sync off in Preferences > Apple Music, so hide it entirely in that case
+//   (issue #1740).  Call this at startup, and again whenever the Prefs dialog is accepted.
+void MainWindow::updateAppleMusicMenuItems()
+{
+    ui->actionResync_to_Apple_Music->setVisible(prefsManager.GetenableAppleMusic());
 }
 
 void MainWindow::on_actionResync_to_Apple_Music_triggered()
