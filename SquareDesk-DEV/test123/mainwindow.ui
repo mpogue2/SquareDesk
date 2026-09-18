@@ -841,14 +841,14 @@
              <property name="geometry">
               <rect>
                <x>10</x>
-               <y>27</y>
+               <y>34</y>
                <width>64</width>
-               <height>131</height>
+               <height>116</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout">
               <property name="spacing">
-               <number>0</number>
+               <number>7</number>
               </property>
               <property name="topMargin">
                <number>0</number>
