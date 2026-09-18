@@ -1622,11 +1622,20 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
     }
 
     hasLyrics = false;
+    cuesheetIsPeekedFromNextSong = false;
     bool isPatter;
 
     QString preferredCuesheet = prefCuesheet;
     QString filenameToCheck = MP3FileName;
     lyricsForDifferentSong = false;
+
+    // PATTER DOES NOT HAVE CUESHEETS OF ITS OWN.  The Cuesheet tab, while a patter is playing,
+    //   is the "peek": it shows the cuesheet of the singing call that comes NEXT in the playlist,
+    //   so the caller can read ahead while the patter runs.  CMD-N therefore takes you to the
+    //   FOLLOWING singer's cuesheet, not to anything belonging to the patter.  Anything that
+    //   looks like support for patter cuesheets is a leftover, and the "No cuesheet for this
+    //   patter song." placeholder below is what a patter with nothing to peek at gets.
+    //
     // We may search twice:  for a patter with no lyrics we see if next is singer with lyrics
     for(int attempt=0; attempt<2; attempt++) {
 //    QString HTML;
@@ -1700,6 +1709,15 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
             if (0 == defaultCuesheetIndex)
                 on_comboBoxCuesheetSelector_currentIndexChanged(0);
             hasLyrics = true;
+
+            // attempt 1 is the "peek": these cuesheets belong to the NEXT song in the playlist,
+            //   not to the one that is loaded.  Remember that, because first play must not jump to
+            //   the Cuesheet tab for a peeked cuesheet -- the caller asked to see the patter's own
+            //   cuesheet, and it hasn't got one.  CMD-N still takes them there deliberately.
+            //   lyricsForDifferentSong is NOT this flag: it is only set when the peeked song has a
+            //   SAVED cuesheet preference, so a next singer with only embedded lyrics leaves it
+            //   false (issue #1740, item 5).
+            cuesheetIsPeekedFromNextSong = (attempt != 0);
         }
 
         // only allow editing (and show the Unlock button), or creating a New cuesheet from template,
@@ -1741,8 +1759,18 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
             filenameToCheck = nextFilename;
 
             QString theCategory = filepath2SongCategoryName(filenameToCheck); // get the CATEGORY, e.g. "singing" for all singing call types (e.g. "singer", "singing", "Singing Call", etc.)
+
+            // An Apple Music song has no SquareDesk category to find: it lives in the Apple Music
+            //   library, not in a patter/singing/vocals folder, so filepath2SongCategoryName()
+            //   returns "unknown" and the peek used to stop right here.  That broke the case of a
+            //   patter followed by an Apple Music singing call with embedded lyrics, which is
+            //   exactly what the peek is for.  Peek at it anyway: the cuesheet search below only
+            //   finds something if the song really does have a cuesheet or embedded lyrics, so
+            //   peeking at a non-singer costs nothing (issue #1740, item 5).
+            bool nextIsAppleMusic = appleMusicTitleByPath.contains(filenameToCheck);
+
             // if (filenameToCheck.contains("/singing/")) {
-            if (theCategory == "singing") {
+            if (theCategory == "singing" || nextIsAppleMusic) {
                 // Try this song
 //              qDebug() << "loadCuesheets: now trying " << filenameToCheck;
             } else {
@@ -2402,6 +2430,15 @@ QString MainWindow::maybeCuesheetLevel(QString relativeFilePath) {
     
     // No dance level was found
     return "";
+}
+
+// Is this "cuesheet" actually lyrics embedded inside the song file itself, rather than a
+//   standalone .html or .txt file?  .mp3 keeps them in an ID3v2 USLT frame, .m4a in the MP4
+//   "\251lyr" atom.  Embedded lyrics are read-only to us: they live inside the audio file, so
+//   there is nothing to save a cuesheet edit into (issue #1740, item 5).
+bool MainWindow::isEmbeddedLyricsCuesheet(const QString &cuesheetFilename) {
+    return (cuesheetFilename.endsWith(".mp3", Qt::CaseInsensitive) ||
+            cuesheetFilename.endsWith(".m4a", Qt::CaseInsensitive));
 }
 
 // Function moved from mainwindow.cpp

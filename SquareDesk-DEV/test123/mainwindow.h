@@ -1001,8 +1001,10 @@ private:
     bool fuzzyMatchFilenameToCuesheetname(QString s1, QString s2);
     void downloadCuesheetFileIfNeeded(QString cuesheetFilename);
     QString loadLyrics(QString MP3FileName);
+    static bool isEmbeddedLyricsCuesheet(const QString &cuesheetFilename); // lyrics inside the song file itself
     int lyricsTabNumber;
     bool hasLyrics;
+    bool cuesheetIsPeekedFromNextSong; // true when the cuesheet shown belongs to the NEXT song, not this one
     QString txtToHTMLlyrics(QString text, QString filePathname);
     QString markdownToHTMLlyrics(QString markdownText, QString filePathname);
     bool cuesheetIsUnlockedForEditing;

@@ -1558,6 +1558,7 @@ void MainWindow::initializeCuesheetTab() {
     lyricsCopyIsAvailable = false;
     lyricsTabNumber = 1;
     lyricsForDifferentSong = false;
+    cuesheetIsPeekedFromNextSong = false;
     cueSheetLoaded = false;
     override_filename = "";
     override_cuesheet = "";

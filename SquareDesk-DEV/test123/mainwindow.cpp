@@ -997,6 +997,16 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
         }
         loadCuesheet(cuesheetFilename);
 
+        // Lyrics embedded in the song file itself cannot be edited: they live inside the audio
+        //   file, and SquareDesk has nowhere to save an edit back to.  Disable the Unlock button
+        //   rather than letting the user type into something that will silently discard their
+        //   work.  This is per-SELECTION, so it has to be redone here on every dropdown change,
+        //   not once per song alongside setVisible() in loadCuesheets() (issue #1740, item 5).
+        bool embedded = isEmbeddedLyricsCuesheet(cuesheetFilename);
+        ui->pushButtonEditLyrics->setEnabled(!embedded);
+        ui->pushButtonEditLyrics->setToolTip(embedded ?
+                    "Lyrics embedded in the song file itself cannot be edited" : "");
+
         // Update the Title field with the new cuesheet level (fix for issue #1510)
         // Only update if we're not in the middle of loading a song (to avoid duplicate suffixes)
         if (currentSongIsSinger && !flashCallsVisible && !loadingSong) {
@@ -7261,9 +7271,18 @@ void MainWindow::on_darkPlayButton_clicked()
 
             // qDebug() << "on_playButton_clicked(): " << switchToLyricsOnPlay << songTypeNamesForSinging << currentSongTypeName;
 
-            if (switchToLyricsOnPlay && (currentSongIsSinger || currentSongIsVocal))
+            // The setting is "Switch to Cuesheet tab on first play (when a cuesheet is available)",
+            //   so switch when a cuesheet is actually available, embedded lyrics included.  This
+            //   used to test the song's CATEGORY instead (singing call or vocal), so a song in any
+            //   other folder never switched no matter what was in the dropdown -- the parenthetical
+            //   in the setting's own label had never been true (issue #1740).
+            //
+            // ...but NOT for a cuesheet that came from the "peek".  Load a patter and the Cuesheet
+            //   tab holds the cuesheet of the singing call that comes NEXT in the playlist, which
+            //   is not what the caller asked to play, so first play stays put.  Reading ahead to
+            //   the next singer is a deliberate act: that is what CMD-N is for.
+            if (switchToLyricsOnPlay && hasLyrics && !cuesheetIsPeekedFromNextSong)
             {
-                // switch to Lyrics tab ONLY for singing calls or vocals
                 ui->tabWidget->setCurrentIndex(lyricsTabNumber);
             }
         }
