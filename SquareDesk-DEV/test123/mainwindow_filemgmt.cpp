@@ -342,7 +342,13 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     QStringList ss = MP3FileName.split('/');
     QString fn = ss.at(ss.size()-1);
-    this->setWindowTitle(fn + QString(" - SquareDesk MP3 Player/Editor"));
+    // Just the app name after the filename: on macOS the title bar names the DOCUMENT, and a
+    //   tagline both dilutes that and goes stale every time the feature set grows.  "MP3
+    //   Player/Editor" was wrong twice over by now: SquareDesk plays mp3/m4a/wav/flac, and it
+    //   edits cuesheets and sequences, not audio files -- pitch/tempo/EQ are non-destructive
+    //   playback effects.  The tagline lives on the no-song-loaded title instead, in
+    //   mainwindow_init.cpp, where there is no document to name (issue #1740).
+    this->setWindowTitle(fn + QString(" - SquareDesk"));
 
     t.elapsed(__LINE__);
 

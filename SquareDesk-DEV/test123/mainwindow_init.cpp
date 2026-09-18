@@ -292,7 +292,11 @@ void MainWindow::initializeUI() {
 
     usePersistentFontSize(); // sets the font of the songTable, which is used by adjustFontSizes to scale other font sizes
 
-    this->setWindowTitle(QString("SquareDesk Music Player/Sequence Editor"));
+    // No song is loaded, so there is no document to name -- this is the one place a tagline earns
+    //   its keep, being what shows up on first launch and in screenshots.  "Caller's Workstation"
+    //   rather than a list of file formats: the unifying thing across music, cuesheets, sequences,
+    //   reference materials and Taminations is who it is for, so it won't go stale (issue #1740).
+    this->setWindowTitle(QString("SquareDesk - Square Dance Caller's Workstation"));
 
     ui->menuFile->addSeparator();
 
