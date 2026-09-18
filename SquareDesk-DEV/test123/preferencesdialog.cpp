@@ -1350,7 +1350,10 @@ void PreferencesDialog::setupAppleMusicTab()
     previewTable->setSortingEnabled(true);   // sorting by Type is the fastest way to audit a mapping
     previewTable->verticalHeader()->setVisible(false);
     previewTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
-    previewTable->horizontalHeader()->setStretchLastSection(false);
+    // Columns are clamped below, so on a wide dialog they can add up to less than the table.
+    //   Let the last one take up whatever is left over rather than leaving a dead strip; when
+    //   the columns are wider than the table this does nothing and the scrollbar appears.
+    previewTable->horizontalHeader()->setStretchLastSection(true);
     previewTable->setMinimumHeight(110);
 
     // The settings scroll on their own above the preview, so the preview is always in view,
@@ -1361,25 +1364,38 @@ void PreferencesDialog::setupAppleMusicTab()
     ui->appleMusicSplitter->setSizes({ 330, 190 });
 
     // The two group box titles are the section headers of this tab, so make them look like it.
-    //   A QGroupBox propagates its font down to its children, and only the title should get
-    //   the larger bold font, so give every existing child the base font explicitly.  Widgets
-    //   created later (the rule rows) are parented to appleMusicRulesContainer, which is one
-    //   of those children, so they inherit the base font too.
+    //
+    // This has to be done with a stylesheet rather than setFont().  SquareDesk keeps an
+    //   application-wide stylesheet loaded (themesFileModified() in mainwindow_themes.cpp), and
+    //   MainWindow calls setDynamicPropertyRecursive(prefDialog, "theme", ...) AFTER this
+    //   dialog is constructed, which unpolishes and re-polishes every widget in it.  A
+    //   re-polish under QStyleSheetStyle resets each widget's font, so a QFont set here would
+    //   be thrown away before the dialog is ever shown.  A stylesheet rule survives it.
+    //
+    // Targeting the ::title subcontrol also means the font doesn't propagate down to the
+    //   controls inside the group box, which is what a plain setFont() on a QGroupBox does.
+    // NOTE: this must be the "font:" shorthand, with a size.  A bare "font-weight: bold" on a
+    //   subcontrol does not take -- see the QHeaderView::section rules in Themes.qss, which
+    //   are written as "font: bold 12px" for the same reason.
     QGroupBox *sections[] = { ui->appleMusicFilterGroupBox, ui->appleMusicTypeGroupBox };
     for (QGroupBox *section : sections) {
         const QFont baseFont = section->font();
-        QFont titleFont = baseFont;
-        titleFont.setBold(true);
+        QString fontRule("font: bold 14px;");                  // last-resort fallback
         if (baseFont.pointSizeF() > 0) {
-            titleFont.setPointSizeF(baseFont.pointSizeF() + 2.0);
+            fontRule = QString("font: bold %1pt;").arg(baseFont.pointSizeF() + 3.0);
+        } else if (baseFont.pixelSize() > 0) {
+            // macOS system fonts are specified in pixels, so pointSizeF() is -1 there
+            fontRule = QString("font: bold %1px;").arg(baseFont.pixelSize() + 4);
         }
-        section->setFont(titleFont);
-
-        const QList<QWidget*> children = section->findChildren<QWidget*>();
-        for (QWidget *child : children) {
-            child->setFont(baseFont);
-        }
+        section->setStyleSheet("QGroupBox::title { " + fontRule + " }");
     }
+
+    // A little air above each section title, so the headings separate the tab into sections
+    //   instead of running on from whatever is above them.  Back to front, so that inserting
+    //   into the layout doesn't shift the index of the item that hasn't been done yet.
+    QVBoxLayout *contents = ui->appleMusicContentsLayout;
+    contents->insertSpacing(contents->indexOf(ui->appleMusicTypeGroupBox), 10);
+    contents->insertSpacing(contents->indexOf(ui->appleMusicFilterGroupBox), 10);
 
     appleMusicSetupDone = true;
     updateAppleMusicEnabledStates();
