@@ -2017,11 +2017,25 @@ Click on a color square to change the color associated with that Music Type.  Se
               </widget>
              </item>
              <item>
-              <widget class="QGroupBox" name="appleMusicFilterGroupBox">
-               <property name="title">
-                <string>Which tracks are square dance music</string>
-               </property>
+              <widget class="QWidget" name="appleMusicFilterSection" native="true">
                <layout class="QVBoxLayout" name="appleMusicFilterLayout">
+                <property name="leftMargin"><number>0</number></property>
+                <property name="topMargin"><number>0</number></property>
+                <property name="rightMargin"><number>0</number></property>
+                <item>
+                 <widget class="QLabel" name="appleMusicFilterHeaderLabel">
+                  <property name="text">
+                   <string>&lt;b&gt;Which tracks are square dance music&lt;/b&gt;</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="Line" name="appleMusicFilterHeaderLine">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
                 <item>
                  <widget class="QRadioButton" name="appleMusicNoFilterRadio">
                   <property name="text">
@@ -2109,11 +2123,25 @@ Click on a color square to change the color associated with that Music Type.  Se
               </widget>
              </item>
              <item>
-              <widget class="QGroupBox" name="appleMusicTypeGroupBox">
-               <property name="title">
-                <string>How to determine a track's Type</string>
-               </property>
+              <widget class="QWidget" name="appleMusicTypeSection" native="true">
                <layout class="QVBoxLayout" name="appleMusicTypeLayout">
+                <property name="leftMargin"><number>0</number></property>
+                <property name="topMargin"><number>0</number></property>
+                <property name="rightMargin"><number>0</number></property>
+                <item>
+                 <widget class="QLabel" name="appleMusicTypeHeaderLabel">
+                  <property name="text">
+                   <string>&lt;b&gt;How to determine a track's Type&lt;/b&gt;</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="Line" name="appleMusicTypeHeaderLine">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
                 <item>
                  <layout class="QHBoxLayout" name="appleMusicTypeFieldLayout">
                   <item>

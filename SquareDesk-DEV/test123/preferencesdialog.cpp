@@ -38,7 +38,6 @@
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
-#include <QGroupBox>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QJsonArray>
@@ -1209,6 +1208,14 @@ static QString appleMusicFieldValue(const AppleMusicTrackMeta &track, const QStr
     return QString();
 }
 
+// The two running totals are the numbers the user is actually watching while they edit a
+//   rule, so they get bold italic.  Rich text, not a font: see the comment about the
+//   re-polish in setupAppleMusicTab().
+static QString appleMusicBoldItalic(const QString &text)
+{
+    return "<b><i>" + text.toHtmlEscaped() + "</i></b>";
+}
+
 static QString appleMusicFieldDisplay(const QString &fieldKey)
 {
     for (int i = 0; i < numAppleMusicFields; ++i) {
@@ -1363,39 +1370,34 @@ void PreferencesDialog::setupAppleMusicTab()
     ui->appleMusicSplitter->setStretchFactor(1, 2);
     ui->appleMusicSplitter->setSizes({ 330, 190 });
 
-    // The two group box titles are the section headers of this tab, so make them look like it.
+    // The two section headings are QLabels holding "<b>...</b>", each with a horizontal rule
+    //   under it, rather than QGroupBox titles.
     //
-    // This has to be done with a stylesheet rather than setFont().  SquareDesk keeps an
-    //   application-wide stylesheet loaded (themesFileModified() in mainwindow_themes.cpp), and
-    //   MainWindow calls setDynamicPropertyRecursive(prefDialog, "theme", ...) AFTER this
-    //   dialog is constructed, which unpolishes and re-polishes every widget in it.  A
-    //   re-polish under QStyleSheetStyle resets each widget's font, so a QFont set here would
-    //   be thrown away before the dialog is ever shown.  A stylesheet rule survives it.
+    // A QGroupBox title is drawn by the style, so its font gets re-resolved out from under us:
+    //   SquareDesk keeps an application-wide stylesheet loaded (themesFileModified() in
+    //   mainwindow_themes.cpp), and MainWindow calls setDynamicPropertyRecursive(prefDialog,
+    //   "theme", ...) AFTER this dialog is built, which unpolishes and re-polishes every widget
+    //   in it.  Neither setFont() nor a "QGroupBox::title { font: bold ... }" rule survived
+    //   that.  Bold that lives in the label's rich text is content rather than font, so nothing
+    //   the style does later can take it away.
     //
-    // Targeting the ::title subcontrol also means the font doesn't propagate down to the
-    //   controls inside the group box, which is what a plain setFont() on a QGroupBox does.
-    // NOTE: this must be the "font:" shorthand, with a size.  A bare "font-weight: bold" on a
-    //   subcontrol does not take -- see the QHeaderView::section rules in Themes.qss, which
-    //   are written as "font: bold 12px" for the same reason.
-    QGroupBox *sections[] = { ui->appleMusicFilterGroupBox, ui->appleMusicTypeGroupBox };
-    for (QGroupBox *section : sections) {
-        const QFont baseFont = section->font();
-        QString fontRule("font: bold 14px;");                  // last-resort fallback
+    // Only the size comes from a stylesheet, which does survive the re-polish.
+    QLabel *headings[] = { ui->appleMusicFilterHeaderLabel, ui->appleMusicTypeHeaderLabel };
+    for (QLabel *heading : headings) {
+        const QFont baseFont = heading->font();
         if (baseFont.pointSizeF() > 0) {
-            fontRule = QString("font: bold %1pt;").arg(baseFont.pointSizeF() + 3.0);
+            heading->setStyleSheet(QString("font-size: %1pt;").arg(baseFont.pointSizeF() + 3.0));
         } else if (baseFont.pixelSize() > 0) {
             // macOS system fonts are specified in pixels, so pointSizeF() is -1 there
-            fontRule = QString("font: bold %1px;").arg(baseFont.pixelSize() + 4);
+            heading->setStyleSheet(QString("font-size: %1px;").arg(baseFont.pixelSize() + 4));
         }
-        section->setStyleSheet("QGroupBox::title { " + fontRule + " }");
     }
 
-    // A little air above each section title, so the headings separate the tab into sections
-    //   instead of running on from whatever is above them.  Back to front, so that inserting
-    //   into the layout doesn't shift the index of the item that hasn't been done yet.
+    // A little air above each heading, so the sections read as separate blocks.  Back to front,
+    //   so inserting doesn't shift the index of the item that hasn't been done yet.
     QVBoxLayout *contents = ui->appleMusicContentsLayout;
-    contents->insertSpacing(contents->indexOf(ui->appleMusicTypeGroupBox), 10);
-    contents->insertSpacing(contents->indexOf(ui->appleMusicFilterGroupBox), 10);
+    contents->insertSpacing(contents->indexOf(ui->appleMusicTypeSection), 12);
+    contents->insertSpacing(contents->indexOf(ui->appleMusicFilterSection), 12);
 
     appleMusicSetupDone = true;
     updateAppleMusicEnabledStates();
@@ -1734,8 +1736,8 @@ void PreferencesDialog::appleMusicSettingsChanged()
 void PreferencesDialog::updateAppleMusicEnabledStates()
 {
     const bool syncOn = ui->enableAppleMusicCheckbox->isChecked();
-    ui->appleMusicFilterGroupBox->setEnabled(syncOn);
-    ui->appleMusicTypeGroupBox->setEnabled(syncOn);
+    ui->appleMusicFilterSection->setEnabled(syncOn);
+    ui->appleMusicTypeSection->setEnabled(syncOn);
     ui->appleMusicTypeColumnLabel->setEnabled(syncOn);
     ui->appleMusicTypeColumnFormatCombo->setEnabled(syncOn);
 
@@ -1878,9 +1880,9 @@ void PreferencesDialog::updateAppleMusicPreview()
     table->verticalScrollBar()->setValue(savedScroll);
 
     QLocale locale;
-    ui->appleMusicMatchCountLabel->setText(QString("%1 of %2 songs match.")
+    ui->appleMusicMatchCountLabel->setText(appleMusicBoldItalic(QString("%1 of %2 songs match.")
                                                .arg(locale.toString(matched))
-                                               .arg(locale.toString((int)appleMusicTracks.size())));
+                                               .arg(locale.toString((int)appleMusicTracks.size()))));
     ui->appleMusicMatchCountLabel->setToolTip("");
 
     QStringList typeParts;
@@ -1896,15 +1898,18 @@ void PreferencesDialog::updateAppleMusicPreview()
 
     QString summary;
     if (matched == 0) {
-        summary = "No tracks match.";
+        summary = appleMusicBoldItalic("No tracks match.");
     } else {
-        summary = typeParts.isEmpty() ? QString("%1 matching tracks.").arg(locale.toString(matched))
-                                      : typeParts.join(", ") + ".";
+        // the tally is bold italic; the asides after it are not
+        summary = appleMusicBoldItalic(typeParts.isEmpty()
+                                           ? QString("%1 matching tracks.").arg(locale.toString(matched))
+                                           : typeParts.join(", ") + ".");
+        // runs of spaces collapse in rich text, so space the asides out with non-breaking ones
         if (!showTypeField) {
-            summary += "   No Type field chosen, so every track gets the default Type.";
+            summary += "&nbsp;&nbsp; No Type field chosen, so every track gets the default Type.";
         }
         if (matched > shown) {
-            summary += QString("   Showing the first %1.").arg(locale.toString(shown));
+            summary += QString("&nbsp;&nbsp; Showing the first %1.").arg(locale.toString(shown));
         }
     }
     ui->appleMusicPreviewSummaryLabel->setText(summary);
