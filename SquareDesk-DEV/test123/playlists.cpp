@@ -333,7 +333,15 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     //     we reversed it for presentation
     // theRealPath is the actual relative path, used to determine whether the file exists or not
 
-    bool isAppleMusicFile = theRealPath.contains("/iTunes/iTunes Media/");
+    // Apple Music's media folder is "~/Music/iTunes/iTunes Media/" on libraries created before the
+    //   iTunes-to-Music rename in macOS Catalina, and "~/Music/Music/Media/" on ones created after
+    //   it -- and the user can relocate it anywhere they like.  So ask Apple Music first: any path
+    //   we actually got from it is an Apple Music file wherever it lives.  The two path tests stay
+    //   as a fallback for when that table isn't populated, e.g. Apple Music syncing is turned off
+    //   but a playlist saved earlier still refers to a file over there (issue #1740).
+    bool isAppleMusicFile = appleMusicTitleByPath.contains(theRealPath)
+                            || theRealPath.contains("/iTunes/iTunes Media/")
+                            || theRealPath.contains("/Music/Music/Media/");
     bool isDarkSongTable = (whichTable == ui->darkSongTable);
 
     static QRegularExpression dotMusicSuffix(SUPPORTED_AUDIO_EXTENSIONS_REGEX, QRegularExpression::CaseInsensitiveOption); // match with music extensions
@@ -435,9 +443,14 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     }
 
     QString realPath = absPath;  // the usual case
-    if (theRealPath != "" && !isAppleMusicFile) { // special case for Apple Music items
-        // real path specified, so use it to point at the real file
-        realPath = musicRootPath + theRealPath;
+    if (theRealPath != "") {
+        // A real path was specified, so use it to point at the real file.  theRealPath is already
+        //   absolute for Apple Music items, which live outside musicRootPath, and is relative to
+        //   musicRootPath for everything else -- same distinction the absPath test above makes.
+        //   Getting this wrong made every Apple Music song dragged into a palette slot show up as
+        //   black-on-red "file not found", because the existence check ran against the fake
+        //   "/xtras/<title>" path we display rather than against the actual file (issue #1740).
+        realPath = theRealPath.startsWith("/Users/") ? theRealPath : musicRootPath + theRealPath;
     }
 
     // DDD(realPath)
@@ -1242,16 +1255,23 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
     static QRegularExpression dotMusicSuffix(SUPPORTED_AUDIO_EXTENSIONS_REGEX, QRegularExpression::CaseInsensitiveOption); // match with music extensions
     QString songTitle = pathToMP3.split('/').last().replace(dotMusicSuffix,"");
 
-    // parse the filename into parts, so we can use the shortTitle -----
-    QString label;
-    QString labelNumber;
-    QString labelExtra;
-    QString realTitle;
-    QString realShortTitle;
+    // Apple Music files are not named after their titles on disk, so the NowPlaying title has to
+    //   come from Apple Music, or it shows up as e.g. "13 Jai Ho" (issue #1740).
+    QString appleTitle = appleMusicTitleByPath.value(pathToMP3);
+    if (!appleTitle.isEmpty()) {
+        songTitle = appleTitle;
+    } else {
+        // parse the filename into parts, so we can use the shortTitle -----
+        QString label;
+        QString labelNumber;
+        QString labelExtra;
+        QString realTitle;
+        QString realShortTitle;
 
-    bool success = breakFilenameIntoParts(songTitle, label, labelNumber, labelExtra, realTitle, realShortTitle);
-    if (success) {
-        songTitle = realShortTitle;
+        bool success = breakFilenameIntoParts(songTitle, label, labelNumber, labelExtra, realTitle, realShortTitle);
+        if (success) {
+            songTitle = realShortTitle;
+        }
     }
 
     QString songType = (fi.path().replace(musicRootPath + "/","").split("/"))[0]; // e.g. "hoedown" or "patter"
@@ -1980,7 +2000,8 @@ void MainWindow::refreshAllPlaylists() {
             QString PlaylistFileName;
             if (dynamic_cast<QLabel*>(theTable->cellWidget(j, 1)) != nullptr) {
                 // QString title = dynamic_cast<QLabel*>(theTable->cellWidget(j, 1))->text(); // don't need this right now...
-                relativePath = theTable->item(j, COLUMN_PATH)->text();
+                QString absPath = theTable->item(j, COLUMN_PATH)->text();
+                relativePath = absPath;
                 relativePath.replace(musicRootPath, "");
 
                 PlaylistFileName = musicRootPath + PLAYLISTS_PATH_PREFIX + relPathInSlot[i] + CSV_FILE_EXTENSION;
@@ -1991,6 +2012,16 @@ void MainWindow::refreshAllPlaylists() {
 
                 // this is what we want: "/patter/RIV 1180 - Sea Chanty.mp3" "/Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/playlists/Jokers/2024/Jokers_2024.06.05.csv"
                 QString theCanonicalRelativePath = makeCanonicalRelativePath(relativePath); // display as "LABEL NUM - Title", even if filename is reversed (issue #1665)
+
+                // A single Apple Music song can be dragged into any slot, not just a slot holding a
+                //   whole Apple Music playlist, so the Apple Music title has to be recovered per ROW.
+                //   Without this, the title set by darkAddPlaylistItemAt() was immediately rebuilt
+                //   from the filename here, e.g. "10 Five Foot Two Eyes of Blue" (issue #1740).
+                QString appleRelativePath = appleMusicTitleAsRelativePath(absPath);
+                if (!appleRelativePath.isEmpty()) {
+                    theCanonicalRelativePath = appleRelativePath;
+                }
+
                 setTitleField(theTable, j, theCanonicalRelativePath, true, PlaylistFileName, relativePath, shouldIndent, &settingsCache);
 
                 // Re-apply loaded-song highlighting (bold+italic) if setTitleField() just replaced it (issue #1601)
@@ -2040,6 +2071,7 @@ void MainWindow::getAppleMusicInfo() {
     allAppleMusicPlaylists.clear();
     allAppleMusicPlaylistNames.clear();
     allAppleMusicSmartPlaylistNames.clear();
+    appleMusicTitleByPath.clear();
 
     // qDebug() << "type,name,itemnumber,title,artist,title,genre,BPM,rating,year,grouping,work,modifiedDate";
     // int trackCount = 0;
@@ -2114,6 +2146,7 @@ void MainWindow::getAppleMusicInfo() {
             QStringList strList;
             strList << hierPlaylistName << title << absPath;
             allAppleMusicPlaylists.append(strList); // needed to load Apple Music playlist into a slot
+            appleMusicTitleByPath.insert(absPath, title); // so any table row can recover the real title
 
             // ------------------------------------------------------
             // new treeWidget integration into PLAYLISTS instead of APPLE MUSIC
@@ -2271,6 +2304,21 @@ QString MainWindow::makeCanonicalRelativePath(QString s) {
     return s;
 }
 
+// Apple Music files are not named after their titles on disk (e.g. "10 Five Foot Two Eyes of
+//   Blue.m4a"), so deriving a title from the filename picks up the track number and whatever else
+//   is in the filename.  Look up the title Apple Music has for the file instead, and hand it back
+//   as a fake relative path, because setTitleField() uses the last path component as the title.
+//   Returns "" when this isn't a file we got from Apple Music (issue #1740).
+QString MainWindow::appleMusicTitleAsRelativePath(const QString &absPath) {
+    auto it = appleMusicTitleByPath.constFind(absPath);
+    if (it == appleMusicTitleByPath.constEnd()) {
+        return "";
+    }
+    QString appleTitle = it.value();
+    appleTitle.replace("/", "_"); // '/' is a path separator in setTitleField; use '_' like the filesystem does
+    return "/xtras/" + appleTitle;
+}
+
 void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, const QString &thePitch, const QString &theTempo, const QString &theFullPath, const QString &extra, int insertRowNum) {
     Q_UNUSED(trackName)
     Q_UNUSED(extra)
@@ -2319,15 +2367,11 @@ void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, 
 
     QString theCanonicalRelativePath = makeCanonicalRelativePath(theRelativePath);
 
-    // For Apple Music files, look up the actual title (no track number, has colons)
-    // instead of deriving it from the filename.
-    for (const auto& sl : std::as_const(allAppleMusicPlaylists)) {
-        if (sl[2] == absPath) {
-            QString appleTitle = sl[1];
-            appleTitle.replace("/", "_"); // consistent with songTable and palette slot display
-            theCanonicalRelativePath = "/xtras/" + appleTitle; // fake path; setTitleField takes .last() component
-            break;
-        }
+    // For Apple Music files, use the actual title (no track number, has colons) instead of
+    //   deriving it from the filename.
+    QString appleRelativePath = appleMusicTitleAsRelativePath(absPath);
+    if (!appleRelativePath.isEmpty()) {
+        theCanonicalRelativePath = appleRelativePath;
     }
 
     // First set the PATH column so shouldIndentPlaylistRow() can check it
