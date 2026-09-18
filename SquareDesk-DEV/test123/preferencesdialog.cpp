@@ -817,6 +817,7 @@ void PreferencesDialog::on_calledColorButton_clicked()
 
         setPushButtonColor(ui->calledColorButton, calledColorString);
         songTableReloadNeeded = true;  // change to colors requires reload of the songTable
+        appleMusicSettingsChanged();   // ...and a re-render of the Apple Music preview, which uses these colors
     }
 }
 
@@ -833,6 +834,7 @@ void PreferencesDialog::on_extrasColorButton_clicked()
 
         setPushButtonColor(ui->extrasColorButton, extrasColorString);
         songTableReloadNeeded = true;  // change to colors requires reload of the songTable
+        appleMusicSettingsChanged();   // ...and a re-render of the Apple Music preview, which uses these colors
     }
 }
 
@@ -849,6 +851,7 @@ void PreferencesDialog::on_patterColorButton_clicked()
 
         setPushButtonColor(ui->patterColorButton, patterColorString);
         songTableReloadNeeded = true;  // change to colors requires reload of the songTable
+        appleMusicSettingsChanged();   // ...and a re-render of the Apple Music preview, which uses these colors
     }
 }
 
@@ -865,6 +868,7 @@ void PreferencesDialog::on_singingColorButton_clicked()
 
         setPushButtonColor(ui->singingColorButton, singingColorString);
         songTableReloadNeeded = true;  // change to colors requires reload of the songTable
+        appleMusicSettingsChanged();   // ...and a re-render of the Apple Music preview, which uses these colors
     }
 }
 
@@ -1256,6 +1260,11 @@ void PreferencesDialog::setupAppleMusicTab()
     previewTable->horizontalHeader()->setStretchLastSection(true);
     previewTable->setMinimumHeight(110);
 
+    // ...and belt-and-braces for the same thing, for the case where the theme stylesheet isn't
+    //   loaded: without this the viewport paints QPalette::Base over the tab's background.
+    ui->appleMusicScrollArea->viewport()->setAutoFillBackground(false);
+    ui->appleMusicScrollContents->setAutoFillBackground(false);
+
     // The settings scroll on their own above the preview, so the preview is always in view,
     //   and the user can give either half more room.
     ui->appleMusicSplitter->setChildrenCollapsible(false);
@@ -1387,6 +1396,13 @@ void PreferencesDialog::addAppleMusicRuleRow(const QString &fieldKey, const QStr
     valueCombo->setEnabled(opCombo->currentData().toString() != "notEmpty");
     ui->appleMusicRulesLayout->addWidget(row);
     refreshAppleMusicValuePicker(valueCombo, fieldCombo->currentData().toString());
+
+    // Every rule in Themes.qss is keyed on the "theme" dynamic property, and MainWindow stamps
+    //   that onto the dialog's widgets once, right after the dialog is constructed.  Rule rows
+    //   are built later than that -- from populatePreferencesDialog(), and again whenever the
+    //   user clicks "+" -- so they would match no theme rule at all and render with dark text
+    //   and dark outlines on the dark tab.  Stamp this row now (issue #1740).
+    setDynamicPropertyRecursive(row, "theme", mw->currentThemeString);
 }
 
 QList<AppleMusicRule> PreferencesDialog::appleMusicRulesFromWidgets() const
@@ -1722,6 +1738,15 @@ void PreferencesDialog::updateAppleMusicPreview()
         appleMusicPreviewHeaders = headers;
     }
 
+    // The same four colors the song table uses, read from the Music tab's swatches as they stand
+    //   RIGHT NOW rather than from the saved preferences, so changing a color over there
+    //   re-colors this preview immediately instead of after an OK and a reopen.
+    const QColor patterColor(GetpatterColorString());
+    const QColor singingColor(GetsingingColorString());
+    const QColor calledColor(GetcalledColorString());
+    const QColor extrasColor(GetextrasColorString());
+    const QColor notImportedColor("#A0A0A0");
+
     int matched = 0;
     int shown = 0;
     QHash<QString,int> byType;
@@ -1753,12 +1778,29 @@ void PreferencesDialog::updateAppleMusicPreview()
             cells << appleMusicFieldValue(track, fieldKey);
         }
 
+        // Color the row by its Type, exactly as darkSongTable does, so a track that came out the
+        //   wrong Type is something you SEE rather than something you have to read for.
+        QColor rowColor;                       // stays invalid when there is nothing to say
+        if (!showTypeField) {
+            // no Type field chosen: these keep whatever they have today, so don't imply a Type
+        } else if (type == "patter") {
+            rowColor = patterColor;
+        } else if (type == "singing") {
+            rowColor = singingColor;
+        } else if (type == "called") {
+            rowColor = calledColor;
+        } else if (type == "extras") {
+            rowColor = extrasColor;
+        } else {
+            rowColor = notImportedColor;       // maps to "Don't import"
+        }
+
         table->insertRow(shown);
         for (int col = 0; col < cells.count(); ++col) {
             QTableWidgetItem *item = new QTableWidgetItem(cells[col]);
             item->setToolTip(cells[col]);   // the cell is clamped, the tooltip isn't
-            if (col == 0 && type.isEmpty()) {
-                item->setForeground(QBrush(QColor("#A0A0A0")));  // this one won't be imported
+            if (rowColor.isValid()) {
+                item->setForeground(QBrush(rowColor));
             }
             table->setItem(shown, col, item);
         }

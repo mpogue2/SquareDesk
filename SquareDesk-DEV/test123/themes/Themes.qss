@@ -466,6 +466,24 @@ QDialog[theme="Dark"] QCheckBox:checked {
     color: #ccc;
 }
 
+/* Radio buttons need the same treatment as the check boxes above, or their labels stay black
+   on the dark dialog.  The Apple Music tab is the first place in SquareDesk to use a radio
+   button at all, which is why this rule was never needed before (issue #1740). */
+QDialog[theme="Dark"] QRadioButton:unchecked,
+QDialog[theme="Dark"] QRadioButton:checked {
+    color: #ccc;
+}
+
+/* The Apple Music tab's settings sit in a QScrollArea so the live preview below them always
+   stays in view.  A QAbstractScrollArea paints its viewport with QPalette::Base -- white --
+   whereas every other tab page is transparent and shows the QTabWidget::pane behind it.  So
+   that one tab came out white in Dark mode.  Not keyed on the theme: the point is for this
+   tab to look like all the others in whichever theme is active (issue #1740). */
+#appleMusicScrollArea,
+#appleMusicScrollContents {
+    background: transparent;
+}
+
 /* TABLE COLORS ================ */
 #tableWidgetTagColors[theme="Dark"],
 #tableWidgetSessionsList[theme="Dark"],
