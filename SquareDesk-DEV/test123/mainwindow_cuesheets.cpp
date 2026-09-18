@@ -54,6 +54,9 @@
 #include <taglib/toolkit/tpropertymap.h>
 
 #include <taglib/mpeg/mpegfile.h>
+#include <taglib/mp4/mp4file.h>
+#include <taglib/mp4/mp4tag.h>
+#include <taglib/mp4/mp4item.h>
 #include <taglib/mpeg/id3v2/id3v2tag.h>
 #include <taglib/mpeg/id3v2/id3v2frame.h>
 #include <taglib/mpeg/id3v2/id3v2header.h>
@@ -1670,6 +1673,14 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
                 QString displayName = cuesheet;
                 if (displayName.startsWith(musicRootPath)) {
                     displayName.remove(0, musicRootPath.length());
+                } else {
+                    // A cuesheet outside the music directory has no musicRootPath prefix to trim,
+                    //   so it would show its entire absolute path.  That happens for lyrics
+                    //   embedded in an Apple Music song, whose path is long enough to swamp the
+                    //   dropdown, e.g. "/Users/mpogue/Music/iTunes/iTunes Media/Music/Compilations/
+                    //   Founding Father of the Bluegrass Banjo/10 Five Foot Two Eyes of Blue.m4a".
+                    //   Show just the filename (issue #1740, item 5).
+                    displayName = displayName.split('/').last();
                 }
                 // qDebug() << "displayName:" << displayName << maybeCuesheetLevel(displayName);
                 QString maybeLevelString = maybeCuesheetLevel(displayName);
@@ -2397,6 +2408,24 @@ QString MainWindow::maybeCuesheetLevel(QString relativeFilePath) {
 QString MainWindow::loadLyrics(QString MP3FileName)
 {
     QString USLTlyrics;
+
+    if (MP3FileName.endsWith(".m4a", Qt::CaseInsensitive)) {
+        // Apple Music/iTunes keeps lyrics in the MP4 "\251lyr" atom, not in an ID3v2 USLT frame,
+        //   so an .m4a needs an entirely different reader.  Without this, embedded lyrics in songs
+        //   that live in the Apple Music library never appeared in the cuesheet dropdown, while
+        //   the same lyrics in an .mp3 in the music directory did (issue #1740, item 5).
+        MP4::File m4afile(MP3FileName.toStdString().c_str());
+        MP4::Tag *mp4tag = (m4afile.isValid() ? m4afile.tag() : nullptr);
+
+        if (mp4tag != nullptr && mp4tag->contains("\251lyr")) {
+            TagLib::StringList lyricsList = mp4tag->item("\251lyr").toStringList();
+            if (!lyricsList.isEmpty()) {
+                USLTlyrics = QString::fromUtf8(lyricsList.front().toCString(true)); // true == UTF-8
+            }
+        }
+
+        return(USLTlyrics);
+    }
 
     if (!MP3FileName.endsWith(".mp3", Qt::CaseInsensitive)) {
         // WAV, FLAC, etc can have ID3 tags, but we don't support USLT in them right now

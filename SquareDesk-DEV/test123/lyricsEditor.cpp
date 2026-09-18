@@ -1225,16 +1225,19 @@ void MainWindow::loadCuesheet(const QString cuesheetFilename)
         f1.close();
         maybeLoadCSSfileIntoTextBrowser(true); // for .txt files, yes use the SquareDesk CSS
     }
-    else if (cuesheetFilename.endsWith(".mp3", Qt::CaseInsensitive)) {
-        // lyrics embedded in an MP3 file -------------
-        QString embeddedID3Lyrics = loadLyrics(cuesheetFilename);
-        if (embeddedID3Lyrics != "") {
-            QString HTMLlyrics = txtToHTMLlyrics(embeddedID3Lyrics, cuesheetFilename);
-            QString html(HTMLlyrics);  // embed CSS, if found, since USLT is plain text
+    else if (cuesheetFilename.endsWith(".mp3", Qt::CaseInsensitive) ||
+             cuesheetFilename.endsWith(".m4a", Qt::CaseInsensitive)) {
+        // lyrics embedded in the song file itself -------------
+        //   .mp3 keeps them in an ID3v2 USLT frame, .m4a in the MP4 "\251lyr" atom; loadLyrics()
+        //   knows the difference and both arrive here as plain text (issue #1740, item 5)
+        QString embeddedLyrics = loadLyrics(cuesheetFilename);
+        if (embeddedLyrics != "") {
+            QString HTMLlyrics = txtToHTMLlyrics(embeddedLyrics, cuesheetFilename);
+            QString html(HTMLlyrics);  // embed CSS, if found, since embedded lyrics are plain text
             ui->textBrowserCueSheet->setHtml(html);
             loadedCuesheetNameWithPath = cuesheetFilename;
             cueSheetLoaded = true;
-            maybeLoadCSSfileIntoTextBrowser(false); // for MP3 USLT lyrics, use its embedded CSS, if any
+            maybeLoadCSSfileIntoTextBrowser(false); // for embedded lyrics, use its embedded CSS, if any
         }
     } else {
         // regular HTML cuesheet -------------
