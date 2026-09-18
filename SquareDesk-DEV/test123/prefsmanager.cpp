@@ -382,6 +382,7 @@ void PreferencesManager::populatePreferencesDialog(PreferencesDialog *prefDialog
     prefDialog->setHotkeys(GetHotkeyMappings());
     prefDialog->setTagColors(getTagColors());
     prefDialog->setActiveTab(GetprefsDialogLastActiveTab());
+    prefDialog->setAppleMusicFilterRules(GetappleMusicFilterRules());  // variable number of rows, so not macro-bound
     
 #define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name, default)
 #define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name, default)
@@ -417,6 +418,7 @@ void PreferencesManager::extractValuesFromPreferencesDialog(PreferencesDialog *p
     SetHotkeyMappings(prefDialog->getHotkeys());
     setTagColors(prefDialog->getTagColors());
     SetprefsDialogLastActiveTab(prefDialog->getActiveTab());
+    SetappleMusicFilterRules(prefDialog->getAppleMusicFilterRules());
     
 #define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name, default)
 #define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name, default)

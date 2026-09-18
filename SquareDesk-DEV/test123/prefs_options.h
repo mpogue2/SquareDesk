@@ -111,6 +111,27 @@ CONFIG_ATTRIBUTE_BOOLEAN(useTimeRemainingCheckbox,useTimeRemaining, false)
 
 CONFIG_ATTRIBUTE_BOOLEAN(enableAppleMusicCheckbox,enableAppleMusic, false)
 
+// Apple Music square dance filter and Type mapping (issue #1740, item 6) -----
+// Which tracks in the Apple Music library are square dance music in the first place.
+CONFIG_ATTRIBUTE_BOOLEAN(appleMusicFilterEnabledRadio, appleMusicFilterEnabled, false)
+CONFIG_ATTRIBUTE_COMBO(appleMusicFilterMatchCombo, appleMusicFilterMatch, 0)  // 0 = all rules, 1 = any rule
+CONFIG_ATTRIBUTE_BOOLEAN(appleMusicFilterInPlaylistsCheckbox, appleMusicFilterAppliesInsidePlaylists, true)
+// The rules themselves are a variable number of rows, so they are serialized to JSON by
+//   PreferencesDialog::getAppleMusicFilterRules() rather than bound to a single control.
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(appleMusicFilterRules, "")
+
+// Which metadata field says whether a track is patter/singing/called/extras, and the
+//   semicolon-separated values of that field which map to each Type.
+CONFIG_ATTRIBUTE_COMBO(appleMusicTypeFieldCombo, appleMusicTypeField, 0)  // 0 = don't, use the default Type
+CONFIG_ATTRIBUTE_STRING(lineEditAppleMusicTypePatter,  appleMusicTypePatter,  "")
+CONFIG_ATTRIBUTE_STRING(lineEditAppleMusicTypeSinging, appleMusicTypeSinging, "")
+CONFIG_ATTRIBUTE_STRING(lineEditAppleMusicTypeCalled,  appleMusicTypeCalled,  "")
+CONFIG_ATTRIBUTE_STRING(lineEditAppleMusicTypeExtras,  appleMusicTypeExtras,  "")
+CONFIG_ATTRIBUTE_COMBO(appleMusicTypeDefaultCombo, appleMusicTypeDefault, 3)  // 0=patter 1=singing 2=called 3=extras 4=don't import
+
+// How the Type column in darkSongTable renders an Apple Music track.
+CONFIG_ATTRIBUTE_COMBO(appleMusicTypeColumnFormatCombo, appleMusicTypeColumnFormat, 0)  // 0=type+playlist 1=playlist only 2=type only
+
 CONFIG_ATTRIBUTE_BOOLEAN(useTipNumbersCheckbox,useTipNumbers, false) // issue #1714
 
 //CONFIG_ATTRIBUTE_BOOLEAN(enableFlashCallsCheckbox,enableFlashCalls, false)

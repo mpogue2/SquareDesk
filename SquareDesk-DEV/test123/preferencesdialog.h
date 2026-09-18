@@ -36,9 +36,15 @@
 #include "common_enums.h"
 #include "default_colors.h"
 #include "keybindings.h"
+#include "mainwindow_applemusic.h"
 #include <QPushButton>
+#include <QLineEdit>
+#include <QTimer>
+#include <vector>
 
 class SessionInfo;
+class QComboBox;
+class QToolButton;
 
 namespace Ui
 {
@@ -76,6 +82,11 @@ public:
 
     int getActiveTab();
     void setActiveTab(int);
+
+    // The Apple Music filter rules are a variable number of rows, so they can't be bound to
+    //   a single control by the CONFIG_ATTRIBUTE_* macros.  Serialized as a JSON array.
+    QString getAppleMusicFilterRules();
+    void setAppleMusicFilterRules(const QString &rulesJSON);
 
 //    void setColorSwatches(QString patter, QString singing, QString called, QString extras);
 //    QColor patterColor;
@@ -165,7 +176,31 @@ private slots:
 
     void on_panEQGainDial_valueChanged(int value);
 
+    void on_enableAppleMusicCheckbox_toggled(bool checked);
+    void on_appleMusicPreviewButton_clicked();
+    void on_appleMusicCopyTypesButton_clicked();
+
 private:
+    // Preferences > Apple Music (issue #1740, item 6) -----
+    void setupAppleMusicTab();
+    void addAppleMusicRuleRow(const QString &fieldKey, const QString &opKey, const QString &value);
+    QWidget *appleMusicRuleRowAt(int i) const;
+    int appleMusicRuleRowCount() const;
+    void appleMusicSettingsChanged();            // something changed: re-enable, re-count
+    void updateAppleMusicEnabledStates();
+    void updateAppleMusicMatchCount();
+    void loadAppleMusicLibraryIfNeeded();
+    void refreshAppleMusicValuePicker(QComboBox *valueCombo, const QString &fieldKey);
+    void showAppleMusicValueMenu(QLineEdit *target, QToolButton *button);
+    QString appleMusicTypeOf(const AppleMusicTrackMeta &track) const;  // "patter"/"singing"/"called"/"extras"/""
+    bool appleMusicTrackPasses(const AppleMusicTrackMeta &track) const;
+
+    std::vector<AppleMusicTrackMeta> appleMusicTracks;
+    bool appleMusicLibraryLoaded = false;
+    QString appleMusicLibraryError;
+    QTimer *appleMusicRecountTimer = nullptr;
+    bool appleMusicSetupDone = false;
+
     void SetLabelTagAppearanceColors();
     Ui::PreferencesDialog *ui;
     MainWindow *mw;  // so we can play soundFX from within the dialog
