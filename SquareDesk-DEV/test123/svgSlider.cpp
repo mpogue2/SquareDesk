@@ -279,6 +279,11 @@ void svgSlider::reinit() {
     scene.addItem(vein);
     scene.addItem(handle);
 
+    // ISSUE #1314: re-pin these, in case the new bg file is a different size than the old one
+    scene.setSceneRect(0, 0, bSize.width(), bSize.height());
+    view.setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    view.setFixedSize(bSize.width(), bSize.height());
+
     // view.setScene(&scene);
     // view.setParent(this);
 }
@@ -360,6 +365,20 @@ void svgSlider::finishInit() {
     scene.addItem(bg);
     scene.addItem(vein);
     scene.addItem(handle);
+
+    // ISSUE #1314: pin the scene rect and the view geometry -----
+    // The same latent problem svgDial had: with no explicit scene rect, QGraphicsScene returns its
+    //   *growing* items bounding rect (the high-water mark since the scene was created, which never
+    //   shrinks), QGraphicsView::sizeHint() is derived from that rect, and this view has no geometry
+    //   of its own.  setValue() moves the handle, and at the top of its travel the handle overshoots
+    //   the top of the bg by ~2px, so raising tempo or pitch above center grew that slider's scene
+    //   rect permanently.  The next relayout (a main-tab round-trip) then resized the view to the
+    //   stale hint, and the whole slider rendered 1-2px low with its bottom edge clipped.
+    // Pin to the bg, which is the same 42x107 as the widget itself, so all three sliders draw
+    //   identically no matter where their handles have been.
+    scene.setSceneRect(0, 0, bSize.width(), bSize.height());
+    view.setAlignment(Qt::AlignLeft | Qt::AlignTop);  // deterministic origin, no re-centering
+    view.setFixedSize(bSize.width(), bSize.height());
 
     view.setScene(&scene);
     //    view.setParent(this, Qt::FramelessWindowHint);
