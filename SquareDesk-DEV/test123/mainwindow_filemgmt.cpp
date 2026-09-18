@@ -1343,6 +1343,18 @@ void MainWindow::darkFilterMusic()
 
     ui->darkSongTable->setSortingEnabled(false);
 
+    // The Apple Music metadata columns take part in the search too, but only the ones that are
+    //   actually SHOWING (issue #1740, item 4).  Searching a hidden column would produce matches
+    //   with no visible explanation -- "why is this row here?" -- and it makes View > Columns do
+    //   useful double duty: turning a column on is also how you start searching it.
+    // Worked out once here rather than per row.
+    QList<int> searchableMetaCols;
+    for (int col : { kAlbumCol, kAlbumArtistCol, kComposerCol, kCommentsCol, kYearCol, kDurationCol }) {
+        if (!ui->darkSongTable->isColumnHidden(col)) {
+            searchableMetaCols.append(col);
+        }
+    }
+
     int initialRowCount = ui->darkSongTable->rowCount();
     int rowsVisible = initialRowCount;
     int firstVisibleRow = -1;
@@ -1378,6 +1390,17 @@ void MainWindow::darkFilterMusic()
             // in this case, the titleSearch variable contains the thing to search for
             if (!filterContains(songLabel,title) && !filterContains(songType, title) && !filterContains(songTitle, title)) {
                 show = false;
+
+                // ...and the visible Apple Music columns count as "all fields" too.  Only
+                //   reached when the three original fields already missed, so this costs nothing
+                //   for a row that has already matched.
+                for (int col : std::as_const(searchableMetaCols)) {
+                    QTableWidgetItem *item = ui->darkSongTable->item(i, col);
+                    if (item && !item->text().isEmpty() && filterContains(item->text(), title)) {
+                        show = true;
+                        break;
+                    }
+                }
             }
         }
 
@@ -1445,6 +1468,25 @@ static QString applyAppleMusicTypeColumnFormat(const QString &playlistPart,
             //   item number still keeps a playlist in Apple's order within that.
             return appleMusicType + " " + playlistPart;
     }
+}
+
+// ITLibrary gives a track's length in milliseconds; the Duration column wants "3:45", or "1:02:33"
+//   for the occasional long one.
+static QString appleMusicDurationText(int totalTimeMS)
+{
+    if (totalTimeMS <= 0) {
+        return QString();   // not set, so show nothing rather than "0:00"
+    }
+
+    int totalSeconds = (totalTimeMS + 500) / 1000;   // nearest second
+    int hours   = totalSeconds / 3600;
+    int minutes = (totalSeconds / 60) % 60;
+    int seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+        return QString("%1:%2:%3").arg(hours).arg(minutes, 2, 10, QChar('0')).arg(seconds, 2, 10, QChar('0'));
+    }
+    return QString("%1:%2").arg(minutes).arg(seconds, 2, 10, QChar('0'));
 }
 
 void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilter, bool forceFilter, bool reloadPaletteSlots, bool suppressSelectionChange)
@@ -1541,12 +1583,18 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
     // clear out the table
     ui->darkSongTable->setRowCount(0);
-    ui->darkSongTable->setColumnCount(9);
+    ui->darkSongTable->setColumnCount(kNumSongTableCols);
 
     QStringList m_TableHeader;
-    m_TableHeader << "" << "Type" << "Label" << "Title" << "Levels" << "Recent" << "Age" << "Pitch" << "Tempo";
+    m_TableHeader << "" << "Type" << "Label" << "Title" << "Levels" << "Recent" << "Age" << "Pitch" << "Tempo"
+                  << "Album" << "Album Artist" << "Composer" << "Comments" << "Year" << "Duration";
     ui->darkSongTable->setHorizontalHeaderLabels(m_TableHeader);
-    ui->darkSongTable->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
+    // AlignLeft on its own says nothing about the vertical, which then defaults to the TOP.  The
+    //   older columns don't show it because updateSongTableColumnView() sets an explicit
+    //   alignment on their header items, and setHorizontalHeaderLabels() reuses existing items
+    //   rather than replacing them -- so only newly added columns, i.e. the Apple Music ones,
+    //   came out top-aligned.  Fixed in the default, so any column added later is right too.
+    ui->darkSongTable->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     ui->darkSongTable->horizontalHeader()->setVisible(true);
 
     // if we passed in nullptr, just use whatever is currently loaded
@@ -1899,6 +1947,36 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         twi2->setForeground(textBrush);
         twi2->setFlags(twi2->flags() & ~Qt::ItemIsEditable);      // not editable
         ui->darkSongTable->setItem(i, kLabelCol, twi2);
+
+        // APPLE MUSIC METADATA FIELDS -----
+        // Only tracks that came from an Apple Music playlist have these.  A song in the Music
+        //   Directory keeps the same metadata in its own file tags, which nothing reads today,
+        //   so its cells are left empty rather than guessed at (issue #1740, item 2).
+        {
+            const AppleMusicTrackMeta meta = appleMusicMetaByPath.value(origPath);
+
+            // Year and Duration sort numerically, not as text -- otherwise "10:00" sorts before
+            //   "3:45", and an empty cell lands in the middle of the years.
+            struct { int col; QString text; bool numeric; } metaCells[] = {
+                { kAlbumCol,       QString::fromStdString(meta.album),       false },
+                { kAlbumArtistCol, QString::fromStdString(meta.albumArtist), false },
+                { kComposerCol,    QString::fromStdString(meta.composer),    false },
+                { kCommentsCol,    QString::fromStdString(meta.comments),    false },
+                { kYearCol,        meta.year > 0 ? QString::number(meta.year) : QString(), true },
+                { kDurationCol,    appleMusicDurationText(meta.totalTimeMS), true },
+            };
+
+            for (const auto &metaCell : metaCells) {
+                QTableWidgetItem *item = metaCell.numeric ? new TableNumberItem(metaCell.text)
+                                                          : new QTableWidgetItem(metaCell.text);
+                item->setForeground(textBrush);
+                item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+                if (!metaCell.text.isEmpty()) {
+                    item->setToolTip(metaCell.text);   // these columns are narrow and elide
+                }
+                ui->darkSongTable->setItem(i, metaCell.col, item);
+            }
+        }
 
 //         INVISIBLE TABLE WIDGET ITEM -----
 //         FYI: THIS IS FOR SORTING...

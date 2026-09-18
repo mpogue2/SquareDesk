@@ -152,6 +152,8 @@ AppleMusicTrackMeta appleMusicMetaOf(const PlaylistTrack &track)
     meta.composer    = track.composer;
     meta.comments    = track.comments;
     meta.work        = track.work;
+    meta.year        = track.year;
+    meta.totalTimeMS = track.totalTimeMS;
     return meta;
 }
 

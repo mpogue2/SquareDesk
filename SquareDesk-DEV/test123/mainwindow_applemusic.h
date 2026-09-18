@@ -45,6 +45,7 @@ struct PlaylistTrack {
     std::string album;          // the fields below are here for the square dance filter and the
     std::string albumArtist;    //   Type mapping in Preferences > Apple Music (issue #1740)
     std::string comments;
+    int         totalTimeMS;    // 0 = not set
 };
 
 // Returns all tracks from every playlist via the ITLibrary framework.
@@ -65,4 +66,10 @@ struct AppleMusicTrackMeta {
     std::string composer;
     std::string comments;
     std::string work;
+
+    // Display-only, for the song table's Apple Music columns.  Deliberately NOT filterable:
+    //   appleMusicFields[] is the filterable set, and it is all strings, so one operator list
+    //   covers every field (issue #1740, item 2).
+    int year;                   // 0 = not set
+    int totalTimeMS;            // 0 = not set
 };

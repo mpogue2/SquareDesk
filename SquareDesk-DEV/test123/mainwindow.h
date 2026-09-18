@@ -29,6 +29,7 @@
 #define MAINWINDOW_H
 
 #include "globaldefines.h"
+#include "mainwindow_applemusic.h"   // AppleMusicTrackMeta, for appleMusicMetaByPath
 
 #include "splashscreen.h"
 
@@ -761,6 +762,15 @@ private slots:
     void on_actionAge_toggled(bool arg1);
     void on_actionPitch_toggled(bool arg1);
     void on_actionTempo_toggled(bool arg1);
+
+    // View > Columns, the Apple Music metadata columns (issue #1740, item 2)
+    void on_actionAlbum_toggled(bool arg1);
+    void on_actionAlbumArtist_toggled(bool arg1);
+    void on_actionComposer_toggled(bool arg1);
+    void on_actionComments_toggled(bool arg1);
+    void on_actionYear_toggled(bool arg1);
+    void on_actionDuration_toggled(bool arg1);
+
     void on_actionShow_All_Ages_triggered(bool checked);
     void on_actionIn_Out_Loop_points_to_default_triggered(bool checked);
     void on_actionShow_group_station_toggled(bool arg1);
@@ -1039,6 +1049,9 @@ private:
     QHash<QString, QString> appleMusicTypeByPath;   // absolute path -> "patter"/"singing"/"called"/"extras",
                                                    //   as the Type mapping in Preferences worked it out
     QHash<QString, QString> appleMusicTypeReasonByPath;  // ...and why, for the Type cell's tooltip
+    QHash<QString, AppleMusicTrackMeta> appleMusicMetaByPath;  // ...and the metadata behind the
+                                                   //   Album/Album Artist/Composer/Comments/Year/
+                                                   //   Duration columns (issue #1740, item 2)
     QString appleMusicTitleAsRelativePath(const QString &absPath);
     void updateAppleMusicMenuItems(); // File > Resync is only shown when Apple Music sync is enabled (issue #1740)
 

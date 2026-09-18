@@ -109,7 +109,8 @@ std::vector<PlaylistTrack> readAllPlaylists(std::string &errorOut)
                     modDate,
                     str(item.album.title),
                     str(item.album.albumArtist),
-                    str(item.comments)
+                    str(item.comments),
+                    (int)item.totalTime
                 });
             }
         }

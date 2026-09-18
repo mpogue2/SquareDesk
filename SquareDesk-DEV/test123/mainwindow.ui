@@ -4770,6 +4770,13 @@
      <addaction name="actionAge"/>
      <addaction name="actionPitch"/>
      <addaction name="actionTempo"/>
+     <addaction name="separator"/>
+     <addaction name="actionAlbum"/>
+     <addaction name="actionAlbumArtist"/>
+     <addaction name="actionComposer"/>
+     <addaction name="actionComments"/>
+     <addaction name="actionYear"/>
+     <addaction name="actionDuration"/>
     </widget>
     <widget class="QMenu" name="menuFlash_Call">
      <property name="title">
@@ -5458,6 +5465,72 @@
    </property>
    <property name="text">
     <string>Pitch</string>
+   </property>
+  </action>
+  <action name="actionAlbum">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Album</string>
+   </property>
+   <property name="toolTip">
+    <string>Album, for tracks that came from an Apple Music playlist</string>
+   </property>
+  </action>
+  <action name="actionAlbumArtist">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Album Artist</string>
+   </property>
+   <property name="toolTip">
+    <string>Album Artist, for tracks that came from an Apple Music playlist</string>
+   </property>
+  </action>
+  <action name="actionComposer">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Composer</string>
+   </property>
+   <property name="toolTip">
+    <string>Composer, for tracks that came from an Apple Music playlist</string>
+   </property>
+  </action>
+  <action name="actionComments">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Comments</string>
+   </property>
+   <property name="toolTip">
+    <string>Comments, for tracks that came from an Apple Music playlist</string>
+   </property>
+  </action>
+  <action name="actionYear">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Year</string>
+   </property>
+   <property name="toolTip">
+    <string>Year, for tracks that came from an Apple Music playlist</string>
+   </property>
+  </action>
+  <action name="actionDuration">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Duration</string>
+   </property>
+   <property name="toolTip">
+    <string>Duration, for tracks that came from an Apple Music playlist</string>
    </property>
   </action>
   <action name="actionTempo">

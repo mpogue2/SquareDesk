@@ -1446,7 +1446,23 @@ void MainWindow::initializeMusicSongTable() {
     ui->darkSongTable->setColumnWidth(kPitchCol,60);
     ui->darkSongTable->setColumnWidth(kTempoCol,60);
 
+    ui->darkSongTable->setColumnWidth(kAlbumCol, 140);
+    ui->darkSongTable->setColumnWidth(kAlbumArtistCol, 120);
+    ui->darkSongTable->setColumnWidth(kComposerCol, 120);
+    ui->darkSongTable->setColumnWidth(kCommentsCol, 140);
+    ui->darkSongTable->setColumnWidth(kYearCol, 50);
+    ui->darkSongTable->setColumnWidth(kDurationCol, 60);
+
     ui->darkSongTable->setColumnHidden(kLevelsCol, true); // levels column starts out hidden, same as the playlist Levels column
+
+    // The Audition column's header is a blank square in the top left corner.  It was sortable,
+    //   which is worse than useless: every row has an audition button and the item behind it has
+    //   no text, so sorting by it does nothing -- but onHeaderClicked() still pushes it into the
+    //   sort FIFO, which holds only 4 entries, so a stray click there silently evicted one of the
+    //   user's real sorts.  Take the space back for the column-visibility menu instead
+    //   (issue #1740, item 2).
+    ui->darkSongTable->setColumnNotSortable(kNumberCol);
+    ui->darkSongTable->setCornerMenu(ui->menuColumns);
 
     zoomInOut(0);  // trigger reloading of all fonts, including horizontalHeader of songTable()
 
@@ -1483,6 +1499,13 @@ void MainWindow::initializeMusicSongTable() {
     on_actionAge_toggled(prefsManager.GetshowAgeColumn());
     on_actionPitch_toggled(prefsManager.GetshowPitchColumn());
     on_actionTempo_toggled(prefsManager.GetshowTempoColumn());
+
+    on_actionAlbum_toggled(prefsManager.GetshowAlbumColumn());
+    on_actionAlbumArtist_toggled(prefsManager.GetshowAlbumArtistColumn());
+    on_actionComposer_toggled(prefsManager.GetshowComposerColumn());
+    on_actionComments_toggled(prefsManager.GetshowCommentsColumn());
+    on_actionYear_toggled(prefsManager.GetshowYearColumn());
+    on_actionDuration_toggled(prefsManager.GetshowDurationColumn());
 
     {
         // Now that the current_session_id is setup, we can load the call lists,

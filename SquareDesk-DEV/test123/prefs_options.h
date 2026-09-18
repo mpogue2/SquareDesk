@@ -159,6 +159,15 @@ CONFIG_ATTRIBUTE_BOOLEAN(enableFileWatcherCheckBox, enableNewFileWatcher, false)
 //CONFIG_ATTRIBUTE_BOOLEAN(enableAutoMicsOffCheckbox, enableAutoMicsOff, false)
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showLabelColumn, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showLevelsColumn, false);
+
+// The Apple Music metadata columns, all off by default: they are empty for every song that
+//   didn't come from an Apple Music playlist, so turning them on is an opt-in (issue #1740).
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showAlbumColumn, false);
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showAlbumArtistColumn, false);
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showComposerColumn, false);
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showCommentsColumn, false);
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showYearColumn, false);
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showDurationColumn, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showRecentColumn, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showAgeColumn, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showPitchColumn, true);

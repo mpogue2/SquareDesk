@@ -31,6 +31,9 @@
 #include "songlistmodel.h"
 
 #include "mytablewidget.h"
+#include <QMenu>
+#include <QToolButton>
+#include <QHeaderView>
 #include <QDebug>
 #include <QDrag>
 #include <algorithm>
@@ -1254,6 +1257,12 @@ void MyTableWidget::paintEvent(QPaintEvent *event)
 
 // this catches the user header clicks -----
 void MyTableWidget::onHeaderClicked(int column) {
+    if (notSortableColumns.contains(column)) {
+        // Sorting by this column is meaningless (see setColumnNotSortable).  Bail out BEFORE the
+        //   FIFO below, so a stray click can't evict one of the user's real sorts.
+        return;
+    }
+
     QHeaderView *header = this->horizontalHeader();
     Qt::SortOrder order = header->sortIndicatorOrder();
     // qDebug() << "onHeaderClicked to sort: " << column << order;
@@ -1308,4 +1317,57 @@ void MyTableWidget::setOrderFromString(QString s) {
 void MyTableWidget::initializeSortOrder() {
     sortOperations.clear();
     emit newStableSort("");
+}
+
+// ------------------------------------------------------------------
+void MyTableWidget::setColumnNotSortable(int column)
+{
+    notSortableColumns.insert(column);
+}
+
+void MyTableWidget::setCornerMenu(QMenu *menu)
+{
+    cornerMenu = menu;
+
+    // The button lives on the header's viewport rather than in a header item, because a header
+    //   section can hold text and an icon but not a widget.  Its geometry is kept in step with
+    //   section 0 below.
+    cornerMenuColumn = 0;
+    cornerMenuButton = new QToolButton(horizontalHeader()->viewport());
+    cornerMenuButton->setObjectName("songTableCornerMenuButton");
+    cornerMenuButton->setText(QString(QChar(0x2261)));  // IDENTICAL TO: three stacked bars, i.e. "columns"
+    // Sized with a stylesheet, not setFont(): switching the theme unpolishes and repolishes
+    //   every widget, which re-resolves its font and would throw a QFont away.
+    cornerMenuButton->setStyleSheet("font-size: 18px;");
+    cornerMenuButton->setToolTip("Choose which columns to show");
+    cornerMenuButton->setCursor(Qt::ArrowCursor);
+    cornerMenuButton->setFocusPolicy(Qt::NoFocus);
+    cornerMenuButton->setAutoRaise(true);
+
+    connect(cornerMenuButton, &QToolButton::clicked, this, [this]{
+        if (cornerMenu) {
+            cornerMenu->popup(cornerMenuButton->mapToGlobal(QPoint(0, cornerMenuButton->height())));
+        }
+    });
+
+    // Follow section 0 wherever it goes: the user can resize the header, the window, or scroll it.
+    connect(horizontalHeader(), &QHeaderView::sectionResized, this, [this]{ positionCornerMenuButton(); });
+    connect(horizontalHeader(), &QHeaderView::geometriesChanged, this, [this]{ positionCornerMenuButton(); });
+
+    positionCornerMenuButton();
+    cornerMenuButton->show();
+}
+
+void MyTableWidget::positionCornerMenuButton()
+{
+    if (!cornerMenuButton) {
+        return;
+    }
+
+    QHeaderView *header = horizontalHeader();
+    const int x = header->sectionViewportPosition(cornerMenuColumn);
+    const int w = header->sectionSize(cornerMenuColumn);
+
+    cornerMenuButton->setGeometry(x, 0, w, header->height());
+    cornerMenuButton->setVisible(w > 0);   // hidden if that column is ever hidden
 }

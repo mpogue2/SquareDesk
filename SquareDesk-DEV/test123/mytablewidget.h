@@ -27,6 +27,10 @@
 #define MYTABLEWIDGET_H
 
 #include <QTableWidget>
+#include <QSet>
+
+class QMenu;
+class QToolButton;
 #include <QQueue>
 
 struct sortOperation {
@@ -82,6 +86,15 @@ public:
     void setOrderFromString(QString s);
     void initializeSortOrder();
 
+    // Columns that must not take part in sorting, e.g. darkSongTable's Audition column, whose
+    //   items have no text at all (issue #1740).
+    void setColumnNotSortable(int column);
+
+    // Puts a button in this table's top-left header section -- the one belonging to a column
+    //   made non-sortable above -- which pops up the given menu.  Used for the song table's
+    //   column-visibility menu, which is View > Columns itself rather than a copy of it.
+    void setCornerMenu(QMenu *menu);
+
 protected:
     void paintEvent(QPaintEvent *event) override;
     void dragLeaveEvent(QDragLeaveEvent *event) override;
@@ -102,6 +115,13 @@ signals:
 
 public slots:
     void onHeaderClicked(int column);
+
+private:
+    QSet<int> notSortableColumns;
+    QMenu *cornerMenu = nullptr;
+    QToolButton *cornerMenuButton = nullptr;
+    int cornerMenuColumn = -1;
+    void positionCornerMenuButton();
 };
 
 #endif // MYTABLEWIDGET_H

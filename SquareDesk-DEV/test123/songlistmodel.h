@@ -50,6 +50,22 @@
 #define kPitchCol 7
 #define kTempoCol 8
 
+// Apple Music metadata columns (issue #1740, item 2).  These are populated only for tracks that
+//   came from an Apple Music playlist; a song in the Music Directory keeps this metadata in its
+//   own file tags, which nothing reads today, so those rows are blank here.
+// NOTE: new columns MUST be appended.  The user's sort order is persisted as column INDICES
+//   (see MyTableWidget::setOrderFromString, "c:2,so:0;c:1,so:0"), so inserting one in the middle
+//   would silently re-point everybody's saved sort at a different column.  Left-to-right order
+//   is a matter for QHeaderView::moveSection(), not for these numbers.
+#define kAlbumCol       9
+#define kAlbumArtistCol 10
+#define kComposerCol    11
+#define kCommentsCol    12
+#define kYearCol        13
+#define kDurationCol    14
+
+#define kNumSongTableCols 15
+
 class SongRow : public SongSetting
 {
 public:

@@ -2103,6 +2103,7 @@ void MainWindow::getAppleMusicInfo() {
     appleMusicTitleByPath.clear();
     appleMusicTypeByPath.clear();
     appleMusicTypeReasonByPath.clear();
+    appleMusicMetaByPath.clear();
 
     // qDebug() << "type,name,itemnumber,title,artist,title,genre,BPM,rating,year,grouping,work,modifiedDate";
     // int trackCount = 0;
@@ -2222,6 +2223,7 @@ void MainWindow::getAppleMusicInfo() {
             strList << hierPlaylistName << title << absPath;
             allAppleMusicPlaylists.append(strList); // needed to load Apple Music playlist into a slot
             appleMusicTitleByPath.insert(absPath, title); // so any table row can recover the real title
+            appleMusicMetaByPath.insert(absPath, meta);   // ...and the metadata for its extra columns
             if (!songType.isEmpty()) {
                 appleMusicTypeByPath.insert(absPath, songType); // ...and the Type its metadata says it is
 

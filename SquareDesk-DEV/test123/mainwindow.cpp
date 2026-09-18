@@ -1274,6 +1274,15 @@ void MainWindow::updateSongTableColumnView()
     ui->playlist3Table->horizontalHeader()->setSectionHidden(COLUMN_PITCH, !prefsManager.GetshowPitchColumn());
 
     ui->darkSongTable->setColumnHidden(kTempoCol,!prefsManager.GetshowTempoColumn());
+
+    // The Apple Music metadata columns (issue #1740, item 2).  No playlist-table counterpart:
+    //   a palette slot shows a playlist, not the library, and these are library columns.
+    ui->darkSongTable->setColumnHidden(kAlbumCol,       !prefsManager.GetshowAlbumColumn());
+    ui->darkSongTable->setColumnHidden(kAlbumArtistCol, !prefsManager.GetshowAlbumArtistColumn());
+    ui->darkSongTable->setColumnHidden(kComposerCol,    !prefsManager.GetshowComposerColumn());
+    ui->darkSongTable->setColumnHidden(kCommentsCol,    !prefsManager.GetshowCommentsColumn());
+    ui->darkSongTable->setColumnHidden(kYearCol,        !prefsManager.GetshowYearColumn());
+    ui->darkSongTable->setColumnHidden(kDurationCol,    !prefsManager.GetshowDurationColumn());
     ui->playlist1Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn()); // as the View > Columns > Tempo changes
     ui->playlist2Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn()); //   so does visibility of the tempo column in the playlists
     ui->playlist3Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn());
@@ -6422,6 +6431,66 @@ void MainWindow::on_actionRecent_toggled(bool checked)
 
     // the showRecentColumn setting is persistent across restarts of the application
     prefsManager.SetshowRecentColumn(checked);
+
+    updateSongTableColumnView();
+}
+
+void MainWindow::on_actionAlbum_toggled(bool checked)
+{
+    ui->actionAlbum->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showAlbumColumn setting is persistent across restarts of the application
+    prefsManager.SetshowAlbumColumn(checked);
+
+    updateSongTableColumnView();
+}
+
+void MainWindow::on_actionAlbumArtist_toggled(bool checked)
+{
+    ui->actionAlbumArtist->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showAlbumArtistColumn setting is persistent across restarts of the application
+    prefsManager.SetshowAlbumArtistColumn(checked);
+
+    updateSongTableColumnView();
+}
+
+void MainWindow::on_actionComposer_toggled(bool checked)
+{
+    ui->actionComposer->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showComposerColumn setting is persistent across restarts of the application
+    prefsManager.SetshowComposerColumn(checked);
+
+    updateSongTableColumnView();
+}
+
+void MainWindow::on_actionComments_toggled(bool checked)
+{
+    ui->actionComments->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showCommentsColumn setting is persistent across restarts of the application
+    prefsManager.SetshowCommentsColumn(checked);
+
+    updateSongTableColumnView();
+}
+
+void MainWindow::on_actionYear_toggled(bool checked)
+{
+    ui->actionYear->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showYearColumn setting is persistent across restarts of the application
+    prefsManager.SetshowYearColumn(checked);
+
+    updateSongTableColumnView();
+}
+
+void MainWindow::on_actionDuration_toggled(bool checked)
+{
+    ui->actionDuration->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showDurationColumn setting is persistent across restarts of the application
+    prefsManager.SetshowDurationColumn(checked);
 
     updateSongTableColumnView();
 }
