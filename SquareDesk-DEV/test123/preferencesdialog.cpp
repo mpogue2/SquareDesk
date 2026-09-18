@@ -1747,10 +1747,10 @@ void PreferencesDialog::updateAppleMusicPreview()
                   : type.isEmpty()   ? QString("(not imported)")
                                      : type);
         for (const QString &fieldKey : std::as_const(fieldKeys)) {
-            const QString value = appleMusicFieldValue(track, fieldKey);
-            // only the Type field earns "(empty)"; an empty Album is just an empty cell
-            const bool isTypeField = (showTypeField && fieldKey == typeFieldKey);
-            cells << ((isTypeField && value.trimmed().isEmpty()) ? QString("(empty)") : value);
+            // An empty cell is already legible as "this track has no value for that field", and
+            //   spelling it out would read like a value someone actually typed, as well as
+            //   sorting among the real ones instead of where blanks belong.
+            cells << appleMusicFieldValue(track, fieldKey);
         }
 
         table->insertRow(shown);
