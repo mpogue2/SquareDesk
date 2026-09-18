@@ -1150,8 +1150,17 @@ void MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString rel
 
                     QString theFakePath = "/" + categoryName + "/" + theDisplayName + "." + theSuffix;
 
-                    if (absPath.contains("/iTunes/iTunes Media/")) {
-                        theFakePath = absPath;
+                    // Apple Music songs can be in an ordinary CSV playlist, having been dragged
+                    //   into a slot.  Their filenames have nothing to do with their titles, so use
+                    //   the title Apple Music has, or the row comes back as e.g. "10 Five Foot Two
+                    //   Eyes of Blue" every time the slot is loaded from its CSV -- including the
+                    //   untitled-slot autosave restored at app start (issue #1740).
+                    QString appleRelativePath = appleMusicTitleAsRelativePath(absPath);
+                    if (!appleRelativePath.isEmpty()) {
+                        theFakePath = appleRelativePath;
+                    } else if (absPath.contains("/iTunes/iTunes Media/") ||
+                               absPath.contains("/Music/Music/Media/")) {
+                        theFakePath = absPath; // over in Apple Music, but we don't know its title
                     }
 
                     // Determine whether this row should be indented (issue #1547)
