@@ -32,12 +32,12 @@
 #include <QTimeEdit>
 #include "sessioninfo.h"
 #include <algorithm>
+#include <utility>
 
 // Preferences > Apple Music (issue #1740, item 6)
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
-#include <QDialogButtonBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -49,6 +49,8 @@
 #include <QMenu>
 #include <QRadioButton>
 #include <QRegularExpression>
+#include <QScrollBar>
+#include <QSplitter>
 #include <QTableWidget>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -1207,6 +1209,16 @@ static QString appleMusicFieldValue(const AppleMusicTrackMeta &track, const QStr
     return QString();
 }
 
+static QString appleMusicFieldDisplay(const QString &fieldKey)
+{
+    for (int i = 0; i < numAppleMusicFields; ++i) {
+        if (fieldKey == appleMusicFields[i].key) {
+            return appleMusicFields[i].display;
+        }
+    }
+    return fieldKey;
+}
+
 static bool appleMusicRuleMatches(const QString &value, const QString &opKey, const QString &arg)
 {
     if (opKey == "notEmpty")    return !value.trimmed().isEmpty();
@@ -1285,7 +1297,7 @@ void PreferencesDialog::setupAppleMusicTab()
     appleMusicRecountTimer = new QTimer(this);
     appleMusicRecountTimer->setSingleShot(true);
     appleMusicRecountTimer->setInterval(250);
-    connect(appleMusicRecountTimer, &QTimer::timeout, this, &PreferencesDialog::updateAppleMusicMatchCount);
+    connect(appleMusicRecountTimer, &QTimer::timeout, this, &PreferencesDialog::updateAppleMusicPreview);
 
     connect(ui->appleMusicNoFilterRadio,             &QRadioButton::toggled,  this, [this]{ appleMusicSettingsChanged(); });
     connect(ui->appleMusicFilterEnabledRadio,        &QRadioButton::toggled,  this, [this]{ appleMusicSettingsChanged(); });
@@ -1319,9 +1331,34 @@ void PreferencesDialog::setupAppleMusicTab()
     connect(ui->tabWidget, &QTabWidget::currentChanged, this, [this](int tab){
         if (tab == ui->tabWidget->indexOf(ui->tab_appleMusic)) {
             loadAppleMusicLibraryIfNeeded();
-            updateAppleMusicMatchCount();
+            updateAppleMusicPreview();
         }
     });
+
+    // The live preview at the bottom of the tab.  It is rebuilt from scratch on every change,
+    //   so it must stay cheap: no word wrap, fixed short rows, and columns clamped below.
+    QTableWidget *previewTable = ui->appleMusicPreviewTable;
+    previewTable->setRowCount(0);
+    previewTable->setColumnCount(0);
+    previewTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    previewTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    previewTable->setSelectionMode(QAbstractItemView::SingleSelection);
+    previewTable->setAlternatingRowColors(true);
+    previewTable->setWordWrap(false);
+    previewTable->setTextElideMode(Qt::ElideRight);
+    previewTable->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+    previewTable->setSortingEnabled(true);   // sorting by Type is the fastest way to audit a mapping
+    previewTable->verticalHeader()->setVisible(false);
+    previewTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+    previewTable->horizontalHeader()->setStretchLastSection(false);
+    previewTable->setMinimumHeight(110);
+
+    // The settings scroll on their own above the preview, so the preview is always in view,
+    //   and the user can give either half more room.
+    ui->appleMusicSplitter->setChildrenCollapsible(false);
+    ui->appleMusicSplitter->setStretchFactor(0, 3);
+    ui->appleMusicSplitter->setStretchFactor(1, 2);
+    ui->appleMusicSplitter->setSizes({ 330, 190 });
 
     // The two group box titles are the section headers of this tab, so make them look like it.
     //   A QGroupBox propagates its font down to its children, and only the title should get
@@ -1705,69 +1742,35 @@ void PreferencesDialog::updateAppleMusicEnabledStates()
     }
 }
 
-void PreferencesDialog::updateAppleMusicMatchCount()
+// Rebuilding the preview walks the whole library and makes a QTableWidgetItem per cell, so
+//   only the first few hundred matches are listed.  That's plenty to eyeball a rule, and it
+//   keeps the rebuild fast enough to run on every keystroke (behind the 250ms coalescing timer).
+static const int kApplePreviewMaxRows = 400;
+
+// Title, Album and Comments can be enormous.  Sizing to contents and then clamping keeps the
+//   short columns narrow without letting one long title push everything else off the right.
+static const int kApplePreviewMaxColumnWidth = 220;
+
+void PreferencesDialog::updateAppleMusicPreview()
 {
+    QTableWidget *table = ui->appleMusicPreviewTable;
+
     if (!appleMusicLibraryLoaded) {
         ui->appleMusicMatchCountLabel->setText("");
+        ui->appleMusicPreviewSummaryLabel->setText("");
+        table->clearContents();
+        table->setRowCount(0);
         return;
     }
 
     if (!appleMusicLibraryError.isEmpty()) {
         ui->appleMusicMatchCountLabel->setText(appleMusicLibraryError.split("\n").first());
         ui->appleMusicMatchCountLabel->setToolTip(appleMusicLibraryError);
-        ui->appleMusicPreviewButton->setEnabled(false);
+        ui->appleMusicPreviewSummaryLabel->setText("");
+        table->clearContents();
+        table->setRowCount(0);
         return;
     }
-
-    int matched = 0;
-    QHash<QString,int> byType;
-    for (const AppleMusicTrackMeta &track : appleMusicTracks) {
-        if (!appleMusicTrackPasses(track)) {
-            continue;
-        }
-        matched++;
-        byType[appleMusicTypeOf(track)]++;
-    }
-
-    QLocale locale;
-    QString text = QString("%1 of %2 songs match.")
-                       .arg(locale.toString(matched))
-                       .arg(locale.toString((int)appleMusicTracks.size()));
-
-    if (ui->appleMusicTypeFieldCombo->currentIndex() > 0) {
-        QStringList parts;
-        const char *types[] = { "patter", "singing", "called", "extras" };
-        for (const char *type : types) {
-            if (byType.value(type) > 0) {
-                parts << QString("%1 %2").arg(locale.toString(byType.value(type))).arg(type);
-            }
-        }
-        if (byType.value("") > 0) {
-            parts << QString("%1 not imported").arg(locale.toString(byType.value("")));
-        }
-        if (!parts.isEmpty()) {
-            text += "   (" + parts.join(", ") + ")";
-        }
-    }
-
-    ui->appleMusicMatchCountLabel->setText(text);
-    ui->appleMusicMatchCountLabel->setToolTip("");
-    ui->appleMusicPreviewButton->setEnabled(true);
-}
-
-// -------------------------------------------------------------------
-void PreferencesDialog::on_enableAppleMusicCheckbox_toggled(bool /* checked */)
-{
-    if (!appleMusicSetupDone) {
-        return;
-    }
-    loadAppleMusicLibraryIfNeeded();
-    appleMusicSettingsChanged();
-}
-
-void PreferencesDialog::on_appleMusicPreviewButton_clicked()
-{
-    loadAppleMusicLibraryIfNeeded();
 
     // When a Type field has been chosen, show its raw value next to the Type it produced, so
     //   it's obvious WHY a track came out patter, and which values are still unclassified.
@@ -1775,36 +1778,43 @@ void PreferencesDialog::on_appleMusicPreviewButton_clicked()
     const QString typeFieldKey = (typeFieldIndex > 0) ? appleMusicFields[typeFieldIndex - 1].key : QString();
     const bool showTypeField = !typeFieldKey.isEmpty();
 
+    // Column 0 is the Type, column 1 is the field that produced it (when there is one), and
+    //   then the fields worth seeing anyway -- minus whichever one is already column 1, so the
+    //   same values never appear in two columns.
+    static const char *previewColumnKeys[] = { "title", "artist", "album", "genre", "grouping" };
+
+    QStringList fieldKeys;    // one per column AFTER the Type column
+    if (showTypeField) {
+        fieldKeys << typeFieldKey;
+    }
+    for (const char *key : previewColumnKeys) {
+        if (typeFieldKey != key) {
+            fieldKeys << key;
+        }
+    }
+
     QStringList headers;
     headers << "Type";
-    if (showTypeField) {
-        headers << appleMusicFields[typeFieldIndex - 1].display;
-    }
-    headers << "Title" << "Artist" << "Album";
-    if (typeFieldKey != "genre") {
-        headers << "Genre";
-    }
-    if (showTypeField && typeFieldKey != "grouping") {
-        headers << "Grouping";
+    for (const QString &fieldKey : std::as_const(fieldKeys)) {
+        headers << appleMusicFieldDisplay(fieldKey);
     }
 
-    QDialog preview(this);
-    preview.setWindowTitle("Apple Music tracks matching the filter");
-    preview.resize(880, 500);
+    // A rebuild shouldn't throw away a column the user widened, or scroll them back to the top.
+    const bool columnsChanged = (headers != appleMusicPreviewHeaders);
+    const int savedScroll = table->verticalScrollBar()->value();
 
-    QVBoxLayout *layout = new QVBoxLayout(&preview);
+    table->setUpdatesEnabled(false);
+    table->setSortingEnabled(false);   // rows can't be inserted into a sorted table
+    table->clearContents();
+    table->setRowCount(0);
+    if (columnsChanged) {
+        table->setColumnCount(headers.count());
+        table->setHorizontalHeaderLabels(headers);
+        appleMusicPreviewHeaders = headers;
+    }
 
-    QTableWidget *table = new QTableWidget(&preview);
-    table->setColumnCount(headers.count());
-    table->setHorizontalHeaderLabels(headers);
-    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    table->setSelectionBehavior(QAbstractItemView::SelectRows);
-    table->verticalHeader()->setVisible(false);
-    table->setSortingEnabled(false);
-
-    const int maxRows = 5000;
-    int shown = 0;
     int matched = 0;
+    int shown = 0;
     QHash<QString,int> byType;
 
     for (const AppleMusicTrackMeta &track : appleMusicTracks) {
@@ -1816,29 +1826,23 @@ void PreferencesDialog::on_appleMusicPreviewButton_clicked()
         const QString type = appleMusicTypeOf(track);
         byType[type]++;
 
-        if (shown >= maxRows) {
+        if (shown >= kApplePreviewMaxRows) {
             continue;
         }
 
         QStringList cells;
         cells << (type.isEmpty() ? QString("(not imported)") : type);
-        if (showTypeField) {
-            const QString value = appleMusicFieldValue(track, typeFieldKey);
-            cells << (value.trimmed().isEmpty() ? QString("(empty)") : value);
-        }
-        cells << QString::fromStdString(track.title)
-              << QString::fromStdString(track.artist)
-              << QString::fromStdString(track.album);
-        if (typeFieldKey != "genre") {
-            cells << QString::fromStdString(track.genre);
-        }
-        if (showTypeField && typeFieldKey != "grouping") {
-            cells << QString::fromStdString(track.grouping);
+        for (const QString &fieldKey : std::as_const(fieldKeys)) {
+            const QString value = appleMusicFieldValue(track, fieldKey);
+            // only the Type field earns "(empty)"; an empty Album is just an empty cell
+            const bool isTypeField = (showTypeField && fieldKey == typeFieldKey);
+            cells << ((isTypeField && value.trimmed().isEmpty()) ? QString("(empty)") : value);
         }
 
         table->insertRow(shown);
         for (int col = 0; col < cells.count(); ++col) {
             QTableWidgetItem *item = new QTableWidgetItem(cells[col]);
+            item->setToolTip(cells[col]);   // the cell is clamped, the tooltip isn't
             if (col == 0 && type.isEmpty()) {
                 item->setForeground(QBrush(QColor("#A0A0A0")));  // this one won't be imported
             }
@@ -1847,13 +1851,21 @@ void PreferencesDialog::on_appleMusicPreviewButton_clicked()
         shown++;
     }
 
-    table->setSortingEnabled(true);   // sorting by Type is the fastest way to audit the mapping
-    table->resizeColumnsToContents();
+    if (columnsChanged) {
+        table->resizeColumnsToContents();
+        for (int col = 0; col < table->columnCount(); ++col) {
+            table->setColumnWidth(col, qMin(table->columnWidth(col), kApplePreviewMaxColumnWidth));
+        }
+    }
+    table->setSortingEnabled(true);    // re-sorts by whatever column the user last clicked
+    table->setUpdatesEnabled(true);
+    table->verticalScrollBar()->setValue(savedScroll);
 
     QLocale locale;
-    QString summary = QString("%1 of %2 songs match.")
-                          .arg(locale.toString(matched))
-                          .arg(locale.toString((int)appleMusicTracks.size()));
+    ui->appleMusicMatchCountLabel->setText(QString("%1 of %2 songs match.")
+                                               .arg(locale.toString(matched))
+                                               .arg(locale.toString((int)appleMusicTracks.size())));
+    ui->appleMusicMatchCountLabel->setToolTip("");
 
     QStringList typeParts;
     const char *types[] = { "patter", "singing", "called", "extras" };
@@ -1865,26 +1877,31 @@ void PreferencesDialog::on_appleMusicPreviewButton_clicked()
     if (byType.value("") > 0) {
         typeParts << QString("%1 not imported").arg(locale.toString(byType.value("")));
     }
-    if (!typeParts.isEmpty()) {
-        summary += "   Type: " + typeParts.join(", ") + ".";
-    }
-    if (!showTypeField) {
-        summary += "   (No Type field chosen, so every track gets the default Type.)";
-    }
-    if (matched > shown) {
-        summary += QString("   Showing the first %1.").arg(locale.toString(shown));
-    }
 
-    QLabel *summaryLabel = new QLabel(summary, &preview);
-    summaryLabel->setWordWrap(true);
-    layout->addWidget(summaryLabel);
-    layout->addWidget(table, 1);
+    QString summary;
+    if (matched == 0) {
+        summary = "No tracks match.";
+    } else {
+        summary = typeParts.isEmpty() ? QString("%1 matching tracks.").arg(locale.toString(matched))
+                                      : typeParts.join(", ") + ".";
+        if (!showTypeField) {
+            summary += "   No Type field chosen, so every track gets the default Type.";
+        }
+        if (matched > shown) {
+            summary += QString("   Showing the first %1.").arg(locale.toString(shown));
+        }
+    }
+    ui->appleMusicPreviewSummaryLabel->setText(summary);
+}
 
-    QDialogButtonBox *buttons = new QDialogButtonBox(QDialogButtonBox::Close, &preview);
-    connect(buttons, &QDialogButtonBox::rejected, &preview, &QDialog::reject);
-    layout->addWidget(buttons);
-
-    preview.exec();
+// -------------------------------------------------------------------
+void PreferencesDialog::on_enableAppleMusicCheckbox_toggled(bool /* checked */)
+{
+    if (!appleMusicSetupDone) {
+        return;
+    }
+    loadAppleMusicLibraryIfNeeded();
+    appleMusicSettingsChanged();
 }
 
 void PreferencesDialog::on_appleMusicCopyTypesButton_clicked()

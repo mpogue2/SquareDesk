@@ -44,6 +44,7 @@
 
 class SessionInfo;
 class QComboBox;
+class QTableWidget;
 class QToolButton;
 
 namespace Ui
@@ -177,7 +178,6 @@ private slots:
     void on_panEQGainDial_valueChanged(int value);
 
     void on_enableAppleMusicCheckbox_toggled(bool checked);
-    void on_appleMusicPreviewButton_clicked();
     void on_appleMusicCopyTypesButton_clicked();
 
 private:
@@ -188,7 +188,7 @@ private:
     int appleMusicRuleRowCount() const;
     void appleMusicSettingsChanged();            // something changed: re-enable, re-count
     void updateAppleMusicEnabledStates();
-    void updateAppleMusicMatchCount();
+    void updateAppleMusicPreview();       // the match count, and the live preview table
     void loadAppleMusicLibraryIfNeeded();
     void refreshAppleMusicValuePicker(QComboBox *valueCombo, const QString &fieldKey);
     void showAppleMusicValueMenu(QLineEdit *target, QToolButton *button);
@@ -199,6 +199,7 @@ private:
     bool appleMusicLibraryLoaded = false;
     QString appleMusicLibraryError;
     QTimer *appleMusicRecountTimer = nullptr;
+    QStringList appleMusicPreviewHeaders;  // so column widths survive a rebuild
     bool appleMusicSetupDone = false;
 
     void SetLabelTagAppearanceColors();
