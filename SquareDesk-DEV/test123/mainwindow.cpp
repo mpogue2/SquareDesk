@@ -28,6 +28,7 @@
 #include <QActionGroup>
 #include <QColorDialog>
 #include <QCoreApplication>
+#include <QEventLoop>
 #include <QDateTime>
 #include <QElapsedTimer>
 #include <QHostInfo>
@@ -4513,6 +4514,25 @@ void MainWindow::on_actionPreferences_triggered()
     // act on dialog return code
     if(dialogCode == QDialog::Accepted) {
         // OK clicked
+
+        // Applying settings can take a noticeable while: the Apple Music library is re-read, the
+        //   song table is rebuilt, and the palette slots are reloaded.  Until now that was a
+        //   silent pause with the dialog already dismissed and nothing to look at.
+        // Add one dot per phase, the same idiom findMusic() uses during a scan, so the pause
+        //   visibly makes progress instead of looking frozen.  The phases are NOT equal slices
+        //   of time -- they just show forward motion.
+        // ExcludeUserInputEvents for the same reason findMusic() uses it: the event loop needs to
+        //   run far enough to repaint the status bar, but not far enough to deliver a click that
+        //   would re-enter any of this.
+        // (issue #1743)
+        int applyPhase = 0;
+        auto applyProgress = [&]() {
+            ui->statusBar->showMessage("Applying settings" + QString(++applyPhase, '.'));
+            QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+        };
+
+        applyProgress(); // "." -- settings being written out
+
         // Save the new value for musicPath --------
         prefsManager.extractValuesFromPreferencesDialog(prefDialog);
         songSettings.setTagColors(prefsManager.getTagColors());
@@ -4616,7 +4636,10 @@ void MainWindow::on_actionPreferences_triggered()
         //   true iff a full scan actually ran, i.e. something changed on disk while the dialog was
         //   open (or since the last scan) -- the darkSongTable must be reloaded in that case, or the
         //   new songs sit in the pathStack unseen (Issue #1719).
+        applyProgress(); // ".." -- about to re-scan (findMusic shows its own message if it really scans)
         bool musicDirChanged = findMusic(musicRootPath, true);
+        applyProgress(); // "..." -- music directory and Apple Music re-read
+
         switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
         updateAppleMusicMenuItems(); // the "Resync with Apple Music" item follows the Apple Music pref
 
@@ -4706,12 +4729,14 @@ void MainWindow::on_actionPreferences_triggered()
             darkFilterMusic();  // and re-apply whatever is in the search field, because darkLoadMusicList
                                 //   makes every row visible again (Issue #1719).  This is the same
                                 //   load-then-filter pair that musicRootModified() does.
+            applyProgress();    // "...." -- song table rebuilt
             reloadPaletteSlots();
         }
 
         // The tip numbers vs. line numbers setting may have just changed, so relabel the # column
         //   of each palette slot right now, rather than waiting for the next reload (issue #1714)
         refreshAllPlaylists();
+        applyProgress(); // "....." -- palette slots reloaded
 
         if (prefsManager.GetenableAutoAirplaneMode()) {
             // if the user JUST set the preference, turn Airplane Mode on RIGHT NOW (radios OFF).
@@ -4726,6 +4751,8 @@ void MainWindow::on_actionPreferences_triggered()
         //     // coming out of the prefs dialog, if we set the min pref to be lower than current vol, fix the slider.
         //     ui->volumeSlider->setValue(minimumVolume);
         // }
+
+        ui->statusBar->clearMessage(); // done applying: the status bar goes back to whatever it was
     }
     setInOutButtonState();
 
