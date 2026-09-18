@@ -1336,9 +1336,20 @@ void MyTableWidget::setCornerMenu(QMenu *menu)
     cornerMenuButton = new QToolButton(horizontalHeader()->viewport());
     cornerMenuButton->setObjectName("songTableCornerMenuButton");
     cornerMenuButton->setText(QString(QChar(0x2261)));  // IDENTICAL TO: three stacked bars, i.e. "columns"
-    // Sized with a stylesheet, not setFont(): switching the theme unpolishes and repolishes
-    //   every widget, which re-resolves its font and would throw a QFont away.
-    cornerMenuButton->setStyleSheet("font-size: 18px;");
+    // Styled with a stylesheet, not setFont()/setFlat(): switching the theme unpolishes and
+    //   repolishes every widget, which re-resolves its font, and Themes.qss gives every
+    //   QToolButton a border and a gradient that would otherwise draw a raised button in the
+    //   corner of the header.  An ID selector is used so this outranks that rule, which is
+    //   keyed on the theme attribute (issue #1740).
+    // The hover and pressed rules in Themes.qss only set background-color, so the button still
+    //   lights up under the mouse -- it just has no outline of its own.
+    cornerMenuButton->setStyleSheet(
+        "QToolButton#songTableCornerMenuButton {"
+        "  border: none;"
+        "  background: transparent;"
+        "  font-size: 18px;"
+        "  padding: 0px;"
+        "}");
     cornerMenuButton->setToolTip("Choose which columns to show");
     cornerMenuButton->setCursor(Qt::ArrowCursor);
     cornerMenuButton->setFocusPolicy(Qt::NoFocus);
