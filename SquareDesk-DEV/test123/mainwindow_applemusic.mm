@@ -70,6 +70,12 @@ std::vector<PlaylistTrack> readAllPlaylists(std::string &errorOut)
             if (playlist.kind != ITLibPlaylistKindSmart &&
                 playlist.kind != ITLibPlaylistKindRegular) continue;
 
+            // Skip Apple's own built-in playlists (Library, Music, Purchased, Recently Added,
+            //   Top 25 Most Played, 90's Music, Loved Songs, ...).  Filtering on kind rather than
+            //   on name catches all of them at once, and works in a non-English Music.app (issue #1740).
+            if (playlist.distinguishedKind != ITLibDistinguishedPlaylistKindNone) continue;
+            if (playlist.isPrimary) continue;   // the main Library playlist
+
             std::string type = (playlist.kind == ITLibPlaylistKindSmart) ? "smart" : "static";
             std::string name = fullPath(playlist);
             int itemNum = 1;

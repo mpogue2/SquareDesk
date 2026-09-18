@@ -963,11 +963,11 @@ void MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString 
     bool currentlyUnderMarker = false;  // Track if we're in a section under a marker (issue #1547)
 
     for (const auto& sl : std::as_const(allAppleMusicPlaylists)) {
-        bool isPlayableAppleMusicItem = sl[2].endsWith(".wav", Qt::CaseInsensitive) ||
-                          sl[2].endsWith(".mp3", Qt::CaseInsensitive) ||
-                          sl[2].endsWith(".m4a", Qt::CaseInsensitive);
-
-        if (sl[0] == applePlaylistName && isPlayableAppleMusicItem)  {
+        // NOTE: no extension test needed here.  getAppleMusicInfo() already dropped everything
+        //   SquareDesk can't play, so allAppleMusicPlaylists holds only playable files.  The test
+        //   that used to live here accepted wav/mp3/m4a but not flac, which silently dropped flac
+        //   tracks from palette slots even though the song table showed them (issue #1740).
+        if (sl[0] == applePlaylistName)  {
             // YES! it belongs to the playlist we want
             songCount++;
 
@@ -2039,21 +2039,25 @@ void MainWindow::getAppleMusicInfo() {
     pathStackNewApplePlaylists->clear();
     allAppleMusicPlaylists.clear();
     allAppleMusicPlaylistNames.clear();
+    allAppleMusicSmartPlaylistNames.clear();
 
     // qDebug() << "type,name,itemnumber,title,artist,title,genre,BPM,rating,year,grouping,work,modifiedDate";
     // int trackCount = 0;
+    // Apple Music playlists can contain files that SquareDesk cannot play (.aiff, .m4p, video, ...).
+    //   Those are dropped here, BEFORE item numbers are handed out, so that the numbers SquareDesk
+    //   shows are contiguous.  Numbering them first and filtering later left gaps in the Type
+    //   column, e.g. "Hello 001, 002, 003, 005" (issue #1740).
+    static QRegularExpression playableExtensions(".*\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption);
+    QHash<QString, int> nextItemNumber; // hierarchical playlist name -> next number to hand out
+
     for (const PlaylistTrack &t : tracks) {
 
-        // skip static/Library tracks = all tracks
-        if (t.playlistType == "static" && (t.playlistName == "Library" || t.playlistName == "Purchased")) {
-            // trackCount = 0;
-            continue;
-        }
+        // NOTE: Apple's own built-in playlists (Library, Music, Purchased, Recently Added, ...) are
+        //   already filtered out by readAllPlaylists(), which tests distinguishedKind/isPrimary
+        //   rather than matching on English playlist names (issue #1740).
 
-        // skip smart/Music tracks = all tracks
-        if (t.playlistType == "smart" && t.playlistName == "Music") {
-            // trackCount = 0;
-            continue;
+        if (!playableExtensions.match(t.absolutePath.c_str()).hasMatch()) {
+            continue; // SquareDesk can't play it, so don't number it and don't show it
         }
 
         // trackCount++;
@@ -2074,10 +2078,11 @@ void MainWindow::getAppleMusicInfo() {
         //     // break;  // FIX: only show the first 10 lines for now
         // }
 
-        bool playlistEntry = (t.playlistType == "static");
-        bool trackFilterEntry = !playlistEntry;
-
-        if (playlistEntry) {
+        // Smart and static Apple Music playlists are imported identically.  ITLibrary resolves a
+        //   smart playlist's rules for us and hands back the resulting track list, so from here
+        //   down there is nothing to tell them apart (issue #1740).  Both are read-only, because
+        //   ITLibrary has no write API.
+        {
             // APPLE PLAYLIST ENTRY looks like:    "Type$!$currentItemNumber$!$Title#!#AbsolutePath"
             //   and goes into:                     allAppleMusicPlaylists.append(entryString);
             //   and the playlistName goes into:    pathStackApplePlaylists->append(playlistName);
@@ -2087,15 +2092,16 @@ void MainWindow::getAppleMusicInfo() {
 
             QString type              = t.genre.c_str();
 
-            int curItemNumInt = t.itemNumber;
-            QString currentItemNumber = "";
-            if (curItemNumInt >= 100) {
-                currentItemNumber += "!"; // 3-digit numbers look like "foo !100" (Yes, this is a kludge for now)
-            }
-            if (curItemNumInt < 10) {
-                currentItemNumber += "0"; // numbers < 100 look like 2 digit with leading zero, "foo 03"
-            }
-            currentItemNumber += QString::number(t.itemNumber);
+            // Zero-pad to a fixed 3 digits, e.g. "001", "099", "100".  This is the same convention
+            //   that local SquareDesk playlists use (see updateTreeWidget()), and the Type string is
+            //   sorted lexically, so a fixed width is what keeps the items in playlist order.
+            //   The old scheme padded to 2 digits and prefixed a '!' at 100+, which sorted the
+            //   100+ items BEFORE the rest ('!' is 0x21, '0' is 0x30) and showed up in the Type
+            //   column as "Hello !100" (issue #1740).
+            int curItemNumInt = ++nextItemNumber[hierPlaylistName];
+            QString currentItemNumber = (curItemNumInt < 10 ? "0" : "");
+            currentItemNumber        += (curItemNumInt < 100 ? "0" : "");
+            currentItemNumber        += QString::number(curItemNumInt);
 
             QString title             = t.title.c_str();
             QString absPath           = t.absolutePath.c_str();
@@ -2119,8 +2125,11 @@ void MainWindow::getAppleMusicInfo() {
             pathStackPlaylists->append(newPlaylistItem);
             pathStackNewApplePlaylists->append(QString("") + newPlaylistItem); // when Apple Music playlists are in the Playlists section of treeWidget
 
-        } else if (trackFilterEntry) {
-            // FIX FIX FIX
+            // Remember which ones are smart, so the treeWidget can explain in a tooltip that
+            //   their contents are maintained by Music and can change between resyncs.
+            if (t.playlistType == "smart") {
+                allAppleMusicSmartPlaylistNames.insert(hierPlaylistName);
+            }
         }
     }
 

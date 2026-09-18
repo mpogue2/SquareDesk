@@ -61,6 +61,7 @@
 #include <QProcess>
 #include <QProgressDialog>
 #include <QProxyStyle>
+#include <QSet>
 #include "prefsmanager.h"
 #include <QSlider>
 #include <QSplashScreen>
@@ -1031,6 +1032,7 @@ private:
     void getLocalPlaylists();
     QList<QStringList> allAppleMusicPlaylists;
     QStringList allAppleMusicPlaylistNames;
+    QSet<QString> allAppleMusicSmartPlaylistNames; // hierarchical names of the SMART ones (issue #1740)
 
     // ============================================================================
     // FONT & UI MANAGEMENT

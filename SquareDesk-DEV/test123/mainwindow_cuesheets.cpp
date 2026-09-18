@@ -230,6 +230,18 @@ bool MainWindow::breakFilenameIntoParts(const QString &s,
             }
         }
     }
+    // A bare number is never a real record label, so don't pretend it is one.  Filenames like
+    //   "7 - The Awe And Wonder Of Innocence.m4a" match the generic "^(\d+)\s*-\s*(.*)$" rule
+    //   above and used to show up with a Label of "7".  Real labels always contain a letter
+    //   ("RIV 307", "4-Bar-B 123"), so if this one doesn't, drop the label entirely and keep
+    //   just the title (issue #1740).
+    static QRegularExpression regexHasALetter("[A-Za-z]");
+    if (!label.isEmpty() && !label.contains(regexHasALetter)) {
+        label = "";
+        labelnum = "";
+        labelnum_extra = "";
+    }
+
     labelnum = labelnum.simplified();
     title = title.simplified();
     shortTitle = shortTitle.simplified();

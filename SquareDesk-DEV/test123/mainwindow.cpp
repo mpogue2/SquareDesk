@@ -3936,6 +3936,17 @@ void MainWindow::updateTreeWidget() {
 
             QTreeWidgetItem *childItem = new QTreeWidgetItem(parentItem);
             childItem->setText(0, splitFileName.last());
+
+            // Smart Apple Music playlists look exactly like static ones here (same Apple symbol,
+            //   same read-only behavior), but their contents are maintained by Music and can
+            //   change between resyncs, so say so in a tooltip (issue #1740).
+            if (fileName.startsWith(QChar(APPLE_SYMBOL_UNICODE))) {
+                QString hierName = fileName;
+                hierName.remove(QChar(APPLE_SYMBOL_UNICODE));
+                if (allAppleMusicSmartPlaylistNames.contains(hierName)) {
+                    childItem->setToolTip(0, "Apple Music smart playlist - contents are maintained by Music");
+                }
+            }
         }
     }
 
