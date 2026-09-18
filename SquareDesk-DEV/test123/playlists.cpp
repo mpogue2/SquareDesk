@@ -2081,6 +2081,7 @@ void MainWindow::getAppleMusicInfo() {
     //   column, e.g. "Hello 001, 002, 003, 005" (issue #1740).
     static QRegularExpression playableExtensions(".*\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption);
     QHash<QString, int> nextItemNumber; // hierarchical playlist name -> next number to hand out
+    QHash<QString, bool> fileExists;    // absolute path -> does it exist (a song can be in many playlists)
 
     for (const PlaylistTrack &t : tracks) {
 
@@ -2088,8 +2089,22 @@ void MainWindow::getAppleMusicInfo() {
         //   already filtered out by readAllPlaylists(), which tests distinguishedKind/isPrimary
         //   rather than matching on English playlist names (issue #1740).
 
-        if (!playableExtensions.match(t.absolutePath.c_str()).hasMatch()) {
+        QString absolutePath = t.absolutePath.c_str();
+
+        if (!playableExtensions.match(absolutePath).hasMatch()) {
             continue; // SquareDesk can't play it, so don't number it and don't show it
+        }
+
+        // Apple Music lists tracks whose file isn't on this Mac: an iCloud track that was never
+        //   downloaded, or one whose file was moved or deleted out from under it.  Those used to
+        //   appear in the song table and then fail with "ERROR: File does not exist" on
+        //   double-click, so drop them here too, before numbering (issue #1740).
+        auto exists = fileExists.constFind(absolutePath);
+        if (exists == fileExists.constEnd()) {
+            exists = fileExists.insert(absolutePath, QFileInfo::exists(absolutePath));
+        }
+        if (!exists.value()) {
+            continue;
         }
 
         // trackCount++;
@@ -2136,7 +2151,7 @@ void MainWindow::getAppleMusicInfo() {
             currentItemNumber        += QString::number(curItemNumInt);
 
             QString title             = t.title.c_str();
-            QString absPath           = t.absolutePath.c_str();
+            QString absPath           = absolutePath;
 
             QString playlistEntryString = playlistName + "$!$" + currentItemNumber + "$!$" + title + "#!#" + absPath;
 
@@ -2171,6 +2186,56 @@ void MainWindow::getAppleMusicInfo() {
 
     // qDebug() << "allAppleMusicPlaylistNames =========\n" << allAppleMusicPlaylistNames;
     // qDebug() << "allAppleMusicPlaylists =============\n" << allAppleMusicPlaylists;
+
+    // ---- DIAGNOSTIC: say what was dropped from each playlist, and why (issue #1740).  Songs
+    //   vanish silently otherwise, and "is that really all of them?" is not a question the UI can
+    //   answer.  OFF by default, so it can't spam the log file: uncomment DEBUGAPPLEMUSICIMPORT in
+    //   globaldefines.h to turn it on.  Deliberately self-contained, recomputing the same three
+    //   outcomes rather than counting inside the import loop above, so switching it on or off
+    //   never touches the import; fileExists is still warm, so it costs no extra filesystem calls.
+    //   Only playlists that actually lost something are listed.
+#ifdef DEBUGAPPLEMUSICIMPORT
+    {
+        struct Counts { int imported = 0; int missing = 0; int unsupported = 0; };
+        QMap<QString, Counts> counts; // QMap, so the report comes out sorted by playlist name
+
+        for (const PlaylistTrack &t : tracks) {
+            QString absolutePath = t.absolutePath.c_str();
+            Counts &c = counts[QString::fromStdString(t.playlistName)];
+            if (!playableExtensions.match(absolutePath).hasMatch()) {
+                c.unsupported++;                            // .m4p (DRM), .aiff, video, ...
+            } else if (!fileExists.value(absolutePath, false)) {
+                c.missing++;                                // not downloaded, moved, or deleted
+            } else {
+                c.imported++;
+            }
+        }
+
+        int totalImported = 0;
+        int totalSkipped  = 0;
+        for (auto it = counts.constBegin(); it != counts.constEnd(); ++it) {
+            const Counts &c = it.value();
+            totalImported += c.imported;
+            totalSkipped  += c.missing + c.unsupported;
+
+            if (c.missing == 0 && c.unsupported == 0) {
+                continue; // nothing was dropped here, so don't say anything about it
+            }
+
+            QString why;
+            if (c.missing > 0) {
+                why += QString(", %1 skipped (file not found)").arg(c.missing);
+            }
+            if (c.unsupported > 0) {
+                why += QString(", %1 skipped (DRM or unsupported format)").arg(c.unsupported);
+            }
+            qDebug().noquote() << QString("Apple Music: \"%1\" - %2 imported%3").arg(it.key()).arg(c.imported).arg(why);
+        }
+
+        qDebug().noquote() << QString("Apple Music: %1 playlists, %2 songs imported, %3 skipped")
+                                  .arg(counts.size()).arg(totalImported).arg(totalSkipped);
+    }
+#endif
 }
 #endif
 

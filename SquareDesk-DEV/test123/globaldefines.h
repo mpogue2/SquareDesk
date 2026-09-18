@@ -91,6 +91,9 @@ private: \
 // to debug the svgClock, define this
 // #define DEBUGCLOCK
 
+// to see what the Apple Music import dropped from each playlist and why, define this
+// #define DEBUGAPPLEMUSICIMPORT
+
 // Uncomment just ONE of the following:
 // #define OLDAPPLEMUSICPLAYLISTS
 #define NEWAPPLEMUSICINTEGRATION
