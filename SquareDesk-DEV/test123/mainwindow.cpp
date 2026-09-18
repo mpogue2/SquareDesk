@@ -1294,6 +1294,30 @@ void MainWindow::updateSongTableColumnView()
     darkHeaderView->setSectionResizeMode(kLabelCol, QHeaderView::Interactive);
     darkHeaderView->setSectionResizeMode(kTitleCol, QHeaderView::Stretch);
 
+    // These are Fixed, so their dividers do nothing when dragged.  That is not ideal -- it got
+    //   more noticeable once the Apple Music columns were added (issue #1740) -- but an attempt
+    //   to change it was reverted, and the reasons are worth knowing before trying again:
+    //
+    // 1. Making them Interactive is not enough on its own.  It doesn't create bad behavior so
+    //    much as expose it: every one of these columns sits to the RIGHT of Title, and Title is
+    //    Stretch, so Title silently absorbs every width change.  Drag the Age|Pitch divider left
+    //    to narrow Age and Title grows by the same amount, sliding Age bodily to the right, so
+    //    the divider under the mouse ends up back where it started and the column's OTHER
+    //    divider appears to have moved.  Being Fixed is what has been hiding this.
+    //
+    // 2. So Title has to stop being the Stretch section first, with something else giving it the
+    //    leftover width -- resized on window resize and on column show/hide, but never in
+    //    response to a divider drag.  That part was written and works.
+    //
+    // 3. But with no Stretch section anywhere, the Audition column (kNumberCol) collapses to a
+    //    few pixels, and we did not find out why.  Untested theory: Stretch is the only reason
+    //    QHeaderView::hasAutoResizeSections() is true here, and the resizeSections() pass it
+    //    enables restores every non-stretch section to its stored size -- masking something else
+    //    that collapses column 0.  Remove the Stretch and the safety net goes with it.
+    //
+    // Next time, instrument rather than reason: log horizontalHeader()->sectionSize(kNumberCol)
+    //   after initializeMusicSongTable(), after each resizeColumnToContents(), after
+    //   darkLoadMusicList(), and inside the slack-column resize.  One build says who shrinks it.
     darkHeaderView->setSectionResizeMode(kLevelsCol, QHeaderView::Fixed);
     darkHeaderView->setSectionResizeMode(kRecentCol, QHeaderView::Fixed);
     darkHeaderView->setSectionResizeMode(kAgeCol, QHeaderView::Fixed);
