@@ -1036,6 +1036,9 @@ private:
     QStringList allAppleMusicPlaylistNames;
     QSet<QString> allAppleMusicSmartPlaylistNames; // hierarchical names of the SMART ones (issue #1740)
     QHash<QString, QString> appleMusicTitleByPath;  // absolute path -> title as Apple Music knows it
+    QHash<QString, QString> appleMusicTypeByPath;   // absolute path -> "patter"/"singing"/"called"/"extras",
+                                                   //   as the Type mapping in Preferences worked it out
+    QHash<QString, QString> appleMusicTypeReasonByPath;  // ...and why, for the Type cell's tooltip
     QString appleMusicTitleAsRelativePath(const QString &absPath);
     void updateAppleMusicMenuItems(); // File > Resync is only shown when Apple Music sync is enabled (issue #1740)
 

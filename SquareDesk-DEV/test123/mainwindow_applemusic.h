@@ -42,16 +42,20 @@ struct PlaylistTrack {
     std::string grouping;
     std::string work;
     std::string modifiedDate;   // ISO 8601, empty if not set
+    std::string album;          // the fields below are here for the square dance filter and the
+    std::string albumArtist;    //   Type mapping in Preferences > Apple Music (issue #1740)
+    std::string comments;
 };
 
 // Returns all tracks from every playlist via the ITLibrary framework.
 // On failure, returns an empty vector and sets errorOut.
 std::vector<PlaylistTrack> readAllPlaylists(std::string &errorOut);
 
-// The metadata fields of a single song in the Apple Music library, independent of any
-//   playlist it may belong to.  Used by Preferences > Apple Music to build the value
-//   pickers and the live match count for the square dance filter (issue #1740, item 6).
+// The metadata fields of a single song, independent of which playlist it came from.  This is
+//   what the square dance filter and the Type mapping in Preferences > Apple Music are written
+//   against, and what their live preview lists (issue #1740, item 6).
 struct AppleMusicTrackMeta {
+    std::string absolutePath;
     std::string title;
     std::string artist;
     std::string albumArtist;
@@ -62,7 +66,3 @@ struct AppleMusicTrackMeta {
     std::string comments;
     std::string work;
 };
-
-// Returns every song in the library that has a local file (movies, podcasts, audiobooks
-//   and cloud-only tracks are skipped).  On failure, returns an empty vector and sets errorOut.
-std::vector<AppleMusicTrackMeta> readAllLibraryTrackMeta(std::string &errorOut);

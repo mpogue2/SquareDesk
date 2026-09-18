@@ -31,6 +31,7 @@ SOURCES += main.cpp\
     mytextedit.cpp \
     newdancedialog.cpp \
     playlists.cpp \
+    applemusicfilter.cpp \
     preferencesdialog.cpp \
     choreosequencedialog.cpp \
     cuesheetmatchingdebugdialog.cpp \
@@ -115,6 +116,7 @@ HEADERS  += mainwindow.h \
     newdancedialog.h \
     sessioninfo.h \
     songhistoryexportdialog.h \
+    applemusicfilter.h \
     preferencesdialog.h \
     choreosequencedialog.h \
     cuesheetmatchingdebugdialog.h \

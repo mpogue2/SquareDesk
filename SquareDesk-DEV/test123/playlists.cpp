@@ -42,6 +42,7 @@
 #include "playlistexport.h"
 #include "mytreewidget.h"
 #include "mainwindow_applemusic.h"
+#include "applemusicfilter.h"
 #include <algorithm>
 #include <functional>
 #include <utility>
@@ -356,7 +357,26 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     // qDebug() << "cType:" << cType;
 
     QColor textCol; // = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
-    if (songTypeNamesForExtras.contains(cType) || isAppleMusicFile) {  // special case for Apple Music items
+
+    // An Apple Music track whose Type came from its metadata is colored by that Type, exactly as
+    //   darkLoadMusicList() colors it, so the same song doesn't look like patter in the song
+    //   table and like an extra in a palette slot (issue #1740, item 6).  With no Type mapping
+    //   configured there is nothing better to go on, so it falls back to the extras color below,
+    //   the way it always has.
+    const QString appleMusicType = isAppleMusicFile ? appleMusicTypeByPath.value(theRealPath) : QString();
+
+    if (!appleMusicType.isEmpty()) {
+        if (appleMusicType == "patter") {
+            textCol = QColor(patterColorString);
+        } else if (appleMusicType == "singing") {
+            textCol = QColor(singingColorString);
+        } else if (appleMusicType == "called") {
+            textCol = QColor(calledColorString);
+        } else {
+            textCol = QColor(extrasColorString);
+        }
+    }
+    else if (songTypeNamesForExtras.contains(cType) || isAppleMusicFile) {  // special case for Apple Music items
         textCol = QColor(extrasColorString);
     }
     else if (songTypeNamesForPatter.contains(cType)) {
@@ -2081,6 +2101,8 @@ void MainWindow::getAppleMusicInfo() {
     allAppleMusicPlaylistNames.clear();
     allAppleMusicSmartPlaylistNames.clear();
     appleMusicTitleByPath.clear();
+    appleMusicTypeByPath.clear();
+    appleMusicTypeReasonByPath.clear();
 
     // qDebug() << "type,name,itemnumber,title,artist,title,genre,BPM,rating,year,grouping,work,modifiedDate";
     // int trackCount = 0;
@@ -2088,9 +2110,19 @@ void MainWindow::getAppleMusicInfo() {
     //   Those are dropped here, BEFORE item numbers are handed out, so that the numbers SquareDesk
     //   shows are contiguous.  Numbering them first and filtering later left gaps in the Type
     //   column, e.g. "Hello 001, 002, 003, 005" (issue #1740).
-    static QRegularExpression playableExtensions(".*\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption);
     QHash<QString, int> nextItemNumber; // hierarchical playlist name -> next number to hand out
     QHash<QString, bool> fileExists;    // absolute path -> does it exist (a song can be in many playlists)
+
+    // The user's square dance filter and Type mapping from Preferences > Apple Music.  This is
+    //   the same class the Preferences dialog runs for its live preview, so what was previewed
+    //   there is what gets imported here (issue #1740, item 6).
+    AppleMusicFilter appleMusicFilter;
+    appleMusicFilter.loadFrom(prefsManager);
+
+    // Every track readAllPlaylists() returns is, by definition, inside a playlist.  So when the
+    //   user has turned "Apply these rules to tracks inside playlists too" OFF, playlist
+    //   membership wins outright and the rules don't gate anything here.
+    const bool applyFilter = appleMusicFilter.filterEnabled && appleMusicFilter.appliesInsidePlaylists;
 
     for (const PlaylistTrack &t : tracks) {
 
@@ -2100,7 +2132,7 @@ void MainWindow::getAppleMusicInfo() {
 
         QString absolutePath = t.absolutePath.c_str();
 
-        if (!playableExtensions.match(absolutePath).hasMatch()) {
+        if (!appleMusicIsPlayableFormat(absolutePath)) {
             continue; // SquareDesk can't play it, so don't number it and don't show it
         }
 
@@ -2114,6 +2146,27 @@ void MainWindow::getAppleMusicInfo() {
         }
         if (!exists.value()) {
             continue;
+        }
+
+        // Is this square dance music at all, and if so what Type is it?  Both questions are
+        //   answered BEFORE the item number is handed out below, for the same reason the two
+        //   checks above are: numbering first and filtering later leaves visible gaps in the
+        //   Type column, e.g. "Hello 001, 002, 003, 005" (issue #1740).
+        const AppleMusicTrackMeta meta = appleMusicMetaOf(t);
+        if (applyFilter && !appleMusicFilter.passes(meta)) {
+            continue; // not square dance music, by the user's own rules
+        }
+
+        // The Type mapping only has an opinion when the user has actually chosen a metadata
+        //   field to read it from.  With no field chosen, Apple Music tracks keep the Type
+        //   column and the color they have always had, so turning Apple Music sync on doesn't
+        //   silently relabel anybody's song table.
+        QString songType;
+        if (appleMusicFilter.typeComesFromMetadata()) {
+            songType = appleMusicFilter.typeOf(meta);
+            if (songType.isEmpty()) {
+                continue; // its Type maps to "Don't import"
+            }
         }
 
         // trackCount++;
@@ -2146,8 +2199,6 @@ void MainWindow::getAppleMusicInfo() {
             QStringList playlistParts = hierPlaylistName.split("/");
             QString playlistName      = playlistParts.last();
 
-            QString type              = t.genre.c_str();
-
             // Zero-pad to a fixed 3 digits, e.g. "001", "099", "100".  This is the same convention
             //   that local SquareDesk playlists use (see updateTreeWidget()), and the Type string is
             //   sorted lexically, so a fixed width is what keeps the items in playlist order.
@@ -2171,6 +2222,19 @@ void MainWindow::getAppleMusicInfo() {
             strList << hierPlaylistName << title << absPath;
             allAppleMusicPlaylists.append(strList); // needed to load Apple Music playlist into a slot
             appleMusicTitleByPath.insert(absPath, title); // so any table row can recover the real title
+            if (!songType.isEmpty()) {
+                appleMusicTypeByPath.insert(absPath, songType); // ...and the Type its metadata says it is
+
+                // Why that Type, for the tooltip on the Type cell -- there is otherwise no way
+                //   to see why a track came out the Type it did.
+                const QString fieldValue = appleMusicFieldValue(meta, appleMusicFilter.typeFieldKey);
+                appleMusicTypeReasonByPath.insert(
+                    absPath,
+                    QString("Apple Music: %1 = \"%2\", so Type is %3")
+                        .arg(appleMusicFieldDisplay(appleMusicFilter.typeFieldKey))
+                        .arg(fieldValue.trimmed().isEmpty() ? QString("(empty)") : fieldValue)
+                        .arg(songType));
+            }
 
             // ------------------------------------------------------
             // new treeWidget integration into PLAYLISTS instead of APPLE MUSIC
@@ -2205,16 +2269,21 @@ void MainWindow::getAppleMusicInfo() {
     //   Only playlists that actually lost something are listed.
 #ifdef DEBUGAPPLEMUSICIMPORT
     {
-        struct Counts { int imported = 0; int missing = 0; int unsupported = 0; };
+        struct Counts { int imported = 0; int missing = 0; int unsupported = 0; int filtered = 0; };
         QMap<QString, Counts> counts; // QMap, so the report comes out sorted by playlist name
 
         for (const PlaylistTrack &t : tracks) {
             QString absolutePath = t.absolutePath.c_str();
             Counts &c = counts[QString::fromStdString(t.playlistName)];
-            if (!playableExtensions.match(absolutePath).hasMatch()) {
+            const AppleMusicTrackMeta meta = appleMusicMetaOf(t);
+            if (!appleMusicIsPlayableFormat(absolutePath)) {
                 c.unsupported++;                            // .m4p (DRM), .aiff, video, ...
             } else if (!fileExists.value(absolutePath, false)) {
                 c.missing++;                                // not downloaded, moved, or deleted
+            } else if ((applyFilter && !appleMusicFilter.passes(meta))
+                       || (appleMusicFilter.typeComesFromMetadata()
+                           && appleMusicFilter.typeOf(meta).isEmpty())) {
+                c.filtered++;                               // not square dance music, per Preferences
             } else {
                 c.imported++;
             }
@@ -2225,9 +2294,9 @@ void MainWindow::getAppleMusicInfo() {
         for (auto it = counts.constBegin(); it != counts.constEnd(); ++it) {
             const Counts &c = it.value();
             totalImported += c.imported;
-            totalSkipped  += c.missing + c.unsupported;
+            totalSkipped  += c.missing + c.unsupported + c.filtered;
 
-            if (c.missing == 0 && c.unsupported == 0) {
+            if (c.missing == 0 && c.unsupported == 0 && c.filtered == 0) {
                 continue; // nothing was dropped here, so don't say anything about it
             }
 
@@ -2237,6 +2306,9 @@ void MainWindow::getAppleMusicInfo() {
             }
             if (c.unsupported > 0) {
                 why += QString(", %1 skipped (DRM or unsupported format)").arg(c.unsupported);
+            }
+            if (c.filtered > 0) {
+                why += QString(", %1 skipped (not square dance music, per Preferences)").arg(c.filtered);
             }
             qDebug().noquote() << QString("Apple Music: \"%1\" - %2 imported%3").arg(it.key()).arg(c.imported).arg(why);
         }

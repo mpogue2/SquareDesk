@@ -106,7 +106,10 @@ std::vector<PlaylistTrack> readAllPlaylists(std::string &errorOut)
                     (int)item.year,
                     str(item.grouping),
                     str([item valueForProperty:ITLibMediaItemPropertyWork]),
-                    modDate
+                    modDate,
+                    str(item.album.title),
+                    str(item.album.albumArtist),
+                    str(item.comments)
                 });
             }
         }
@@ -115,47 +118,3 @@ std::vector<PlaylistTrack> readAllPlaylists(std::string &errorOut)
     return result;
 }
 
-std::vector<AppleMusicTrackMeta> readAllLibraryTrackMeta(std::string &errorOut)
-{
-    std::vector<AppleMusicTrackMeta> result;
-
-    @autoreleasepool {
-        NSError *error = nil;
-        ITLibrary *library = [ITLibrary libraryWithAPIVersion:@"1.1" error:&error];
-
-        if (!library) {
-            NSString *msg = error ? error.localizedDescription : @"unknown error";
-            errorOut = std::string(msg.UTF8String)
-                + "\n\nIf this is a permissions error, grant \"Media & Apple Music\" access"
-                  " to SquareDesk in:\n"
-                  "  System Settings > Privacy & Security > Media & Apple Music";
-            return result;
-        }
-
-        auto str = [](NSString *s) -> std::string {
-            return s ? s.UTF8String : "";
-        };
-
-        for (ITLibMediaItem *item in library.allMediaItems) {
-            // Only songs that live in a real file on this machine can ever become SquareDesk
-            //   tracks, so counting anything else would overstate what the filter will import.
-            if (item.mediaKind != ITLibMediaItemMediaKindSong) continue;
-            if (item.locationType != ITLibMediaItemLocationTypeFile) continue;
-            if (!item.location.path) continue;
-
-            result.push_back({
-                str(item.title),
-                str(item.artist.name),
-                str(item.album.albumArtist),
-                str(item.album.title),
-                str(item.genre),
-                str(item.grouping),
-                str(item.composer),
-                str(item.comments),
-                str([item valueForProperty:ITLibMediaItemPropertyWork])
-            });
-        }
-    }
-
-    return result;
-}

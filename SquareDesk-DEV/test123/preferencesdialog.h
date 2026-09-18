@@ -36,6 +36,7 @@
 #include "common_enums.h"
 #include "default_colors.h"
 #include "keybindings.h"
+#include "applemusicfilter.h"
 #include "mainwindow_applemusic.h"
 #include <QPushButton>
 #include <QLineEdit>
@@ -192,8 +193,8 @@ private:
     void loadAppleMusicLibraryIfNeeded();
     void refreshAppleMusicValuePicker(QComboBox *valueCombo, const QString &fieldKey);
     void showAppleMusicValueMenu(QLineEdit *target, QToolButton *button);
-    QString appleMusicTypeOf(const AppleMusicTrackMeta &track) const;  // "patter"/"singing"/"called"/"extras"/""
-    bool appleMusicTrackPasses(const AppleMusicTrackMeta &track) const;
+    QList<AppleMusicRule> appleMusicRulesFromWidgets() const;
+    AppleMusicFilter appleMusicFilterFromWidgets() const;   // what the import would do, right now
 
     std::vector<AppleMusicTrackMeta> appleMusicTracks;
     bool appleMusicLibraryLoaded = false;

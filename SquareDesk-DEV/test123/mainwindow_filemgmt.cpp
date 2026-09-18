@@ -26,6 +26,7 @@
 // FILE MANAGEMENT FUNCTIONS
 
 #include "globaldefines.h"
+#include "applemusicfilter.h"
 
 #include <QActionGroup>
 #include <QColorDialog>
@@ -203,12 +204,36 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     //  that here.  The songType passed in HERE is the songType in the songTable, but there's one use case
     //  where that string is NOT the actual song type, and that's when the songTable is showing a playlist.
     //  In that case, it will start with a greek letter, in which case we KNOW it's from a playlist.
-    //  Also, if it starts with an APPLE, then we know it's from Apple Music.  The Apple Music ones are
-    //  already overridden as type = "EXTRAS", and colored red by default.
+    //  Apple Music tracks used to be forced to "EXTRAS" here; they now carry whatever Type the
+    //  metadata mapping in Preferences > Apple Music gave them, handled first below.
 
     // qDebug() << "loadMP3File::songType: " << songType << songType[0];
 
-    if (songType[0] == QChar(0x039E) || songType[0] == QChar(0x03BE)) {
+    // An Apple Music track lives in the iTunes media folder, not the Music Directory, so there is
+    //   no type folder in its path to recover a Type from, and the Type column may now carry the
+    //   mapped Type as a prefix rather than being the Type outright.  Preferences > Apple Music
+    //   already worked the Type out from the track's metadata at import time, so use that.  This
+    //   is what makes an Apple Music patter actually BEHAVE like patter -- looping, clock
+    //   coloring, tip timers -- instead of falling through to "extras" (issue #1740, item 6).
+    const QString appleMusicSongType = appleMusicTypeByPath.value(MP3FileName);
+
+    if (!appleMusicSongType.isEmpty()) {
+        // The mapping produces the canonical category names, but setCurrentSongMetadata() matches
+        //   against the user's OWN type names from the Music Types tab, which they are free to
+        //   edit (a user whose patter list is just "hoedown" would otherwise get no match at all).
+        //   So hand it their first word for the category, the way darkLoadMusicList() picks
+        //   default folder names.
+        if (appleMusicSongType == "patter") {
+            songType = songTypeNamesForPatter.value(0, "patter");
+        } else if (appleMusicSongType == "singing") {
+            songType = songTypeNamesForSinging.value(0, "singing");
+        } else if (appleMusicSongType == "called") {
+            songType = songTypeNamesForCalled.value(0, "called");
+        } else {
+            songType = songTypeNamesForExtras.value(0, "extras");
+        }
+    } else if (!songType.isEmpty()
+               && (songType[0] == QChar(0x039E) || songType[0] == QChar(0x03BE))) {
         // we're loading a file from the songTable that came from a playlist.
         // ignore the songType and replace it with the real songType.
         // NOTE: Maybe we should just ALWAYS override the songType and use the type extracted from the path here?
@@ -1393,6 +1418,35 @@ void MainWindow::loadMusicList()
 //
 // Note: if aPathStack == currentShowingPathStack, then don't do anything
 
+// The Type column has three jobs for an Apple Music track already: say where it came from (the
+//   APPLE symbol), group it by playlist, and preserve Apple's order (the item number).  The Type
+//   worked out from the track's metadata is a fourth job, and it can't just displace the other
+//   three, so where it goes is the user's call (Preferences > Apple Music, issue #1740 item 6).
+static QString applyAppleMusicTypeColumnFormat(const QString &playlistPart,
+                                               const QString &appleMusicType,
+                                               int format)
+{
+    if (appleMusicType.isEmpty()) {
+        return playlistPart;  // no Type field chosen, so there is nothing to add
+    }
+
+    switch (format) {
+        case AppleMusicTypeOnly:
+            return appleMusicType;
+
+        case AppleMusicPlaylistOnly:
+            return playlistPart;
+
+        case AppleMusicTypeThenPlaylist:
+        default:
+            // Type first, so that sorting the column groups all the patter together, and so that
+            //   typing "patter" in the search box finds local and Apple Music tracks alike.  The
+            //   APPLE symbol still sorts Apple tracks below local ones within a Type, and the
+            //   item number still keeps a playlist in Apple's order within that.
+            return appleMusicType + " " + playlistPart;
+    }
+}
+
 void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilter, bool forceFilter, bool reloadPaletteSlots, bool suppressSelectionChange)
 {
     // qDebug() << "darkLoadMusicList: " << typeFilter << forceFilter << reloadPaletteSlots;
@@ -1582,6 +1636,9 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
     // once per DIRECTORY (many songs share a directory), cached here (Issue #1669)
     QHash<QString, bool> dirIsMusicRoot; // fi.path() -> (canonicalPath of that dir == musicRootPath)
 
+    // read once, not once per row
+    const int appleMusicTypeColumnFormat = prefsManager.GetappleMusicTypeColumnFormat();
+
     int i = 0;
     for (const auto &s : justMusic) {
         // qDebug() << "s:" << s;
@@ -1628,6 +1685,11 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         QString pitchOverride = "";
         QString tempoOverride = "";
 
+        // "patter"/"singing"/"called"/"extras", for an Apple Music track whose Type was worked
+        //   out from its metadata by Preferences > Apple Music.  Empty for everything else, and
+        //   for Apple Music tracks when no Type field has been chosen (issue #1740, item 6).
+        QString appleMusicType;
+
         if (type.contains("$!$")) {
             // This is Apple Music, so we're going to override everything that breakFilenameIntoParts did (or tried to do)
             // e.g. "ApplePlaylistName$!$lineNumber$!$Short Title from Apple Music#!#FullPathname"
@@ -1641,6 +1703,8 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
             QString appleSymbol = QChar(0xF8FF);  // use APPLE symbol for Apple Music (sorts at the bottom)
             // QString appleSymbol = QChar(0x039E);  // use GREEK XI for Local Playlists (sorts almost at the bottom, and looks like a playlist!)
             type = appleSymbol + " " + sl10[0] + " " + AppleLineNumber; // this is tricky.  Leading Apple will force sort to bottom for "<APPLESYMBOL> Apple Playlist Name".
+            appleMusicType = appleMusicTypeByPath.value(origPath);
+            type = applyAppleMusicTypeColumnFormat(type, appleMusicType, appleMusicTypeColumnFormat);
             labelnum = "";
             labelnum_extra = "";
             // totalNumberOfAppleSongs++;
@@ -1680,6 +1744,13 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
             QString GreekXi = QChar(0x039E);  // use GREEK XI for Local Playlists (sorts almost at the bottom, and looks like a playlist!)
             type = GreekXi + " " + type; // this is tricky.  Leading GREEK XI will force sort to almost bottom for "<GREEKXI> SquareDesk Playlist Name".
+
+            // An Apple Music track routed through the Playlists section gets the same Type
+            //   treatment as one in the Apple Music section (issue #1740, item 6).
+            if (playlistName.startsWith(QChar(0xF8FF))) {
+                appleMusicType = appleMusicTypeByPath.value(origPath);
+                type = applyAppleMusicTypeColumnFormat(type, appleMusicType, appleMusicTypeColumnFormat);
+            }
             // labelnum = "";
             // labelnum_extra = "";
         } else {
@@ -1691,6 +1762,13 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         QString cType = typeFromPath.toLower();  // type for Color purposes
         if (cType.right(1)=="*") {
             cType.chop(1);  // remove the "*" for the purposes of coloring
+        }
+
+        // An Apple Music track has no type folder in its path, so typeFromPath is empty and it
+        //   used to fall through to the xtras color no matter what it actually was.  Now that
+        //   its Type comes from its metadata, color it like any other song of that Type.
+        if (!appleMusicType.isEmpty()) {
+            cType = appleMusicType;
         }
 
         // if (songTypeNamesForExtras.contains(cType)) {
@@ -1809,6 +1887,11 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         QTableWidgetItem *twi1 = new QTableWidgetItem(type);
         twi1->setForeground(textBrush);
         twi1->setFlags(twi1->flags() & ~Qt::ItemIsEditable);      // not editable
+        if (!appleMusicType.isEmpty()) {
+            // e.g. 'Apple Music: Grouping = "Hoedown", so Type is patter'.  Without this there is
+            //   no way to see WHY a track came out the Type it did (issue #1740).
+            twi1->setToolTip(appleMusicTypeReasonByPath.value(origPath));
+        }
         ui->darkSongTable->setItem(i, kTypeCol, twi1);
 
         // LABEL + LABELNUM FIELD -----

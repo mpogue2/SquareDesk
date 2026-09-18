@@ -31,23 +31,22 @@
 #include <QKeySequenceEdit>
 #include <QTimeEdit>
 #include "sessioninfo.h"
+#include "applemusicfilter.h"
 #include <algorithm>
 #include <utility>
 
 // Preferences > Apple Music (issue #1740, item 6)
 #include <QApplication>
+#include <QFileInfo>
+#include <QSet>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QHeaderView>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QLabel>
 #include <QLocale>
 #include <QMenu>
 #include <QRadioButton>
-#include <QRegularExpression>
 #include <QScrollBar>
 #include <QSplitter>
 #include <QTableWidget>
@@ -1162,118 +1161,12 @@ void PreferencesDialog::on_panEQGainDial_valueChanged(int value)
 //   count and the preview read the real iTunes library so the rules can be tried out.
 // ============================================================================================
 
-struct AppleMusicNamedItem {
-    const char *key;
-    const char *display;
-};
-
-// Order must match the items in appleMusicTypeFieldCombo (after its leading "Nothing" item)
-//   and in the rule rows' field pulldown, both of which are built from this table.
-static const AppleMusicNamedItem appleMusicFields[] = {
-    { "genre",       "Genre"        },
-    { "grouping",    "Grouping"     },
-    { "album",       "Album"        },
-    { "albumArtist", "Album Artist" },
-    { "artist",      "Artist"       },
-    { "composer",    "Composer"     },
-    { "comments",    "Comments"     },
-    { "work",        "Work"         },
-    { "title",       "Title"        },
-};
-static const int numAppleMusicFields = sizeof(appleMusicFields)/sizeof(appleMusicFields[0]);
-
-static const AppleMusicNamedItem appleMusicOperators[] = {
-    { "is",          "is"                },
-    { "isNot",       "is not"            },
-    { "contains",    "contains"          },
-    { "notContains", "does not contain"  },
-    { "startsWith",  "starts with"       },
-    { "endsWith",    "ends with"         },
-    { "matches",     "matches (wildcard)"},
-    { "notEmpty",    "is not empty"      },
-};
-static const int numAppleMusicOperators = sizeof(appleMusicOperators)/sizeof(appleMusicOperators[0]);
-
-static QString appleMusicFieldValue(const AppleMusicTrackMeta &track, const QString &fieldKey)
-{
-    if (fieldKey == "genre")       return QString::fromStdString(track.genre);
-    if (fieldKey == "grouping")    return QString::fromStdString(track.grouping);
-    if (fieldKey == "album")       return QString::fromStdString(track.album);
-    if (fieldKey == "albumArtist") return QString::fromStdString(track.albumArtist);
-    if (fieldKey == "artist")      return QString::fromStdString(track.artist);
-    if (fieldKey == "composer")    return QString::fromStdString(track.composer);
-    if (fieldKey == "comments")    return QString::fromStdString(track.comments);
-    if (fieldKey == "work")        return QString::fromStdString(track.work);
-    if (fieldKey == "title")       return QString::fromStdString(track.title);
-    return QString();
-}
-
 // The two running totals are the numbers the user is actually watching while they edit a
 //   rule, so they get bold italic.  Rich text, not a font: see the comment about the
 //   re-polish in setupAppleMusicTab().
 static QString appleMusicBoldItalic(const QString &text)
 {
     return "<b><i>" + text.toHtmlEscaped() + "</i></b>";
-}
-
-static QString appleMusicFieldDisplay(const QString &fieldKey)
-{
-    for (int i = 0; i < numAppleMusicFields; ++i) {
-        if (fieldKey == appleMusicFields[i].key) {
-            return appleMusicFields[i].display;
-        }
-    }
-    return fieldKey;
-}
-
-static bool appleMusicRuleMatches(const QString &value, const QString &opKey, const QString &arg)
-{
-    if (opKey == "notEmpty")    return !value.trimmed().isEmpty();
-    if (opKey == "is")          return value.compare(arg, Qt::CaseInsensitive) == 0;
-    if (opKey == "isNot")       return value.compare(arg, Qt::CaseInsensitive) != 0;
-    if (opKey == "contains")    return value.contains(arg, Qt::CaseInsensitive);
-    if (opKey == "notContains") return !value.contains(arg, Qt::CaseInsensitive);
-    if (opKey == "startsWith")  return value.startsWith(arg, Qt::CaseInsensitive);
-    if (opKey == "endsWith")    return value.endsWith(arg, Qt::CaseInsensitive);
-    if (opKey == "matches") {
-        QRegularExpression re = QRegularExpression::fromWildcard(arg, Qt::CaseInsensitive);
-        return re.match(value).hasMatch();
-    }
-    return false;
-}
-
-// One entry of a semicolon-separated Type list, e.g. "hoedown;patter;SD *".  Wildcards are
-//   allowed here too, so a user whose Groupings are "SD-Patter-1".."SD-Patter-9" can write "SD-Patter-*".
-static bool appleMusicValueInList(const QString &value, const QString &semicolonList)
-{
-    const QStringList entries = semicolonList.split(';', Qt::SkipEmptyParts);
-    for (const QString &entryRaw : entries) {
-        QString entry = entryRaw.trimmed();
-        if (entry.isEmpty()) {
-            continue;
-        }
-        if (entry.contains('*') || entry.contains('?')) {
-            if (QRegularExpression::fromWildcard(entry, Qt::CaseInsensitive).match(value).hasMatch()) {
-                return true;
-            }
-        } else if (value.compare(entry, Qt::CaseInsensitive) == 0) {
-            return true;
-        }
-    }
-    return false;
-}
-
-// "hoedown;;patter" (or a leading ";") is what's left behind when a value is deleted from the
-//   middle of one of the Type lists.  The list parser skips empty entries anyway, but leaving
-//   them in the field looks broken, so collapse them as they appear.
-static QString appleMusicCollapseSemicolons(QString text)
-{
-    static const QRegularExpression runOfSemicolons(";{2,}");
-    text.replace(runOfSemicolons, ";");
-    while (text.startsWith(';')) {
-        text.remove(0, 1);
-    }
-    return text;
 }
 
 static void appleMusicTidySemicolons(QLineEdit *edit)
@@ -1496,9 +1389,9 @@ void PreferencesDialog::addAppleMusicRuleRow(const QString &fieldKey, const QStr
     refreshAppleMusicValuePicker(valueCombo, fieldCombo->currentData().toString());
 }
 
-QString PreferencesDialog::getAppleMusicFilterRules()
+QList<AppleMusicRule> PreferencesDialog::appleMusicRulesFromWidgets() const
 {
-    QJsonArray rules;
+    QList<AppleMusicRule> rules;
     for (int i = 0; i < appleMusicRuleRowCount(); ++i) {
         QWidget *row = appleMusicRuleRowAt(i);
         if (!row) {
@@ -1510,13 +1403,41 @@ QString PreferencesDialog::getAppleMusicFilterRules()
         if (!fieldCombo || !opCombo || !valueCombo) {
             continue;
         }
-        QJsonObject rule;
-        rule["field"] = fieldCombo->currentData().toString();
-        rule["op"]    = opCombo->currentData().toString();
-        rule["value"] = valueCombo->currentText();
-        rules.append(rule);
+        rules.append({ fieldCombo->currentData().toString(),
+                       opCombo->currentData().toString(),
+                       valueCombo->currentText() });
     }
-    return QString::fromUtf8(QJsonDocument(rules).toJson(QJsonDocument::Compact));
+    return rules;
+}
+
+// The live preview has to show what the import will actually do, so it runs the same
+//   AppleMusicFilter the importer runs -- just filled in from the widgets rather than from the
+//   saved preferences, since the user hasn't pressed OK yet.
+AppleMusicFilter PreferencesDialog::appleMusicFilterFromWidgets() const
+{
+    AppleMusicFilter filter;
+
+    filter.filterEnabled          = ui->appleMusicFilterEnabledRadio->isChecked();
+    filter.matchAll               = (ui->appleMusicFilterMatchCombo->currentIndex() == 0);
+    filter.appliesInsidePlaylists = ui->appleMusicFilterInPlaylistsCheckbox->isChecked();
+    filter.rules                  = appleMusicRulesFromWidgets();
+
+    const int typeFieldIndex = ui->appleMusicTypeFieldCombo->currentIndex();
+    filter.typeFieldKey = (typeFieldIndex > 0) ? appleMusicFields[typeFieldIndex - 1].key : QString();
+
+    filter.typePatter       = ui->lineEditAppleMusicTypePatter->text();
+    filter.typeSinging      = ui->lineEditAppleMusicTypeSinging->text();
+    filter.typeCalled       = ui->lineEditAppleMusicTypeCalled->text();
+    filter.typeExtras       = ui->lineEditAppleMusicTypeExtras->text();
+    filter.typeDefault      = ui->appleMusicTypeDefaultCombo->currentIndex();
+    filter.typeColumnFormat = ui->appleMusicTypeColumnFormatCombo->currentIndex();
+
+    return filter;
+}
+
+QString PreferencesDialog::getAppleMusicFilterRules()
+{
+    return AppleMusicFilter::rulesToJSON(appleMusicRulesFromWidgets());
 }
 
 void PreferencesDialog::setAppleMusicFilterRules(const QString &rulesJSON)
@@ -1528,12 +1449,9 @@ void PreferencesDialog::setAppleMusicFilterRules(const QString &rulesJSON)
         delete item;
     }
 
-    const QJsonArray rules = QJsonDocument::fromJson(rulesJSON.toUtf8()).array();
-    for (const QJsonValue &ruleValue : rules) {
-        const QJsonObject rule = ruleValue.toObject();
-        addAppleMusicRuleRow(rule["field"].toString("genre"),
-                             rule["op"].toString("is"),
-                             rule["value"].toString());
+    const QList<AppleMusicRule> rules = AppleMusicFilter::rulesFromJSON(rulesJSON);
+    for (const AppleMusicRule &rule : rules) {
+        addAppleMusicRuleRow(rule.fieldKey, rule.opKey, rule.value);
     }
 
     if (appleMusicRuleRowCount() == 0) {
@@ -1549,15 +1467,48 @@ void PreferencesDialog::loadAppleMusicLibraryIfNeeded()
     }
     appleMusicLibraryLoaded = true;  // one attempt per visit to Preferences, success or not
 
+    // Read the PLAYLISTS, not the whole library.  SquareDesk only ever imports tracks that are
+    //   in an Apple Music playlist, so a song that is merely in the library can't arrive however
+    //   the rules are written, and counting it would overstate the match by a wide margin.  This
+    //   is the same call getAppleMusicInfo() makes, so the preview sees exactly what the import
+    //   will see (issue #1740).
+    std::vector<PlaylistTrack> playlistTracks;
+
 #ifdef NEWAPPLEMUSICINTEGRATION
     QApplication::setOverrideCursor(Qt::WaitCursor);
     std::string error;
-    appleMusicTracks = readAllLibraryTrackMeta(error);
+    playlistTracks = readAllPlaylists(error);
     QApplication::restoreOverrideCursor();
     appleMusicLibraryError = QString::fromStdString(error);
 #else
     appleMusicLibraryError = "Apple Music integration is not available in this build.";
 #endif
+
+    // Then drop everything else the importer would drop, so the preview and the counts only ever
+    //   promise songs that can actually arrive: formats SquareDesk can't play (.m4p is FairPlay
+    //   DRM, and Apple Music libraries are full of them), and files that aren't on this Mac --
+    //   an iCloud track that was never downloaded, or one moved or deleted out from under Music.
+    //   These mirror the two checks at the top of getAppleMusicInfo().
+    QSet<QString> alreadySeen;
+    appleMusicTracks.clear();
+    appleMusicTracks.reserve(playlistTracks.size());
+
+    for (const PlaylistTrack &track : playlistTracks) {
+        const QString absolutePath = QString::fromStdString(track.absolutePath);
+
+        // One song can be in several playlists.  The import makes a row per playlist membership,
+        //   but "is this square dance music, and what Type is it" is a question about the SONG,
+        //   so list it once.
+        if (alreadySeen.contains(absolutePath)) {
+            continue;
+        }
+        alreadySeen.insert(absolutePath);
+
+        if (!appleMusicIsPlayableFormat(absolutePath) || !QFileInfo::exists(absolutePath)) {
+            continue;
+        }
+        appleMusicTracks.push_back(appleMusicMetaOf(track));
+    }
 
     // now that we know what's in the library, the pulldowns can offer real values
     for (int i = 0; i < appleMusicRuleRowCount(); ++i) {
@@ -1630,9 +1581,10 @@ void PreferencesDialog::showAppleMusicValueMenu(QLineEdit *target, QToolButton *
 
     // Only offer values from tracks that survive the filter -- the others aren't square
     //   dance music, so their Groupings would just be noise in this list.
+    const AppleMusicFilter filter = appleMusicFilterFromWidgets();
     std::vector<AppleMusicTrackMeta> filtered;
     for (const AppleMusicTrackMeta &track : appleMusicTracks) {
-        if (appleMusicTrackPasses(track)) {
+        if (filter.passes(track)) {
             filtered.push_back(track);
         }
     }
@@ -1657,71 +1609,6 @@ void PreferencesDialog::showAppleMusicValueMenu(QLineEdit *target, QToolButton *
 }
 
 // -------------------------------------------------------------------
-bool PreferencesDialog::appleMusicTrackPasses(const AppleMusicTrackMeta &track) const
-{
-    if (!ui->appleMusicFilterEnabledRadio->isChecked()) {
-        return true;
-    }
-
-    const bool matchAll = (ui->appleMusicFilterMatchCombo->currentIndex() == 0);
-    int ruleCount = 0;
-
-    for (int i = 0; i < ui->appleMusicRulesLayout->count(); ++i) {
-        QLayoutItem *item = ui->appleMusicRulesLayout->itemAt(i);
-        QWidget *row = item ? item->widget() : nullptr;
-        if (!row) {
-            continue;
-        }
-        QComboBox *fieldCombo = row->findChild<QComboBox*>("ruleField");
-        QComboBox *opCombo    = row->findChild<QComboBox*>("ruleOp");
-        QComboBox *valueCombo = row->findChild<QComboBox*>("ruleValue");
-        if (!fieldCombo || !opCombo || !valueCombo) {
-            continue;
-        }
-
-        const QString opKey = opCombo->currentData().toString();
-        const QString arg   = valueCombo->currentText().trimmed();
-        if (arg.isEmpty() && opKey != "notEmpty") {
-            continue;  // a half-typed rule shouldn't suddenly match (or reject) everything
-        }
-        ruleCount++;
-
-        const bool matched = appleMusicRuleMatches(appleMusicFieldValue(track, fieldCombo->currentData().toString()),
-                                                   opKey, arg);
-        if (matchAll && !matched) {
-            return false;
-        }
-        if (!matchAll && matched) {
-            return true;
-        }
-    }
-
-    if (ruleCount == 0) {
-        return true;  // nothing typed in yet: don't pretend the library is empty
-    }
-    return matchAll;
-}
-
-QString PreferencesDialog::appleMusicTypeOf(const AppleMusicTrackMeta &track) const
-{
-    int fieldIndex = ui->appleMusicTypeFieldCombo->currentIndex();
-    if (fieldIndex > 0) {
-        const QString value = appleMusicFieldValue(track, appleMusicFields[fieldIndex - 1].key);
-        if (appleMusicValueInList(value, ui->lineEditAppleMusicTypePatter->text()))  return "patter";
-        if (appleMusicValueInList(value, ui->lineEditAppleMusicTypeSinging->text())) return "singing";
-        if (appleMusicValueInList(value, ui->lineEditAppleMusicTypeCalled->text()))  return "called";
-        if (appleMusicValueInList(value, ui->lineEditAppleMusicTypeExtras->text()))  return "extras";
-    }
-
-    switch (ui->appleMusicTypeDefaultCombo->currentIndex()) {
-        case 0:  return "patter";
-        case 1:  return "singing";
-        case 2:  return "called";
-        case 3:  return "extras";
-        default: return "";        // "Don't import"
-    }
-}
-
 // -------------------------------------------------------------------
 void PreferencesDialog::appleMusicSettingsChanged()
 {
@@ -1754,6 +1641,7 @@ void PreferencesDialog::updateAppleMusicEnabledStates()
         ui->appleMusicTypeCalledLabel,  ui->lineEditAppleMusicTypeCalled,  ui->appleMusicTypeCalledPickerButton,
         ui->appleMusicTypeExtrasLabel,  ui->lineEditAppleMusicTypeExtras,  ui->appleMusicTypeExtrasPickerButton,
         ui->appleMusicCopyTypesButton,
+        ui->appleMusicTypeDefaultLabel, ui->appleMusicTypeDefaultCombo,
     };
     for (QWidget *widget : typeWidgets) {
         widget->setEnabled(typeFromMetadata);
@@ -1790,11 +1678,14 @@ void PreferencesDialog::updateAppleMusicPreview()
         return;
     }
 
+    // The same AppleMusicFilter the importer will run, filled in from the widgets as they
+    //   stand right now -- built once here rather than per track.
+    const AppleMusicFilter filter = appleMusicFilterFromWidgets();
+
     // When a Type field has been chosen, show its raw value next to the Type it produced, so
     //   it's obvious WHY a track came out patter, and which values are still unclassified.
-    const int typeFieldIndex = ui->appleMusicTypeFieldCombo->currentIndex();
-    const QString typeFieldKey = (typeFieldIndex > 0) ? appleMusicFields[typeFieldIndex - 1].key : QString();
-    const bool showTypeField = !typeFieldKey.isEmpty();
+    const QString typeFieldKey = filter.typeFieldKey;
+    const bool showTypeField = filter.typeComesFromMetadata();
 
     // Column 0 is the Type, column 1 is the field that produced it (when there is one), and
     //   then the fields worth seeing anyway -- minus whichever one is already column 1, so the
@@ -1836,20 +1727,25 @@ void PreferencesDialog::updateAppleMusicPreview()
     QHash<QString,int> byType;
 
     for (const AppleMusicTrackMeta &track : appleMusicTracks) {
-        if (!appleMusicTrackPasses(track)) {
+        if (!filter.passes(track)) {
             continue;
         }
         matched++;
 
-        const QString type = appleMusicTypeOf(track);
-        byType[type]++;
+        // ...and matching the importer, the Type mapping only speaks up when a field is chosen
+        const QString type = showTypeField ? filter.typeOf(track) : QString();
+        if (showTypeField) {
+            byType[type]++;
+        }
 
         if (shown >= kApplePreviewMaxRows) {
             continue;
         }
 
         QStringList cells;
-        cells << (type.isEmpty() ? QString("(not imported)") : type);
+        cells << (!showTypeField     ? QString("\u2014")            // no Type field chosen: unchanged
+                  : type.isEmpty()   ? QString("(not imported)")
+                                     : type);
         for (const QString &fieldKey : std::as_const(fieldKeys)) {
             const QString value = appleMusicFieldValue(track, fieldKey);
             // only the Type field earns "(empty)"; an empty Album is just an empty cell
@@ -1880,7 +1776,8 @@ void PreferencesDialog::updateAppleMusicPreview()
     table->verticalScrollBar()->setValue(savedScroll);
 
     QLocale locale;
-    ui->appleMusicMatchCountLabel->setText(appleMusicBoldItalic(QString("%1 of %2 songs match.")
+    ui->appleMusicMatchCountLabel->setText(appleMusicBoldItalic(
+                                              QString("%1 of the %2 songs in your Apple Music playlists match.")
                                                .arg(locale.toString(matched))
                                                .arg(locale.toString((int)appleMusicTracks.size()))));
     ui->appleMusicMatchCountLabel->setToolTip("");
@@ -1906,7 +1803,7 @@ void PreferencesDialog::updateAppleMusicPreview()
                                            : typeParts.join(", ") + ".");
         // runs of spaces collapse in rich text, so space the asides out with non-breaking ones
         if (!showTypeField) {
-            summary += "&nbsp;&nbsp; No Type field chosen, so every track gets the default Type.";
+            summary += "&nbsp;&nbsp; No Type field chosen, so these keep the Type column and color they have now.";
         }
         if (matched > shown) {
             summary += QString("&nbsp;&nbsp; Showing the first %1.").arg(locale.toString(shown));
