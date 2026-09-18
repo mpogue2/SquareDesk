@@ -231,6 +231,11 @@ void svgDial::reinit() {
     scene.addItem(arc);
     scene.addItem(needle);
 
+    // ISSUE #1314: re-pin these, in case the new knob file is a different size than the old one
+    scene.setSceneRect(0, 0, k.width(), k.height());
+    view.setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    view.setFixedSize(k.width(), k.height());
+
     // view.setScene(&scene);
     // view.setParent(this,Qt::FramelessWindowHint);
 }
@@ -309,6 +314,20 @@ void svgDial::finishInit() {
     scene.addItem(knob);
     scene.addItem(arc);
     scene.addItem(needle);
+
+    // ISSUE #1314: pin the scene rect and the view geometry -----
+    // Without an explicit scene rect, QGraphicsScene returns its *growing* items bounding rect,
+    //   which is the high-water mark since the scene was created, and never shrinks.  The needle is
+    //   rotated by setValue(), and a 40x34 SVG rotated about its center bounds out to ~52x52, so the
+    //   first turn of a knob permanently grows that knob's scene rect.  QGraphicsView::sizeHint() is
+    //   derived from the scene rect, and this view has no geometry of its own (resizeEvent() is a
+    //   stub), so at the next relayout it was resized to the stale hint (e.g. 52x52 inside a 40x34
+    //   dial), the scroll offset shifted, and the knob rendered offset and clipped -- by a different
+    //   amount per knob, until the app was restarted.  svgClock avoids all this by fixing its view
+    //   size; do the same here.
+    scene.setSceneRect(0, 0, k.width(), k.height());
+    view.setAlignment(Qt::AlignLeft | Qt::AlignTop);  // deterministic origin, no re-centering
+    view.setFixedSize(k.width(), k.height());
 
     view.setScene(&scene);
     view.setParent(this,Qt::FramelessWindowHint);
