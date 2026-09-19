@@ -6589,6 +6589,29 @@ void MainWindow::on_actionDateAdded_toggled(bool checked)
     updateSongTableColumnView();
 }
 
+// Turns off every column below the FIRST separator in the Columns menu, i.e. the whole optional
+//   metadata block, leaving the usual Label/Levels/Recent/Age/Pitch/Tempo group alone.
+//
+// Deliberately driven by the menu's own structure rather than a hardcoded list of actions: a
+//   metadata column added to that section later is then reset by this too, with no second place
+//   to remember to update.  Unchecking each action fires its own on_action*_toggled(), which is
+//   what persists the preference and updates the table.
+void MainWindow::on_actionResetColumnVisibility_triggered()
+{
+    const QList<QAction *> actions = ui->menuColumns->actions();
+
+    bool pastFirstSeparator = false;
+    for (QAction *action : actions) {
+        if (action->isSeparator()) {
+            pastFirstSeparator = true;
+            continue;
+        }
+        if (pastFirstSeparator && action->isCheckable()) {
+            action->setChecked(false);   // no-op, and no signal, if it is already off
+        }
+    }
+}
+
 void MainWindow::on_actionAge_toggled(bool checked)
 {
     ui->actionAge->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark

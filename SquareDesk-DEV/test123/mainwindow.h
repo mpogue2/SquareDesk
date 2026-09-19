@@ -773,6 +773,7 @@ private slots:
     void on_actionArtist_toggled(bool arg1);
     void on_actionRating_toggled(bool arg1);
     void on_actionDateAdded_toggled(bool arg1);
+    void on_actionResetColumnVisibility_triggered();
 
     void on_actionShow_All_Ages_triggered(bool checked);
     void on_actionIn_Out_Loop_points_to_default_triggered(bool checked);

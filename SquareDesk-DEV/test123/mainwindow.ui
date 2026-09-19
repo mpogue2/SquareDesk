@@ -4780,6 +4780,8 @@
      <addaction name="actionArtist"/>
      <addaction name="actionRating"/>
      <addaction name="actionDateAdded"/>
+     <addaction name="separator"/>
+     <addaction name="actionResetColumnVisibility"/>
     </widget>
     <widget class="QMenu" name="menuFlash_Call">
      <property name="title">
@@ -5479,6 +5481,14 @@
    </property>
    <property name="toolTip">
     <string>Album, for tracks that came from an Apple Music playlist</string>
+   </property>
+  </action>
+  <action name="actionResetColumnVisibility">
+   <property name="text">
+    <string>Reset column visibility</string>
+   </property>
+   <property name="toolTip">
+    <string>Turn off every column below the separator, back to the usual set</string>
    </property>
   </action>
   <action name="actionArtist">
