@@ -1430,6 +1430,24 @@ void MainWindow::initializeMusicSongTable() {
     longSongTableOperationCount = 0;  // initialize counter to zero (unblocked)
     startLongSongTableOperation("MainWindow");
 
+    // The .ui declares only 8 columns for darkSongTable, and they are Designer placeholders that
+    //   don't even match the real indices (they read #/Type/Label/Title/Age/Pitch/Tempo, with
+    //   Levels and Recent missing).  Every label is overwritten by setHorizontalHeaderLabels()
+    //   anyway, so the only thing the .ui really contributes here is a column COUNT that is
+    //   wrong, and until now kNumSongTableCols columns didn't exist until darkLoadMusicList()
+    //   called setColumnCount() much later.  Two things went wrong because of that:
+    //
+    //   - setColumnWidth() bounds-checks and silently does nothing, so the initial widths set
+    //     below for the Apple Music columns were being discarded, and those columns came up at
+    //     Qt's default width instead.
+    //   - QHeaderView::setSectionResizeMode() does NOT bounds-check.  It asserts in a debug
+    //     build and indexes its section list with -1 in a release one, so updateSongTableColumnView()
+    //     was only safe by virtue of running after the first darkLoadMusicList().
+    //
+    // Create the real columns up front instead.  darkLoadMusicList() still calls setColumnCount()
+    //   with the same value, which is then a no-op that leaves these widths alone (issue #1744).
+    ui->darkSongTable->setColumnCount(kNumSongTableCols);
+
     connect(ui->darkSongTable->horizontalHeader(), &QHeaderView::sortIndicatorChanged,
             ui->darkSongTable, &MyTableWidget::onHeaderClicked);
 
