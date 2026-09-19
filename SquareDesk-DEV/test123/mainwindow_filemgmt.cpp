@@ -1992,11 +1992,11 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
             // Three kinds of cell:
             //   Text    - compared as text, the usual case.
-            //   Numeric - Year and Duration, or "10:00" would sort before "3:45" and an empty
-            //             cell would land in the middle of the years.
-            //   SortKey - Rating and Date Added, whose displayed text (stars, and a date in the
-            //             user's own locale format) is neither alphabetical nor numeric, so the
-            //             value to sort on is carried alongside it (issue #1744).
+            //   Numeric - Year, where the text is a plain number but an empty cell would
+            //             otherwise land in the middle of the years.
+            //   SortKey - Duration, Rating and Date Added, whose displayed text ("3:45", stars,
+            //             and a date in the user's own locale format) is neither alphabetical nor
+            //             numeric, so the value to sort on is carried alongside it.
             enum CellKind { Text, Numeric, SortKey };
             struct { int col; QString text; CellKind kind; double sortKey; } metaCells[] = {
                 { kAlbumCol,       QString::fromStdString(meta.album),       Text,    0 },
@@ -2004,7 +2004,8 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
                 { kComposerCol,    QString::fromStdString(meta.composer),    Text,    0 },
                 { kCommentsCol,    QString::fromStdString(meta.comments),    Text,    0 },
                 { kYearCol,        meta.year > 0 ? QString::number(meta.year) : QString(), Numeric, 0 },
-                { kDurationCol,    appleMusicDurationText(meta.totalTimeMS), Numeric, 0 },
+                { kDurationCol,    appleMusicDurationText(meta.totalTimeMS), SortKey,
+                                   static_cast<double>(meta.totalTimeMS) },
                 { kArtistCol,      QString::fromStdString(meta.artist),      Text,    0 },
                 { kRatingCol,      appleMusicRatingText(meta.rating),        SortKey, static_cast<double>(meta.rating) },
                 { kDateAddedCol,   appleMusicDateText(addedWhen),            SortKey,

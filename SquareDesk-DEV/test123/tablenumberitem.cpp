@@ -60,6 +60,14 @@ bool TableNumberItem::operator <(const QTableWidgetItem &other) const
     bool ok2 = false;
     double f2 = str2.toDouble(&ok2);
 
+    // Text that isn't a number at all used to parse as 0.0 and be compared against another 0.0,
+    //   so every comparison came out false and the sort silently did nothing.  That is how the
+    //   Duration column ("3:45") looked unsortable for so long -- it is on TableSortKeyItem now,
+    //   but fall back to a text comparison rather than failing quietly again (issue #1746).
+    if (!ok1 || !ok2) {
+        return QTableWidgetItem::operator<(other);
+    }
+
     return f1 < f2;
 }
 
