@@ -1448,6 +1448,14 @@ void MainWindow::initializeMusicSongTable() {
     //   with the same value, which is then a no-op that leaves these widths alone (issue #1744).
     ui->darkSongTable->setColumnCount(kNumSongTableCols);
 
+    // Must happen before the setColumnHidden() below, and before anything else hides a column.
+    //   QHeaderViewPrivate::hasAutoResizeSections() counts stretchLastSection, and
+    //   setSectionHidden() only zeroes the section's width when that is false -- otherwise it
+    //   defers to a relayout that then finds nothing to lay out, and the hidden column keeps its
+    //   full width while painting nothing.  The .ui ships this as true.  See the longer comment
+    //   in updateSongTableColumnView() (issue #1744).
+    ui->darkSongTable->horizontalHeader()->setStretchLastSection(false);
+
     connect(ui->darkSongTable->horizontalHeader(), &QHeaderView::sortIndicatorChanged,
             ui->darkSongTable, &MyTableWidget::onHeaderClicked);
 

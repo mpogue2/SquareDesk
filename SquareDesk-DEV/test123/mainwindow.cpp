@@ -1259,6 +1259,68 @@ MainWindow::~MainWindow()
 // ----------------------------------------------------------------------
 void MainWindow::updateSongTableColumnView()
 {
+    QHeaderView *darkHeaderView = ui->darkSongTable->horizontalHeader();
+
+    // ORDER MATTERS: the header has to be configured BEFORE anything is hidden.
+    //
+    // QHeaderViewPrivate::hasAutoResizeSections() is
+    //     stretchSections || stretchLastSection || contentsSections
+    // -- setStretchLastSection() counts, contrary to what an earlier comment here claimed.  And
+    //   setSectionHidden() branches on it:
+    //
+    //       if (!d->hasAutoResizeSections())
+    //           resizeSection(logicalIndex, 0);   // zero it here and now
+    //       ...
+    //       if (d->hasAutoResizeSections())
+    //           d->doDelayedResizeSections();     // or leave it to a delayed relayout
+    //
+    // The .ui ships with horizontalHeaderStretchLastSection = true.  With the hiding done first,
+    //   the very first call took the auto-resize branch: sections were never zeroed, only a
+    //   delayed relayout was posted -- and this same function then turned stretchLastSection off,
+    //   so that relayout found no auto-resize sections and left every Interactive section at its
+    //   stored size.  A column hidden at startup kept its full width, painting nothing, which is
+    //   the blank column reported in issue #1744.  (Almost certainly also the "spurious blank
+    //   column between Age and Album" seen in the attempts that were reverted.)
+    //
+    // Configuring the header first means stretchLastSection is already false by the time anything
+    //   is hidden, so Qt takes the explicit resizeSection(col, 0) branch every time.
+    darkHeaderView->setSectionResizeMode(kNumberCol, QHeaderView::Fixed);  // Audition: never user-resizable
+    darkHeaderView->setSectionResizeMode(kTypeCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kLabelCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kTitleCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kLevelsCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kRecentCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kAgeCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kPitchCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kTempoCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kAlbumCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kAlbumArtistCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kComposerCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kCommentsCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kYearCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kDurationCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kArtistCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kRatingCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kDateAddedCol, QHeaderView::Interactive);
+
+    // Title used to be the Stretch section, sitting in the MIDDLE of the header, which is what
+    //   made most of the dividers misbehave: Stretch absorbs every width change, so dragging a
+    //   divider to its right slid the column sideways instead of resizing it.  There is no
+    //   stretch in the header at all now -- darkSongTable nominates Title as its "slack" column
+    //   and recomputes it when the VIEWPORT width changes, which keeps the familiar feel while
+    //   leaving every divider alone, because dragging one doesn't change the viewport.
+    //   See MyTableWidget::updateSlackColumn().
+    darkHeaderView->setStretchLastSection(false);
+
+    // The .ui sets horizontalScrollBarPolicy to ScrollBarAlwaysOff, so the scrollbar was switched
+    //   off outright -- not merely suppressed by the Stretch section, as issue #1744 assumed.
+    //   With Stretch gone the columns can legitimately total more than the viewport, and scrolling
+    //   is the honest answer rather than forcing them to shrink to fit.  ScrollPerPixel matches
+    //   the Apple Music preview table in Preferences, which already works this way.
+    ui->darkSongTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    ui->darkSongTable->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+
+    // ---- only now is it safe to hide anything ----
     ui->darkSongTable->setColumnHidden(kLabelCol, !prefsManager.GetshowLabelColumn());
     ui->darkSongTable->setColumnHidden(kLevelsCol,!prefsManager.GetshowLevelsColumn());
     ui->playlist1Table->horizontalHeader()->setSectionHidden(COLUMN_LEVELS, !prefsManager.GetshowLevelsColumn()); // as the View > Columns > Levels changes
@@ -1289,71 +1351,6 @@ void MainWindow::updateSongTableColumnView()
     ui->playlist1Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn()); // as the View > Columns > Tempo changes
     ui->playlist2Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn()); //   so does visibility of the tempo column in the playlists
     ui->playlist3Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn());
-
-    QHeaderView *darkHeaderView = ui->darkSongTable->horizontalHeader();
-
-    // Stage 2 of issue #1744.  Title used to be the Stretch section, which is what made most of
-    //   the column dividers misbehave:
-    //
-    //   - Type|Label and Label|Title worked, but only by accident -- both sides are Interactive
-    //     and Stretch sat immediately to their right to absorb the change.
-    //   - Levels, Recent, Age, Pitch and Tempo were Fixed, so their dividers did nothing at all.
-    //   - The six Apple Music columns never had a mode set, so they inherited Interactive, and
-    //     because they all sit to the RIGHT of Stretch, Title silently ate every width change --
-    //     dragging a divider slid the column sideways instead of resizing it.
-    //
-    // The fix is not to remove the stretch but to MOVE it to the far right, where it is harmless:
-    //   every divider is then to its left, so a drag resizes the column under the mouse and
-    //   shifts its neighbours, which is what a spreadsheet does.  That is what
-    //   setStretchLastSection(true) gives us, and it is what the .ui asked for all along --
-    //   this code was overriding it to false.
-    //
-    // NOTE: earlier attempts at this blamed the Audition column collapsing on the loss of the
-    //   resizeSections() pass that a Stretch section enables.  That theory is dead:
-    //   setStretchLastSection() is a separate flag from the Stretch resize MODE and does not make
-    //   QHeaderView::hasAutoResizeSections() true, so this arrangement was measured running
-    //   without that pass and kNumberCol held its width throughout.
-    darkHeaderView->setSectionResizeMode(kNumberCol, QHeaderView::Fixed);  // Audition: never user-resizable
-    darkHeaderView->setSectionResizeMode(kTypeCol, QHeaderView::Interactive);
-    darkHeaderView->setSectionResizeMode(kLabelCol, QHeaderView::Interactive);
-    darkHeaderView->setSectionResizeMode(kTitleCol, QHeaderView::Interactive);
-    darkHeaderView->setSectionResizeMode(kLevelsCol, QHeaderView::Interactive);
-    darkHeaderView->setSectionResizeMode(kRecentCol, QHeaderView::Interactive);
-    darkHeaderView->setSectionResizeMode(kAgeCol, QHeaderView::Interactive);
-    darkHeaderView->setSectionResizeMode(kPitchCol, QHeaderView::Interactive);
-    darkHeaderView->setSectionResizeMode(kTempoCol, QHeaderView::Interactive);
-
-    // Set these explicitly rather than leaning on the header default, so that the mode of every
-    //   column is stated in one place.
-    darkHeaderView->setSectionResizeMode(kAlbumCol, QHeaderView::Interactive);
-    darkHeaderView->setSectionResizeMode(kAlbumArtistCol, QHeaderView::Interactive);
-    darkHeaderView->setSectionResizeMode(kComposerCol, QHeaderView::Interactive);
-    darkHeaderView->setSectionResizeMode(kCommentsCol, QHeaderView::Interactive);
-    darkHeaderView->setSectionResizeMode(kYearCol, QHeaderView::Interactive);
-    darkHeaderView->setSectionResizeMode(kDurationCol, QHeaderView::Interactive);
-    darkHeaderView->setSectionResizeMode(kArtistCol, QHeaderView::Interactive);
-    darkHeaderView->setSectionResizeMode(kRatingCol, QHeaderView::Interactive);
-    darkHeaderView->setSectionResizeMode(kDateAddedCol, QHeaderView::Interactive);
-
-    // The stretch does not live in the header at all any more.  setStretchLastSection() would
-    //   hand the leftover width to whichever column happens to be last, which meant the stretch
-    //   hopped from Duration to Year and back as columns were shown and hidden, and it made
-    //   resizing the window feel wrong -- Title has always been the column that grows.
-    //
-    // Instead darkSongTable nominates Title as its "slack" column and recomputes it when the
-    //   VIEWPORT width changes.  That keeps the familiar feel while leaving every divider alone,
-    //   because dragging a divider doesn't change the viewport width.  See
-    //   MyTableWidget::updateSlackColumn().
-    darkHeaderView->setStretchLastSection(false);
-
-    // The .ui sets horizontalScrollBarPolicy to ScrollBarAlwaysOff, so the scrollbar was switched
-    //   off outright -- not merely suppressed by the Stretch section, as issue #1744 assumed.
-    //   With Stretch gone the columns can legitimately total more than the viewport, and scrolling
-    //   is the honest answer rather than forcing them to shrink to fit.  ScrollPerPixel matches
-    //   the Apple Music preview table in Preferences, which already works this way.
-    ui->darkSongTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    ui->darkSongTable->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-
 
     ui->darkSongTable->horizontalHeaderItem(kNumberCol)->setTextAlignment( Qt::AlignCenter );
     ui->darkSongTable->horizontalHeaderItem(kLevelsCol)->setTextAlignment( Qt::AlignCenter );
