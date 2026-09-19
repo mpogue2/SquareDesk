@@ -154,6 +154,10 @@ AppleMusicTrackMeta appleMusicMetaOf(const PlaylistTrack &track)
     meta.work        = track.work;
     meta.year        = track.year;
     meta.totalTimeMS = track.totalTimeMS;
+    meta.rating         = track.rating;          // was imported but dropped here until #1744
+    meta.ratingComputed = track.ratingComputed;
+    meta.addedDate      = track.addedDate;
+    meta.lastPlayedDate = track.lastPlayedDate;
     return meta;
 }
 

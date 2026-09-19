@@ -1283,6 +1283,9 @@ void MainWindow::updateSongTableColumnView()
     ui->darkSongTable->setColumnHidden(kCommentsCol,    !prefsManager.GetshowCommentsColumn());
     ui->darkSongTable->setColumnHidden(kYearCol,        !prefsManager.GetshowYearColumn());
     ui->darkSongTable->setColumnHidden(kDurationCol,    !prefsManager.GetshowDurationColumn());
+    ui->darkSongTable->setColumnHidden(kArtistCol,      !prefsManager.GetshowArtistColumn());
+    ui->darkSongTable->setColumnHidden(kRatingCol,      !prefsManager.GetshowRatingColumn());
+    ui->darkSongTable->setColumnHidden(kDateAddedCol,   !prefsManager.GetshowDateAddedColumn());
     ui->playlist1Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn()); // as the View > Columns > Tempo changes
     ui->playlist2Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn()); //   so does visibility of the tempo column in the playlists
     ui->playlist3Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn());
@@ -1328,6 +1331,9 @@ void MainWindow::updateSongTableColumnView()
     darkHeaderView->setSectionResizeMode(kCommentsCol, QHeaderView::Interactive);
     darkHeaderView->setSectionResizeMode(kYearCol, QHeaderView::Interactive);
     darkHeaderView->setSectionResizeMode(kDurationCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kArtistCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kRatingCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kDateAddedCol, QHeaderView::Interactive);
 
     // The stretch does not live in the header at all any more.  setStretchLastSection() would
     //   hand the leftover width to whichever column happens to be last, which meant the stretch
@@ -6543,6 +6549,36 @@ void MainWindow::on_actionDuration_toggled(bool checked)
 
     // the showDurationColumn setting is persistent across restarts of the application
     prefsManager.SetshowDurationColumn(checked);
+
+    updateSongTableColumnView();
+}
+
+void MainWindow::on_actionArtist_toggled(bool checked)
+{
+    ui->actionArtist->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showArtistColumn setting is persistent across restarts of the application
+    prefsManager.SetshowArtistColumn(checked);
+
+    updateSongTableColumnView();
+}
+
+void MainWindow::on_actionRating_toggled(bool checked)
+{
+    ui->actionRating->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showRatingColumn setting is persistent across restarts of the application
+    prefsManager.SetshowRatingColumn(checked);
+
+    updateSongTableColumnView();
+}
+
+void MainWindow::on_actionDateAdded_toggled(bool checked)
+{
+    ui->actionDateAdded->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showDateAddedColumn setting is persistent across restarts of the application
+    prefsManager.SetshowDateAddedColumn(checked);
 
     updateSongTableColumnView();
 }

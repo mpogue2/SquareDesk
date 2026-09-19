@@ -63,3 +63,26 @@ bool TableNumberItem::operator <(const QTableWidgetItem &other) const
     return f1 < f2;
 }
 
+
+// -------------------------------------------------------------------
+TableSortKeyItem::TableSortKeyItem(const QString txt, double sortKey, bool hasValue)
+        :QTableWidgetItem(txt), key(sortKey), valued(hasValue)
+{
+}
+
+bool TableSortKeyItem::operator <(const QTableWidgetItem &other) const
+{
+    const TableSortKeyItem *o = dynamic_cast<const TableSortKeyItem *>(&other);
+    if (o == nullptr) {
+        return QTableWidgetItem::operator<(other);  // mixed column, fall back to text
+    }
+
+    // Valueless rows go last, regardless of which direction we're sorting.  Comparing them
+    //   against each other has to be false both ways round, or the sort is not a strict weak
+    //   ordering and std::sort is free to misbehave.
+    if (!valued || !o->valued) {
+        return valued && !o->valued;
+    }
+
+    return key < o->key;
+}

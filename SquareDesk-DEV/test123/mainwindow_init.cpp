@@ -1471,6 +1471,10 @@ void MainWindow::initializeMusicSongTable() {
     ui->darkSongTable->setColumnWidth(kYearCol, 50);
     ui->darkSongTable->setColumnWidth(kDurationCol, 60);
 
+    ui->darkSongTable->setColumnWidth(kArtistCol, 140);
+    ui->darkSongTable->setColumnWidth(kRatingCol, 80);     // 5 stars
+    ui->darkSongTable->setColumnWidth(kDateAddedCol, 130); // e.g. "3/3/18, 1:39 PM"
+
     ui->darkSongTable->setColumnHidden(kLevelsCol, true); // levels column starts out hidden, same as the playlist Levels column
 
     // The Audition column's header is a blank square in the top left corner.  It was sortable,
@@ -1524,6 +1528,10 @@ void MainWindow::initializeMusicSongTable() {
     on_actionComments_toggled(prefsManager.GetshowCommentsColumn());
     on_actionYear_toggled(prefsManager.GetshowYearColumn());
     on_actionDuration_toggled(prefsManager.GetshowDurationColumn());
+
+    on_actionArtist_toggled(prefsManager.GetshowArtistColumn());
+    on_actionRating_toggled(prefsManager.GetshowRatingColumn());
+    on_actionDateAdded_toggled(prefsManager.GetshowDateAddedColumn());
 
     {
         // Now that the current_session_id is setup, we can load the call lists,

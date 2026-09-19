@@ -4777,6 +4777,9 @@
      <addaction name="actionComments"/>
      <addaction name="actionYear"/>
      <addaction name="actionDuration"/>
+     <addaction name="actionArtist"/>
+     <addaction name="actionRating"/>
+     <addaction name="actionDateAdded"/>
     </widget>
     <widget class="QMenu" name="menuFlash_Call">
      <property name="title">
@@ -5476,6 +5479,39 @@
    </property>
    <property name="toolTip">
     <string>Album, for tracks that came from an Apple Music playlist</string>
+   </property>
+  </action>
+  <action name="actionArtist">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Artist</string>
+   </property>
+   <property name="toolTip">
+    <string>Artist, for tracks that came from an Apple Music playlist</string>
+   </property>
+  </action>
+  <action name="actionRating">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Rating</string>
+   </property>
+   <property name="toolTip">
+    <string>Star rating, for tracks that came from an Apple Music playlist (read-only)</string>
+   </property>
+  </action>
+  <action name="actionDateAdded">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Date Added</string>
+   </property>
+   <property name="toolTip">
+    <string>When the track was added to Apple Music</string>
    </property>
   </action>
   <action name="actionAlbumArtist">

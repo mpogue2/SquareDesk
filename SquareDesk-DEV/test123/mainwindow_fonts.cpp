@@ -43,6 +43,20 @@
 
 // FONT SIZE STUFF ========================================
 
+QFont MainWindow::songTableRatingFont(const QFont &base)
+{
+    QFont smaller(base);
+
+    // A font carries either a point size or a pixel size, and the unused one reads back as -1.
+    if (base.pointSizeF() > 0) {
+        smaller.setPointSizeF(base.pointSizeF() * 0.75);
+    } else if (base.pixelSize() > 0) {
+        smaller.setPixelSize(qMax(1, static_cast<int>(base.pixelSize() * 0.75)));
+    }
+
+    return smaller;
+}
+
 void MainWindow::setSongTableFont(QTableWidget *songTable, const QFont &currentFont)
 {
     currentSongTableFont = currentFont;
@@ -52,10 +66,22 @@ void MainWindow::setSongTableFont(QTableWidget *songTable, const QFont &currentF
     //     dynamic_cast<QLabel*>(songTable->cellWidget(row,kTitleCol))->setFont(currentFont);
     // }
 
+    const QFont ratingFont = songTableRatingFont(currentFont);
+    const bool hasRatingColumn = (songTable->columnCount() > kRatingCol);  // not the playlist tables
+
     for (int row = 0; row < songTable->rowCount(); ++row) {
         QLabel *theLabel = dynamic_cast<QLabel*>(songTable->cellWidget(row,kTitleCol));
         if (theLabel != nullptr) {
             theLabel->setFont(currentFont);
+        }
+
+        // Items otherwise inherit the table's font, but the Rating stars carry an explicit one,
+        //   so it has to be re-derived here or zooming would leave them at the old size.
+        if (hasRatingColumn) {
+            QTableWidgetItem *ratingItem = songTable->item(row, kRatingCol);
+            if (ratingItem != nullptr) {
+                ratingItem->setFont(ratingFont);
+            }
         }
     }
 }

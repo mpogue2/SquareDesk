@@ -770,6 +770,9 @@ private slots:
     void on_actionComments_toggled(bool arg1);
     void on_actionYear_toggled(bool arg1);
     void on_actionDuration_toggled(bool arg1);
+    void on_actionArtist_toggled(bool arg1);
+    void on_actionRating_toggled(bool arg1);
+    void on_actionDateAdded_toggled(bool arg1);
 
     void on_actionShow_All_Ages_triggered(bool checked);
     void on_actionIn_Out_Loop_points_to_default_triggered(bool checked);
@@ -866,6 +869,10 @@ private slots:
 
     // File system and progress
     void setSongTableFont(QTableWidget *songTable, const QFont &currentFont);
+
+    // The Rating column's stars read as oversized next to the text columns at the same point
+    //   size, so they get their own slightly smaller font derived from the table's (issue #1744).
+    static QFont songTableRatingFont(const QFont &base);
     void lyricsDownloadEnd();
     void cuesheetListDownloadEnd();
     void makeProgress();

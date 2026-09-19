@@ -64,7 +64,13 @@
 #define kYearCol        13
 #define kDurationCol    14
 
-#define kNumSongTableCols 15
+// Issue #1744.  Artist was already imported for the square dance filter and the Type mapping; it
+//   just never had a column.  Rating and Date Added are new imports.
+#define kArtistCol      15
+#define kRatingCol      16
+#define kDateAddedCol   17
+
+#define kNumSongTableCols 18
 
 class SongRow : public SongSetting
 {

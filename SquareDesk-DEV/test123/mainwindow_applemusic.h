@@ -46,6 +46,13 @@ struct PlaylistTrack {
     std::string albumArtist;    //   Type mapping in Preferences > Apple Music (issue #1740)
     std::string comments;
     int         totalTimeMS;    // 0 = not set
+
+    // Issue #1744.  Apple derives a rating from the album when the user hasn't set one, and the
+    //   Music app draws those dimmed -- so keep the flag, or we'd show a computed rating as
+    //   though someone had chosen it.
+    bool        ratingComputed;
+    std::string addedDate;      // ISO 8601, empty if not set
+    std::string lastPlayedDate; // ISO 8601, empty if never played
 };
 
 // Returns all tracks from every playlist via the ITLibrary framework.
@@ -70,6 +77,12 @@ struct AppleMusicTrackMeta {
     // Display-only, for the song table's Apple Music columns.  Deliberately NOT filterable:
     //   appleMusicFields[] is the filterable set, and it is all strings, so one operator list
     //   covers every field (issue #1740, item 2).
-    int year;                   // 0 = not set
-    int totalTimeMS;            // 0 = not set
+    int year        = 0;        // 0 = not set
+    int totalTimeMS = 0;        // 0 = not set
+
+    int  rating         = 0;    // 0 = not set, otherwise 20/40/60/80/100
+    bool ratingComputed = false; // true == derived from the album, not chosen by the user
+    std::string addedDate;      // ISO 8601, empty if not set
+    std::string lastPlayedDate; // ISO 8601, empty if never played.  Imported but not shown as a
+                                //   column yet, deliberately (issue #1744).
 };

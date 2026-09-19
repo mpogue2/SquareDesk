@@ -33,6 +33,7 @@
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDateTime>
+#include <QLocale>
 //#include <QDesktopWidget>
 #include <QElapsedTimer>
 #include <QEventLoop>
@@ -1489,6 +1490,38 @@ static QString appleMusicDurationText(int totalTimeMS)
     return QString("%1:%2").arg(minutes).arg(seconds, 2, 10, QChar('0'));
 }
 
+// ITLibrary reports a rating as 0-100 in steps of 20; the Rating column shows it the way the
+//   Music app does, as five star slots (issue #1744).  Read-only: we never write back to the
+//   Apple Music library.
+static QString appleMusicRatingText(int rating)
+{
+    if (rating <= 0) {
+        return QString();   // unrated, so show nothing rather than five empty stars
+    }
+
+    int stars = qBound(0, (rating + 10) / 20, 5);   // nearest star
+    return QString(stars, QChar(0x2605)) + QString(5 - stars, QChar(0x2606));  // filled, then hollow
+}
+
+// The dates arrive as ISO 8601 from the ITLibrary reader.  Show them in the user's own short
+//   format, e.g. "3/3/18, 1:39 PM" -- and sort on the parsed value, not on that text, which is
+//   neither alphabetical nor numeric (issue #1744).
+static QDateTime appleMusicDateOf(const std::string &iso8601)
+{
+    if (iso8601.empty()) {
+        return QDateTime();
+    }
+    return QDateTime::fromString(QString::fromStdString(iso8601), Qt::ISODate).toLocalTime();
+}
+
+static QString appleMusicDateText(const QDateTime &when)
+{
+    if (!when.isValid()) {
+        return QString();
+    }
+    return QLocale().toString(when, QLocale::ShortFormat);
+}
+
 void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilter, bool forceFilter, bool reloadPaletteSlots, bool suppressSelectionChange)
 {
     // qDebug() << "darkLoadMusicList: " << typeFilter << forceFilter << reloadPaletteSlots;
@@ -1587,7 +1620,8 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
     QStringList m_TableHeader;
     m_TableHeader << "" << "Type" << "Label" << "Title" << "Levels" << "Recent" << "Age" << "Pitch" << "Tempo"
-                  << "Album" << "Album Artist" << "Composer" << "Comments" << "Year" << "Duration";
+                  << "Album" << "Album Artist" << "Composer" << "Comments" << "Year" << "Duration"
+                  << "Artist" << "Rating" << "Date Added";
     ui->darkSongTable->setHorizontalHeaderLabels(m_TableHeader);
     // AlignLeft on its own says nothing about the vertical, which then defaults to the TOP.  The
     //   older columns don't show it because updateSongTableColumnView() sets an explicit
@@ -1954,27 +1988,58 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         //   so its cells are left empty rather than guessed at (issue #1740, item 2).
         {
             const AppleMusicTrackMeta meta = appleMusicMetaByPath.value(origPath);
+            const QDateTime addedWhen = appleMusicDateOf(meta.addedDate);
 
-            // Year and Duration sort numerically, not as text -- otherwise "10:00" sorts before
-            //   "3:45", and an empty cell lands in the middle of the years.
-            struct { int col; QString text; bool numeric; } metaCells[] = {
-                { kAlbumCol,       QString::fromStdString(meta.album),       false },
-                { kAlbumArtistCol, QString::fromStdString(meta.albumArtist), false },
-                { kComposerCol,    QString::fromStdString(meta.composer),    false },
-                { kCommentsCol,    QString::fromStdString(meta.comments),    false },
-                { kYearCol,        meta.year > 0 ? QString::number(meta.year) : QString(), true },
-                { kDurationCol,    appleMusicDurationText(meta.totalTimeMS), true },
+            // Three kinds of cell:
+            //   Text    - compared as text, the usual case.
+            //   Numeric - Year and Duration, or "10:00" would sort before "3:45" and an empty
+            //             cell would land in the middle of the years.
+            //   SortKey - Rating and Date Added, whose displayed text (stars, and a date in the
+            //             user's own locale format) is neither alphabetical nor numeric, so the
+            //             value to sort on is carried alongside it (issue #1744).
+            enum CellKind { Text, Numeric, SortKey };
+            struct { int col; QString text; CellKind kind; double sortKey; } metaCells[] = {
+                { kAlbumCol,       QString::fromStdString(meta.album),       Text,    0 },
+                { kAlbumArtistCol, QString::fromStdString(meta.albumArtist), Text,    0 },
+                { kComposerCol,    QString::fromStdString(meta.composer),    Text,    0 },
+                { kCommentsCol,    QString::fromStdString(meta.comments),    Text,    0 },
+                { kYearCol,        meta.year > 0 ? QString::number(meta.year) : QString(), Numeric, 0 },
+                { kDurationCol,    appleMusicDurationText(meta.totalTimeMS), Numeric, 0 },
+                { kArtistCol,      QString::fromStdString(meta.artist),      Text,    0 },
+                { kRatingCol,      appleMusicRatingText(meta.rating),        SortKey, static_cast<double>(meta.rating) },
+                { kDateAddedCol,   appleMusicDateText(addedWhen),            SortKey,
+                                   addedWhen.isValid() ? static_cast<double>(addedWhen.toMSecsSinceEpoch()) : 0.0 },
             };
 
             for (const auto &metaCell : metaCells) {
-                QTableWidgetItem *item = metaCell.numeric ? new TableNumberItem(metaCell.text)
-                                                          : new QTableWidgetItem(metaCell.text);
+                QTableWidgetItem *item = nullptr;
+                switch (metaCell.kind) {
+                    case Numeric: item = new TableNumberItem(metaCell.text);  break;
+                    case SortKey: item = new TableSortKeyItem(metaCell.text, metaCell.sortKey,
+                                                              !metaCell.text.isEmpty());  break;
+                    default:      item = new QTableWidgetItem(metaCell.text); break;
+                }
                 item->setForeground(textBrush);
                 item->setFlags(item->flags() & ~Qt::ItemIsEditable);
                 if (!metaCell.text.isEmpty()) {
                     item->setToolTip(metaCell.text);   // these columns are narrow and elide
                 }
+                if (metaCell.col == kRatingCol) {
+                    item->setFont(songTableRatingFont(darkSongTableFont));  // stars run large
+                }
                 ui->darkSongTable->setItem(i, metaCell.col, item);
+            }
+
+            // Stars are not a useful tooltip.  Say the number, and say so when Apple worked the
+            //   rating out from the album rather than the user choosing it -- the Music app draws
+            //   those dimmed, and we'd otherwise present the two as identical.
+            if (meta.rating > 0) {
+                int stars = qBound(0, (meta.rating + 10) / 20, 5);
+                QString tip = (stars == 1) ? QString("1 star") : QString("%1 stars").arg(stars);
+                if (meta.ratingComputed) {
+                    tip += " (computed from the album rating)";
+                }
+                ui->darkSongTable->item(i, kRatingCol)->setToolTip(tip);
             }
         }
 

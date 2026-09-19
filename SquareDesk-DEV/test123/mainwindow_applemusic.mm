@@ -92,6 +92,16 @@ std::vector<PlaylistTrack> readAllPlaylists(std::string &errorOut)
                 if (item.modifiedDate)
                     modDate = [iso8601 stringFromDate:item.modifiedDate].UTF8String;
 
+                // Issue #1744.  Both are nullable: addedDate can be missing on old library
+                //   entries, and lastPlayedDate is nil for anything never played.
+                std::string addedDate;
+                if (item.addedDate)
+                    addedDate = [iso8601 stringFromDate:item.addedDate].UTF8String;
+
+                std::string lastPlayedDate;
+                if (item.lastPlayedDate)
+                    lastPlayedDate = [iso8601 stringFromDate:item.lastPlayedDate].UTF8String;
+
                 result.push_back({
                     type,
                     name,
@@ -110,7 +120,10 @@ std::vector<PlaylistTrack> readAllPlaylists(std::string &errorOut)
                     str(item.album.title),
                     str(item.album.albumArtist),
                     str(item.comments),
-                    (int)item.totalTime
+                    (int)item.totalTime,
+                    (bool)item.isRatingComputed,
+                    addedDate,
+                    lastPlayedDate
                 });
             }
         }

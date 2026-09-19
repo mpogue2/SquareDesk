@@ -39,5 +39,22 @@ public:
     bool operator <(const QTableWidgetItem &other) const;
 };
 
+// Sorts on a key held separately from the displayed text, for columns whose text can't be
+//   compared usefully: star ratings ("***") and dates in the user's locale format, which are
+//   neither alphabetical nor parseable as a number (issue #1744).
+//
+// Rows with no value at all sort to the end either way, the same convention TableNumberItem
+//   uses, so unrated tracks don't sit in the middle of the ratings.
+class TableSortKeyItem : public QTableWidgetItem
+{
+public:
+    TableSortKeyItem(const QString txt, double sortKey, bool hasValue = true);
+    bool operator <(const QTableWidgetItem &other) const;
+
+private:
+    double key;
+    bool   valued;
+};
+
 
 #endif // TABLENUMBERITEM_H
