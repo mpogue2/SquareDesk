@@ -1366,6 +1366,7 @@ private:
     void restoreCheckBoxState(const char *key_string, QCheckBox *checkBox, bool checkedDefault);
     QString removePrefix(QString prefix, QString s);
     void updateSongTableColumnView();
+    void handleNewColumnWidths(const QString &widthString);   // persists darkSongTable's widths
 
     int selectedSongRow();
     int previousVisibleSongRow();

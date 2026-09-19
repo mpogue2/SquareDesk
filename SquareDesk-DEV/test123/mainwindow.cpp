@@ -1257,6 +1257,15 @@ MainWindow::~MainWindow()
 }
 
 // ----------------------------------------------------------------------
+// darkSongTable tells us when the user has finished resizing a column, and we persist the lot.
+//   Same division of labour as handleNewSort(): the table knows the format, MainWindow owns the
+//   preferences (issue #1744).
+void MainWindow::handleNewColumnWidths(const QString &widthString)
+{
+    prefsManager.SetsongTableColumnWidths(widthString);
+}
+
+// ----------------------------------------------------------------------
 void MainWindow::updateSongTableColumnView()
 {
     QHeaderView *darkHeaderView = ui->darkSongTable->horizontalHeader();

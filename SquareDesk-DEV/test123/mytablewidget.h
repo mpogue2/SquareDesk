@@ -110,6 +110,17 @@ public:
     void setSlackColumn(int column, int minimumWidth = 150);
     void updateSlackColumn();   // also call after anything that changes column widths or visibility
 
+    // Per-column widths, persisted as "col:width,col:width,..." by column INDEX -- the same
+    //   convention, and the same caveat, as the sort order in setOrderFromString(): new columns
+    //   MUST be appended, or everybody's saved widths re-point at different columns.
+    //
+    // Two kinds of column are deliberately left out, because their width isn't the user's to
+    //   choose and restoring it would fight whatever does own it:
+    //     - Fixed sections (darkSongTable's Audition column), which aren't user-resizable.
+    //     - The slack column, which is recomputed from the viewport width anyway.
+    QString columnWidthsToString() const;
+    void setColumnWidthsFromString(const QString &widthString);
+
 protected:
     void paintEvent(QPaintEvent *event) override;
     void dragLeaveEvent(QDragLeaveEvent *event) override;
@@ -129,6 +140,7 @@ private:
 
 signals:
     void newStableSort(QString sortString);
+    void columnWidthsChanged(QString widthString);   // asks MainWindow to persist them
 
 public slots:
     void onHeaderClicked(int column);
@@ -140,6 +152,11 @@ private:
     int cornerMenuColumn = -1;
     void positionCornerMenuButton();
 
+    bool isPersistableColumn(int column) const;
+    void saveColumnWidths();            // emits columnWidthsChanged() if anything actually moved
+
+    QString storedColumnWidths;         // last value persisted, to avoid pointless writes
+    bool persistColumnWidths = false;   // set once setColumnWidthsFromString() has been called
     int slackColumn = -1;           // -1 == no slack column, i.e. feature off
     int slackColumnMinimumWidth = 150;
     bool inSlackColumnResize = false;

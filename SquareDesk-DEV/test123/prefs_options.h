@@ -256,4 +256,8 @@ CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastDance,  "")
 
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(currentSortOrder, "")
 
+// darkSongTable's per-column widths, as "col:width,col:width,..." (issue #1744).  Empty means
+//   "never been set", in which case the built-in defaults and resizeColumnToContents() decide.
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(songTableColumnWidths, "")
+
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(currentPreviewPlaybackDeviceName, "") // "" means "user has not chosen yet"

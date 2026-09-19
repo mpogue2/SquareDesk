@@ -224,6 +224,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     connect(ui->darkSongTable, SIGNAL(newStableSort(QString)),
             this, SLOT(handleNewSort(QString))); // for persisting stable sort of darkSongTable
 
+    connect(ui->darkSongTable, &MyTableWidget::columnWidthsChanged,
+            this, &MainWindow::handleNewColumnWidths); // and the same for its column widths
+
     // if the user wants to go back to the default sort order
     ui->darkSongTable->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->darkSongTable->horizontalHeader(), &QTableWidget::customContextMenuRequested,
@@ -1456,6 +1459,14 @@ void MainWindow::initializeMusicSongTable() {
     //   in updateSongTableColumnView() (issue #1744).
     ui->darkSongTable->horizontalHeader()->setStretchLastSection(false);
 
+    // Establish these two up front rather than later, because MyTableWidget decides which column
+    //   widths are worth persisting from the resize mode and the slack column -- and the first
+    //   darkLoadMusicList() restores widths before updateSongTableColumnView() has ever run.
+    //   Without this, Audition and Title would both look like ordinary user-resizable columns at
+    //   exactly the wrong moment (issue #1744).  Both are set again later; that is harmless.
+    ui->darkSongTable->horizontalHeader()->setSectionResizeMode(kNumberCol, QHeaderView::Fixed);
+    ui->darkSongTable->setSlackColumn(kTitleCol);
+
     connect(ui->darkSongTable->horizontalHeader(), &QHeaderView::sortIndicatorChanged,
             ui->darkSongTable, &MyTableWidget::onHeaderClicked);
 
@@ -1599,11 +1610,10 @@ void MainWindow::initializeMusicSongTable() {
     ui->darkSongTable->resizeColumnToContents(kPitchCol);
     ui->darkSongTable->resizeColumnToContents(kTempoCol);
 
-    ui->darkSongTable->setMainWindow(this);
+    // AFTER the resizes above, which would otherwise overwrite them (issue #1744).
+    ui->darkSongTable->setColumnWidthsFromString(prefsManager.GetsongTableColumnWidths());
 
-    // Title is the column that grows when the window does (issue #1744).  Must come after the
-    //   resizeColumnToContents() calls above, which change how much space is going spare.
-    ui->darkSongTable->setSlackColumn(kTitleCol);
+    ui->darkSongTable->setMainWindow(this);
 
     stopLongSongTableOperation("MainWindow");
 

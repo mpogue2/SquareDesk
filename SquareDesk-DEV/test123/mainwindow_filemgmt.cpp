@@ -2145,6 +2145,10 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
     ui->darkSongTable->resizeColumnToContents(kPitchCol);
     ui->darkSongTable->resizeColumnToContents(kTempoCol);
 
+    // Every reload re-runs the resizes above, which would otherwise throw away the widths the
+    //   user chose -- switching playlists used to silently re-auto-size five columns (#1744).
+    ui->darkSongTable->setColumnWidthsFromString(prefsManager.GetsongTableColumnWidths());
+
     ui->darkSongTable->blockSignals(false);  // unblock signals
     ui->darkSongTable->setSortingEnabled(true);
 

@@ -34,6 +34,7 @@
 #include <QMenu>
 #include <QToolButton>
 #include <QHeaderView>
+#include <QMap>
 #include <QStyle>
 #include <QScrollBar>
 #include <QTimer>
@@ -1377,6 +1378,90 @@ void MyTableWidget::setCornerMenu(QMenu *menu)
 }
 
 // ------------------------------------------------------------------
+// Which columns are worth remembering a width for.  Fixed sections aren't user-resizable, and
+//   the slack column is recomputed from the viewport width on every resize, so persisting either
+//   would mean restoring a number that something else immediately overwrites.
+bool MyTableWidget::isPersistableColumn(int column) const
+{
+    if (column < 0 || column >= columnCount() || column == slackColumn) {
+        return false;
+    }
+    return horizontalHeader()->sectionResizeMode(column) != QHeaderView::Fixed;
+}
+
+QString MyTableWidget::columnWidthsToString() const
+{
+    // Start from what is already stored, and update only the columns we can actually read a
+    //   width for.  A HIDDEN column reports columnWidth() == 0 -- Qt keeps its real width in a
+    //   private hiddenSectionSize map -- so writing that straight out would quietly reset every
+    //   hidden column to nothing the moment anything else was resized.
+    QMap<int, int> widths;
+    const QStringList existing = storedColumnWidths.split(",", Qt::SkipEmptyParts);
+    for (const QString &entry : existing) {
+        const QStringList parts = entry.split(":");
+        if (parts.size() == 2) {
+            bool okCol = false, okWidth = false;
+            const int col = parts[0].toInt(&okCol);
+            const int width = parts[1].toInt(&okWidth);
+            if (okCol && okWidth) {
+                widths.insert(col, width);
+            }
+        }
+    }
+
+    for (int c = 0; c < columnCount(); c++) {
+        if (isPersistableColumn(c) && !isColumnHidden(c)) {
+            widths.insert(c, columnWidth(c));
+        }
+    }
+
+    QStringList out;
+    for (auto it = widths.constBegin(); it != widths.constEnd(); ++it) {
+        out << QString("%1:%2").arg(it.key()).arg(it.value());
+    }
+    return out.join(",");
+}
+
+void MyTableWidget::setColumnWidthsFromString(const QString &widthString)
+{
+    storedColumnWidths = widthString;
+    persistColumnWidths = true;   // from here on, changes are worth saving
+
+    const QStringList entries = widthString.split(",", Qt::SkipEmptyParts);
+    for (const QString &entry : entries) {
+        const QStringList parts = entry.split(":");
+        if (parts.size() != 2) {
+            continue;
+        }
+        bool okCol = false, okWidth = false;
+        const int col = parts[0].toInt(&okCol);
+        const int width = parts[1].toInt(&okWidth);
+        if (!okCol || !okWidth || width <= 0 || !isPersistableColumn(col)) {
+            continue;   // a stale entry for a column that no longer exists, or isn't ours to set
+        }
+
+        // Safe for hidden columns too: QHeaderView::resizeSection() on a hidden section just
+        //   updates the size it will be restored to when shown.
+        setColumnWidth(col, width);
+    }
+
+    updateSlackColumn();   // the slack column absorbs whatever that left over
+}
+
+void MyTableWidget::saveColumnWidths()
+{
+    if (!persistColumnWidths) {
+        return;   // still starting up; don't overwrite what we haven't restored yet
+    }
+
+    const QString current = columnWidthsToString();
+    if (current != storedColumnWidths) {
+        storedColumnWidths = current;
+        emit columnWidthsChanged(current);
+    }
+}
+
+// ------------------------------------------------------------------
 void MyTableWidget::setSlackColumn(int column, int minimumWidth)
 {
     slackColumn = column;
@@ -1395,7 +1480,7 @@ void MyTableWidget::setSlackColumn(int column, int minimumWidth)
     //   API and fires for a double-click on any Interactive divider, so the double-click path
     //   doesn't depend on getting event delivery exactly right.
     connect(horizontalHeader(), &QHeaderView::sectionHandleDoubleClicked, this, [this](int){
-        QTimer::singleShot(0, this, [this]{ updateSlackColumn(); });
+        QTimer::singleShot(0, this, [this]{ updateSlackColumn(); saveColumnWidths(); });
     });
 
     updateSlackColumn();
@@ -1418,7 +1503,7 @@ bool MyTableWidget::eventFilter(QObject *watched, QEvent *event)
     //   It is posted rather than called directly because QHeaderView does some of its resizing
     //   after delivering the event.
     if (watched == horizontalHeader()->viewport() && event->type() == QEvent::MouseButtonRelease) {
-        QTimer::singleShot(0, this, [this]{ updateSlackColumn(); });
+        QTimer::singleShot(0, this, [this]{ updateSlackColumn(); saveColumnWidths(); });
     }
 
     return QTableWidget::eventFilter(watched, event);
