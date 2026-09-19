@@ -1257,46 +1257,6 @@ MainWindow::~MainWindow()
 }
 
 // ----------------------------------------------------------------------
-// TEMPORARY INSTRUMENTATION (issue #1744, Stage 1).  Delete once the Audition column's width is
-//   understood.
-//
-// Earlier attempts to take Stretch off Title all ended with kNumberCol collapsing to a few
-//   pixels, and the cause was never found -- several rounds went into reasoning from the Qt docs
-//   and getting it wrong.  So this time: measure.  Every suspected point calls this, and one
-//   build says which one shrinks the column.
-//
-// The leading suspect is resizeColumnToContents(kNumberCol), called from both
-//   initializeMusicSongTable() and darkLoadMusicList().  That column's items are empty -- the
-//   audition button is a cell widget, not item text -- so its width depends entirely on whether
-//   QAbstractItemView::sizeHintForColumn() takes index widgets into account.  Hence the button's
-//   own sizeHint in the log, to compare against what the column actually ends up at.
-void MainWindow::logNumberColWidth(const char *where)
-{
-    QHeaderView *hh = ui->darkSongTable->horizontalHeader();
-
-    int buttonHint = -1;
-    if (ui->darkSongTable->rowCount() > 0) {
-        if (QWidget *w = ui->darkSongTable->cellWidget(0, kNumberCol)) {
-            buttonHint = w->sizeHint().width();
-        }
-    }
-
-    qDebug().nospace()
-        << "[#1744] " << where
-        << ": sectionSize=" << hh->sectionSize(kNumberCol)
-        << " columnWidth=" << ui->darkSongTable->columnWidth(kNumberCol)
-        << " mode=" << static_cast<int>(hh->sectionResizeMode(kNumberCol))
-        << " hidden=" << ui->darkSongTable->isColumnHidden(kNumberCol)
-        << " minSection=" << hh->minimumSectionSize()
-        << " stretchLast=" << hh->stretchLastSection()
-        << " cols=" << ui->darkSongTable->columnCount()
-        << " rows=" << ui->darkSongTable->rowCount()
-        << " viewportW=" << ui->darkSongTable->viewport()->width()
-        << " headerLength=" << hh->length()
-        << " auditionBtnHint=" << buttonHint;
-}
-
-// ----------------------------------------------------------------------
 void MainWindow::updateSongTableColumnView()
 {
     ui->darkSongTable->setColumnHidden(kLabelCol, !prefsManager.GetshowLabelColumn());
@@ -1328,7 +1288,6 @@ void MainWindow::updateSongTableColumnView()
     ui->playlist3Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn());
 
     QHeaderView *darkHeaderView = ui->darkSongTable->horizontalHeader();
-    logNumberColWidth("updateSongTableColumnView enter");
 
     // Stage 2 of issue #1744.  Title used to be the Stretch section, which is what made most of
     //   the column dividers misbehave:
@@ -1346,10 +1305,11 @@ void MainWindow::updateSongTableColumnView()
     //   setStretchLastSection(true) gives us, and it is what the .ui asked for all along --
     //   this code was overriding it to false.
     //
-    // NOTE: setStretchLastSection() is a separate flag from the Stretch resize MODE, and it does
-    //   not make QHeaderView::hasAutoResizeSections() true.  So this still removes the
-    //   resizeSections() pass that earlier attempts suspected was masking the kNumberCol
-    //   collapse.  Hence the instrumentation above and below; see logNumberColWidth().
+    // NOTE: earlier attempts at this blamed the Audition column collapsing on the loss of the
+    //   resizeSections() pass that a Stretch section enables.  That theory is dead:
+    //   setStretchLastSection() is a separate flag from the Stretch resize MODE and does not make
+    //   QHeaderView::hasAutoResizeSections() true, so this arrangement was measured running
+    //   without that pass and kNumberCol held its width throughout.
     darkHeaderView->setSectionResizeMode(kNumberCol, QHeaderView::Fixed);  // Audition: never user-resizable
     darkHeaderView->setSectionResizeMode(kTypeCol, QHeaderView::Interactive);
     darkHeaderView->setSectionResizeMode(kLabelCol, QHeaderView::Interactive);
@@ -1369,7 +1329,16 @@ void MainWindow::updateSongTableColumnView()
     darkHeaderView->setSectionResizeMode(kYearCol, QHeaderView::Interactive);
     darkHeaderView->setSectionResizeMode(kDurationCol, QHeaderView::Interactive);
 
-    darkHeaderView->setStretchLastSection(true);
+    // The stretch does not live in the header at all any more.  setStretchLastSection() would
+    //   hand the leftover width to whichever column happens to be last, which meant the stretch
+    //   hopped from Duration to Year and back as columns were shown and hidden, and it made
+    //   resizing the window feel wrong -- Title has always been the column that grows.
+    //
+    // Instead darkSongTable nominates Title as its "slack" column and recomputes it when the
+    //   VIEWPORT width changes.  That keeps the familiar feel while leaving every divider alone,
+    //   because dragging a divider doesn't change the viewport width.  See
+    //   MyTableWidget::updateSlackColumn().
+    darkHeaderView->setStretchLastSection(false);
 
     // The .ui sets horizontalScrollBarPolicy to ScrollBarAlwaysOff, so the scrollbar was switched
     //   off outright -- not merely suppressed by the Stretch section, as issue #1744 assumed.
@@ -1379,7 +1348,6 @@ void MainWindow::updateSongTableColumnView()
     ui->darkSongTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ui->darkSongTable->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 
-    logNumberColWidth("updateSongTableColumnView after modes");
 
     ui->darkSongTable->horizontalHeaderItem(kNumberCol)->setTextAlignment( Qt::AlignCenter );
     ui->darkSongTable->horizontalHeaderItem(kLevelsCol)->setTextAlignment( Qt::AlignCenter );
@@ -1387,6 +1355,10 @@ void MainWindow::updateSongTableColumnView()
     ui->darkSongTable->horizontalHeaderItem(kAgeCol)->setTextAlignment( Qt::AlignCenter );
     ui->darkSongTable->horizontalHeaderItem(kPitchCol)->setTextAlignment( Qt::AlignCenter );
     ui->darkSongTable->horizontalHeaderItem(kTempoCol)->setTextAlignment( Qt::AlignCenter );
+
+    // Showing or hiding a column changes how much space is going spare, so Title has to be
+    //   recomputed here as well as on window resize.
+    ui->darkSongTable->updateSlackColumn();
 }
 
 

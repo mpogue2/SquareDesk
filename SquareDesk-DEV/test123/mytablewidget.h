@@ -95,9 +95,26 @@ public:
     //   column-visibility menu, which is View > Columns itself rather than a copy of it.
     void setCornerMenu(QMenu *menu);
 
+    // Nominates one column as this table's "slack" column: whenever the viewport width changes,
+    //   that column grows or shrinks to swallow whatever space the other columns don't use, down
+    //   to minimumWidth, after which the horizontal scrollbar takes over.  Every other column
+    //   keeps the width the user gave it.
+    //
+    // This is deliberately NOT QHeaderView::Stretch.  Stretch reacts to any section resize, a
+    //   divider drag included, which is what made most of darkSongTable's dividers misbehave --
+    //   Title absorbed the drag and the column slid sideways instead of resizing (issue #1744).
+    //   Keying off the VIEWPORT width instead means a drag can never trigger it, because dragging
+    //   a divider doesn't change the viewport.
+    //
+    // Opt-in, because MyTableWidget also backs the three playlist tables, which don't want it.
+    void setSlackColumn(int column, int minimumWidth = 150);
+    void updateSlackColumn();   // also call after anything that changes column widths or visibility
+
 protected:
     void paintEvent(QPaintEvent *event) override;
     void dragLeaveEvent(QDragLeaveEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
     void *mw;
@@ -122,6 +139,10 @@ private:
     QToolButton *cornerMenuButton = nullptr;
     int cornerMenuColumn = -1;
     void positionCornerMenuButton();
+
+    int slackColumn = -1;           // -1 == no slack column, i.e. feature off
+    int slackColumnMinimumWidth = 150;
+    bool inSlackColumnResize = false;
 };
 
 #endif // MYTABLEWIDGET_H

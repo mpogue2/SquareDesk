@@ -34,6 +34,7 @@
 #include <QMenu>
 #include <QToolButton>
 #include <QHeaderView>
+#include <QTimer>
 #include <QDebug>
 #include <QDrag>
 #include <algorithm>
@@ -1369,6 +1370,98 @@ void MyTableWidget::setCornerMenu(QMenu *menu)
     cornerMenuButton->show();
 }
 
+// ------------------------------------------------------------------
+void MyTableWidget::setSlackColumn(int column, int minimumWidth)
+{
+    slackColumn = column;
+    slackColumnMinimumWidth = minimumWidth;
+
+    // Reflow when the user lets go of a divider -- see eventFilter() for why it has to be the
+    //   release and not the resize.
+    //
+    // NOTE: the filter goes on the header's VIEWPORT, not on the header.  QHeaderView is a
+    //   QAbstractScrollArea, so mouse events are delivered to its viewport and only then
+    //   forwarded inward; a filter on the header itself never sees them.  (The corner menu
+    //   button is parented to this same viewport, for the same reason.)
+    horizontalHeader()->viewport()->installEventFilter(this);
+
+    // Belt and braces for the case that prompted this: sectionHandleDoubleClicked is documented
+    //   API and fires for a double-click on any Interactive divider, so the double-click path
+    //   doesn't depend on getting event delivery exactly right.
+    connect(horizontalHeader(), &QHeaderView::sectionHandleDoubleClicked, this, [this](int){
+        QTimer::singleShot(0, this, [this]{ updateSlackColumn(); });
+    });
+
+    updateSlackColumn();
+}
+
+bool MyTableWidget::eventFilter(QObject *watched, QEvent *event)
+{
+    // Any width change that isn't a window resize would otherwise leave a blank strip on the
+    //   right: narrowing a column by dragging its divider, and double-clicking a divider to size
+    //   a column to its contents (issue #1744).  Both should hand the freed space to the slack
+    //   column, the way the window getting wider does.
+    //
+    // This deliberately hooks the mouse RELEASE rather than QHeaderView::sectionResized.  Doing
+    //   it on every resize would grow the slack column in the middle of a drag, which shoves the
+    //   column under the mouse sideways -- precisely the QHeaderView::Stretch behavior this whole
+    //   change exists to get rid of.  Waiting for the release lets the divider track the mouse
+    //   honestly, and only then takes up the slack.
+    //
+    // A release also arrives after a double-click's resize-to-contents, so one hook covers both.
+    //   It is posted rather than called directly because QHeaderView does some of its resizing
+    //   after delivering the event.
+    if (watched == horizontalHeader()->viewport() && event->type() == QEvent::MouseButtonRelease) {
+        QTimer::singleShot(0, this, [this]{ updateSlackColumn(); });
+    }
+
+    return QTableWidget::eventFilter(watched, event);
+}
+
+void MyTableWidget::resizeEvent(QResizeEvent *event)
+{
+    QTableWidget::resizeEvent(event);
+
+    // Width only.  Getting taller doesn't change how much horizontal space is going spare, and
+    //   recomputing on every vertical resize would just be noise.
+    if (event->oldSize().width() != event->size().width()) {
+        updateSlackColumn();
+    }
+}
+
+void MyTableWidget::updateSlackColumn()
+{
+    if (slackColumn < 0 || slackColumn >= columnCount() || isColumnHidden(slackColumn)) {
+        return;  // feature off, or the slack column isn't currently on screen
+    }
+    if (inSlackColumnResize) {
+        return;  // resizeSection() below can re-enter via geometriesChanged
+    }
+
+    QHeaderView *hh = horizontalHeader();
+
+    int widthOfEverythingElse = 0;
+    for (int c = 0; c < columnCount(); c++) {
+        if (c != slackColumn && !isColumnHidden(c)) {
+            widthOfEverythingElse += hh->sectionSize(c);
+        }
+    }
+
+    // Below the minimum we stop shrinking and let the horizontal scrollbar do its job, rather
+    //   than squeezing the slack column down to nothing.
+    int newWidth = qMax(viewport()->width() - widthOfEverythingElse,
+                        qMax(slackColumnMinimumWidth, hh->minimumSectionSize()));
+
+    if (newWidth == hh->sectionSize(slackColumn)) {
+        return;  // nothing to do.  Also what stops a queued resize from ping-ponging.
+    }
+
+    inSlackColumnResize = true;
+    hh->resizeSection(slackColumn, newWidth);
+    inSlackColumnResize = false;
+}
+
+// ------------------------------------------------------------------
 void MyTableWidget::positionCornerMenuButton()
 {
     if (!cornerMenuButton) {
