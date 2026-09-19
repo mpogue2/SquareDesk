@@ -535,6 +535,30 @@ QHeaderView::section[theme="Light"] {
     height: 18px;
 }
 
+/* The song table's column-visibility hamburger, which lives on the header viewport rather than
+   in a header section (a section can hold text and an icon, but not a widget).
+
+   Normally transparent, so the header section underneath shows through and it looks exactly like
+   part of the header.  Once the view is scrolled far enough that section 0 is gone, the button
+   pins itself to the left edge and sits over a DIFFERENT column -- at which point it needs its
+   own background, or that column's text reads through the hamburger.  The property is set in
+   MyTableWidget::positionCornerMenuButton() (issue #1744).
+
+   The ID selector is what keeps the generic QToolButton rules above from drawing a raised button
+   with a border in the corner of the header. */
+QToolButton#songTableCornerMenuButton {
+    background: transparent;
+}
+
+QToolButton#songTableCornerMenuButton[overHiddenColumn="true"][theme="Dark"] {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #464646, stop:1 #424242);
+}
+
+QToolButton#songTableCornerMenuButton[overHiddenColumn="true"][theme="Light"] {
+    background-color: palette(button);
+}
+
 /* TABLES and LISTS ==================== */
 QTreeWidget#treeWidget[theme="Dark"],
 #playlist1Table[theme="Dark"],

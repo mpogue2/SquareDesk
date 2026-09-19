@@ -34,6 +34,8 @@
 #include <QMenu>
 #include <QToolButton>
 #include <QHeaderView>
+#include <QStyle>
+#include <QScrollBar>
 #include <QTimer>
 #include <QDebug>
 #include <QDrag>
@@ -1344,10 +1346,13 @@ void MyTableWidget::setCornerMenu(QMenu *menu)
     //   keyed on the theme attribute (issue #1740).
     // The hover and pressed rules in Themes.qss only set background-color, so the button still
     //   lights up under the mouse -- it just has no outline of its own.
+    // No background here: Themes.qss supplies it, keyed on the overHiddenColumn property set in
+    //   positionCornerMenuButton().  Transparent normally, so the header section underneath shows
+    //   through exactly as before; opaque once the button is pinned over a DIFFERENT column, or
+    //   that column's text would read through the hamburger (issue #1744).
     cornerMenuButton->setStyleSheet(
         "QToolButton#songTableCornerMenuButton {"
         "  border: none;"
-        "  background: transparent;"
         "  font-size: 18px;"
         "  padding: 0px;"
         "}");
@@ -1365,6 +1370,7 @@ void MyTableWidget::setCornerMenu(QMenu *menu)
     // Follow section 0 wherever it goes: the user can resize the header, the window, or scroll it.
     connect(horizontalHeader(), &QHeaderView::sectionResized, this, [this]{ positionCornerMenuButton(); });
     connect(horizontalHeader(), &QHeaderView::geometriesChanged, this, [this]{ positionCornerMenuButton(); });
+    connect(horizontalScrollBar(), &QScrollBar::valueChanged, this, [this]{ positionCornerMenuButton(); });
 
     positionCornerMenuButton();
     cornerMenuButton->show();
@@ -1469,9 +1475,26 @@ void MyTableWidget::positionCornerMenuButton()
     }
 
     QHeaderView *header = horizontalHeader();
-    const int x = header->sectionViewportPosition(cornerMenuColumn);
+    const int sectionX = header->sectionViewportPosition(cornerMenuColumn);
     const int w = header->sectionSize(cornerMenuColumn);
+
+    // The button is a child of the header's VIEWPORT, which does not itself scroll -- the header
+    //   scrolls its sections underneath it -- so where the button sits is entirely up to us.
+    //
+    // Clamping to the left edge is what pins it: once the view scrolls far enough that section 0
+    //   has gone, sectionViewportPosition() turns negative and the button used to ride off the
+    //   left with it, taking the only route to the column menu with it.  Now it stops at 0 and
+    //   stays reachable, like a spreadsheet's corner box (issue #1744).
+    const bool pinnedOverAnotherColumn = (sectionX < 0);
+    const int  x = qMax(0, sectionX);
 
     cornerMenuButton->setGeometry(x, 0, w, header->height());
     cornerMenuButton->setVisible(w > 0);   // hidden if that column is ever hidden
+
+    // Repolish only on a change: this runs on every scrolled pixel.
+    if (cornerMenuButton->property("overHiddenColumn").toBool() != pinnedOverAnotherColumn) {
+        cornerMenuButton->setProperty("overHiddenColumn", pinnedOverAnotherColumn);
+        cornerMenuButton->style()->unpolish(cornerMenuButton);
+        cornerMenuButton->style()->polish(cornerMenuButton);
+    }
 }
