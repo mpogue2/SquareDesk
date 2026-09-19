@@ -1359,6 +1359,11 @@ private:
     void restoreCheckBoxState(const char *key_string, QCheckBox *checkBox, bool checkedDefault);
     QString removePrefix(QString prefix, QString s);
     void updateSongTableColumnView();
+
+    // TEMPORARY INSTRUMENTATION (issue #1744, Stage 1).  Delete once the Audition column's
+    //   width is understood.  Logs the state of kNumberCol at each point that is suspected of
+    //   collapsing it, so one build can name the culprit instead of another round of theorizing.
+    void logNumberColWidth(const char *where);
     int selectedSongRow();
     int previousVisibleSongRow();
     int nextVisibleSongRow();

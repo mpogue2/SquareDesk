@@ -1577,13 +1577,19 @@ void MainWindow::initializeMusicSongTable() {
 
 //    splash->setProgress(45, "Adjusting the column layout...");
 
+    // TEMPORARY INSTRUMENTATION (issue #1744, Stage 1) around the leading suspect.
+    logNumberColWidth("initializeMusicSongTable before resizeColumnToContents");
     ui->darkSongTable->resizeColumnToContents(kNumberCol);  // and force resizing of column widths to match songs
+    logNumberColWidth("initializeMusicSongTable after resizeColumnToContents(kNumberCol)");
     ui->darkSongTable->resizeColumnToContents(kTypeCol);
     ui->darkSongTable->resizeColumnToContents(kLabelCol);
     ui->darkSongTable->resizeColumnToContents(kPitchCol);
     ui->darkSongTable->resizeColumnToContents(kTempoCol);
+    logNumberColWidth("initializeMusicSongTable after all resizeColumnToContents");
 
     ui->darkSongTable->setMainWindow(this);
+
+    logNumberColWidth("initializeMusicSongTable exit");  // TEMPORARY (issue #1744, Stage 1)
 
     stopLongSongTableOperation("MainWindow");
 
