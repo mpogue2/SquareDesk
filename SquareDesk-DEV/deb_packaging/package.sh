@@ -12,7 +12,6 @@ echo 'Maintainer: Dan Lyke <danlyke@flutterby.com>' >> SquareDeskPlayer/DEBIAN/c
 echo 'Architecture: all' >> SquareDeskPlayer/DEBIAN/control
 echo 'Description: music player and choreography management for square dance callers' >> SquareDeskPlayer/DEBIAN/control
 
-cp foo/libbass*.so SquareDeskPlayer/usr/lib
 pushd ..
 qmake
 make
