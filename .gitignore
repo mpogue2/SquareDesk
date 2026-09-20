@@ -6,8 +6,8 @@ qrc_resources.cpp
 ui_*.h
 build-*
 /SquareDesk-DEV/local/
-/SquareDesk-DEV/taglib/libtaglib.a
-/SquareDesk-DEV/taglib/taglib/Makefile
+/SquareDesk-DEV/third_party/taglib/libtaglib.a
+/SquareDesk-DEV/third_party/taglib/taglib/Makefile
 /SquareDesk-DEV/Makefile
 /SquareDesk-DEV/html-tidy/Makefile
 /SquareDesk-DEV/deb_packaging/SquareDeskPlayer.deb

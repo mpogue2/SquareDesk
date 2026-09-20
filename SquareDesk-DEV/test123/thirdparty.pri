@@ -24,11 +24,11 @@ LIBS += -lz -ljpeg -lcurl
 LIBS += -L$$OUT_PWD/../taglib -ltaglib -lz -lfreetype -lpng
 INCLUDEPATH += /usr/share/juce/modules
 INCLUDEPATH += /usr/include/freetype2
-INCLUDEPATH += $$PWD/../taglib/binaries/include
-INCLUDEPATH += $$PWD/../taglib
-INCLUDEPATH += $$PWD/../taglib/taglib
-INCLUDEPATH += $$PWD/../taglib/taglib/toolkit
-INCLUDEPATH += $$PWD/../taglib/taglib/mpeg/id3v2
+INCLUDEPATH += $$PWD/../third_party/taglib/binaries/include
+INCLUDEPATH += $$PWD/../third_party/taglib
+INCLUDEPATH += $$PWD/../third_party/taglib/taglib
+INCLUDEPATH += $$PWD/../third_party/taglib/taglib/toolkit
+INCLUDEPATH += $$PWD/../third_party/taglib/taglib/mpeg/id3v2
 INCLUDEPATH += $$PWD/ $$PWD/../local/include $$(HOME)/local/include $$(HOME)/local/include/soundtouch 
 DEPENDPATH += $$PWD/ $$PWD/../local/include
 LIBS += -L$$PWD/../sdlib -lsdlib
@@ -56,13 +56,13 @@ LIBS += -framework MediaPlayer
 
 # TAGLIB ----------------------------------------
 LIBS += -L$$OUT_PWD/../taglib -ltaglib
-INCLUDEPATH += $$PWD/../taglib/binaries/include
-INCLUDEPATH += $$PWD/../taglib
-INCLUDEPATH += $$PWD/../taglib/taglib
-INCLUDEPATH += $$PWD/../taglib/taglib/toolkit
-INCLUDEPATH += $$PWD/../taglib/taglib/mpeg/id3v2
-INCLUDEPATH += $$PWD/../taglib/taglib/riff
-INCLUDEPATH += $$PWD/../taglib/taglib/riff/wav
+INCLUDEPATH += $$PWD/../third_party/taglib/binaries/include
+INCLUDEPATH += $$PWD/../third_party/taglib
+INCLUDEPATH += $$PWD/../third_party/taglib/taglib
+INCLUDEPATH += $$PWD/../third_party/taglib/taglib/toolkit
+INCLUDEPATH += $$PWD/../third_party/taglib/taglib/mpeg/id3v2
+INCLUDEPATH += $$PWD/../third_party/taglib/taglib/riff
+INCLUDEPATH += $$PWD/../third_party/taglib/taglib/riff/wav
 
 # JUCE ------------
 LIBS += -L$$JUCE_ROOT/Builds/MacOSX/build/$$JUCE_BUILD -l$$JUCE_LIB

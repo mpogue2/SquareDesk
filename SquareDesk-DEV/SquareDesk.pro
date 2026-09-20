@@ -11,5 +11,5 @@ CONFIG+=sdk_no_version_check
 }
 
 # where to find the sub projects -----------------
-taglib.subdir = taglib/taglib
+taglib.subdir = third_party/taglib/taglib
 test123.subdir = test123
