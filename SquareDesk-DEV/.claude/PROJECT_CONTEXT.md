@@ -96,7 +96,6 @@ SquareDesk-DEV/
 │   ├── docs/                  # User manual
 │   └── *.command              # macOS build/release scripts
 ├── sdlib/                     # Square Dance choreography engine (separate project)
-├── mp3gain/                   # MP3 normalization tool
 ├── taglib/                    # ID3 tag library
 ├── kfr/                       # KFR DSP library (filters)
 ├── qpdfjs/                    # PDF.js viewer wrapper
