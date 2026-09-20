@@ -19,7 +19,7 @@ INCLUDEPATH += $$JUCE_ROOT/JuceLibraryCode $$JUCE_MODULES/modules
 
 unix:!macx {
 DEFINES += JUCE_DEBUG
-LIBS += -L$$OUT_PWD/../libJUCEstatic/Builds/LinuxMakefile/build -lJUCEstatic 
+LIBS += -L$$OUT_PWD/../third_party/libJUCEstatic/Builds/LinuxMakefile/build -lJUCEstatic 
 LIBS += -lz -ljpeg -lcurl
 LIBS += -L$$OUT_PWD/../taglib -ltaglib -lz -lfreetype -lpng
 INCLUDEPATH += /usr/share/juce/modules
