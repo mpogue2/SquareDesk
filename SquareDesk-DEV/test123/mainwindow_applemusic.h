@@ -83,6 +83,7 @@ struct AppleMusicTrackMeta {
     int  rating         = 0;    // 0 = not set, otherwise 20/40/60/80/100
     bool ratingComputed = false; // true == derived from the album, not chosen by the user
     std::string addedDate;      // ISO 8601, empty if not set
-    std::string lastPlayedDate; // ISO 8601, empty if never played.  Imported but not shown as a
-                                //   column yet, deliberately (issue #1744).
+    std::string lastPlayedDate; // ISO 8601, empty if never played.  Has no column of its own: it
+                                //   is folded into song_plays instead, so the Age and Recent
+                                //   columns show max(Music's play, SquareDesk's own) (issue #1745).
 };
