@@ -1799,6 +1799,15 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         aPathStack = currentlyShowingPathStack; // just refresh the one that's already there (forced reload to pick up changes)
     }
 
+    // Are we showing the treeWidget's Apple Music section?  Every entry in that stack came from
+    //   Apple Music and no entry in any other stack did, so this is the per-row answer too
+    //   (issue #1751).
+    // It has to be asked of the VIEW rather than of the song's path: a local SquareDesk playlist
+    //   is free to contain a file that Apple Music also has in a playlist, and a row in THAT
+    //   playlist is not an Apple Music row -- it should keep its filename-derived title and its
+    //   plain Type, exactly as it did before Apple Music was ever turned on.
+    const bool showingAppleMusic = (aPathStack == pathStackNewApplePlaylists);
+
     QListIterator<QString> iter(*aPathStack); // filter the one we were given (pathStack, pathStackPlaylists, pathStackApplePlaylists), OR refresh the last one
 
     QColor textCol = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
@@ -1996,7 +2005,6 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
             // e.g. "SquareDeskPlaylistName%!%pitch,tempo#!#FullPathname"
             QStringList sl11 = type.split("%!%");
             QStringList sl11a = sl11[0].split("/");
-            QString playlistName = sl11[0];
             QString pitchTempo = sl11[1];
             QStringList sl12 = pitchTempo.split(",");
             QString pitchOverride = sl12[0]; // TODO: implement this!
@@ -2007,30 +2015,34 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
             // title = lineNumber + " - " + title; // use the default SquareDesk name (from the FullPathname), but prepend the line number and a dash
             shortTitle = title;
 
-            // For Type 2 Apple Music items (playlistName starts with \uF8FF), override the
-            // filename-derived title with the actual Apple Music title (no track number, has colons).
-            if (playlistName.startsWith(QChar(0xF8FF))) {
-                for (const auto& sl : std::as_const(allAppleMusicPlaylists)) {
-                    if (sl[2] == origPath) {
-                        title = sl[1];
-                        title.replace("/", "_"); // '/' not valid in filenames; use '_' for consistency with palette slot
-                        shortTitle = title;
-                        break;
-                    }
+            // Apple Music rows.  This used to be decided by looking for an Apple symbol on the
+            //   playlist NAME, which is how these entries were told apart back when they shared
+            //   pathStackPlaylists with the local playlists.  Their names are plain now, and the
+            //   section they are in is what identifies them (issue #1751).
+            if (showingAppleMusic) {
+                // Use the title Apple Music knows, not the one derived from the filename: it has
+                //   no track number in front of it, and it can contain colons.
+                // Straight out of the hash, rather than by scanning allAppleMusicPlaylists for a
+                //   matching path once per row, as this used to do.
+                auto appleTitle = appleMusicTitleByPath.constFind(origPath);
+                if (appleTitle != appleMusicTitleByPath.constEnd()) {
+                    title = appleTitle.value();
+                    title.replace("/", "_"); // '/' not valid in filenames; use '_' for consistency with palette slot
+                    shortTitle = title;
                 }
-                // For hierarchical playlists, the last path component loses the \uF8FF prefix.
-                // Re-add it so the Type field shows "XI APPLEICON PlaylistName XX" consistently.
-                if (!type.startsWith(QChar(0xF8FF))) {
-                    type = QString(QChar(0xF8FF)) + " " + type;
-                }
+
+                // The Apple symbol in the Type column is what tells an Apple Music row from a
+                //   local playlist row at a glance, so it goes on here, now that the playlist
+                //   name it used to ride in on no longer carries one.
+                type = QString(QChar(APPLE_SYMBOL_UNICODE)) + " " + type;
             }
 
             QString GreekXi = QChar(0x039E);  // use GREEK XI for Local Playlists (sorts almost at the bottom, and looks like a playlist!)
             type = GreekXi + " " + type; // this is tricky.  Leading GREEK XI will force sort to almost bottom for "<GREEKXI> SquareDesk Playlist Name".
 
-            // An Apple Music track routed through the Playlists section gets the same Type
-            //   treatment as one in the Apple Music section (issue #1740, item 6).
-            if (playlistName.startsWith(QChar(0xF8FF))) {
+            // An Apple Music track gets the Type its metadata says it is, per Preferences >
+            //   Apple Music (issue #1740, item 6).
+            if (showingAppleMusic) {
                 appleMusicType = appleMusicTypeByPath.value(origPath);
                 type = applyAppleMusicTypeColumnFormat(type, appleMusicType, appleMusicTypeColumnFormat);
             }

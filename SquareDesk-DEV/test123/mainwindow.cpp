@@ -25,6 +25,7 @@
 #include "globaldefines.h"
 #include "playlist_constants.h"
 
+#include <QAction>        // for the QActions customTreeWidgetMenuRequested() holds on to
 #include <QActionGroup>
 #include <QColorDialog>
 #include <QCoreApplication>
@@ -143,6 +144,11 @@ static QRegularExpression title_tags_remover("(\\&nbsp\\;)*\\<\\/?span( .*?)?>")
 // TITLE COLORS
 static QRegularExpression spanPrefixRemover("<span style=\"color:.*\">(.*)</span>", QRegularExpression::InvertedGreedinessOption);
 const char *kCharStarStringTracks = "Tracks";
+// The other two top-level treeWidget items.  Each is matched against in several places in this
+//   file -- building the tree, the selection handler, the context menu -- so they are spelled
+//   out once here (issue #1751).
+const char *kCharStarStringPlaylists = "Playlists";
+const char *kCharStarStringAppleMusic = "Apple Music";
 
 #include <QProxyStyle>
 
@@ -3878,6 +3884,38 @@ void MainWindow::clearLockFile(QString musicRootPath) {
 
 
 
+// Add one hierarchical playlist name, e.g. "Jokers/2024/Jokers_2024.01.12", to the treeWidget
+//   underneath the given top-level item, creating whatever folder items along the way aren't
+//   there yet, and returning the leaf item so the caller can hang a tooltip on it.
+// Shared by the Playlists and the Apple Music sections (issue #1751): they build identical
+//   hierarchies, and differ only in which root item they hang from and where the names came from.
+static QTreeWidgetItem *addPlaylistToTree(QTreeWidgetItem *rootItem, const QString &hierName)
+{
+    const QStringList parts = hierName.split("/");
+
+    QTreeWidgetItem *parentItem = rootItem;
+    for (int i = 0; i < parts.size() - 1; ++i) { // every part but the last is a folder
+        QTreeWidgetItem *folderItem = nullptr;
+        for (int j = 0; j < parentItem->childCount(); ++j) {
+            if (parts[i] == parentItem->child(j)->text(0)) {
+                folderItem = parentItem->child(j); // this folder is already here, from a sibling playlist
+                break;
+            }
+        }
+
+        if (folderItem == nullptr) {
+            folderItem = new QTreeWidgetItem(parentItem);
+            folderItem->setText(0, parts[i]);
+        }
+
+        parentItem = folderItem;
+    }
+
+    QTreeWidgetItem *leafItem = new QTreeWidgetItem(parentItem);
+    leafItem->setText(0, parts.last());
+    return leafItem;
+}
+
 void MainWindow::updateTreeWidget() {
 
     // updateTreeWidget always rescans for playlists, so we need to clear pathStackPlaylists here.
@@ -3946,87 +3984,23 @@ void MainWindow::updateTreeWidget() {
 
     playlists.sort(Qt::CaseInsensitive);
 
-    if (prefsManager.GetenableAppleMusic()) {
-        // if Syncing with Apple Music is allowed, then add these playlist names to the treeWidget
-        // qDebug() << "playlists before:" << playlists;
-
-        QStringList AppleMusicPlaylistNames;
-        foreach (const QStringList &list, allAppleMusicPlaylists) {
-            if (!list.isEmpty()) {
-                AppleMusicPlaylistNames.append(QString("") + list.first()); // first item of each QStringList is the playlist name (and we pre-pend with  here)
-            }
-        }
-
-        AppleMusicPlaylistNames.removeDuplicates();
-
-        // qDebug() << "AppleMusicPlaylistNames:" << AppleMusicPlaylistNames;
-        playlists << AppleMusicPlaylistNames; // append to the main list
-
-        playlists.sort(Qt::CaseInsensitive); // sort it again (FIX THIS)
-        // qDebug() << "playlists after:" << playlists;
-    }
+    // NOTE: Apple Music playlists used to be merged into this list, so that they showed up under
+    //   Playlists with an Apple symbol in front of each name to tell them apart.  They have their
+    //   own top-level item now, built further down from their own pathStack (issue #1751), so
+    //   Playlists holds local SquareDesk playlists and nothing else.
 
     // top level Playlists item with icon
     QTreeWidgetItem *playlistsItem = new QTreeWidgetItem();
-    playlistsItem->setText(0, "Playlists");
+    playlistsItem->setText(0, kCharStarStringPlaylists);
 //    playlistsItem->setIcon(0, QIcon(":/graphics/darkPlaylists.png"));
     playlistsItem->setIcon(0, QIcon(":/graphics/icons8-menu-64.png"));
     ui->treeWidget->addTopLevelItem(playlistsItem);  // add this one to the tree
     playlistsItem->setExpanded(true);
 
     // insert filenames
-    QTreeWidgetItem *topLevelItem = playlistsItem;
     for (const auto &fileName : std::as_const(playlists))
     {
-        QStringList splitFileName = (QString("Playlists/") + fileName).split("/"); // tack on "Playlists/" so they will populate under the icon item
-
-        // add root folder as top level item if treeWidget doesn't already have it
-        if (ui->treeWidget->findItems(splitFileName[0], Qt::MatchFixedString).isEmpty())
-        {
-            topLevelItem = new QTreeWidgetItem;
-            topLevelItem->setText(0, splitFileName[0]);
-            ui->treeWidget->addTopLevelItem(topLevelItem);
-        }
-
-        QTreeWidgetItem *parentItem = topLevelItem;
-
-        if (splitFileName.length() > 1) {
-            // iterate through non-root directories (file name comes after)
-            for (int i = 1; i < splitFileName.size() - 1; ++i)
-            {
-                // iterate through children of parentItem to see if this directory exists
-                bool thisDirectoryExists = false;
-                for (int j = 0; j < parentItem->childCount(); ++j)
-                {
-                    if (splitFileName[i] == parentItem->child(j)->text(0))
-                    {
-                            thisDirectoryExists = true;
-                            parentItem = parentItem->child(j);
-                            break;
-                    }
-                }
-
-                if (!thisDirectoryExists)
-                {
-                    parentItem = new QTreeWidgetItem(parentItem);
-                    parentItem->setText(0, splitFileName[i]);
-                }
-            }
-
-            QTreeWidgetItem *childItem = new QTreeWidgetItem(parentItem);
-            childItem->setText(0, splitFileName.last());
-
-            // Smart Apple Music playlists look exactly like static ones here (same Apple symbol,
-            //   same read-only behavior), but their contents are maintained by Music and can
-            //   change between resyncs, so say so in a tooltip (issue #1740).
-            if (fileName.startsWith(QChar(APPLE_SYMBOL_UNICODE))) {
-                QString hierName = fileName;
-                hierName.remove(QChar(APPLE_SYMBOL_UNICODE));
-                if (allAppleMusicSmartPlaylistNames.contains(hierName)) {
-                    childItem->setToolTip(0, "Apple Music smart playlist - contents are maintained by Music");
-                }
-            }
-        }
+        addPlaylistToTree(playlistsItem, fileName);
     }
 
     // TODO: remove all of the local playlist entries from the pathStack
@@ -4082,39 +4056,48 @@ void MainWindow::updateTreeWidget() {
 
     }
 
-    // now that we have rescanned the playlist directory, add in the cached AppleMusic tracks that are in Playlists
-    //   these are needed so that when we click on an Apple Playlist, it will show the items in that Apple Music playlist
-
-    // qDebug() << "***** BEFORE: " << pathStackPlaylists->count() << pathStackNewApplePlaylists->count();
-    pathStackPlaylists->append(*pathStackNewApplePlaylists);
-    // qDebug() << "***** AFTER: " << pathStackPlaylists->count() << pathStackNewApplePlaylists->count();
-
     // --------------------------------------------------------------------
     // GET LIST OF PLAYLISTS AND POPULATE TREEWIDGET > APPLE MUSIC ----------
-    // NOTE: Apple Music playlists now appear under Playlists (Type 2), so the
-    //       separate top-level Apple Music item is no longer needed.
+    // Apple Music playlists get their own top-level item, hierarchical exactly like Playlists
+    //   (issue #1751).  The Apple symbol goes on THIS item and nowhere below it, the same way
+    //   the Tracks and Playlists icons sit on their top-level item alone -- being in this
+    //   section is what identifies a playlist as Apple's, so repeating the mark on every child
+    //   says nothing extra.
+    // These names come out of allAppleMusicPlaylists rather than off the disk, and their tracks
+    //   live in pathStackNewApplePlaylists, which getAppleMusicInfo() filled on the last resync
+    //   and which we deliberately do NOT clear at the top of this function.
+    if (prefsManager.GetenableAppleMusic()) {
+        QStringList appleMusicPlaylists;
+        for (const QStringList &list : std::as_const(allAppleMusicPlaylists)) {
+            if (!list.isEmpty()) {
+                appleMusicPlaylists.append(list.first()); // hierarchical playlist name, e.g. "Flor/Christmas"
+            }
+        }
 
-//    if (prefsManager.GetenableAppleMusic()) {
-//        // if (allAppleMusicPlaylistNames.size() == 0) {
-//        //     return; // if no Apple Music playlists
-//        // }
-//
-//        // qDebug() << "***** APPLE MUSIC";
-//
-//        // top level Apple Music item with icon
-//        QTreeWidgetItem *appleMusicItem = new QTreeWidgetItem();
-//        appleMusicItem->setText(0, "Apple Music");
-//        appleMusicItem->setIcon(0, QIcon(":/graphics/icons8-apple-48.png"));
-//
-//        for (const auto &playlistName : std::as_const(allAppleMusicPlaylistNames)) {
-//                    // qDebug() << "playlistName: " << playlistName;
-//                    QTreeWidgetItem *childItem2 = new QTreeWidgetItem(appleMusicItem);
-//                    childItem2->setText(0, playlistName);
-//        }
-//
-//        ui->treeWidget->addTopLevelItem(appleMusicItem);  // add this one to the tree
-//        appleMusicItem->setExpanded(false);
-//    }
+        appleMusicPlaylists.removeDuplicates(); // one entry per TRACK comes in, and we want one per PLAYLIST
+        appleMusicPlaylists.sort(Qt::CaseInsensitive);
+
+        // If nothing came back -- the user has no playlists, or Music isn't set up on this Mac --
+        //   don't put up an empty section for them to click on.
+        if (!appleMusicPlaylists.isEmpty()) {
+            QTreeWidgetItem *appleMusicItem = new QTreeWidgetItem();
+            appleMusicItem->setText(0, kCharStarStringAppleMusic);
+            appleMusicItem->setIcon(0, QIcon(":/graphics/icons8-apple-48.png"));
+            ui->treeWidget->addTopLevelItem(appleMusicItem);
+            appleMusicItem->setExpanded(false);
+
+            for (const auto &hierName : std::as_const(appleMusicPlaylists)) {
+                QTreeWidgetItem *leafItem = addPlaylistToTree(appleMusicItem, hierName);
+
+                // Smart Apple Music playlists look exactly like static ones here (both read-only,
+                //   both imported the same way), but their contents are maintained by Music and
+                //   can change between resyncs, so say so in a tooltip (issue #1740).
+                if (allAppleMusicSmartPlaylistNames.contains(hierName)) {
+                    leafItem->setToolTip(0, "Apple Music smart playlist - contents are maintained by Music");
+                }
+            }
+        }
+    }
 }
 
 void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
@@ -7683,12 +7666,14 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
                 if (theText == kCharStarStringTracks) {
                     darkLoadMusicList(pathStack, kCharStarStringTracks, true, false);  // show MUSIC
                     return;
-                // NOTE: "Apple Music" top-level item removed; Type 1 playlists now shown under Playlists (Type 2)
-                // } else if (theText == "Apple Music") {
-                //     darkLoadMusicList(pathStackApplePlaylists, "Apple Music", true, false);  // show APPLE MUSIC playlists
-                //     return;
-                } else if (theText == "Playlists") {
-                    darkLoadMusicList(pathStackPlaylists, "Playlists", true, false);  // show PLAYLISTS
+                } else if (theText == kCharStarStringPlaylists) {
+                    darkLoadMusicList(pathStackPlaylists, kCharStarStringPlaylists, true, false);  // show PLAYLISTS
+                    return;
+                } else if (theText == kCharStarStringAppleMusic) {
+                    // Every Apple Music track, de-duped: darkLoadMusicList() takes the whole stack
+                    //   for a top-level item, and collapses a song that is on several playlists
+                    //   down to one row (issue #1750).
+                    darkLoadMusicList(pathStackNewApplePlaylists, kCharStarStringAppleMusic, true, false);  // show APPLE MUSIC
                     return;
                 }
             }
@@ -7731,11 +7716,13 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
                 currentTreePath = treePath; // e.g. "Tracks/patter", "Playlists/CPSD/" "Apple Music/CuriousBlend"
                 if (treePath.startsWith(kCharStarStringTracks)) {
                     darkLoadMusicList(pathStack, shortTreePath, true, false);  // show MUSIC TRACKS
-                } else if (treePath.startsWith("Playlists")) {
+                } else if (treePath.startsWith(kCharStarStringPlaylists)) {
                     darkLoadMusicList(pathStackPlaylists, shortTreePath, true, false);  // show MUSIC TRACKS
-                // NOTE: "Apple Music" top-level item removed; no longer reachable
-                // } else if (treePath.startsWith("Apple Music")) {
-                //     darkLoadMusicList(pathStackApplePlaylists, shortTreePath, true, false);  // show MUSIC TRACKS
+                } else if (treePath.startsWith(kCharStarStringAppleMusic)) {
+                    // shortTreePath is the hierarchical Apple Music playlist name, e.g.
+                    //   "Flor/Christmas" for a leaf, or "Flor/" for a folder -- which is exactly
+                    //   how getAppleMusicInfo() keyed the entries in this stack (issue #1751).
+                    darkLoadMusicList(pathStackNewApplePlaylists, shortTreePath, true, false);  // show MUSIC TRACKS
                 } else {
                 }
             }
@@ -8330,14 +8317,54 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
     // Check if this is a leaf node (no children)
     bool isLeafNode = (treeItem->childCount() == 0);
 
+    // The three "Show in palette slot #N" actions, and the greying out that the 0/1/2 palette
+    //   slots preference does to them.  All three sections want exactly this, so it lives here
+    //   once rather than being pasted a third time for Apple Music (issue #1751).
+    // updateRecents is false for the read-only sections: a Track filter and an Apple Music
+    //   playlist are not files, and don't belong on the Recent Playlists menu.
+    auto addPaletteSlotActions = [this, twMenu](const QString &PlaylistFileName, bool updateRecents) {
+        QAction *slotAction[3];
+        for (int slot = 0; slot < 3; ++slot) {
+            slotAction[slot] = twMenu->addAction(QString("Show in palette slot #%1").arg(slot + 1),
+                                                 [this, PlaylistFileName, slot, updateRecents](){
+                                                     int songCount;
+                                                     loadPlaylistFromFileToPaletteSlot(PlaylistFileName, slot, songCount);
+                                                     if (updateRecents) {
+                                                         updateRecentPlaylistsList(PlaylistFileName);
+                                                     }
+                                                 }
+                                                 );
+        }
+
+        // Hold on to the QActions rather than indexing twMenu->actions(), which only worked
+        //   because these happened to be the first three items in the menu.
+        if (ui->action0paletteSlots->isChecked()) {
+            slotAction[0]->setEnabled(false);
+            slotAction[1]->setEnabled(false);
+            slotAction[2]->setEnabled(false);
+        } else if (ui->action1paletteSlots->isChecked()) {
+            slotAction[1]->setEnabled(false);
+            slotAction[2]->setEnabled(false);
+        } else if (ui->action2paletteSlots->isChecked()) {
+            slotAction[2]->setEnabled(false);
+        }
+    };
+
     // Handle based on the section
-    // NOTE: "Apple Music" top-level item removed; context menu branch no longer reachable
-    // if (topLevelCategory == "Apple Music") {
-    //     // Apple Music items: no reveal actions at all
-    //     // Don't add any menu items for Apple Music, just return
-    //     return;
-    // } else
-    if (topLevelCategory == "Playlists") {
+    if (topLevelCategory == kCharStarStringAppleMusic) {
+        // Apple Music section (issue #1751).  Read-only, because ITLibrary has no write API and
+        //   there is no .csv file behind any of this: a leaf playlist can be shown in a palette
+        //   slot, and that is all.  Nothing to reveal in the Finder, nothing to move to the Trash.
+        if (!isTopLevel && isLeafNode) {
+            QString relativePath = fullPathToLeaf;
+            relativePath.remove(0, QString(kCharStarStringAppleMusic).length() + 1); // + 1 for the "/"
+
+            // A fake /Apple Music/ path, which loadPlaylistFromFileToPaletteSlot() dispatches to
+            //   loadAppleMusicPlaylistToSlot().  No such file exists, and none is ever written.
+            QString PlaylistFileName = musicRootPath + APPLE_MUSIC_PATH_PREFIX + relativePath + CSV_FILE_EXTENSION;
+            addPaletteSlotActions(PlaylistFileName, false);
+        }
+    } else if (topLevelCategory == kCharStarStringPlaylists) {
         // Playlists section
         if (!isTopLevel) {
             // Remove "Playlists/" prefix to get relative path
@@ -8345,117 +8372,73 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
             relativePath.remove(0, QString("Playlists/").length());
 
             if (isLeafNode) {
-                // Detect Type 2 Apple Music playlists: their path contains \uF8FF (apple char)
-                // prepended to the hierarchical folder name (e.g. "\uF8FFFlor/Christmas")
-                bool isAppleMusicItem = relativePath.contains(QChar(0xF8FF));
-
-                QString PlaylistFileName;
-                if (isAppleMusicItem) {
-                    // Build a fake /Apple Music/ path so the dispatcher routes to loadAppleMusicPlaylistToSlot
-                    QString cleanHierName = relativePath;
-                    cleanHierName.remove(QChar(0xF8FF));
-                    PlaylistFileName = musicRootPath + "/Apple Music/" + cleanHierName + ".csv";
-                } else {
-                    PlaylistFileName = musicRootPath + "/playlists/" + relativePath + ".csv";
-                }
+                // Every leaf here is a local SquareDesk .csv playlist.  Apple Music playlists used
+                //   to land in this branch too, and were picked out by the Apple symbol in their
+                //   name; they have their own section now (issue #1751).
+                QString PlaylistFileName = musicRootPath + "/playlists/" + relativePath + CSV_FILE_EXTENSION;
 
                 // Add palette slot menu items
-                twMenu->addAction("Show in palette slot #1",
-                                  [this, PlaylistFileName, isAppleMusicItem](){
-                                      int songCount;
-                                      loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 0, songCount);
-                                      if (!isAppleMusicItem) updateRecentPlaylistsList(PlaylistFileName);
-                                  }
-                                  );
-                twMenu->addAction("Show in palette slot #2",
-                                  [this, PlaylistFileName, isAppleMusicItem](){
-                                      int songCount;
-                                      loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 1, songCount);
-                                      if (!isAppleMusicItem) updateRecentPlaylistsList(PlaylistFileName);
-                                  }
-                                  );
-                twMenu->addAction("Show in palette slot #3",
-                                  [this, PlaylistFileName, isAppleMusicItem](){
-                                      int songCount;
-                                      loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 2, songCount);
-                                      if (!isAppleMusicItem) updateRecentPlaylistsList(PlaylistFileName);
-                                  }
-                                  );
+                addPaletteSlotActions(PlaylistFileName, true);
 
-                if (ui->action0paletteSlots->isChecked()) {
-                    twMenu->actions()[0]->setEnabled(false);
-                    twMenu->actions()[1]->setEnabled(false);
-                    twMenu->actions()[2]->setEnabled(false);
-                } else if (ui->action1paletteSlots->isChecked()) {
-                    twMenu->actions()[1]->setEnabled(false);
-                    twMenu->actions()[2]->setEnabled(false);
-                } else if (ui->action2paletteSlots->isChecked()) {
-                    twMenu->actions()[2]->setEnabled(false);
-                }
+                // Add separator before reveal action
+                twMenu->addSeparator();
 
-                if (!isAppleMusicItem) {
-                    // if this is NOT an Apple Music playlist in the Playlists section, then:
+                // Add "Reveal Playlist in Finder"
+                twMenu->addAction("Reveal Playlist in Finder",
+                                  [this, PlaylistFileName](){
+                                      QString pathToReveal = PlaylistFileName;
+                                      QFileInfo fileInfo(pathToReveal);
 
-                    // Add separator before reveal action
-                    twMenu->addSeparator();
-
-                    // Add "Reveal Playlist in Finder"
-                    twMenu->addAction("Reveal Playlist in Finder",
-                                      [this, PlaylistFileName](){
-                                          QString pathToReveal = PlaylistFileName;
-                                          QFileInfo fileInfo(pathToReveal);
-
-                                          // If .csv doesn't exist, reveal the folder instead
-                                          if (!fileInfo.exists()) {
-                                              pathToReveal = fileInfo.absolutePath();
-                                          }
-
-                                          QFileInfo finalFileInfo(pathToReveal);
-
-                                          if (finalFileInfo.exists()) {
-                                              showInFinderOrExplorer(pathToReveal);
-                                          }
+                                      // If .csv doesn't exist, reveal the folder instead
+                                      if (!fileInfo.exists()) {
+                                          pathToReveal = fileInfo.absolutePath();
                                       }
-                                      );
 
-                    twMenu->addSeparator();
+                                      QFileInfo finalFileInfo(pathToReveal);
 
-                    // Add "Move Playlist to Trash"
-                    twMenu->addAction("Move Playlist to Trash",
-                                      [this, PlaylistFileName, relativePath](){
-                                          QMessageBox msgBox;
-                                          msgBox.setText("Playlist \"" + relativePath + "\" will be moved to the Trash.\nThis operation cannot be undone.");
-                                          msgBox.setIcon(QMessageBox::Question);
-                                          msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
-                                          msgBox.setDefaultButton(QMessageBox::No);
-                                          int ret = msgBox.exec();
-
-                                          if (ret != QMessageBox::Yes) {
-                                              return;
-                                          }
-
-                                          // If this playlist is loaded in a palette slot, save any pending
-                                          //  modifications first (so the trashed file is fully recoverable),
-                                          //  then clear that slot.
-                                          clearDuplicateSlots(relativePath);
-
-                                          if (QFile::moveToTrash(PlaylistFileName)) {
-                                              removeFromRecentPlaylistsList(PlaylistFileName);
-                                              updateTreeWidget();
-
-                                              // the darkSongTable may be showing the contents of the now-deleted
-                                              //  playlist (right-click selected it), so go back to showing all Tracks,
-                                              //  like at app-start time
-                                              currentTreePath = "Tracks/";
-                                              ui->treeWidget->setCurrentItem(treeWidgetTrackItem()); // triggers reload of darkSongTable
-
-                                              ui->statusBar->showMessage(QString("Moved playlist \"%1\" to the Trash").arg(relativePath));
-                                          } else {
-                                              ui->statusBar->showMessage(QString("ERROR: could not move playlist \"%1\" to the Trash").arg(relativePath));
-                                          }
+                                      if (finalFileInfo.exists()) {
+                                          showInFinderOrExplorer(pathToReveal);
                                       }
-                                      );
-                }
+                                  }
+                                  );
+
+                twMenu->addSeparator();
+
+                // Add "Move Playlist to Trash"
+                twMenu->addAction("Move Playlist to Trash",
+                                  [this, PlaylistFileName, relativePath](){
+                                      QMessageBox msgBox;
+                                      msgBox.setText("Playlist \"" + relativePath + "\" will be moved to the Trash.\nThis operation cannot be undone.");
+                                      msgBox.setIcon(QMessageBox::Question);
+                                      msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+                                      msgBox.setDefaultButton(QMessageBox::No);
+                                      int ret = msgBox.exec();
+
+                                      if (ret != QMessageBox::Yes) {
+                                          return;
+                                      }
+
+                                      // If this playlist is loaded in a palette slot, save any pending
+                                      //  modifications first (so the trashed file is fully recoverable),
+                                      //  then clear that slot.
+                                      clearDuplicateSlots(relativePath);
+
+                                      if (QFile::moveToTrash(PlaylistFileName)) {
+                                          removeFromRecentPlaylistsList(PlaylistFileName);
+                                          updateTreeWidget();
+
+                                          // the darkSongTable may be showing the contents of the now-deleted
+                                          //  playlist (right-click selected it), so go back to showing all Tracks,
+                                          //  like at app-start time
+                                          currentTreePath = "Tracks/";
+                                          ui->treeWidget->setCurrentItem(treeWidgetTrackItem()); // triggers reload of darkSongTable
+
+                                          ui->statusBar->showMessage(QString("Moved playlist \"%1\" to the Trash").arg(relativePath));
+                                      } else {
+                                          ui->statusBar->showMessage(QString("ERROR: could not move playlist \"%1\" to the Trash").arg(relativePath));
+                                      }
+                                  }
+                                  );
             } else {
                 // NON-LEAF node: this is a folder containing playlists
                 QString folderPath = musicRootPath + "/playlists/" + relativePath;
@@ -8472,7 +8455,7 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
                                   );
             }
         }
-    } else if (topLevelCategory == "Tracks") {
+    } else if (topLevelCategory == kCharStarStringTracks) {
         // Tracks section
         if (!isTopLevel) {
             // Remove "Tracks/" prefix to get relative path
@@ -8485,35 +8468,7 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
                 // Track Filter leaf: use the fake path that identifies this filter
                 QString TrackFilterFileName = musicRootPath + "/" + fullPathToLeaf + ".csv";
 
-                twMenu->addAction("Show in palette slot #1",
-                                  [this, TrackFilterFileName](){
-                                      int songCount;
-                                      loadPlaylistFromFileToPaletteSlot(TrackFilterFileName, 0, songCount);
-                                  }
-                                  );
-                twMenu->addAction("Show in palette slot #2",
-                                  [this, TrackFilterFileName](){
-                                      int songCount;
-                                      loadPlaylistFromFileToPaletteSlot(TrackFilterFileName, 1, songCount);
-                                  }
-                                  );
-                twMenu->addAction("Show in palette slot #3",
-                                  [this, TrackFilterFileName](){
-                                      int songCount;
-                                      loadPlaylistFromFileToPaletteSlot(TrackFilterFileName, 2, songCount);
-                                  }
-                                  );
-
-                if (ui->action0paletteSlots->isChecked()) {
-                    twMenu->actions()[0]->setEnabled(false);
-                    twMenu->actions()[1]->setEnabled(false);
-                    twMenu->actions()[2]->setEnabled(false);
-                } else if (ui->action1paletteSlots->isChecked()) {
-                    twMenu->actions()[1]->setEnabled(false);
-                    twMenu->actions()[2]->setEnabled(false);
-                } else if (ui->action2paletteSlots->isChecked()) {
-                    twMenu->actions()[2]->setEnabled(false);
-                }
+                addPaletteSlotActions(TrackFilterFileName, false);
 
                 twMenu->addSeparator();
             }

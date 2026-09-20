@@ -2239,14 +2239,22 @@ void MainWindow::getAppleMusicInfo() {
             }
 
             // ------------------------------------------------------
-            // new treeWidget integration into PLAYLISTS instead of APPLE MUSIC
+            // The pathStack behind the treeWidget's "Apple Music" section (issue #1751).
 
             // NOTE: playlistName is NOT hierarchical, hierPlaylistName is hierarchical
             // Item should look like: "SquareDeskPlaylistName%!%pitch,tempo,currentPlaylistLineNumber#!#FullPathname"
+            // The playlist name goes in PLAIN, with no Apple symbol in front of it.  It used to
+            //   carry one, back when these entries lived in pathStackPlaylists alongside the local
+            //   playlists and needed something to tell the two apart in a shared namespace.  They
+            //   have their own top-level treeWidget item and their own pathStack now, so there is
+            //   nothing left for the marker to disambiguate -- and it has to go, because the tree
+            //   shows these names verbatim and the Apple symbol belongs on the "Apple Music" item
+            //   alone (issue #1751).  Anything downstream that needs to know a track came from
+            //   Apple Music asks appleMusicTitleByPath, which is keyed by path and doesn't care
+            //   what the playlist is called.
             QString newPlaylistItem = hierPlaylistName + "%!%" + "0" + "," + QString::number(t.beatsPerMinute) + "," + currentItemNumber + "#!#" + absPath;
             // qDebug() << "newItem:" << newPlaylistItem;
-            pathStackPlaylists->append(newPlaylistItem);
-            pathStackNewApplePlaylists->append(QString("") + newPlaylistItem); // when Apple Music playlists are in the Playlists section of treeWidget
+            pathStackNewApplePlaylists->append(newPlaylistItem);
 
             // Remember which ones are smart, so the treeWidget can explain in a tooltip that
             //   their contents are maintained by Music and can change between resyncs.
