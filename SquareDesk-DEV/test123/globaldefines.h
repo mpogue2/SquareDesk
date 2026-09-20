@@ -82,7 +82,14 @@ private: \
 #define DEBUG 1
 #endif
 
+// These must agree with the JUCEOPTIONS in third_party/libJUCEstatic/libJUCEstatic.jucer,
+//   for the same reason as the DEBUG/NDEBUG pairing above: these options are visible to the
+//   JUCE headers, so if SquareDesk's TUs and the static library disagree about them, the two
+//   do not see the same juce_audio_processors.  LoudMax is loaded as a VST3 first and only
+//   falls back to the AudioUnit, so JUCE_PLUGINHOST_VST3 matters here.  Issue #1754.
 #define JUCE_PLUGINHOST_AU 1
+#define JUCE_PLUGINHOST_VST3 1
+#define JUCE_STRICT_REFCOUNTEDPOINTER 1
 #ifdef Q_OS_MAC
 #define JUCE_MAC 1
 #endif

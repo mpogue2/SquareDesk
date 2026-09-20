@@ -2,74 +2,101 @@
 
 set -e	# exit if error encountered
 
-# Obtain from from https://github.com/mpogue2/SquareDesk/issues/1372#issuecomment-2853201956
-# these 4 files:
-#	JUCE_splitaa.zip
-#	JUCE_splitab.zip
-#	libJUCE_splitaaa.zip = latest libJUCEstatic, that contains VST2/3 support, and projucer file to make the lib
-#	libJUCE_splitaab.zip
-# 
+# Installs the JUCE that SquareDesk builds against, and builds the libJUCEstatic static
+#   library from the .jucer that is vendored in this repo.  Issue #1754.
+#
+# Everything here is generated from two inputs: the official JUCE release zip, and
+#   third_party/libJUCEstatic/libJUCEstatic.jucer.  Nothing has to be hand-uploaded to a
+#   GitHub comment and re-hosted on each JUCE bump the way it was up through 8.0.6 --
+#   bumping JUCE_VERSION below is the whole upgrade.
 
-# cd to an empty temp directory
-test -d temp && rm -fr temp
-mkdir temp
-cd temp
+JUCE_VERSION=${JUCE_VERSION:-9.0.2}
 
-if [ -d /Applications/JUCE ]; then
-    echo >&2 /Applications/JUCE already exists
+# Where the JUCE modules get installed, and where libJUCEstatic gets built.  Both are
+#   overridable so that this script can be exercised against a scratch prefix without
+#   disturbing a working install:
+#
+#     JUCE_PREFIX=/tmp/JUCE JUCE_PROJECT=/tmp/libJUCEstatic ./juce-install
+#
+#   JUCE_PREFIX has to agree with JUCE_MODULES in test123/test123.pro, and JUCE_PROJECT
+#   with JUCE_ROOT there.
+#
+#   Note that such a run is NOT fully isolated: the --set-global-search-path below writes
+#   to ~/Library/Application Support/Projucer/Projucer.settings, and the Projucer finds
+#   that directory through the macOS APIs rather than $HOME, so overriding HOME does not
+#   redirect it.  Put the module path back afterwards:
+#
+#     "$JUCE_PREFIX/Projucer.app/Contents/MacOS/Projucer" \
+#         --set-global-search-path osx defaultJuceModulePath /Applications/JUCE/modules
+JUCE_PREFIX=${JUCE_PREFIX:-/Applications/JUCE}
+JUCE_PROJECT=${JUCE_PROJECT:-$HOME/JUCEProjects/libJUCEstatic}
+
+HERE=${0:a:h}
+JUCER_SRC=$HERE/third_party/libJUCEstatic/libJUCEstatic.jucer
+
+# JUCE ---------------------------------------------------------------------------------
+#   The osx zip from the GitHub release unpacks to a single JUCE/ directory that already
+#   contains a built Projucer.app, which is the layout JUCE_PREFIX wants.
+if [ -d "$JUCE_PREFIX" ]; then
+    echo >&2 "$JUCE_PREFIX already exists"
 else
-    curl -fsSL -o JUCE_splitaa https://github.com/user-attachments/files/20052700/JUCE_splitaa.zip
-    curl -fsSL -o JUCE_splitab https://github.com/user-attachments/files/20052703/JUCE_splitab.zip
-    cat JUCE_splitaa JUCE_splitab > JUCE.zip
-    unzip JUCE.zip
-    mv -v JUCE /Applications/
+    echo >&2 "Downloading JUCE $JUCE_VERSION (about 55MB)..."
+    TEMP=$(mktemp -d)
+    trap "rm -fr $TEMP" EXIT
+    curl -fsSL -o "$TEMP/juce.zip" \
+        "https://github.com/juce-framework/JUCE/releases/download/$JUCE_VERSION/juce-$JUCE_VERSION-osx.zip"
+    unzip -q "$TEMP/juce.zip" -d "$TEMP"
+    mkdir -p "$(dirname $JUCE_PREFIX)"
+    mv -v "$TEMP/JUCE" "$JUCE_PREFIX"
 fi
 
-if [ -e ~/JUCEProjects/libJUCEstatic ] ; then
-    echo >&2 ~/JUCEProjects/libJUCEstatic already exists
-else
-    curl -fsSL -o libJUCE_splitaa https://github.com/user-attachments/files/20052724/libJUCE_splitaa.zip
-    curl -fsSL -o libJUCE_splitab https://github.com/user-attachments/files/20052723/libJUCE_splitab.zip
-    cat libJUCE_splitaa libJUCE_splitab > libJUCE.zip
-    unzip libJUCE.zip
-    mkdir -p ~/JUCEProjects
-    mv -v libJUCEstatic ~/JUCEProjects/
-fi
+PROJUCER="$JUCE_PREFIX/Projucer.app/Contents/MacOS/Projucer"
 
-cd ..
-rm -fr temp
+# Every MODULE in the .jucer carries useGlobalPath="1", which means the Projucer resolves
+#   it through this global setting and ignores the per-exporter MODULEPATHS entirely.  On
+#   a clean machine that setting does not exist yet, so this is load-bearing and not just
+#   a convenience.  (Up through 8.0.6 the MODULEPATHS in the .jucer pointed at a path that
+#   did not resolve to anything -- the builds only ever worked because of this setting.)
+"$PROJUCER" --set-global-search-path osx defaultJuceModulePath "$JUCE_PREFIX/modules"
 
-# The zip above ships only the Debug build of the static library, but Release builds of
-#   SquareDesk need a Release one (issue #1730), so build it here if it is not there yet.
-#   The zip does include Builds/MacOSX/libJUCEstatic.xcodeproj, which already has a Release
-#   configuration (targetName "JUCE" -> libJUCE.a), so there is nothing to re-host: this
-#   takes about 25 seconds.
+# libJUCEstatic ------------------------------------------------------------------------
+#   Source/ is empty and Builds/ + JuceLibraryCode/ are Projucer output, so the .jucer is
+#   the only thing worth keeping; copy it out and regenerate the rest.
+mkdir -p "$JUCE_PROJECT/Source"
+cp "$JUCER_SRC" "$JUCE_PROJECT/libJUCEstatic.jucer"
+
+echo >&2 "Generating libJUCEstatic project..."
+"$PROJUCER" --resave "$JUCE_PROJECT/libJUCEstatic.jucer" --fix-missing-dependencies
+
+# Both configurations are needed: a Debug or ASan build of SquareDesk links the Debug
+#   library and a Release build links the Release one, because JUCE_DEBUG changes object
+#   layout and the two have to agree (issue #1730, and the long comment in globaldefines.h).
 #
 #   The three overrides on the xcodebuild line are deliberate, and are passed here rather
-#   than baked into the .jucer so that this keeps working with the unmodified zip:
+#   than baked into the .jucer so that the .jucer stays a plain Projucer file:
 #
 #     MACOSX_DEPLOYMENT_TARGET=13.0
-#         The .jucer says 10.13, which current Xcode rejects outright ("the range of
-#         supported deployment target versions is 12.0 to 27.0.x").  13.0 matches
-#         QMAKE_MACOSX_DEPLOYMENT_TARGET in test123/test123.pro.
+#         Matches QMAKE_MACOSX_DEPLOYMENT_TARGET in test123/test123.pro.  The Projucer
+#         default is far below what current Xcode accepts ("the range of supported
+#         deployment target versions is 12.0 to 27.0.x").
 #     LLVM_LTO=NO
 #         The Release configuration turns LTO on, which makes the archive members LLVM
 #         bitcode instead of object code and pushes all of JUCE's codegen into SquareDesk's
 #         final link.  Off, the library is smaller and the cost stays here.
 #     ARCHS=arm64
-#         SquareDesk is Apple Silicon only, and the Debug library in the zip is arm64 only.
+#         SquareDesk is Apple Silicon only.
 #
-if [ -e ~/JUCEProjects/libJUCEstatic/Builds/MacOSX/build/Release/libJUCE.a ] ; then
-    echo >&2 "Release libJUCE.a already exists"
-else
-    echo >&2 "Building Release libJUCEstatic (this takes about 25 seconds)..."
-    ( cd ~/JUCEProjects/libJUCEstatic/Builds/MacOSX && \
+for CONFIG in Debug Release; do
+    echo >&2 "Building $CONFIG libJUCEstatic (this takes about 25 seconds)..."
+    ( cd "$JUCE_PROJECT/Builds/MacOSX" && \
       xcodebuild -project libJUCEstatic.xcodeproj \
                  -target "libJUCEstatic - Static Library" \
-                 -configuration Release \
+                 -configuration $CONFIG \
                  MACOSX_DEPLOYMENT_TARGET=13.0 \
                  LLVM_LTO=NO \
                  ARCHS=arm64 \
                  ONLY_ACTIVE_ARCH=NO \
                  build )
-fi
+done
+
+echo >&2 "Done.  JUCE $JUCE_VERSION in $JUCE_PREFIX, libJUCEstatic in $JUCE_PROJECT"

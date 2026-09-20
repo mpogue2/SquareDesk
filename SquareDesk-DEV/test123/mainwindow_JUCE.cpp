@@ -95,7 +95,7 @@ public:
 
         // Create plugin format manager
         auto formatManager = std::make_unique<juce::AudioPluginFormatManager>();
-        formatManager->addDefaultFormats();
+        juce::addDefaultFormatsToManager(*formatManager);
 
         for (auto e : formatManager->getFormats()) {
             qDebug() << "FormatManager understands:" << e->getName().toStdString();
@@ -287,7 +287,7 @@ void MainWindow::scanForPlugins() {
 
     String errorMessage;
     AudioPluginFormatManager plugmgr;
-    plugmgr.addDefaultFormats();
+    juce::addDefaultFormatsToManager(plugmgr);
 
 #ifdef OLDSCAN
     loudMaxPlugin =
@@ -462,7 +462,7 @@ void MainWindow::scanForPlugins() {
     loudMaxWin->setUsingNativeTitleBar(true);
     // Don't set to always on top - we want it to follow the same layering as the main window
     // loudMaxWin->setAlwaysOnTop(true);
-    loudMaxWin->setContentOwned (loudMaxPlugin->createEditor(), true);
+    loudMaxWin->setContentOwned (loudMaxPlugin->createEditorAndMakeActive(), true);
     // loudMaxWin->setContentOwned (new GenericAudioProcessorEditor(*loudMaxPlugin), true);
     loudMaxWin->addToDesktop (/* flags */);
 
