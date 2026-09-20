@@ -50,6 +50,7 @@
 #include <QSaveFile>
 #include <QScreen>
 #include <QScrollBar>
+#include <QSet>
 #include <QStandardPaths>
 #include <QStorageInfo>
 #include <QTextDocument>
@@ -1590,6 +1591,100 @@ void MainWindow::fillDurationColumn()
     ui->darkSongTable->setSortingEnabled(wasSorting);
 }
 
+// The playlist name and item number inside a pathStack entry's type field, for issue #1750's
+//   de-duplication.  Three entry shapes reach darkLoadMusicList():
+//     "PlaylistName%!%pitch,tempo,NNN#!#AbsPath"        -- SquareDesk playlists, and Apple Music
+//                                                          playlists routed through Playlists
+//     "PlaylistName$!$NNN$!$Title#!#AbsPath"            -- Apple Music, pathStackApplePlaylists
+//     "type#!#AbsPath"                                  -- a plain track, which has no playlist
+// Returns false for that third shape, which is how the Tracks view opts out of de-duplication
+//   (one pathStack entry per file on disk, so there is nothing there to collapse anyway).
+static bool playlistEntryParts(const QString &entry, QString &playlistNameOut, QString &itemNumberOut)
+{
+    const QString typeField = entry.section("#!#", 0, 0);
+
+    if (typeField.contains("%!%")) {
+        playlistNameOut = typeField.section("%!%", 0, 0);
+        // "pitch,tempo,NNN" -- the item number is the third field
+        itemNumberOut = typeField.section("%!%", 1).section(",", 2, 2);
+        return true;
+    }
+
+    if (typeField.contains("$!$")) {
+        playlistNameOut = typeField.section("$!$", 0, 0);
+        itemNumberOut = typeField.section("$!$", 1, 1);
+        return true;
+    }
+
+    return false;
+}
+
+// Issue #1750.  A song that is on more than one playlist has one pathStack entry PER PLAYLIST --
+//   Apple's ITLibrary resolves each smart playlist's rules separately and hands back its own
+//   track list, and SquareDesk playlists are read one file at a time -- so an aggregate view that
+//   takes every entry showed the same file on disk once per playlist it belongs to.
+// Collapses those to one row apiece, keeping the entry whose playlist name sorts first
+//   (case-insensitively), then the lowest item number within that playlist.  A deterministic
+//   winner matters because entries arrive in Apple's allPlaylists order, which is not ours and
+//   can change between resyncs -- "keep whichever came first" would have shuffled the surviving
+//   row's Type column from launch to launch.
+// playlistsByPathOut collects every playlist each surviving path is on, for the Type cell's
+//   tooltip, so collapsing the rows doesn't silently throw that away.
+// Entries with no playlist name (plain tracks) are passed through untouched and unsorted.
+static QStringList dedupePlaylistEntriesByPath(const QStringList &entries,
+                                               QHash<QString, QStringList> &playlistsByPathOut)
+{
+    QHash<QString, QString> bestEntryByPath;  // absolute path -> winning entry so far
+    QHash<QString, QString> bestKeyByPath;    // absolute path -> that entry's sort key
+    QStringList result;                       // non-playlist entries, in their original order
+
+    for (const QString &entry : entries) {
+        QString playlistName;
+        QString itemNumber;
+        if (!playlistEntryParts(entry, playlistName, itemNumber)) {
+            result.append(entry); // a plain track -- nothing to de-dupe it against
+            continue;
+        }
+
+        const QString absPath = entry.section("#!#", 1);
+        // Item numbers are zero-padded to a fixed 3 digits by both writers, so comparing them
+        //   as strings is the same as comparing them as numbers.
+        const QString key = playlistName.toLower() + "\n" + itemNumber;
+
+        playlistsByPathOut[absPath].append(playlistName);
+
+        auto bestKey = bestKeyByPath.constFind(absPath);
+        if (bestKey == bestKeyByPath.constEnd() || key < bestKey.value()) {
+            bestKeyByPath[absPath] = key;
+            bestEntryByPath[absPath] = entry;
+        }
+    }
+
+    // Emit the survivors in the order their paths were first seen, so the table's pre-sort
+    //   contents don't depend on QHash's iteration order.
+    QSet<QString> emitted;
+    for (const QString &entry : entries) {
+        QString playlistName;
+        QString itemNumber;
+        if (!playlistEntryParts(entry, playlistName, itemNumber)) {
+            continue; // already appended above
+        }
+        const QString absPath = entry.section("#!#", 1);
+        if (emitted.contains(absPath)) {
+            continue;
+        }
+        emitted.insert(absPath);
+        result.append(bestEntryByPath.value(absPath));
+    }
+
+    for (auto it = playlistsByPathOut.begin(); it != playlistsByPathOut.end(); ++it) {
+        it.value().sort(Qt::CaseInsensitive);
+        it.value().removeDuplicates();  // a song listed twice in ONE playlist names it only once
+    }
+
+    return result;
+}
+
 void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilter, bool forceFilter, bool reloadPaletteSlots, bool suppressSelectionChange)
 {
     // qDebug() << "darkLoadMusicList: " << typeFilter << forceFilter << reloadPaletteSlots;
@@ -1751,6 +1846,21 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
     //   with their SQLITE DB info populated later (when songs are visible)
     static QRegularExpression musicRegex(".*\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption); // match with music extensions
     QStringList justMusic = justMyType.filter(musicRegex); // we are interested only in songs here
+    t.elapsed(__LINE__);
+
+    // third, collapse a song that is on several playlists down to a single row (issue #1750) -----
+    // ONLY in the views that span more than one playlist.  Two of those: the top-level nodes
+    //   (takeAll), and a playlist FOLDER, whose type filter ends in "/" because
+    //   on_treeWidget_itemSelectionChanged() appends one to any node with children -- e.g.
+    //   selecting the folder "Smarties" shows the contents of "Smarties/Hello", "Smarties/Jai",
+    //   and so on, and a song on two of those was still showing twice.
+    // A LEAF playlist is excluded, and must be: it is already narrowed to one playlist by the
+    //   type filter above, and has to keep every entry, because that IS the playlist -- item
+    //   numbers, repeats and all.
+    QHash<QString, QStringList> playlistsByPath; // abs path -> every playlist it's on, for the tooltip
+    if (takeAll || typeFilter.endsWith("/")) {
+        justMusic = dedupePlaylistEntriesByPath(justMusic, playlistsByPath);
+    }
     t.elapsed(__LINE__);
 
     // qDebug() << "justMusic.size() = " << justMusic.size();
@@ -2060,10 +2170,24 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         QTableWidgetItem *twi1 = new QTableWidgetItem(type);
         twi1->setForeground(textBrush);
         twi1->setFlags(twi1->flags() & ~Qt::ItemIsEditable);      // not editable
+        QStringList typeTooltipLines;
         if (!appleMusicType.isEmpty()) {
             // e.g. 'Apple Music: Grouping = "Hoedown", so Type is patter'.  Without this there is
             //   no way to see WHY a track came out the Type it did (issue #1740).
-            twi1->setToolTip(appleMusicTypeReasonByPath.value(origPath));
+            typeTooltipLines << appleMusicTypeReasonByPath.value(origPath);
+        }
+        {
+            // The Type column can only name ONE playlist, but in an aggregate view this row may
+            //   be standing in for the song's membership in several (issue #1750).  Say so here,
+            //   since collapsing the rows is otherwise a silent loss of information.
+            const QStringList onPlaylists = playlistsByPath.value(origPath);
+            if (onPlaylists.size() > 1) {
+                typeTooltipLines << "On " + QString::number(onPlaylists.size())
+                                        + " playlists: " + onPlaylists.join(", ");
+            }
+        }
+        if (!typeTooltipLines.isEmpty()) {
+            twi1->setToolTip(typeTooltipLines.join("\n"));
         }
         ui->darkSongTable->setItem(i, kTypeCol, twi1);
 
