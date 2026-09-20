@@ -15,7 +15,7 @@
 QT       += core gui sql network printsupport svg svgwidgets
 unix {
     QT += webenginewidgets
-    PRE_TARGETDEPS += $$OUT_PWD/../sdlib/libsdlib.a
+    PRE_TARGETDEPS += $$OUT_PWD/../third_party/sdlib/libsdlib.a
 }
 macx {
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 13.0

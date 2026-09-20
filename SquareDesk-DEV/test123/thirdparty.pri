@@ -21,7 +21,7 @@ unix:!macx {
 DEFINES += JUCE_DEBUG
 LIBS += -L$$OUT_PWD/../third_party/libJUCEstatic/Builds/LinuxMakefile/build -lJUCEstatic 
 LIBS += -lz -ljpeg -lcurl
-LIBS += -L$$OUT_PWD/../taglib -ltaglib -lz -lfreetype -lpng
+LIBS += -L$$OUT_PWD/../third_party/taglib -ltaglib -lz -lfreetype -lpng
 INCLUDEPATH += /usr/share/juce/modules
 INCLUDEPATH += /usr/include/freetype2
 INCLUDEPATH += $$PWD/../third_party/taglib
@@ -54,7 +54,7 @@ LIBS += -framework AppKit
 LIBS += -framework MediaPlayer
 
 # TAGLIB ----------------------------------------
-LIBS += -L$$OUT_PWD/../taglib -ltaglib
+LIBS += -L$$OUT_PWD/../third_party/taglib -ltaglib
 INCLUDEPATH += $$PWD/../third_party/taglib
 INCLUDEPATH += $$PWD/../third_party/taglib/taglib
 INCLUDEPATH += $$PWD/../third_party/taglib/taglib/toolkit
@@ -111,5 +111,5 @@ INCLUDEPATH += $$PWD/third_party/miniBPM
 INCLUDEPATH += $$PWD/third_party/soundtouch/include
 
 # SDLIB ------------------------------------------
-LIBS += -L$$OUT_PWD/../sdlib -lsdlib
+LIBS += -L$$OUT_PWD/../third_party/sdlib -lsdlib
 }
