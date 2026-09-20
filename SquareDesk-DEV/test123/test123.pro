@@ -43,11 +43,24 @@ macx {
     isEmpty(JUCE_ROOT):    JUCE_ROOT = $$(HOME)/JUCEProjects/libJUCEstatic
     isEmpty(JUCE_MODULES): JUCE_MODULES = /Applications/JUCE
 
-    # Which libJUCEstatic build to link against.
-    #   NOTE: this is the Debug build even for Release builds of SquareDesk, which is what
-    #   this project has always done.  See issue #1729 before changing it.
-    isEmpty(JUCE_BUILD):   JUCE_BUILD = Debug
-    isEmpty(JUCE_LIB):     JUCE_LIB = JUCE_debug
+    # Which libJUCEstatic build to link against: Debug JUCE for a Debug (or ASan) build,
+    #   Release JUCE for a Release build.  Issue #1730.
+    #
+    #   IMPORTANT: this must stay in lockstep with the DEBUG/NDEBUG choice in globaldefines.h,
+    #   which is what decides whether the JUCE *headers* we compile against define JUCE_DEBUG.
+    #   If the two disagree, the headers and the library lay JUCE objects out differently --
+    #   e.g. sizeof(juce::MidiBuffer) is 24 with JUCE_DEBUG and 16 without, because of the
+    #   leak-detector member -- and audiodecoder.cpp hands exactly those objects to the
+    #   LoudMax plugin's processBlock() on the audio thread.  That is silent corruption, not
+    #   a link error.  Both sides key off CONFIG(debug, debug|release): here directly, and in
+    #   globaldefines.h via the QT_NO_DEBUG that qmake defines for release builds.
+    CONFIG(debug, debug|release) {
+        isEmpty(JUCE_BUILD):   JUCE_BUILD = Debug
+        isEmpty(JUCE_LIB):     JUCE_LIB = JUCE_debug
+    } else {
+        isEmpty(JUCE_BUILD):   JUCE_BUILD = Release
+        isEmpty(JUCE_LIB):     JUCE_LIB = JUCE
+    }
 
     # Code signing identity for the post-link re-sign (see the codesign section, far below).
     #   To find yours:  security find-identity -v -p codesigning | grep "Apple Development"

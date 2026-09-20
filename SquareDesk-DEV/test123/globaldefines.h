@@ -65,9 +65,22 @@ private: \
 #define JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED 1
 #define JUCE_DISABLE_AUDIOPROCESSOR_BEGIN_END_GESTURE_CHECKING 1
 
-// ONE of the next two must be defined, AND it must match the way the library was compiled earlier
+// ONE of DEBUG/NDEBUG must be defined, AND it must match the way the JUCE static library that
+//   we link was compiled.  On Apple, juce_TargetPlatform.h derives JUCE_DEBUG from these two
+//   macros, and JUCE_DEBUG changes object layout (it is what turns on the leak-detector member:
+//   sizeof(juce::MidiBuffer) is 24 with it and 16 without).  audiodecoder.cpp passes exactly
+//   those objects into the LoudMax plugin's processBlock() on the audio thread, so a mismatch
+//   here is silent memory corruption rather than a build failure.
+//
+//   qmake defines QT_NO_DEBUG for release builds, and test123.pro picks JUCE_BUILD/JUCE_LIB off
+//   the same CONFIG(debug, debug|release) test, so the two can no longer drift apart.  Note that
+//   qmake does NOT define NDEBUG itself on clang -- only the MSVC mkspec does that -- which is
+//   why we have to do it here.  Issue #1730.
+#ifdef QT_NO_DEBUG
+#define NDEBUG 1
+#else
 #define DEBUG 1
-// #define NDEBUG 1
+#endif
 
 #define JUCE_PLUGINHOST_AU 1
 #ifdef Q_OS_MAC

@@ -38,3 +38,38 @@ fi
 
 cd ..
 rm -fr temp
+
+# The zip above ships only the Debug build of the static library, but Release builds of
+#   SquareDesk need a Release one (issue #1730), so build it here if it is not there yet.
+#   The zip does include Builds/MacOSX/libJUCEstatic.xcodeproj, which already has a Release
+#   configuration (targetName "JUCE" -> libJUCE.a), so there is nothing to re-host: this
+#   takes about 25 seconds.
+#
+#   The three overrides on the xcodebuild line are deliberate, and are passed here rather
+#   than baked into the .jucer so that this keeps working with the unmodified zip:
+#
+#     MACOSX_DEPLOYMENT_TARGET=13.0
+#         The .jucer says 10.13, which current Xcode rejects outright ("the range of
+#         supported deployment target versions is 12.0 to 27.0.x").  13.0 matches
+#         QMAKE_MACOSX_DEPLOYMENT_TARGET in test123/test123.pro.
+#     LLVM_LTO=NO
+#         The Release configuration turns LTO on, which makes the archive members LLVM
+#         bitcode instead of object code and pushes all of JUCE's codegen into SquareDesk's
+#         final link.  Off, the library is smaller and the cost stays here.
+#     ARCHS=arm64
+#         SquareDesk is Apple Silicon only, and the Debug library in the zip is arm64 only.
+#
+if [ -e ~/JUCEProjects/libJUCEstatic/Builds/MacOSX/build/Release/libJUCE.a ] ; then
+    echo >&2 "Release libJUCE.a already exists"
+else
+    echo >&2 "Building Release libJUCEstatic (this takes about 25 seconds)..."
+    ( cd ~/JUCEProjects/libJUCEstatic/Builds/MacOSX && \
+      xcodebuild -project libJUCEstatic.xcodeproj \
+                 -target "libJUCEstatic - Static Library" \
+                 -configuration Release \
+                 MACOSX_DEPLOYMENT_TARGET=13.0 \
+                 LLVM_LTO=NO \
+                 ARCHS=arm64 \
+                 ONLY_ACTIVE_ARCH=NO \
+                 build )
+fi
