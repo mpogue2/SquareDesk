@@ -78,11 +78,6 @@
 #include "svgWaveformSlider.h"
 
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
-#ifndef M1MAC
-#include "JlCompress.h"
-#endif
-#endif
 
 // extern bool comparePlaylistExportRecord(const PlaylistExportRecord &a, const PlaylistExportRecord &b);
 

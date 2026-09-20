@@ -3,14 +3,6 @@ TEMPLATE = subdirs
 SUBDIRS = taglib test123 sdlib
 
 mac {
-# quazip is Mac OS X only right now, for downloading and unpacking lyrics files...
-
-# USE THIS LINE FOR X86_64 MAC BUILDS ONLY
-#SUBDIRS += quazip
-
-# M1MAC: USE THIS LINE FOR M1 Silicon BUILDS ONLY
-SUBDIRS += # quazip
-
 ## what subproject depends on others -- test123 depends on sdlib and taglib
 test123.depends = taglib sdlib
 

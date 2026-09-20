@@ -93,11 +93,6 @@
 
 // #include "src/communicator.h"
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
-#ifndef M1MAC
-#include "JlCompress.h"
-#endif
-#endif
 
 // #include <iostream>
 // #include <sstream>
