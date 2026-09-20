@@ -5576,7 +5576,7 @@
     <string>Duration</string>
    </property>
    <property name="toolTip">
-    <string>Duration, for tracks that came from an Apple Music playlist</string>
+    <string>Duration of the song</string>
    </property>
   </action>
   <action name="actionTempo">

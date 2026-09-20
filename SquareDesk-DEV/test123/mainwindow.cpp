@@ -6552,6 +6552,17 @@ void MainWindow::on_actionDuration_toggled(bool checked)
     prefsManager.SetshowDurationColumn(checked);
 
     updateSongTableColumnView();
+
+    if (checked) {
+        // NOT VISIBLE -> VISIBLE.  updateSongTableColumnView() only shows and hides columns; it
+        //   never touches cell contents.  While the column was off, darkLoadMusicList() didn't
+        //   open any audio files, so the Duration cells of songs in the Music Directory are still
+        //   empty (issue #1753).  Fill them in now.  A darkLoadMusicList() reload would do it too,
+        //   but it costs far more than the read itself and would throw away the selection and the
+        //   scroll position, on what is only a column toggle.
+        // NOTE: must come after SetshowDurationColumn() above, which is what unlocks the read.
+        fillDurationColumn();
+    }
 }
 
 void MainWindow::on_actionArtist_toggled(bool checked)

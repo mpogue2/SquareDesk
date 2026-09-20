@@ -306,6 +306,27 @@ RowDefinition cuesheet_rows[] =
 };
 TableDefinition cuesheet_table("cuesheets", cuesheet_rows);
 
+// Song durations ----------------
+//  The Duration column (#1753).  Keyed by the song's pathname RELATIVE to the music root dir,
+//    like the cuesheets table above, so these survive a move of the musicRoot.
+//  This is a CACHE, not a setting: every value here can be recomputed from the audio file. It
+//    exists because recomputing is expensive -- an MP3 with no Xing header has to be read in
+//    full to have its frames counted -- and doing that once per launch is not acceptable.
+//  NOT the songs.songLength column, which looks similar but is not a duration: it is written as
+//    seekBar->setMaximum(int(FileLength)-1), so it is 1-2 seconds short of the real length, and
+//    exportdialog.cpp multiplies intro/outro fractions by it.
+//  mtimeMS and fileSize are what make the cache safe. If either has changed, the file on disk is
+//    not the one we measured, and the row is ignored (and then overwritten).
+RowDefinition song_duration_rows[] =
+{
+    RowDefinition("relative_path", "text PRIMARY KEY"),  // e.g. "/patter/RIV 842 - Bluegrass Swing.mp3"
+    RowDefinition("durationMS", "int"),                  // the song's real length, in milliseconds
+    RowDefinition("mtimeMS", "int"),                     // file's last-modified time, ms since epoch
+    RowDefinition("fileSize", "int"),                    // file's size in bytes
+    RowDefinition(nullptr, nullptr), // NULL, NULL),
+};
+TableDefinition song_duration_table("song_durations", song_duration_rows);
+
 /*
 "CREATE TABLE play_history (
  id int auto_increment primary key,
@@ -422,6 +443,7 @@ void SongSettings::openDatabase(const QString& path,
     ensureSchema(&tag_colors_table);
     ensureSchema(&markers_table);
     ensureSchema(&cuesheet_table);
+    ensureSchema(&song_duration_table);
     
     for (size_t i = 0; i < sizeof(index_definitions) / sizeof(*index_definitions); ++i)
     {
@@ -1178,6 +1200,58 @@ void SongSettings::loadSettingsForAllSongs(QHash<QString, SongSetting> &settings
         setSongSettingFromSQLQuery(q, settings);
         settingsByFilename.insert(q.value(0).toString(), settings);
     }
+}
+
+// Every song duration we have already worked out (issue #1753), in one query.
+//   The caller checks each row's mtimeMS/fileSize against the file on disk before trusting it.
+void SongSettings::loadSongDurations(QHash<QString, SongDuration> &durationsByFilename)
+{
+    if (!databaseOpened) {
+        return;
+    }
+
+    QSqlQuery q(m_db);
+    q.prepare("SELECT relative_path, durationMS, mtimeMS, fileSize FROM song_durations");
+    exec("loadSongDurations", q);
+    while (q.next())
+    {
+        SongDuration duration;
+        duration.durationMS = q.value(1).toLongLong();
+        duration.mtimeMS    = q.value(2).toLongLong();
+        duration.fileSize   = q.value(3).toLongLong();
+        durationsByFilename.insert(q.value(0).toString(), duration);
+    }
+}
+
+// Write back the durations we just measured.  One transaction, because SQLite commits every
+//   loose INSERT on its own, and the first run of a big Music Directory writes ~1800 rows.
+void SongSettings::saveSongDurations(const QHash<QString, SongDuration> &durationsByFilename)
+{
+    if (!databaseOpened || durationsByFilename.isEmpty()) {
+        return;
+    }
+
+    m_db.transaction();
+
+    QSqlQuery q(m_db);
+    q.prepare("INSERT INTO song_durations(relative_path, durationMS, mtimeMS, fileSize)"
+              " VALUES (:relative_path,:durationMS,:mtimeMS,:fileSize)"
+              " ON CONFLICT(relative_path) DO UPDATE SET"
+              " durationMS=:durationMS2, mtimeMS=:mtimeMS2, fileSize=:fileSize2");
+
+    for (auto it = durationsByFilename.constBegin(); it != durationsByFilename.constEnd(); ++it)
+    {
+        q.bindValue(":relative_path", it.key());
+        q.bindValue(":durationMS",  it.value().durationMS);
+        q.bindValue(":mtimeMS",     it.value().mtimeMS);
+        q.bindValue(":fileSize",    it.value().fileSize);
+        q.bindValue(":durationMS2", it.value().durationMS);
+        q.bindValue(":mtimeMS2",    it.value().mtimeMS);
+        q.bindValue(":fileSize2",   it.value().fileSize);
+        exec("saveSongDurations", q);
+    }
+
+    m_db.commit();
 }
 
 void SongSettings::closeDatabase()

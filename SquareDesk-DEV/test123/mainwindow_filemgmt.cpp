@@ -1466,18 +1466,19 @@ static QString applyAppleMusicTypeColumnFormat(const QString &playlistPart,
     }
 }
 
-// ITLibrary gives a track's length in milliseconds; the Duration column wants "3:45", or "1:02:33"
-//   for the occasional long one.
-static QString appleMusicDurationText(int totalTimeMS)
+// Both sources of a duration -- ITLibrary's totalTimeMS for an Apple Music track, and the file's
+//   own header for a song in the Music Directory (issue #1753) -- give it in milliseconds.  The
+//   Duration column wants "3:45", or "1:02:33" for the occasional long one.
+static QString songDurationText(qint64 durationMS)
 {
-    if (totalTimeMS <= 0) {
+    if (durationMS <= 0) {
         return QString();   // not set, so show nothing rather than "0:00"
     }
 
-    int totalSeconds = (totalTimeMS + 500) / 1000;   // nearest second
-    int hours   = totalSeconds / 3600;
-    int minutes = (totalSeconds / 60) % 60;
-    int seconds = totalSeconds % 60;
+    qint64 totalSeconds = (durationMS + 500) / 1000;   // nearest second
+    qint64 hours   = totalSeconds / 3600;
+    qint64 minutes = (totalSeconds / 60) % 60;
+    qint64 seconds = totalSeconds % 60;
 
     if (hours > 0) {
         return QString("%1:%2:%3").arg(hours).arg(minutes, 2, 10, QChar('0')).arg(seconds, 2, 10, QChar('0'));
@@ -1515,6 +1516,78 @@ static QString appleMusicDateText(const QDateTime &when)
         return QString();
     }
     return QLocale().toString(when, QLocale::ShortFormat);
+}
+
+// --------------------------------------------------------------------------------
+// Fill in the Duration cells of the rows that are already in the darkSongTable, for songs in
+//   the Music Directory (issue #1753).
+//
+// Called when the Duration column goes NOT VISIBLE -> VISIBLE.  While the column was off,
+//   darkLoadMusicList() deliberately didn't open any audio files, so those cells are empty and
+//   have to be caught up now.  Only the local songs: an Apple Music track's Duration came from
+//   ITLibrary and was filled in at load time whether the column was showing or not.
+void MainWindow::fillDurationColumn()
+{
+    if (!prefsManager.GetshowDurationColumn()) {
+        return;
+    }
+
+    const int rowCount = ui->darkSongTable->rowCount();
+
+    // Which songs are these, and which of them do we have to read?
+    QList<QString> pathByRow;
+    pathByRow.reserve(rowCount);
+
+    QStringList localSongPaths;
+    for (int row = 0; row < rowCount; row++) {
+        QTableWidgetItem *pathItem = ui->darkSongTable->item(row, kPathCol);   // origPath lives here
+        QString origPath = (pathItem == nullptr ? QString() : pathItem->data(Qt::UserRole).toString());
+        pathByRow.append(origPath);
+
+        if (!origPath.isEmpty() && !appleMusicMetaByPath.contains(origPath)) {
+            localSongPaths.append(origPath);
+        }
+    }
+
+    if (localSongPaths.isEmpty()) {
+        return;   // e.g. an Apple Music playlist is showing, so there is nothing for us to do
+    }
+
+    warmDurationCache(localSongPaths);
+
+    // Sorting MUST be off while we do this.  setItem() on a sorted table re-sorts as it goes,
+    //   which would shuffle the rows out from under pathByRow.
+    const bool wasSorting = ui->darkSongTable->isSortingEnabled();
+    ui->darkSongTable->setSortingEnabled(false);
+    ui->darkSongTable->blockSignals(true);
+
+    for (int row = 0; row < rowCount; row++) {
+        const QString &origPath = pathByRow[row];
+        if (origPath.isEmpty() || appleMusicMetaByPath.contains(origPath)) {
+            continue;
+        }
+
+        const qint64 durationMS = cachedSongDurationMS(origPath);
+        const QString durationText = songDurationText(durationMS);
+
+        // Same kind of cell darkLoadMusicList() would have made: "3:45" sorts neither
+        //   alphabetically nor numerically, so the value to sort on rides alongside it.
+        TableSortKeyItem *item = new TableSortKeyItem(durationText, static_cast<double>(durationMS),
+                                                      !durationText.isEmpty());
+        QTableWidgetItem *oldItem = ui->darkSongTable->item(row, kDurationCol);
+        if (oldItem != nullptr) {
+            item->setForeground(oldItem->foreground());   // the row's Type color, set at load time
+        }
+        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+        if (!durationText.isEmpty()) {
+            item->setToolTip(durationText);   // this column is narrow and elides
+        }
+
+        ui->darkSongTable->setItem(row, kDurationCol, item);
+    }
+
+    ui->darkSongTable->blockSignals(false);
+    ui->darkSongTable->setSortingEnabled(wasSorting);
 }
 
 void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilter, bool forceFilter, bool reloadPaletteSlots, bool suppressSelectionChange)
@@ -1683,6 +1756,29 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
     // qDebug() << "justMusic.size() = " << justMusic.size();
 
     ui->darkSongTable->setRowCount(justMusic.length()); // make all the rows at once for speed
+    t.elapsed(__LINE__);
+
+    // DURATION for songs in the Music Directory (issue #1753) -----
+    // Only when the Duration column is actually showing.  Reading a duration means opening the
+    //   audio file, and a user who leaves the column off -- which is the default -- should never
+    //   pay for that.
+    // Test the PREFERENCE, not isColumnHidden(): at startup this function runs BEFORE
+    //   updateSongTableColumnView() has hidden anything, so isColumnHidden() would answer false
+    //   for every column and we would scan the whole Music Directory on every launch.
+    // Apple Music tracks are left out: ITLibrary already handed us their totalTimeMS, and some of
+    //   them are cloud-only or DRM'd and not ours to open.  Viewing an Apple Music playlist
+    //   therefore reads nothing at all.
+    if (prefsManager.GetshowDurationColumn()) {
+        QStringList localSongPaths;
+        localSongPaths.reserve(justMusic.length());
+        for (const auto &s : justMusic) {
+            QString origPath = s.section("#!#", 1);   // "type#!#/path/to/song.mp3"
+            if (!origPath.isEmpty() && !appleMusicMetaByPath.contains(origPath)) {
+                localSongPaths.append(origPath);
+            }
+        }
+        warmDurationCache(localSongPaths);   // almost always a no-op; see the cache in mainwindow.h
+    }
     t.elapsed(__LINE__);
 
     // Batch-fetch the SQLITE data for all songs up front in just 2 queries (Issue #1669),
@@ -1978,12 +2074,21 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         ui->darkSongTable->setItem(i, kLabelCol, twi2);
 
         // APPLE MUSIC METADATA FIELDS -----
-        // Only tracks that came from an Apple Music playlist have these.  A song in the Music
-        //   Directory keeps the same metadata in its own file tags, which nothing reads today,
-        //   so its cells are left empty rather than guessed at (issue #1740, item 2).
+        // Only tracks that came from an Apple Music playlist have most of these.  A song in the
+        //   Music Directory keeps the same metadata in its own file tags, and only Duration is
+        //   read from there so far (issue #1753); the rest of its cells are left empty rather
+        //   than guessed at (issue #1740, item 2).
         {
             const AppleMusicTrackMeta meta = appleMusicMetaByPath.value(origPath);
             const QDateTime addedWhen = appleMusicDateOf(meta.addedDate);
+
+            // Duration is the one column that both kinds of song can fill in (issue #1753): an
+            //   Apple Music track from ITLibrary, a song in the Music Directory from its own
+            //   header, read above.  0 means we have no duration -- either the column is off, or
+            //   the file wouldn't tell us -- and the cell stays blank.
+            const qint64 durationMS = appleMusicMetaByPath.contains(origPath)
+                                          ? static_cast<qint64>(meta.totalTimeMS)
+                                          : cachedSongDurationMS(origPath);
 
             // Three kinds of cell:
             //   Text    - compared as text, the usual case.
@@ -1999,8 +2104,8 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
                 { kComposerCol,    QString::fromStdString(meta.composer),    Text,    0 },
                 { kCommentsCol,    QString::fromStdString(meta.comments),    Text,    0 },
                 { kYearCol,        meta.year > 0 ? QString::number(meta.year) : QString(), Numeric, 0 },
-                { kDurationCol,    appleMusicDurationText(meta.totalTimeMS), SortKey,
-                                   static_cast<double>(meta.totalTimeMS) },
+                { kDurationCol,    songDurationText(durationMS),            SortKey,
+                                   static_cast<double>(durationMS) },
                 { kArtistCol,      QString::fromStdString(meta.artist),      Text,    0 },
                 { kRatingCol,      appleMusicRatingText(meta.rating),        SortKey, static_cast<double>(meta.rating) },
                 { kDateAddedCol,   appleMusicDateText(addedWhen),            SortKey,

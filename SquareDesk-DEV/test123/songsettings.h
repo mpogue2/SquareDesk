@@ -45,6 +45,19 @@ public:
 };
 
 
+// One song's duration, as read out of the audio file itself (issue #1753).
+//   Reading it is expensive for an MP3 with no Xing header -- the whole file has to be read to
+//   count its frames -- so the answer is remembered in the DB rather than worked out again every
+//   time SquareDesk starts.  mtimeMS and fileSize are what make that safe: if either has changed,
+//   the song on disk is not the one we measured, and the stored duration is ignored.
+class SongDuration
+{
+public:
+    qint64 durationMS = 0;
+    qint64 mtimeMS    = 0;
+    qint64 fileSize   = 0;
+};
+
 class SongSetting
 {
     // Attributes are set in songsetting_attributes.h
@@ -84,6 +97,11 @@ public:
     bool loadSettings(const QString &filenameWithPath,
                       SongSetting &settings);
     void loadSettingsForAllSongs(QHash<QString, SongSetting> &settingsByFilename);
+
+    // Song durations (issue #1753), keyed by the music-root-relative path, like the songs and
+    //   cuesheets tables.  Loaded in one query, and written back in one transaction.
+    void loadSongDurations(QHash<QString, SongDuration> &durationsByFilename);
+    void saveSongDurations(const QHash<QString, SongDuration> &durationsByFilename);
 
     void setCurrentSession(int id) { current_session_id = id; }
     int getCurrentSession() { return current_session_id; }

@@ -1163,6 +1163,24 @@ private:
     double getID3BPM(QString MP3FileName);
     int getMP3SampleRate(QString fileName);
 
+    // DURATION, for local files in the Music Directory (issue #1753).  Apple Music tracks get
+    //   their Duration from ITLibrary metadata instead; see appleMusicMetaByPath.
+    qint64 getSongDurationMS(const QString &pathname);     // 0, if the file can't be read
+    qint64 cachedSongDurationMS(const QString &pathname);  // 0, if not in the cache
+    void   warmDurationCache(const QStringList &pathnames);
+    void   fillDurationColumn();   // catch up the cells, when the column is revealed
+
+    // Measuring a duration is expensive enough that it is worth never doing twice: an MP3 with
+    //   no Xing header has to be read in full to have its frames counted.  So the answers live
+    //   in the song_durations table and are read back in one query the first time they are
+    //   needed, which makes a song's duration a once-ever cost rather than a once-per-launch one.
+    //   This hash is that table, in memory, keyed the same way -- by the music-root-relative
+    //   path (see SongSettings::removeRootDirs()), so it survives a move of the musicRoot.
+    //   Each row carries the file's mtime and size, and a row whose file no longer matches is
+    //   ignored and re-measured, so replacing a song on disk needs no explicit invalidation.
+    QHash<QString, SongDuration> durationCacheByPath;
+    bool durationCacheLoadedFromDB = false;
+
     // Music loading
     void reloadCurrentMP3File();
     void loadMP3File(QString filepath, QString songTitle, QString songCategory, QString songLabel, QString nextFilename="");

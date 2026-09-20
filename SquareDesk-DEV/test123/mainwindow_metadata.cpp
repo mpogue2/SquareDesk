@@ -38,7 +38,11 @@
 #include <QString>
 #include <QStringList>
 #include <QDir>
+#include <QDateTime>
 #include <QElapsedTimer>
+#include <QFileInfo>
+#include <QThread>
+#include <QThreadPool>
 #include <QApplication>
 #include <QDebug>
 
@@ -62,6 +66,8 @@
 #include <taglib/toolkit/tpropertymap.h>
 
 #include <taglib/mpeg/mpegfile.h>
+#include <taglib/mpeg/mpegproperties.h>
+#include <taglib/mpeg/xingheader.h>
 #include <taglib/mpeg/id3v2/id3v2tag.h>
 #include <taglib/mpeg/id3v2/id3v2frame.h>
 #include <taglib/mpeg/id3v2/id3v2header.h>
@@ -207,6 +213,174 @@ int MainWindow::getMP3SampleRate(QString fileName) {
     }
 
     return(sampleRate);
+}
+
+// ------------------------------------------------------------------------
+// Exact MP3 duration, by counting frames with minimp3 (0 if the file can't be read).
+//
+// This reads the WHOLE file, so it is only for the MP3s that can't be answered from a header.
+//   It does not decode: MP3D_SEEK_TO_SAMPLE walks the frame headers to build minimp3's seek
+//   index, and dec.samples is then the exact total sample count.
+static qint64 mp3FrameCountDurationMS(const QString &pathname) {
+    mp3dec_ex_t dec;
+
+    if (mp3dec_ex_open(&dec, pathname.toUtf8().constData(), MP3D_SEEK_TO_SAMPLE) != 0) {
+        return(0);
+    }
+
+    qint64 durationMS = 0;
+    if (dec.info.hz > 0 && dec.info.channels > 0) {
+        // dec.samples counts every channel, so divide by both the rate and the channel count
+        const quint64 samplesPerSecond = static_cast<quint64>(dec.info.hz)
+                                       * static_cast<quint64>(dec.info.channels);
+        durationMS = static_cast<qint64>((dec.samples * 1000ULL) / samplesPerSecond);
+    }
+
+    mp3dec_ex_close(&dec);
+    return(durationMS);
+}
+
+// ------------------------------------------------------------------------
+// DURATION of a local audio file, in milliseconds (0 if it can't be read).
+//
+// Apple Music tracks already have a duration, handed to us by ITLibrary as totalTimeMS, and
+//   nothing here ever runs for those.  A song in the Music Directory has one too -- it just
+//   wasn't being read (issue #1753).
+//
+// The awkward case is MP3.  When an MP3 has no Xing/Info header, TagLib does not work out the
+//   length at all: it takes the bitrate of the FIRST FRAME and assumes the whole file runs at
+//   that rate (mpegproperties.cpp, "we hope that we're in a constant bitrate file").  For a VBR
+//   file that is simply wrong, and badly so when the song opens quietly -- one of the songs in
+//   the Music Directory starts with a 32 kbps frame but averages 235 kbps, and TagLib called
+//   that 3:56 song 28:57.  ReadStyle::Accurate does not help; the frame-counting path it enables
+//   is reached only for ADTS streams, never for MP3.  This is not a stale-version problem
+//   either: the code is byte-for-byte identical in TagLib 2.3.2, which still carries the
+//   upstream "TODO: Make this more robust with audio property detection for VBR without a Xing
+//   header".  (Martchus/tagparser makes exactly the same CBR assumption, and fared worse.)
+//
+// So: trust the header when it carries a real frame count, and count frames ourselves when it
+//   doesn't.  Over the 1854 files in the Music Directory this agreed with a full decode on every
+//   single one, where header-only was wrong on 8.
+qint64 MainWindow::getSongDurationMS(const QString &pathname) {
+    const QByteArray pathUTF8 = pathname.toUtf8();
+
+    if (pathname.endsWith(".mp3", Qt::CaseInsensitive)) {
+        // A Xing/Info header states the frame count outright, so the length derived from it is
+        //   exact and costs one header read.  About a third of the Music Directory has one.
+        TagLib::MPEG::File mpegFile(pathUTF8.constData(), true, TagLib::AudioProperties::Fast);
+        if (mpegFile.isValid()) {
+            auto *properties = dynamic_cast<TagLib::MPEG::Properties *>(mpegFile.audioProperties());
+            if (properties != nullptr && properties->xingHeader() != nullptr) {
+                int lengthMS = properties->lengthInMilliseconds();
+                if (lengthMS > 0) {
+                    return(static_cast<qint64>(lengthMS));
+                }
+            }
+        }
+
+        // No frame count in the file, so the only honest answer costs a full read.
+        return(mp3FrameCountDurationMS(pathname));
+    }
+
+    // .wav/.flac/.m4a all state their length exactly in the header -- no VBR guesswork -- so
+    //   TagLib is both right and cheap for those.
+    TagLib::FileRef f(pathUTF8.constData(), true, TagLib::AudioProperties::Fast);
+
+    if (f.isNull() || f.audioProperties() == nullptr) {
+        return(0);   // e.g. a Finder alias with a .mp3 name; caller leaves the cell blank
+    }
+
+    int lengthMS = f.audioProperties()->lengthInMilliseconds();
+    return(lengthMS > 0 ? static_cast<qint64>(lengthMS) : 0);
+}
+
+// ------------------------------------------------------------------------
+// The duration we already know for this file, or 0 if we've never measured it.
+qint64 MainWindow::cachedSongDurationMS(const QString &pathname) {
+    return(durationCacheByPath.value(songSettings.removeRootDirs(pathname)).durationMS);
+}
+
+// ------------------------------------------------------------------------
+// Make sure every one of these paths has a duration in durationCacheByPath, reading the ones
+//   that don't.  Normally there is nothing to do and this costs one stat() per file (~5ms for
+//   the whole Music Directory); it does real work only the first time each song is shown with
+//   the Duration column turned on.
+//
+// The FIRST time is not free.  An MP3 with no Xing header has to be read in full to be counted
+//   (see getSongDurationMS()), and two thirds of the Music Directory is in that shape, so the
+//   very first pass over all 1854 songs takes ~2.8s on four threads.  That happens once for a
+//   given song, ever -- the answers go into the song_durations table and come back from there on
+//   every later launch -- and only for the songs actually on screen, so turning the column on
+//   while Patter is selected measures the patter files and nothing else.
+void MainWindow::warmDurationCache(const QStringList &pathnames) {
+    // Everything measured in an earlier run of SquareDesk comes back here, in one query.  Done
+    //   on demand rather than at startup, so a user who never turns the Duration column on never
+    //   touches the table at all.
+    if (!durationCacheLoadedFromDB) {
+        songSettings.loadSongDurations(durationCacheByPath);
+        durationCacheLoadedFromDB = true;
+    }
+
+    // Which ones do we actually have to open?  A stored duration is good only while the file's
+    //   mtime and size are unchanged, so replacing a song on disk re-measures it by itself.
+    QStringList toRead;                  // absolute paths, for the reader
+    QList<QString> toReadKeys;           // ...and the relative paths they are stored under
+    QList<SongDuration> toReadStats;     // ...and the mtime/size they were measured at
+
+    for (const auto &pathname : pathnames) {
+        QFileInfo fi(pathname);
+        if (!fi.isFile()) {
+            continue;   // playlists can name songs that aren't there any more
+        }
+
+        SongDuration entry;
+        entry.mtimeMS  = fi.lastModified().toMSecsSinceEpoch();
+        entry.fileSize = fi.size();
+
+        const QString key = songSettings.removeRootDirs(pathname);
+
+        auto it = durationCacheByPath.constFind(key);
+        if (it != durationCacheByPath.constEnd() && it->mtimeMS == entry.mtimeMS && it->fileSize == entry.fileSize) {
+            continue;   // still good
+        }
+
+        toRead.append(pathname);
+        toReadKeys.append(key);
+        toReadStats.append(entry);
+    }
+
+    if (toRead.isEmpty()) {
+        return;
+    }
+
+    // Read them in parallel, on a pool of our own.  NOT the global pool: a bulk section
+    //   calculation (see processFiles()) takes it over for minutes at a time, and queueing
+    //   behind those jobs would wedge the UI for exactly as long.  Four threads measured
+    //   fastest here -- this is I/O bound, and eight was slower than four.
+    QThreadPool durationPool;
+    durationPool.setMaxThreadCount(qMin(4, QThread::idealThreadCount()));
+
+    // The output type is named explicitly rather than left to QtConcurrent's deduction, which
+    //   has to rebind a QStringList of paths into a list of durations -- QStringList being a
+    //   plain class derived from QList<QString> rather than a template.  Qt 6.11 deduces
+    //   QList<qint64> correctly, but saying it outright costs nothing and can't drift.
+    // blockingMapped() reduces in input order, which is what lets us pair the results with
+    //   toReadStats by index below.
+    const QList<qint64> durations = QtConcurrent::blockingMapped<QList<qint64>>(&durationPool, toRead,
+                                        [this](const QString &pathname) {
+                                            return(getSongDurationMS(pathname));
+                                        });
+
+    QHash<QString, SongDuration> measured;
+    for (int i = 0; i < toRead.size(); i++) {
+        SongDuration entry = toReadStats[i];
+        entry.durationMS = durations[i];
+        durationCacheByPath.insert(toReadKeys[i], entry);   // 0 is kept too, so we don't retry it
+        measured.insert(toReadKeys[i], entry);
+    }
+
+    // Remember them, so that no later run of SquareDesk has to read these files again.
+    songSettings.saveSongDurations(measured);
 }
 
 // --------------------------------------
