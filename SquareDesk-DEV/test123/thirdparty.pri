@@ -24,7 +24,6 @@ LIBS += -lz -ljpeg -lcurl
 LIBS += -L$$OUT_PWD/../taglib -ltaglib -lz -lfreetype -lpng
 INCLUDEPATH += /usr/share/juce/modules
 INCLUDEPATH += /usr/include/freetype2
-INCLUDEPATH += $$PWD/../third_party/taglib/binaries/include
 INCLUDEPATH += $$PWD/../third_party/taglib
 INCLUDEPATH += $$PWD/../third_party/taglib/taglib
 INCLUDEPATH += $$PWD/../third_party/taglib/taglib/toolkit
@@ -56,7 +55,6 @@ LIBS += -framework MediaPlayer
 
 # TAGLIB ----------------------------------------
 LIBS += -L$$OUT_PWD/../taglib -ltaglib
-INCLUDEPATH += $$PWD/../third_party/taglib/binaries/include
 INCLUDEPATH += $$PWD/../third_party/taglib
 INCLUDEPATH += $$PWD/../third_party/taglib/taglib
 INCLUDEPATH += $$PWD/../third_party/taglib/taglib/toolkit
