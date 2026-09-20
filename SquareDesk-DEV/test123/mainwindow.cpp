@@ -1607,7 +1607,7 @@ void MainWindow::on_darkVolumeSlider_valueChanged(int value)
     if (value == 0) {
         voltageLevelToSet = 0;  // special case for slider all the way to the left (MUTE)
     }
-    cBass->SetVolume(voltageLevelToSet);     // now logarithmic, 0 --> 0.01, 50 --> 0.1, 100 --> 1.0 (values * 100 for libbass)
+    cBass->SetVolume(voltageLevelToSet);     // now logarithmic, 0 --> 0.01, 50 --> 0.1, 100 --> 1.0 (values * 100 for the audio backend)
     currentVolume = static_cast<unsigned short>(value);    // this will be saved with the song (0-100)
 
 //    Info_Volume();  // update the slider text
@@ -7197,10 +7197,10 @@ void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
 void MainWindow::handleDurationBPM() {
 //    qDebug() << "***** handleDurationBPM()";
     int length_sec = static_cast<int>(cBass->FileLength);
-    int songBPM = static_cast<int>(round(cBass->Stream_BPM));  // libbass's idea of the BPM
+    int songBPM = static_cast<int>(round(cBass->Stream_BPM));  // MiniBPM's idea of the BPM
 //    qDebug() << "***** handleDurationBPM(): " << songBPM;
 
-// If the MP3 file has an embedded TBPM frame in the ID3 tag, then it overrides the libbass auto-detect of BPM
+// If the MP3 file has an embedded TBPM frame in the ID3 tag, then it overrides the MiniBPM auto-detect of BPM
     double songBPM_ID3 = getID3BPM(currentMP3filenameWithPath);  // returns 0.0, if not found or not understandable
     bool songBPM_fromID3tag = (songBPM_ID3 != 0.0);
 
@@ -7215,7 +7215,7 @@ void MainWindow::handleDurationBPM() {
     // Intentionally compare against a narrower range here than BPM detection, because BPM detection
     //   returns a number at the limits, when it's actually out of range.
     // An explicit ID3 TBPM tag is trusted by the user, so it gets a much wider sanity range
-    //   than libbass's auto-detected BPM (which is unreliable near its limits).
+    //   than MiniBPM's auto-detected BPM (which is unreliable near its limits).
     // Also, turn off BPM for xtras (they are all over the place, including round dance cues, which have no BPM at all).
     //
     // TODO: make the types for turning off BPM detection a preference

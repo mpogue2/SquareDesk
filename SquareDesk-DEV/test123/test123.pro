@@ -90,10 +90,6 @@ TARGET = SquareDesk
 TEMPLATE = app
 
 macx {
-    # M1MAC is defined on macOS only, and is tested by mainwindow.cpp, mainwindow_init.cpp
-    #   and mainwindow_filemgmt.cpp.  It is not defined for the Linux build.
-    DEFINES += M1MAC=1
-
     # TEMPORARY: turn off complaining when the result of file.open() is not looked at
     DEFINES += QT_NO_USE_NODISCARD_FILE_OPEN
 

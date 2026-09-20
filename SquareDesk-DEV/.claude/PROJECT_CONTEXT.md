@@ -34,9 +34,8 @@
 
 ### Main Components
 
-1. **Audio Engine** (`flexible_audio.cpp`, `bass_audio.cpp`)
-   - New "flexible audio" classes mimic the now-obsolete BASS audio library integration
-   - Qt Multimedia (ARM64/M1 builds, M1MAC define)
+1. **Audio Engine** (`flexible_audio.cpp`, `audiodecoder.cpp`)
+   - Qt Multimedia on every platform; the old BASS audio backend was removed in issue #709
    - Real-time pitch/tempo adjustment via SoundTouch
    - Audio processing with KFR DSP library
    - Beat/bar detection via VAMP plugins
@@ -123,7 +122,6 @@ SquareDesk-DEV/
 
 - **Deployment Target**: macOS 12.0+ (`QMAKE_MACOSX_DEPLOYMENT_TARGET`)
 - **SDK Version**: Must match installed Xcode SDK (e.g., `macosx26.0`)
-- **Architecture Detection**: x86_64 vs arm64 (M1MAC define)
 - **Qt Modules**: core, gui, widgets, multimedia, webenginewidgets, sql, network, svg, httpserver, concurrent
 
 ### Dependencies (Included in Repo)
@@ -204,7 +202,7 @@ The main window logic is split across multiple files for maintainability:
 - `PreferencesManager` - Settings and database access
 - `SongSettings` - Per-song metadata
 - `SDInterface` - Square dance engine interface
-- `FlexibleAudio` / `BassAudio` - Audio backends
+- `FlexibleAudio` / `AudioDecoder` - Audio backend
 - `EmbeddedServer` - HTTP server for Taminations
 - `LyricsEditor` - Cuesheet editor logic
 
@@ -247,8 +245,7 @@ The main window logic is split across multiple files for maintainability:
 
 ### macOS (Primary Platform)
 
-- **M1/ARM64 Build**: Define `M1MAC=1`, uses Qt Multimedia
-- **x86_64 Build**: Uses BASS audio library (obsolete)
+- **Audio**: Qt Multimedia (`flexible_audio` / `AudioDecoder`)
 - **Bundle Structure**: Resources in `SquareDesk.app/Contents/Resources/`
 - **Frameworks**: CoreFoundation, AppKit, MediaPlayer, QuartzCore, Security, Accelerate, WebKit, AudioToolbox
 
@@ -264,7 +261,7 @@ The main window logic is split across multiple files for maintainability:
 - No longer maintained as of 2025; all Windows build files, project-file
   scopes and prebuilt binaries were removed in issue #1727
 - Recoverable from git history if it is ever revived
-- Used the BASS audio library and Inno Setup for installers
+- Used Inno Setup for installers
 
 ## Known Issues and Quirks
 
@@ -283,7 +280,6 @@ The main window logic is split across multiple files for maintainability:
 
 ## External Resources
 
-- **BASS Audio**: http://www.un4seen.com/ (obsolete)
 - **SoundTouch**: https://www.surina.net/soundtouch/
 - **KFR DSP**: https://www.kfrlib.com/
 - **VAMP Plugins**: https://vamp-plugins.org/

@@ -25,7 +25,6 @@
 
 // NOTE: The BASS audio backend (bass_audio.cpp) has been removed; this file is
 //   now the audio implementation on all platforms.
-// M1MAC is defined only on Mac's and only on M1 Silicon Macs.
 
 #include "flexible_audio.h"
 #include "svgWaveformSlider.h"
