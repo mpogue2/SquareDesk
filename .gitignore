@@ -16,6 +16,10 @@ SquareDesk.pro.user
 ._.DS_Store
 **/.DS_Store
 **/._.DS_Store
+
+# RStudio opens when a .md file is double-clicked, and drops an .Rhistory in
+#   whatever directory it started in. Never ours.
+**/.Rhistory
 **/CMakeOutput.log
 **/jquery*.zip
 /SquareDesk-DEV/test123/SquareDesk
@@ -46,6 +50,6 @@ compile_commands.json
 #   run, for the user to pass to `git commit -F` afterwards. Not source.
 /SquareDesk-DEV/third_party/Taminations/.update_taminations_commit_msg.txt
 
-# Scratch commit message written by SquareDesk-DEV/sdlib/update_sd.sh on every
+# Scratch commit message written by third_party/sdlib/update_sd.sh on every
 #   run, for the user to pass to `git commit -F` afterwards. Not source.
 /SquareDesk-DEV/third_party/sdlib/.update_sd_commit_msg.txt
