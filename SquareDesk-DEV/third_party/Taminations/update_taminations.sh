@@ -4,7 +4,7 @@
 #
 # Clones bradchristie/taminations-flutter, applies the SquareDesk-specific
 # patches, builds it for the web, lets you test it, and drops the resulting
-# web.zip into SquareDesk-DEV/Taminations/web.zip.
+# web.zip into SquareDesk-DEV/third_party/Taminations/web.zip.
 #
 # The recipe implemented here comes from:
 #   https://github.com/mpogue2/SquareDesk/issues/1415  (packaging + ?Speed=Fast)

@@ -103,7 +103,7 @@ macx {
     # Taminations: unzip web.zip into Resources/Taminations ("unzip -d" creates the folder).
     taminations.target   = taminations
     taminations.depends  = stripPDFJS
-    taminations.commands = unzip -o -q $$PWD/../Taminations/web.zip -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations
+    taminations.commands = unzip -o -q $$PWD/../third_party/Taminations/web.zip -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations
 
     # Strip AppleDouble files and build cruft, which otherwise break signing and notarizing.
     bundleCleanup.target   = bundleCleanup
