@@ -37,10 +37,10 @@ LIBS += -L$$(HOME)/local/lib -lkfr_dsp -lkfr_io
 QT += multimedia httpserver concurrent
 
 # MiniBPM for BPM detection -----------------------------------
-INCLUDEPATH += $$PWD/miniBPM
+INCLUDEPATH += $$PWD/third_party/miniBPM
 
 # SoundTouch for pitch/tempo changing -----------------------------------
-INCLUDEPATH += $$PWD/soundtouch/include
+INCLUDEPATH += $$PWD/third_party/soundtouch/include
 
 }
 
@@ -107,10 +107,10 @@ JUCE.commands = zsh $$PWD/../juce-install
 PRE_TARGETDEPS += $$libJUCE.target
 
 # MiniBPM for BPM detection -----------------------------------
-INCLUDEPATH += $$PWD/miniBPM
+INCLUDEPATH += $$PWD/third_party/miniBPM
 
 # SoundTouch for pitch/tempo changing -----------------------------------
-INCLUDEPATH += $$PWD/soundtouch/include
+INCLUDEPATH += $$PWD/third_party/soundtouch/include
 
 # SDLIB ------------------------------------------
 LIBS += -L$$OUT_PWD/../sdlib -lsdlib

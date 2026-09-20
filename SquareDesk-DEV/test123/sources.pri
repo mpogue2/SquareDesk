@@ -27,7 +27,7 @@ SOURCES += main.cpp\
     mainwindow_music.cpp \
     mainwindow_taminations.cpp \
     mainwindow_themes.cpp \
-    miniBPM/MiniBpm.cpp \
+    third_party/miniBPM/MiniBpm.cpp \
     mytextedit.cpp \
     newdancedialog.cpp \
     playlists.cpp \
@@ -40,20 +40,20 @@ SOURCES += main.cpp\
     songhistoryexportdialog.cpp \
     mytablewidget.cpp \
     mytreewidget.cpp \
-    soundtouch/source/SoundTouch/AAFilter.cpp \
-    soundtouch/source/SoundTouch/BPMDetect.cpp \
-    soundtouch/source/SoundTouch/FIFOSampleBuffer.cpp \
-    soundtouch/source/SoundTouch/FIRFilter.cpp \
-    soundtouch/source/SoundTouch/InterpolateCubic.cpp \
-    soundtouch/source/SoundTouch/InterpolateLinear.cpp \
-    soundtouch/source/SoundTouch/InterpolateShannon.cpp \
-    soundtouch/source/SoundTouch/PeakFinder.cpp \
-    soundtouch/source/SoundTouch/RateTransposer.cpp \
-    soundtouch/source/SoundTouch/SoundTouch.cpp \
-    soundtouch/source/SoundTouch/TDStretch.cpp \
-    soundtouch/source/SoundTouch/cpu_detect_x86.cpp \
-    soundtouch/source/SoundTouch/mmx_optimized.cpp \
-    soundtouch/source/SoundTouch/sse_optimized.cpp \
+    third_party/soundtouch/source/SoundTouch/AAFilter.cpp \
+    third_party/soundtouch/source/SoundTouch/BPMDetect.cpp \
+    third_party/soundtouch/source/SoundTouch/FIFOSampleBuffer.cpp \
+    third_party/soundtouch/source/SoundTouch/FIRFilter.cpp \
+    third_party/soundtouch/source/SoundTouch/InterpolateCubic.cpp \
+    third_party/soundtouch/source/SoundTouch/InterpolateLinear.cpp \
+    third_party/soundtouch/source/SoundTouch/InterpolateShannon.cpp \
+    third_party/soundtouch/source/SoundTouch/PeakFinder.cpp \
+    third_party/soundtouch/source/SoundTouch/RateTransposer.cpp \
+    third_party/soundtouch/source/SoundTouch/SoundTouch.cpp \
+    third_party/soundtouch/source/SoundTouch/TDStretch.cpp \
+    third_party/soundtouch/source/SoundTouch/cpu_detect_x86.cpp \
+    third_party/soundtouch/source/SoundTouch/mmx_optimized.cpp \
+    third_party/soundtouch/source/SoundTouch/sse_optimized.cpp \
     splashscreen.cpp \
     svgClock.cpp \
     svgDial.cpp \
@@ -107,7 +107,7 @@ HEADERS  += mainwindow.h \
     mytextedit.h \
     palettetablebulkupdate.h \
     playlist_constants.h \
-    miniBPM/MiniBpm.h \
+    third_party/miniBPM/MiniBpm.h \
     third_party/minimp3.h \
     third_party/minimp3_ex.h \
     myslider.h \
@@ -120,21 +120,21 @@ HEADERS  += mainwindow.h \
     preferencesdialog.h \
     choreosequencedialog.h \
     cuesheetmatchingdebugdialog.h \
-    soundtouch/include/BPMDetect.h \
-    soundtouch/include/FIFOSampleBuffer.h \
-    soundtouch/include/FIFOSamplePipe.h \
-    soundtouch/include/STTypes.h \
-    soundtouch/include/SoundTouch.h \
-    soundtouch/include/soundtouch_config.h \
-    soundtouch/source/SoundTouch/AAFilter.h \
-    soundtouch/source/SoundTouch/FIRFilter.h \
-    soundtouch/source/SoundTouch/InterpolateCubic.h \
-    soundtouch/source/SoundTouch/InterpolateLinear.h \
-    soundtouch/source/SoundTouch/InterpolateShannon.h \
-    soundtouch/source/SoundTouch/PeakFinder.h \
-    soundtouch/source/SoundTouch/RateTransposer.h \
-    soundtouch/source/SoundTouch/TDStretch.h \
-    soundtouch/source/SoundTouch/cpu_detect.h \
+    third_party/soundtouch/include/BPMDetect.h \
+    third_party/soundtouch/include/FIFOSampleBuffer.h \
+    third_party/soundtouch/include/FIFOSamplePipe.h \
+    third_party/soundtouch/include/STTypes.h \
+    third_party/soundtouch/include/SoundTouch.h \
+    third_party/soundtouch/include/soundtouch_config.h \
+    third_party/soundtouch/source/SoundTouch/AAFilter.h \
+    third_party/soundtouch/source/SoundTouch/FIRFilter.h \
+    third_party/soundtouch/source/SoundTouch/InterpolateCubic.h \
+    third_party/soundtouch/source/SoundTouch/InterpolateLinear.h \
+    third_party/soundtouch/source/SoundTouch/InterpolateShannon.h \
+    third_party/soundtouch/source/SoundTouch/PeakFinder.h \
+    third_party/soundtouch/source/SoundTouch/RateTransposer.h \
+    third_party/soundtouch/source/SoundTouch/TDStretch.h \
+    third_party/soundtouch/source/SoundTouch/cpu_detect.h \
     splashscreen.h \
     svgClock.h \
     svgDial.h \
@@ -230,6 +230,6 @@ DISTFILES += \
     notarizeSquareDesk.command \
     patter.template.html \
     releaseSquareDesk.command \
-    soundtouch/include/soundtouch_config.h.in \
+    third_party/soundtouch/include/soundtouch_config.h.in \
     squareDanceLabelIDs.csv \
     themes/Themes.qss
