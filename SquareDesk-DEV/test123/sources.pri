@@ -94,7 +94,7 @@ SOURCES += main.cpp\
     tablelabelitem.cpp
 
 unix {
-SOURCES += ../qpdfjs/src/communicator.cpp
+SOURCES += ../third_party/qpdfjs/src/communicator.cpp
 }
 
 HEADERS  += mainwindow.h \
@@ -191,8 +191,8 @@ HEADERS  += mainwindow.h \
     xxhash64.h
 
 unix {
-HEADERS += ../qpdfjs/src/communicator.h
-INCLUDEPATH += $$PWD/../qpdfjs
+HEADERS += ../third_party/qpdfjs/src/communicator.h
+INCLUDEPATH += $$PWD/../third_party/qpdfjs
 }
 
 FORMS    += mainwindow.ui \

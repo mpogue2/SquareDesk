@@ -57,7 +57,7 @@ bundle_soundfx.files = $$files($$PWD/soundfx/*.mp3)
 
 # PDF viewer (qpdfjs): its "build" and "web" trees
 bundle_pdfjs.path    = Contents/Resources/minified
-bundle_pdfjs.files   = $$PWD/../qpdfjs/minified/build $$PWD/../qpdfjs/minified/web
+bundle_pdfjs.files   = $$PWD/../third_party/qpdfjs/minified/build $$PWD/../third_party/qpdfjs/minified/web
 
 # VAMP, for beat/measure detection and segmentation.
 #   NOTE: the dylibs and the vamp-simple-host executable are ARM64 binaries; segmentino and
