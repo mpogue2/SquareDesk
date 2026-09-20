@@ -27,6 +27,8 @@
 #include <QtSql/QSqlError>
 #include <QVariant>
 #include <QDebug>
+#include <QDateTime>
+#include <QFileInfo>
 #include <vector>
 #include <map>
 #include <utility>
@@ -239,8 +241,16 @@ TableDefinition session_table("sessions", session_rows);
 RowDefinition song_play_rows[] =
 {
     RowDefinition("song_rowid", "int references songs(rowid)"),
+    // NULL == this play belongs to no session.  Every per-session query here says
+    //   "session_rowid = :session_rowid", which never matches NULL, so such a play is invisible in
+    //   a session's Age column and shows up only under "Show All Song Ages".  That is the right
+    //   answer for a play SquareDesk did not make: see importExternalPlays() (issue #1745).
     RowDefinition("session_rowid", "int references session(rowid)"),
     RowDefinition("played_on", "DATETIME DEFAULT CURRENT_TIMESTAMP"),
+    // Where the play event came from: 'squaredesk' for one we played ourselves, 'applemusic' for a
+    //   lastPlayedDate imported from Music.app.  Existing rows predate Apple Music import, so the
+    //   DEFAULT backfills them correctly when ensureSchema() adds the column (issue #1745).
+    RowDefinition("origin", "TEXT DEFAULT 'squaredesk'"),
     RowDefinition(nullptr, nullptr), // NULL, NULL),
 };
 TableDefinition song_plays_table("song_plays", song_play_rows);
@@ -758,6 +768,98 @@ void SongSettings::markSongPlayed(const QString &filename, const QString &filena
     exec("markSongPlayed", q);
 }
 
+// #1745: fold plays that happened somewhere else -- today, Apple Music's lastPlayedDate -- into
+//   song_plays, so the Age and Recent columns can see them.  Those columns need no changes at all
+//   for this: getSongAges() already does max(played_on) per song, keyed by the same normalized
+//   path that darkLoadMusicList() looks each row up by, and Recent is derived from Age.
+//
+//   Three things make this safe to run on every resync:
+//     - session_rowid is NULL, because an Apple Music play belongs to no session (see the schema
+//       comment above).  It is also exactly the shape #1721 wants, where a play event carries no
+//       session and gets attributed to a club dynamically.  Recording these as "Practice" instead
+//       would be lossy: nothing downstream could ever tell them from real Practice plays again.
+//     - played_on is normalized to the same "yyyy-MM-dd HH:mm:ss" UTC spelling CURRENT_TIMESTAMP
+//       writes.  The ISO 8601 form Music gives us ("...T14:03:22Z") would parse fine in
+//       julianday(), but the de-dupe below compares played_on as a string, so the spellings have
+//       to agree or every resync would insert the same play over again.
+//     - the insert is a no-op when this song already has a play at this exact instant, which is
+//       what makes resyncing idempotent.  Music gives one lastPlayedDate per track, never a
+//       history, so a track contributes at most one row until it is played in Music again.
+//
+//   Returns the number of plays actually inserted.
+int SongSettings::importExternalPlays(const QHash<QString, QString> &lastPlayedByPath,
+                                      const QString &origin)
+{
+    if (!databaseOpened || lastPlayedByPath.isEmpty())
+    {
+        return 0;
+    }
+
+    // One transaction: SQLite commits every loose INSERT on its own, and the first sync of a large
+    //   Apple Music library can insert thousands of rows.  Later syncs insert nearly none, but the
+    //   de-dupe SELECT below still runs once per track, so it wants to be in here too.
+    m_db.transaction();
+
+    QSqlQuery insertQ(m_db);
+    insertQ.prepare("INSERT INTO song_plays(song_rowid,session_rowid,played_on,origin)"
+                    " SELECT :song_rowid, NULL, :played_on, :origin"
+                    " WHERE NOT EXISTS (SELECT 1 FROM song_plays"
+                    "                    WHERE song_rowid = :song_rowid2 AND played_on = :played_on2)");
+
+    int inserted = 0;
+
+    for (auto it = lastPlayedByPath.constBegin(); it != lastPlayedByPath.constEnd(); ++it)
+    {
+        const QDateTime lastPlayed = QDateTime::fromString(it.value(), Qt::ISODate);
+        if (!lastPlayed.isValid())
+        {
+            continue;   // never played, or a date we can't read -- nothing to record either way
+        }
+        const QString playedOn = lastPlayed.toUTC().toString("yyyy-MM-dd HH:mm:ss");
+
+        const QString filenameWithPathNormalized = removeRootDirs(it.key());
+        const QString songname = QFileInfo(it.key()).fileName();
+
+        // Deliberately getSongIDFromFilenameAlone() and not getSongIDFromFilename(): the latter
+        //   falls back to matching on the bare filename and then REWRITES that row's path to the
+        //   one we passed in.  That is right when a song moved inside the Music Directory, but
+        //   here it would repoint a Music Directory song at an Apple Music path whenever the two
+        //   happen to share a base name.
+        int song_rowid = getSongIDFromFilenameAlone(filenameWithPathNormalized);
+
+        // Same reasoning as markSongPlayed(): a song only gets a songs row when saveSettings()
+        //   runs, and an Apple Music track that has never been played in SquareDesk has none.  The
+        //   join in getSongAges() would drop the play silently, so create the minimal row now.
+        if (-1 == song_rowid)
+        {
+            QSqlQuery addQ(m_db);
+            addQ.prepare("INSERT OR IGNORE INTO songs(filename, songname) VALUES (:filename, :songname)");
+            addQ.bindValue(":filename", filenameWithPathNormalized);
+            addQ.bindValue(":songname", songname);
+            exec("importExternalPlays_addSong", addQ);
+
+            song_rowid = getSongIDFromFilenameAlone(filenameWithPathNormalized);
+            if (-1 == song_rowid)
+            {
+                continue;   // couldn't make one; don't record a play against a rowid that matches nothing
+            }
+        }
+
+        insertQ.bindValue(":song_rowid",  song_rowid);
+        insertQ.bindValue(":played_on",   playedOn);
+        insertQ.bindValue(":origin",      origin);
+        insertQ.bindValue(":song_rowid2", song_rowid);
+        insertQ.bindValue(":played_on2",  playedOn);
+        exec("importExternalPlays", insertQ);
+
+        inserted += qMax(0, insertQ.numRowsAffected());
+    }
+
+    m_db.commit();
+
+    return inserted;
+}
+
 QString SongSettings::getCallTaughtOn(const QString &program, const QString &call_name)
 {
     QSqlQuery q(m_db);
@@ -831,6 +933,10 @@ void SongSettings::getSongPlayHistory(SongPlayEvent &event,
     {
         sql += " WHERE " + whereClause.join(" AND ");
     }
+    // #1745: this used to have no ORDER BY at all, and came back in rowid order, which was
+    //   chronological only because every play was appended as it happened.  Imported Apple Music
+    //   plays are back-dated, so rowid order is no longer play order -- say what we actually mean.
+    sql += " ORDER BY played_on";
     QSqlQuery q(m_db);
     q.prepare(sql);
     if (session_id)

@@ -109,6 +109,12 @@ public:
     QString getSongAge(const QString &filename, const QString &filenameWithPath, bool show_all_sessions);
     void markSongPlayed(const QString &filename, const QString &filenameWithPath);
 
+    // #1745: record plays that happened outside SquareDesk (Apple Music's lastPlayedDate), so the
+    //   Age and Recent columns can see them.  Keyed by absolute path -> ISO 8601 last-played date.
+    //   Idempotent: a play already recorded at that exact instant for that song is skipped, so
+    //   this is safe to call on every resync.  Returns the number of plays inserted.
+    int importExternalPlays(const QHash<QString, QString> &lastPlayedByPath, const QString &origin);
+
     QString removeRootDirs(const QString &filenameWithPath);
     QString primaryRootDir();
 

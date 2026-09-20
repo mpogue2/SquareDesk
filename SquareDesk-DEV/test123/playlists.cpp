@@ -2267,6 +2267,32 @@ void MainWindow::getAppleMusicInfo() {
     allAppleMusicPlaylistNames.sort(Qt::CaseInsensitive);   // Sort (case INsensitive)
     allAppleMusicPlaylistNames.removeDuplicates();          // Remove duplicates
 
+    // ---- Fold Music.app's own lastPlayedDate into song_plays, so a track last played in Music
+    //   rather than in SquareDesk still gets a sensible Age and Recent (issue #1745).  Those two
+    //   columns need no changes for this: getSongAges() takes max(played_on) per song, and Recent
+    //   is derived from Age.  The imported plays carry session_rowid = NULL, because a Music play
+    //   belongs to no session, which means they show up only under "Show All Song Ages" and never
+    //   make a song look played in a session where it wasn't.
+    //
+    //   appleMusicMetaByPath is keyed by path, so a track in five playlists is considered once.
+    //   importExternalPlays() de-dupes against what's already recorded and runs in one
+    //   transaction, so resyncing repeatedly costs one no-op query per track and inserts nothing.
+    {
+        QHash<QString, QString> lastPlayedByPath;
+        for (auto it = appleMusicMetaByPath.constBegin(); it != appleMusicMetaByPath.constEnd(); ++it) {
+            const std::string &lastPlayed = it.value().lastPlayedDate;
+            if (!lastPlayed.empty()) {
+                lastPlayedByPath.insert(it.key(), QString::fromStdString(lastPlayed));
+            }
+        }
+        if (!lastPlayedByPath.isEmpty()) {
+            int inserted = songSettings.importExternalPlays(lastPlayedByPath, "applemusic");
+            if (inserted > 0) {
+                qDebug() << "getAppleMusicInfo: imported" << inserted << "Apple Music play(s) into song_plays";
+            }
+        }
+    }
+
     // qDebug() << "allAppleMusicPlaylistNames =========\n" << allAppleMusicPlaylistNames;
     // qDebug() << "allAppleMusicPlaylists =============\n" << allAppleMusicPlaylists;
 
