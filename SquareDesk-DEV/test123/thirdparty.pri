@@ -31,7 +31,7 @@ INCLUDEPATH += $$PWD/../third_party/taglib/taglib/toolkit
 INCLUDEPATH += $$PWD/../third_party/taglib/taglib/mpeg/id3v2
 INCLUDEPATH += $$PWD/ $$PWD/../local/include $$(HOME)/local/include $$(HOME)/local/include/soundtouch 
 DEPENDPATH += $$PWD/ $$PWD/../local/include
-LIBS += -L$$PWD/../sdlib -lsdlib
+LIBS += -L$$PWD/../third_party/sdlib -lsdlib
 LIBS += -L$$(HOME)/local/lib -lkfr_dsp -lkfr_io
 
 QT += multimedia httpserver concurrent

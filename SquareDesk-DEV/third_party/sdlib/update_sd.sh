@@ -31,7 +31,7 @@ DOC_URL="https://challengedance.org/sd/sd_doc.pdf"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SDLIB="$SCRIPT_DIR"
-DEVROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+DEVROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"   # sdlib now lives under third_party/
 TEST123="$DEVROOT/test123"
 
 ZIP_ARG=""

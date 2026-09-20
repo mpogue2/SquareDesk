@@ -42,7 +42,7 @@ bundle_resources.files = \
     $$PWD/allcalls.csv \
     $$PWD/abbrevs.txt \
     $$PWD/squareDanceLabelIDs.csv \
-    $$PWD/../sdlib/sd_doc.pdf
+    $$PWD/../third_party/sdlib/sd_doc.pdf
 
 # SVG resources for the knobs and sliders
 bundle_knobs.path    = Contents/Resources/knobs

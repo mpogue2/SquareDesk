@@ -23,11 +23,11 @@ SquareDesk.pro.user
 /SquareDesk-DEV/test123/moc_predefs.h
 /SquareDesk-DEV/test123/qrc_startupwizard.cpp
 /SquareDesk-DEV/test123/sd_calls.cache
-/SquareDesk-DEV/sdlib/Makefile
-/SquareDesk-DEV/sdlib/libsdlib.a
-/SquareDesk-DEV/sdlib/mkcalls
-/SquareDesk-DEV/sdlib/sd_calls.dat
-/SquareDesk-DEV/sdlib/sdtty
+/SquareDesk-DEV/third_party/sdlib/Makefile
+/SquareDesk-DEV/third_party/sdlib/libsdlib.a
+/SquareDesk-DEV/third_party/sdlib/mkcalls
+/SquareDesk-DEV/third_party/sdlib/sd_calls.dat
+/SquareDesk-DEV/third_party/sdlib/sdtty
 
 /SquareDesk-DEV/.qmake.stash
 /SquareDesk-DEV/test123/.qmake.stash
@@ -50,4 +50,4 @@ compile_commands.json
 
 # Scratch commit message written by SquareDesk-DEV/sdlib/update_sd.sh on every
 #   run, for the user to pass to `git commit -F` afterwards. Not source.
-/SquareDesk-DEV/sdlib/.update_sd_commit_msg.txt
+/SquareDesk-DEV/third_party/sdlib/.update_sd_commit_msg.txt
