@@ -52,7 +52,7 @@
 
 #define MINIMP3_FLOAT_OUTPUT
 #define MINIMP3_IMPLEMENTATION
-#include "minimp3_ex.h"
+#include "third_party/minimp3_ex.h"
 
 // special signature for the drop-in replacement for mp3dec_load()
 int audiodec_load(mp3dec_t *mp3d, const char *file_name, mp3dec_file_info_t *info, MP3D_PROGRESS_CB progress_cb, void *user_data);

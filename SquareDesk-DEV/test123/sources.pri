@@ -63,7 +63,7 @@ SOURCES += main.cpp\
     tablenumberitem.cpp \
     playlistnumberdelegate.cpp \
     myslider.cpp \
-    levelmeter.cpp \
+    third_party/levelmeter.cpp \
     prefsmanager.cpp \
     clickablelabel.cpp \
     songsettings.cpp \
@@ -108,8 +108,8 @@ HEADERS  += mainwindow.h \
     palettetablebulkupdate.h \
     playlist_constants.h \
     miniBPM/MiniBpm.h \
-    minimp3.h \
-    minimp3_ex.h \
+    third_party/minimp3.h \
+    third_party/minimp3_ex.h \
     myslider.h \
     importdialog.h \
     exportdialog.h \
@@ -149,7 +149,7 @@ HEADERS  += mainwindow.h \
     songdraginfo.h \
     tablenumberitem.h \
     playlistnumberdelegate.h \
-    levelmeter.h \
+    third_party/levelmeter.h \
     common_enums.h \
     prefs_options.h \
     prefsmanager.h \
@@ -221,7 +221,7 @@ DISTFILES += \
     LICENSE.GPL3 \
     LICENSE.GPL2 \
     abbrevs.txt \
-    cuesheet2.css \
+    third_party/cuesheet2.css \
     fixAndSignSquareDesk.command \
     lyrics.template.2col.html \
     lyrics.template.html \

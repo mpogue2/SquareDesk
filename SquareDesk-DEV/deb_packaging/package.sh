@@ -23,7 +23,7 @@ pushd ../sdlib
 popd
 cp ../sdlib/sd_calls.dat SquareDeskPlayer/usr/share/SquareDeskPlayer
 cp ../sdlib/sd_calls.dat SquareDeskPlayer/usr/share/SquareDeskPlayer
-cp ../test123/{cuesheet2.css,patter.template.html,lyrics.template.html} \
+cp ../test123/third_party/cuesheet2.css ../test123/{patter.template.html,lyrics.template.html} \
    SquareDeskPlayer/usr/share/SquareDeskPlayer
 
 

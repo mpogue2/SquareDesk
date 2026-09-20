@@ -34,7 +34,7 @@
 #include <cstring>
 #include <cstdlib>
 
-#include "minimp3_ex.h"
+#include "third_party/minimp3_ex.h"
 
 // Drop-in replacement for mp3dec_load() that uses Qt's QAudioDecoder
 // to support multiple audio formats (M4A, MP3, WAV, FLAC, etc.)

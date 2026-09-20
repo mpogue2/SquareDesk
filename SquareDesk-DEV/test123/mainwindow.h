@@ -96,7 +96,7 @@
 
 #include "updateid3tagsdialog.h"
 
-#include "levelmeter.h"
+#include "third_party/levelmeter.h"
 #include "songsettings.h"
 
 // Forward declaration for debug dialog

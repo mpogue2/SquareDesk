@@ -36,7 +36,7 @@ bundle_resources.path  = Contents/Resources
 bundle_resources.files = \
     $$PWD/lyrics.template.html \
     $$PWD/lyrics.template.2col.html \
-    $$PWD/cuesheet2.css \
+    $$PWD/third_party/cuesheet2.css \
     $$PWD/themes/Themes.qss \
     $$PWD/sd_calls.dat \
     $$PWD/allcalls.csv \

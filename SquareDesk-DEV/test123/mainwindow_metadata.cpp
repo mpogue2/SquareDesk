@@ -50,7 +50,7 @@
 #include <QtMultimedia>
 
 #define MINIMP3_FLOAT_OUTPUT
-#include "minimp3_ex.h"
+#include "third_party/minimp3_ex.h"
 
 #include "xxhash64.h"
 
