@@ -88,19 +88,24 @@ SquareDesk-DEV/
 │   ├── mainwindow.*           # Main window (split across multiple files)
 │   ├── test123.pro            # Qt project file
 │   ├── resources.qrc          # Qt resources
-│   ├── soundtouch/            # SoundTouch library (pitch/tempo)
-│   ├── miniBPM/               # BPM detection
+│   ├── third_party/           # VENDORED -- not ours, do not edit
+│   │   ├── soundtouch/        # SoundTouch library (pitch/tempo)
+│   │   ├── miniBPM/           # BPM detection
+│   │   ├── minimp3*.h         # MP3 decoder headers
+│   │   ├── levelmeter.*       # Qt Company example code
+│   │   └── cuesheet2.css      # imported cuesheet stylesheet
 │   ├── graphics/              # UI graphics (SVG, PNG)
 │   ├── soundfx/               # Sound effects (MP3)
 │   ├── themes/                # QSS stylesheets
 │   ├── docs/                  # User manual
 │   └── *.command              # macOS build/release scripts
-├── sdlib/                     # Square Dance choreography engine (separate project)
-├── taglib/                    # ID3 tag library
-├── kfr/                       # KFR DSP library (filters)
-├── qpdfjs/                    # PDF.js viewer wrapper
-├── libJUCEstatic/             # JUCE audio library (static build)
-├── Taminations/               # Dance animation web app (web.zip)
+├── third_party/               # VENDORED -- not ours, do not edit
+│   ├── sdlib/                 # Square Dance choreography engine (separate project)
+│   ├── taglib/                # ID3 tag library
+│   ├── kfr/                   # KFR DSP library (filters)
+│   ├── qpdfjs/                # PDF.js viewer wrapper
+│   ├── libJUCEstatic/         # JUCE audio library (static build)
+│   └── Taminations/           # Dance animation web app (web.zip)
 ├── local_macosx/              # macOS-specific binaries (VAMP, etc.)
 └── SquareDesk.pro             # Top-level project file
 ```

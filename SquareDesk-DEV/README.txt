@@ -37,7 +37,7 @@ COMPILING AND BUILDING SQUAREDESK
 
 	* Download and unpack the ZIP file from GitHub.
 	* Compile SoundTouch manually (takes just a few seconds):
-		cd SquareDesk-DEV/test123/soundtouch
+		cd SquareDesk-DEV/test123/third_party/soundtouch
 		cmake .
 		make -j
 	* Inside QtCreator, open up the top-level SquareDesk project (SquareDesk.pro).

@@ -1,0 +1,21 @@
+# Revisions that git blame should skip, so that a bulk move does not show up as
+# the last thing that touched every line of a file.
+#
+# To use it:
+#     git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# GitHub's blame view and most IDEs pick this file up automatically.
+#
+# Only add a commit here if it did not change what the code does.
+
+# #1748: moving vendored code under third_party/. Each of these is a rename plus
+#   the handful of path strings the rename forced -- INCLUDEPATH lines, SOURCES
+#   entries, #include spellings. No behavior changed in any of them.
+a8610c8ff01023f00bd1ae719d4fbc118103a880
+97352cb0dbab7abec37c3e6607166c6c32984f97
+33007c6863c58f8bec93df190d46aea9bb0ff7c2
+ca51d4e8aa0f94780936235ed8b75074564ba705
+ebb2afde50fd5d9a061e31a80103651819d461d5
+88fef096868e95bfa6489ba8eda58bf0046147f6
+cc922961c5d3c6425eaa7e05bd0eb0b5a2fceb39
+85c05c1493a8b6c07bf8b06263d65bef88aa42b7

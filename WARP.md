@@ -20,7 +20,7 @@ cd SquareDesk-DEV
 ./juce-install
 
 # Build SoundTouch library manually first
-cd SquareDesk-DEV/test123/soundtouch
+cd SquareDesk-DEV/test123/third_party/soundtouch
 cmake .
 make -j
 
@@ -33,8 +33,8 @@ make -j
 cd SquareDesk-DEV
 qmake SquareDesk.pro
 make
-cd sdlib && qmake && make
-cd ../test123 && make
+cd third_party/sdlib && qmake && make
+cd ../../test123 && make
 ./SquareDesk
 ```
 
@@ -86,7 +86,7 @@ cd SquareDesk-DEV/test123
 - VAMP plugins for beat/measure detection and audio segmentation
 
 **Square Dance Integration:**
-- `sdlib/`: Static library containing SD (Square Dance) sequence checker
+- `third_party/sdlib/`: Static library containing SD (Square Dance) sequence checker
 - `sdinterface.*`: Interface layer between UI and SD engine
 - `squaredancerscene.*`: Graphical representation of dance formations
 - Custom language model and grammar files for voice recognition

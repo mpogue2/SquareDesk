@@ -52,7 +52,7 @@ cd SquareDesk/SquareDesk-DEV
 qmake SquareDesk.pro
 # do the build
 make
-cd ~/code/SquareDesk/SquareDesk-DEV/sdlib
+cd ~/code/SquareDesk/SquareDesk-DEV/third_party/sdlib
 qmake
 make
 ~/code/SquareDesk/SquareDesk-DEV/test123
