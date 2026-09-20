@@ -88,11 +88,11 @@ message(KFR_LIB is $$KFR_LIB)
 
 libkfr.target = $$KFR_LIB
 libkfr.depends =
-libkfr.commands = $$PWD/../kfr/create-kfr-lib $$KFR_DIR $$KFR_BUILD_TYPE
+libkfr.commands = $$PWD/../third_party/kfr/create-kfr-lib $$KFR_DIR $$KFR_BUILD_TYPE
 
 PRE_TARGETDEPS += $$libkfr.target
 
-INCLUDEPATH += $$PWD/../kfr/include
+INCLUDEPATH += $$PWD/../third_party/kfr/include
 LIBS += -L$$KFR_LIB -lkfr_dsp_neon64 -lkfr_io
 
 # JUCE INSTALL ----------------------------------
