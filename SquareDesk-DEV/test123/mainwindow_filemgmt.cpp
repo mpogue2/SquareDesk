@@ -308,7 +308,16 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     int lastDot = currentMP3filename.lastIndexOf('.');
     if (lastDot > 1)
     {
-        currentMP3filename = currentMP3filename.right(lastDot - 1);
+        // Strip the extension.  This was right(lastDot - 1), which takes from the END: instead of
+        //   removing the extension it removed (extension length + 1) characters from the FRONT and
+        //   left the extension on, so "RYL 601 - Tennessee River.mp3" became
+        //   "01 - Tennessee River.mp3" (issue #1758).
+        //
+        // That mattered beyond the songname column it is written to.  This is also the bare-filename
+        //   argument to getSongIDFromFilename(), whose legacy fallback matches a song whose row is
+        //   keyed by a bare name with no extension ("RIV 250 - YMCA").  A mangled name still
+        //   carrying ".mp3" could never match one, so that fallback did nothing.
+        currentMP3filename = currentMP3filename.left(lastDot);
     }
 
     if (songTitle != "") {
