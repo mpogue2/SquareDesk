@@ -1660,10 +1660,6 @@ void MainWindow::initializeCuesheetTab() {
     ui->darkTestLoopButton->setEnabled(false);
     ui->darkLoopToggleButton->setEnabled(false);
 
-    ui->darkSegmentButton->setHidden(true);
-    ui->darkSegmentButton->setEnabled(false);
-    ui->darkSegmentButton->setToolTip("EXPERIMENTAL: Click to segment a patter recording, to help set loops.\nCan take up to 30 seconds to complete.");
-
     lastCuesheetSavePath = prefsManager.MySettings.value("lastCuesheetSavePath").toString();
 
     maybeLoadCSSfileIntoTextBrowser(true);

@@ -181,7 +181,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     // qDebug() << "loadMP3File: nextFilename = " << nextFilename;
     override_filename = "";
     override_cuesheet = "";
-    ui->darkSegmentButton->setHidden(true);
 
 #ifdef DEBUG_LIGHT_MODE
     svgClockStateChanged("UNINITIALIZED");

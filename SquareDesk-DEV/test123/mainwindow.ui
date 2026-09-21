@@ -435,19 +435,6 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QToolButton" name="darkSegmentButton">
-                       <property name="font">
-                        <font>
-                         <family>Avenir Next</family>
-                         <pointsize>14</pointsize>
-                        </font>
-                       </property>
-                       <property name="text">
-                        <string>Segment</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
                       <spacer name="horizontalSpacer_3">
                        <property name="orientation">
                         <enum>Qt::Orientation::Horizontal</enum>
@@ -4570,22 +4557,13 @@
      <property name="title">
       <string>Sections</string>
      </property>
-     <widget class="QMenu" name="menuEstimate_for">
-      <property name="title">
-       <string>Estimate for</string>
-      </property>
-      <addaction name="actionEstimate_for_this_song"/>
-      <addaction name="actionEstimate_for_all_songs"/>
-     </widget>
-     <widget class="QMenu" name="menuRemove_for">
-      <property name="title">
-       <string>Remove for</string>
-      </property>
-      <addaction name="actionRemove_for_this_song"/>
-      <addaction name="actionRemove_for_all_songs"/>
-     </widget>
-     <addaction name="menuEstimate_for"/>
-     <addaction name="menuRemove_for"/>
+     <addaction name="actionEstimate_for_this_song"/>
+     <addaction name="actionEstimate_for_selected_songs"/>
+     <addaction name="separator"/>
+     <addaction name="actionRemove_for_this_song"/>
+     <addaction name="actionRemove_for_selected_songs"/>
+     <addaction name="separator"/>
+     <addaction name="actionRemove_for_all_songs"/>
     </widget>
     <addaction name="actionOpen_Audio_File"/>
     <addaction name="separator"/>
@@ -6397,25 +6375,33 @@
   </action>
   <action name="actionEstimate_for_this_song">
    <property name="text">
-    <string>this song...</string>
+    <string>Calculate Section Info for Current Song...</string>
    </property>
    <property name="toolTip">
-    <string>Find section boundaries for this song</string>
+    <string>Find section boundaries for the song that is loaded now</string>
    </property>
   </action>
-  <action name="actionEstimate_for_all_songs">
+  <action name="actionEstimate_for_selected_songs">
    <property name="text">
-    <string>all songs...</string>
+    <string>Calculate Section Info for Selected Songs...</string>
+   </property>
+   <property name="toolTip">
+    <string>Find section boundaries for the songs selected in the song table (only patter has sections)</string>
    </property>
   </action>
   <action name="actionRemove_for_this_song">
    <property name="text">
-    <string>this song...</string>
+    <string>Remove Section Info for Current Song...</string>
+   </property>
+  </action>
+  <action name="actionRemove_for_selected_songs">
+   <property name="text">
+    <string>Remove Section Info for Selected Songs...</string>
    </property>
   </action>
   <action name="actionRemove_for_all_songs">
    <property name="text">
-    <string>all songs...</string>
+    <string>Remove Section Info for All Songs...</string>
    </property>
   </action>
   <action name="actionExport_Current_Song_List">

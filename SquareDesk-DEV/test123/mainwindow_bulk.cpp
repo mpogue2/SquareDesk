@@ -90,6 +90,70 @@ int wav_write_file_float1 (const float *pData,
 // int  processOneFile(const double &d);
 // void processFiles(QList<double> dlist);
 
+// Where the cached section info for ONE song lives.
+//
+// A song in the Music Directory keeps the pathname it has always had: the same path, with
+//   musicRootPath swapped for .squaredesk/bulk, plus ".results.txt".  That spelling is deliberate
+//   and must not change -- every .results.txt a user has already calculated is sitting at it.
+//
+// An Apple Music track is not under musicRootPath at all, so that swap used to be a silent no-op
+//   and the results file landed in the user's Apple Music media folder, next to the track
+//   (issue #1760).  Those go into a folder of their own instead, keyed by Music's persistentID
+//   rather than by pathname -- the same key the songs table uses, and for the same reason: an
+//   Apple Music pathname is not stable, but the persistentID survives retitling and moving
+//   (issue #1747).
+//
+// The fallback for a track with no persistentID is a hash of the absolute path.  It is only as
+//   stable as the path is, but it is bounded in length and contains no separators, which a raw
+//   path does not.
+QString MainWindow::sectionResultsPathForSong(const QString &songPath) const {
+    const QString bulkDirname = musicRootPath + "/.squaredesk/bulk";
+
+    if (songPath.startsWith(musicRootPath)) {
+        QString resultsFilename = songPath;
+        resultsFilename.replace(musicRootPath, bulkDirname);
+        return(resultsFilename + ".results.txt");
+    }
+
+    // Not in the Music Directory, so it's an Apple Music track (or something else external).
+    QString key = appleMusicPersistentIDByPath.value(songPath);
+    if (key.isEmpty()) {
+        const QByteArray utf8 = songPath.toUtf8();
+        key = QString("path-%1").arg(XXHash64::hash(utf8.constData(), utf8.size(), 0), 16, 16, QChar('0'));
+    }
+
+    return(bulkDirname + "/AppleMusic/" + key + ".results.txt");
+}
+
+// The Type of a song, for the purpose of deciding whether it can have section info.
+//
+// filepath2SongCategoryName() works it out from the Type folder in the pathname, which an Apple
+//   Music track does not have -- it lives in the iTunes media folder, not the Music Directory, so
+//   that function always came back with something meaningless and patter coming from Apple Music
+//   was refused outright (issue #1760).  Preferences > Apple Music already worked the Type out
+//   from the track's metadata at import time, so use that when there is one, exactly as
+//   loadMP3File() does for playback (issue #1740, item 6).
+QString MainWindow::songCategoryForSectionInfo(const QString &songPath) const {
+    const QString appleMusicType = appleMusicTypeByPath.value(songPath);
+    if (!appleMusicType.isEmpty()) {
+        return(appleMusicType);
+    }
+    return(filepath2SongCategoryName(songPath));
+}
+
+// Which of these songs are worth calculating sections for.  Only patter has sections, and "test"
+//   is the developer escape hatch that has always been allowed alongside it.
+QStringList MainWindow::patterPathsAmong(const QStringList &paths) const {
+    QStringList result;
+    for (const auto &path : std::as_const(paths)) {
+        const QString theCategory = songCategoryForSectionInfo(path);
+        if (theCategory == "patter" || theCategory == "test") {
+            result.append(path);
+        }
+    }
+    return(result);
+}
+
 int MainWindow::processOneFile(const QString &fn) {
     // returns 0 if OK, else error code
 
@@ -99,20 +163,17 @@ int MainWindow::processOneFile(const QString &fn) {
     // PROCESS MP3 FILE ==================
 
     // FIGURE OUT FILENAMES, AND SKIP IF RESULTS ALREADY PRESENT ---------
-    QString bulkDirname = musicRootPath + "/.squaredesk/bulk";
-
-    QString WAVfilename = fn;
-    WAVfilename.replace(musicRootPath, bulkDirname);
-    QString resultsFilename = WAVfilename + ".results.txt";
-
-    WAVfilename.replace(".mp3",".wav",Qt::CaseInsensitive);
-    QFileInfo finfo(WAVfilename);
-    QString WAVfiledir = finfo.absolutePath();
-
-    // qDebug() << "WAVfiledir (results go here): " << WAVfiledir;
-    QDir().mkpath(WAVfiledir); // make sure that the results folder exists, e.g. .squaredesk/bulk/patter/RIV 123 - foo.results.txt
+    // NOTE: we run on the thread pool, so we read the pathname that startSectionEstimation()
+    //   resolved for us on the main thread, rather than touching appleMusicPersistentIDByPath
+    //   here -- a library rescan could be rebuilding that hash while we run (issue #1760).
+    const QString resultsFilename = sectionResultsPathSnapshot.value(fn);
 
     QFileInfo resultsFileinfo(resultsFilename);
+    const QString resultsFiledir = resultsFileinfo.absolutePath();
+
+    // qDebug() << "resultsFiledir (results go here): " << resultsFiledir;
+    QDir().mkpath(resultsFiledir); // make sure that the results folder exists, e.g. .squaredesk/bulk/patter/RIV 123 - foo.results.txt
+
     if (resultsFileinfo.exists() && resultsFileinfo.size() > 10) {
         // file needs to exist AND it needs to have stuff in it, otherwise we're going to reprocess it.
         mp3ResultsLock.lock();
@@ -126,7 +187,7 @@ int MainWindow::processOneFile(const QString &fn) {
 
     // qDebug() << "***** Processing: " << fn;
 
-    QString resolvedFilePath = finfo.symLinkTarget(); // path with the symbolic links followed/removed
+    QString resolvedFilePath = QFileInfo(fn).symLinkTarget(); // path with the symbolic links followed/removed
     if (resolvedFilePath != "") {
         // qDebug() << "REAL FILE IS HERE:" << fn << resolvedFilePath;
     }
@@ -184,20 +245,12 @@ int MainWindow::processOneFile(const QString &fn) {
     // WRITE TO TEMP WAV FILE -----------
     // qDebug() << "fn:" << fn; // /Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/patter/RR 1303 - Rhythm Cloggers Medley.mp3
 
-    // qDebug() << "path,dir" << WAVfilename << WAVfiledir;
-
-    // // if the bulk directory doesn't exist, create it
-    // QDir dir(WAVfiledir);
-    // if (!dir.exists()) {
-    //     dir.mkpath(".");
-    // }
-
-    // write WAV file to .squaredesk/bulk folder (e.g. .../patter/filename.wav)
-
-    // TODO: CHANGE TO A TEMP FILE, SO THAT IT DOESN'T HAVE TO GO TO iCLOUD ***********
+    // The mono WAV that Vamp actually reads is a temp file, so the song's own container format
+    //   never matters here: audiodec_load() above has already decoded the MP3, M4A, WAV or FLAC
+    //   to float samples, and what segmentino sees is always a WAV (issue #1760).
     QTemporaryFile temp1;           // use a temporary file
     bool errOpen = temp1.open();    // this creates the WAV file
-    WAVfilename = temp1.fileName(); // the open created it, if it's a temp file
+    QString WAVfilename = temp1.fileName(); // the open created it, if it's a temp file
     temp1.setAutoRemove(false);  // don't remove it until after we process it asynchronously
 
     // qDebug() << "TEMP WAVfilename: " << WAVfilename;
@@ -353,12 +406,7 @@ void MainWindow::removeSectionInfoForPath(const QString &path) {
     // delete the cached section info for one song, e.g. because the audio file itself was just replaced.
     //   processOneFile() skips any file that already has a non-trivial .results.txt, so a stale results
     //   file would otherwise be reused for the new audio. (Issue #1530)
-    QString resultsFilename = path;
-    QString bulkDirname = musicRootPath + "/.squaredesk/bulk";
-    resultsFilename.replace(musicRootPath, bulkDirname);
-    resultsFilename = resultsFilename + ".results.txt";
-
-    QFile::remove(resultsFilename);
+    QFile::remove(sectionResultsPathForSong(path));
 }
 
 void MainWindow::startSectionEstimation(const QStringList &paths) {
@@ -373,64 +421,45 @@ void MainWindow::startSectionEstimation(const QStringList &paths) {
 
     mp3FilenamesToProcess = pathsCopy;
 
+    // Work out where each song's results file goes HERE, on the main thread, while nothing else
+    //   is touching appleMusicPersistentIDByPath.  processOneFile() runs on the thread pool and
+    //   only reads this snapshot, so a library rescan part way through a long run can rebuild
+    //   that hash without racing the workers (issue #1760).  processFiles() refuses to start a
+    //   second run while one is in flight, so the snapshot can't be swapped out mid-run either.
+    sectionResultsPathSnapshot.clear();
+    sectionResultsPathSnapshot.reserve(mp3FilenamesToProcess.count());
+    for (const auto &path : std::as_const(mp3FilenamesToProcess)) {
+        sectionResultsPathSnapshot.insert(path, sectionResultsPathForSong(path));
+    }
+
     // qDebug() << "mp3FilenamesToProcess:\n" << mp3FilenamesToProcess;
 
     processFiles(mp3FilenamesToProcess);
 }
 
-void MainWindow::on_darkSegmentButton_clicked()
+// Music > Sections.  "Current Song" is the song that's loaded; "Selected Songs" is the selection
+//   in darkSongTable, which is how a user does a big run now that "for all songs..." is gone --
+//   Select All in the song table, then Calculate, and the dialog tells them what they're in for
+//   before anything starts (issue #1760).
+void MainWindow::on_menuSections_aboutToShow()
 {
-    // double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
+    const int selectedCount = darkSongTableSelectedVisibleRows().count();
 
-    // QMessageBox::StandardButton reply;
-    // reply = QMessageBox::question(this, "LONG OPERATION: Segmentation for ALL Patter recordings",
-    //                               QString("Calculating section info can take about ") + QString::number((int)secondsPerSong) + " seconds per song. You can keep working while it runs.\n\nOK to start it now?",
-    //                               QMessageBox::Yes|QMessageBox::No);
+    const bool haveCurrentSong = !currentMP3filenameWithPath.isEmpty();
+    ui->actionEstimate_for_this_song->setEnabled(haveCurrentSong);
+    ui->actionRemove_for_this_song->setEnabled(haveCurrentSong);
 
-    // if (reply == QMessageBox::No) {
-    //     return;
-    // }
+    // Keep the count in the menu item itself honest, so the user knows how big a job they're
+    //   about to ask for before they even let go of the mouse.
+    const QString howMany = (selectedCount == 0) ? QString("Selected Songs")
+                                                 : QString("%1 Selected Songs").arg(selectedCount);
 
-    QMessageBox msgBox;
-    msgBox.setText("Calculating section info can take about 30 seconds per song.  You can keep working while it runs.");
-    msgBox.setIcon(QMessageBox::Question);
-    msgBox.setInformativeText("OK to start it now?");
-    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
-    msgBox.setDefaultButton(QMessageBox::Yes);
-    int ret = msgBox.exec();
+    ui->actionEstimate_for_selected_songs->setText("Calculate Section Info for " + howMany + "...");
+    ui->actionRemove_for_selected_songs->setText("Remove Section Info for " + howMany + "...");
 
-    if (ret == QMessageBox::No) {
-        return;
-    }
-
-    QStringList pathsToProcess;
-    int numMP3files = 0;
-
-    QListIterator<QString> iter(*pathStack); // search through songs
-    while (iter.hasNext()) {
-
-        QString s = iter.next();
-
-        int maxFiles = 99999;
-        QStringList s2 = s.split("#!#");
-
-        // qDebug() << "on_darkSegmentButton_clicked(): s2[0] = " << s2[0];
-
-        // if (numMP3files < maxFiles && s2[0] == "patter") {
-        if (numMP3files < maxFiles && songTypeNamesForPatter.contains(s2[0], Qt::CaseInsensitive)) {
-            // qDebug() << "adding: " << s2[0] << s;
-            if (s2[1].endsWith(".mp3", Qt::CaseInsensitive)) {
-                pathsToProcess.append(s2[1]);
-                numMP3files++;
-            }
-        }
-    }
-
-    // qDebug() << "pathsToProcess:\n" << pathsToProcess;
-
-    startSectionEstimation(pathsToProcess);
+    ui->actionEstimate_for_selected_songs->setEnabled(selectedCount > 0);
+    ui->actionRemove_for_selected_songs->setEnabled(selectedCount > 0);
 }
-
 
 void MainWindow::on_actionEstimate_for_this_song_triggered()
 {
@@ -438,63 +467,21 @@ void MainWindow::on_actionEstimate_for_this_song_triggered()
 }
 
 
-void MainWindow::on_actionEstimate_for_all_songs_triggered()
+void MainWindow::on_actionEstimate_for_selected_songs_triggered()
 {
-    // double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
-
-    // QMessageBox::StandardButton reply;
-    // reply = QMessageBox::question(this, "LONG OPERATION: Segmentation for ALL Patter tracks",
-    //                               QString("Section calculations average about ") + QString::number((int)secondsPerSong) + " seconds per patter track. You can keep working while it runs.\n\nOK to start it now?",
-    //                               QMessageBox::Yes|QMessageBox::No);
-
-    // if (reply == QMessageBox::No) {
-    //     return;
-    // }
-
-    QMessageBox msgBox;
-    msgBox.setText("Calculating section info can take about 30 seconds per song.  You can keep working while it runs.");
-    msgBox.setIcon(QMessageBox::Question);
-    msgBox.setInformativeText("OK to start it now?");
-    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
-    msgBox.setDefaultButton(QMessageBox::Yes);
-    int ret = msgBox.exec();
-
-    if (ret == QMessageBox::No) {
-        return;
-    }
-
-    QStringList pathsToProcess;
-    int numMP3files = 0;
-
-    QListIterator<QString> iter(*pathStack); // search thru songs
-    while (iter.hasNext()) {
-
-        QString s = iter.next();
-
-        int maxFiles = 99999;
-        QStringList s2 = s.split("#!#");
-
-        // qDebug() << "on_actionEstimate_for_all_songs_triggered(): s2[0] = " << s2[0];
-
-        // if (numMP3files < maxFiles && s2[0] == "patter") {
-        if (numMP3files < maxFiles && songTypeNamesForPatter.contains(s2[0])) {
-            // qDebug() << "adding: " << s << s2[0];
-            if (s2[1].endsWith(".mp3", Qt::CaseInsensitive)) {
-                pathsToProcess.append(s2[1]);
-                numMP3files++;
-            }
-        }
-    }
-
-    // qDebug() << "pathsToProcess:\n" << pathsToProcess;
-
-    startSectionEstimation(pathsToProcess);
+    EstimateSectionsForTheseSongs(darkSongTableSelectedVisibleRows());
 }
 
 
 void MainWindow::on_actionRemove_for_this_song_triggered()
 {
     RemoveSectionsForThisSong(currentMP3filenameWithPath);
+}
+
+
+void MainWindow::on_actionRemove_for_selected_songs_triggered()
+{
+    RemoveSectionsForTheseSongs(darkSongTableSelectedVisibleRows());
 }
 
 
@@ -544,104 +531,143 @@ void MainWindow::on_actionRemove_for_all_songs_triggered()
     ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, since we no longer have section info for this song
 }
 
+// The rows the user has selected in darkSongTable, skipping any hidden by the current search
+//   filter.  A song you can't see isn't one you meant to select.
+QList<int> MainWindow::darkSongTableSelectedVisibleRows() const {
+    QList<int> selectedRows;
+    for (const auto &mi : ui->darkSongTable->selectionModel()->selectedRows()) {
+        if (!ui->darkSongTable->isRowHidden(mi.row())) {
+            selectedRows.append(mi.row());
+        }
+    }
+    return(selectedRows);
+}
+
+QStringList MainWindow::darkSongTablePathsForRows(const QList<int> &rows) const {
+    QStringList paths;
+    for (const auto &r : std::as_const(rows)) {
+        QTableWidgetItem *theItem = ui->darkSongTable->item(r, kPathCol);
+        if (theItem != nullptr) {
+            paths.append(theItem->data(Qt::UserRole).toString());
+        }
+    }
+    return(paths);
+}
+
+// "about 4 minutes", "about 30 seconds", etc.
+static QString humanizedDuration(double seconds) {
+    if (seconds < 90.0) {
+        return(QString("about %1 seconds").arg(qRound(seconds / 5.0) * 5));
+    }
+    const int minutes = qRound(seconds / 60.0);
+    if (minutes < 60) {
+        return(QString("about %1 minutes").arg(minutes));
+    }
+    return(QString("about %1 hours").arg(QString::number(seconds / 3600.0, 'f', 1)));
+}
+
 void MainWindow::EstimateSectionsForTheseSongs(QList<int> rows) {
     // qDebug() << "Estimate Sections for these rows in darkSongTable: " << rows;
-
-    QMessageBox msgBox;
-    msgBox.setText("Calculating section info can take about 30 seconds per song.  You can keep working while it runs.");
-    msgBox.setInformativeText("OK to start it now?");
-    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
-    msgBox.setDefaultButton(QMessageBox::Yes);
-    int ret = msgBox.exec();
-
-    if (ret == QMessageBox::No) {
-        return;
-    }
-
-    QStringList pathsToProcess;
-    for (const auto &r : std::as_const(rows)) {
-        pathsToProcess.append(ui->darkSongTable->item(r, kPathCol)->data(Qt::UserRole).toString());
-    }
-
-    startSectionEstimation(pathsToProcess);
+    EstimateSectionsForThesePaths(darkSongTablePathsForRows(rows));
 }
 
 void MainWindow::RemoveSectionsForTheseSongs(QList<int> rows) {
     // qDebug() << "Remove Sections for rows: " << rows;
-
-    QMessageBox msgBox;
-    msgBox.setText("Removing section info for these songs cannot be undone.");
-    msgBox.setInformativeText("OK to proceed?");
-    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
-    msgBox.setDefaultButton(QMessageBox::Yes);
-    int ret = msgBox.exec();
-
-    if (ret == QMessageBox::No) {
-        return;
-    }
-
-    for (const auto &r : std::as_const(rows)) {
-        QString filenameToRemove = ui->darkSongTable->item(r, kPathCol)->data(Qt::UserRole).toString();
-
-        if (filenameToRemove.endsWith(".mp3", Qt::CaseInsensitive)) {
-            QString resultsFilename = filenameToRemove;
-            QString bulkDirname = musicRootPath + "/.squaredesk/bulk";
-            resultsFilename.replace(musicRootPath, bulkDirname);
-            resultsFilename = resultsFilename + ".results.txt";
-
-            QFile::remove(resultsFilename);
-            // qDebug() << "**** REMOVED: " << resultsFilename;
-            // qDebug() << "Removing section info for THIS:" << filenameToRemove << currentMP3filenameWithPath;
-            if (filenameToRemove == currentMP3filenameWithPath) {
-                // if we just cleared the section info for the currently loaded song, get rid of the coloring in the waveform display
-                ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, since we no longer have section info for this song
-            }
-
-        }
-
-    }
+    RemoveSectionsForThesePaths(darkSongTablePathsForRows(rows));
 }
 
-// Path-based wrapper for playlist context menu --------
+// THE implementation for "calculate section info for this set of songs".  Everything that offers
+//   that command -- the Music > Sections menu, the darkSongTable context menu, the playlist slot
+//   context menu -- lands here, so the filtering and the warning are the same wherever you start.
 void MainWindow::EstimateSectionsForThesePaths(QStringList mp3Paths) {
     // qDebug() << "Estimate Sections for these paths: " << mp3Paths;
 
+    if (mp3Paths.isEmpty()) {
+        return;
+    }
+
+    // Filter to patter BEFORE asking, not after.  "Select all, then Calculate" is the intended
+    //   way to do a big run now that "for all songs..." is gone, so the number in the dialog has
+    //   to be the number of songs that will actually be processed -- quoting a time based on all
+    //   2000 selected songs when 300 of them are patter is worse than useless (issue #1760).
+    const QStringList pathsToProcess = patterPathsAmong(mp3Paths);
+
+    if (pathsToProcess.isEmpty()) {
+        QMessageBox errorBox;
+        errorBox.setText("Only patter has section info.");
+
+        // Say WHY nothing qualified.  An Apple Music track whose Type SquareDesk doesn't know is
+        //   the one case the user can actually fix, so point at the preference that fixes it.
+        bool anyUntypedAppleMusic = false;
+        for (const auto &path : std::as_const(mp3Paths)) {
+            if (appleMusicPersistentIDByPath.contains(path) && appleMusicTypeByPath.value(path).isEmpty()) {
+                anyUntypedAppleMusic = true;
+                break;
+            }
+        }
+
+        if (anyUntypedAppleMusic) {
+            errorBox.setInformativeText("SquareDesk doesn't know the Type of these Apple Music tracks.\n\n"
+                                        "Set Preferences > Apple Music > \"Read Type from\" to the metadata "
+                                        "field that says which of your tracks are patter.");
+        } else {
+            errorBox.setInformativeText(mp3Paths.count() == 1 ? "This song is not patter."
+                                                             : "None of the selected songs are patter.");
+        }
+        errorBox.exec();
+        return;
+    }
+
+    // About 30 seconds of work per song, run on the same number of threads processFiles() will
+    //   use.  Note this is ROUNDED UP to whole batches, not just divided: one song takes its full
+    //   30 seconds no matter how many idle cores are standing by.  Rough, but it's the difference
+    //   between "this is fine" and "don't start this right before a dance".
+    int threads = QThread::idealThreadCount();
+    if (threads > 2) {
+        threads -= 1;
+    }
+    threads = qMax(1, threads);
+    const int batches = (pathsToProcess.count() + threads - 1) / threads; // ceil()
+    const QString howLong = humanizedDuration(30.0 * batches);
+
+    QString what;
+    if (pathsToProcess.count() == mp3Paths.count()) {
+        what = (pathsToProcess.count() == 1)
+                   ? QString("Section info will be calculated for this song.")
+                   : QString("Section info will be calculated for all %1 selected songs.").arg(pathsToProcess.count());
+    } else {
+        what = QString("Section info will be calculated for %1 of the %2 selected songs (only patter has sections).")
+                   .arg(pathsToProcess.count()).arg(mp3Paths.count());
+    }
+
     QMessageBox msgBox;
-    msgBox.setText("Calculating section info can take about 30 seconds per song.  You can keep working while it runs.");
-    msgBox.setInformativeText("OK to start it now?");
+    msgBox.setText(what);
+    msgBox.setIcon(QMessageBox::Question);
+    msgBox.setInformativeText(QString("This takes %1.  You can keep working while it runs.\n\nOK to start it now?").arg(howLong));
     msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
     msgBox.setDefaultButton(QMessageBox::Yes);
     int ret = msgBox.exec();
 
     if (ret == QMessageBox::No) {
-        return;
-    }
-
-    // Validate and filter paths - only patter/test files
-    QStringList pathsToProcess;
-    for (const auto &path : std::as_const(mp3Paths)) {
-        QString theCategory = filepath2SongCategoryName(path);
-        if (theCategory == "patter" || theCategory == "test") {
-            pathsToProcess.append(path);
-        }
-    }
-
-    // Show error if no valid files
-    if (pathsToProcess.isEmpty()) {
-        QMessageBox errorBox;
-        errorBox.setText("Only patter files are supported right now.");
-        errorBox.exec();
         return;
     }
 
     startSectionEstimation(pathsToProcess);
 }
 
+// THE implementation for "remove section info for this set of songs".
 void MainWindow::RemoveSectionsForThesePaths(QStringList mp3Paths) {
     // qDebug() << "Remove Sections for these paths: " << mp3Paths;
 
+    if (mp3Paths.isEmpty()) {
+        return;
+    }
+
     QMessageBox msgBox;
-    msgBox.setText("Removing section info for these songs cannot be undone.");
+    msgBox.setText(mp3Paths.count() == 1
+                       ? QString("Removing section info for this song cannot be undone.")
+                       : QString("Removing section info for these %1 songs cannot be undone.").arg(mp3Paths.count()));
+    msgBox.setIcon(QMessageBox::Question);
     msgBox.setInformativeText("OK to proceed?");
     msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
     msgBox.setDefaultButton(QMessageBox::Yes);
@@ -651,28 +677,28 @@ void MainWindow::RemoveSectionsForThesePaths(QStringList mp3Paths) {
         return;
     }
 
+    // NOTE: no ".mp3" test here any more.  Section info is keyed by song, not by container
+    //   format, and an .m4a coming from Apple Music has a results file just like an .mp3 does --
+    //   the old guard silently did nothing for those (issue #1760).  A song with no results file
+    //   is a no-op anyway, since QFile::remove() just fails harmlessly.
     for (const auto &filenameToRemove : std::as_const(mp3Paths)) {
-        if (filenameToRemove.endsWith(".mp3", Qt::CaseInsensitive)) {
-            QString resultsFilename = filenameToRemove;
-            QString bulkDirname = musicRootPath + "/.squaredesk/bulk";
-            resultsFilename.replace(musicRootPath, bulkDirname);
-            resultsFilename = resultsFilename + ".results.txt";
+        QFile::remove(sectionResultsPathForSong(filenameToRemove));
 
-            QFile::remove(resultsFilename);
-
-            if (filenameToRemove == currentMP3filenameWithPath) {
-                // if we just cleared the section info for the currently loaded song, get rid of the coloring in the waveform display
-                ui->darkSeekBar->updateBgPixmap((float*)1, 1);
-            }
+        if (filenameToRemove == currentMP3filenameWithPath) {
+            // if we just cleared the section info for the currently loaded song, get rid of the coloring in the waveform display
+            ui->darkSeekBar->updateBgPixmap((float*)1, 1);
         }
     }
 }
 
 
+// Single-song convenience, for the currently loaded song and for one row / one playlist item.
+//   Both of these just defer to the set-based implementations above, so there is exactly one copy
+//   of the patter test, the warning wording and the results pathname rule (issue #1760).
 void MainWindow::EstimateSectionsForThisSong(QString mp3Filename) {
     // qDebug() << "EstimateSections for" << mp3Filename;
 
-    if (!QFile::exists(mp3Filename)) {
+    if (mp3Filename.isEmpty() || !QFile::exists(mp3Filename)) {
         // qDebug() << "No file loaded, or file does not exist: " << mp3Filename;
         QMessageBox msgBox;
         msgBox.setText("Could not find: '" + mp3Filename + "'");
@@ -680,102 +706,15 @@ void MainWindow::EstimateSectionsForThisSong(QString mp3Filename) {
         return;
     }
 
-    // if (!mp3Filename.endsWith(".mp3")) {
-    //     // qDebug() << "Not an MP3 song: " << mp3Filename;
-    //     QMessageBox msgBox;
-    //     msgBox.setText("Only MP3 files are supported right now.");
-    //     msgBox.exec();
-    //     return;
-    // }
-
-    QString theCategory = filepath2SongCategoryName(mp3Filename);
-    if (theCategory != "patter" && theCategory != "test") {
-        QMessageBox msgBox;
-        msgBox.setText("Only patter files are supported right now.");
-        msgBox.exec();
-        return;
-    }
-
-    // double secondsPerSong = 30.0; // / (QThread::idealThreadCount() - 1);
-
-    // QMessageBox::StandardButton reply;
-    // reply = QMessageBox::question(this, "LONG OPERATION: Calculating section info for THIS Patter track",
-    //                               QString("Section calculations for this track could take ") + QString::number((int)secondsPerSong) + " seconds or longer. You can keep working while it runs.\n\nOK to start it now?",
-    //                               QMessageBox::Yes|QMessageBox::No);
-
-    // if (reply == QMessageBox::No) {
-    //     return;
-    // }
-
-    QMessageBox msgBox;
-    msgBox.setText("Calculating section info for this track could take up to 30 seconds. You can keep working while it runs.");
-    msgBox.setIcon(QMessageBox::Question);
-    msgBox.setInformativeText("OK to start it now?");
-    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
-    msgBox.setDefaultButton(QMessageBox::Yes);
-    int ret = msgBox.exec();
-
-    if (ret == QMessageBox::No) {
-        return;
-    }
-
-    startSectionEstimation(QStringList(mp3Filename));
+    EstimateSectionsForThesePaths(QStringList(mp3Filename));
 }
 
 void MainWindow::RemoveSectionsForThisSong(QString mp3Filename) {
     // qDebug() << "RemoveSections for" << mp3Filename;
 
-    // if (!mp3Filename.endsWith(".mp3", Qt::CaseInsensitive) &&
-    //     !mp3Filename.endsWith(".mp3", Qt::CaseInsensitive)) {
-    //     // qDebug() << "Not an MP3 song: " << mp3Filename;
-    //     QMessageBox msgBox;
-    //     msgBox.setText("Only MP3 files are supported right now.");
-    //     msgBox.exec();
-    //     return;
-    // }
-
-    QString theCategory = filepath2SongCategoryName(mp3Filename);
-    if (theCategory != "patter" && theCategory != "test") {
-        QMessageBox msgBox;
-        msgBox.setText("Only patter files are supported right now.");
-        msgBox.exec();
+    if (mp3Filename.isEmpty()) {
         return;
     }
 
-    // QMessageBox::StandardButton reply;
-    // reply = QMessageBox::question(this, "Remove Section Info for this track",
-    //                               QString("Removing section info for this song can't be undone.\n\nOK to proceed?"),
-    //                               QMessageBox::Yes|QMessageBox::No);
-
-    // if (reply == QMessageBox::No) {
-    //     return;
-    // }
-
-    QMessageBox msgBox;
-    msgBox.setText("Removing section info for this song cannot be undone.");
-    msgBox.setIcon(QMessageBox::Question);
-    msgBox.setInformativeText("OK to proceed?");
-    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
-    msgBox.setDefaultButton(QMessageBox::Yes);
-    int ret = msgBox.exec();
-
-    if (ret == QMessageBox::No) {
-        return;
-    }
-
-    if (true || mp3Filename.endsWith(".mp3", Qt::CaseInsensitive)) {
-        QString resultsFilename = mp3Filename;
-        QString bulkDirname = musicRootPath + "/.squaredesk/bulk";
-        resultsFilename.replace(musicRootPath, bulkDirname);
-        resultsFilename = resultsFilename + ".results.txt";
-
-        // qDebug() << "**** REMOVE: " << resultsFilename;
-        QFile::remove(resultsFilename);
-    }
-    // qDebug() << "Removing section info for THIS:" << mp3Filename << currentMP3filenameWithPath;
-    if (mp3Filename == currentMP3filenameWithPath) {
-        // if we just cleared the section info for the currently loaded song, get rid of the coloring in the waveform display
-        ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, since we no longer have section info for this song
-    }
+    RemoveSectionsForThesePaths(QStringList(mp3Filename));
 }
-

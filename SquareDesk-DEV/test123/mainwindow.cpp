@@ -2334,10 +2334,18 @@ void MainWindow::on_UIUpdateTimerTick(void)
         return;
     }
 
+    // NOTE: mp3Results is written by processOneFile() on the thread pool, under this same lock.
+    //   Reading it here on the main thread without taking the lock was a data race on a QMap.
+    mp3ResultsLock.lock();
     int xx = mp3Results.size();
+    mp3ResultsLock.unlock();
+
     int outOf = mp3FilenamesToProcess.size();
     if (xx < outOf) {
-        ui->statusBar->showMessage(QString("Calculating section info: " + QString::number(xx) + "/" + QString::number(outOf)));
+        // xx is how many are DONE, but the status bar counts the song we're WORKING ON, so that
+        //   2 songs read "1/2" then "2/2" rather than "0/2" then "1/2" and out -- the old version
+        //   never showed the last song at all, because reaching outOf takes the else branch below.
+        ui->statusBar->showMessage(QString("Calculating section info: " + QString::number(xx + 1) + "/" + QString::number(outOf)));
     } else {
         int n = QThread::idealThreadCount();
         if (QThreadPool::globalInstance()->maxThreadCount() < QThread::idealThreadCount()) {
@@ -3690,7 +3698,6 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     ui->darkEndLoopButton->setEnabled(true);
     ui->darkLoopToggleButton->setEnabled(true);
     ui->darkTestLoopButton->setEnabled(true);
-    ui->darkSegmentButton->setEnabled(true);
 
     cBass->SetVolume(100);
     currentVolume = 100;
@@ -3766,13 +3773,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     }
     // qDebug() << "now updating BgPixmap";
 
-    QString bulkDirname = musicRootPath + "/.squaredesk/bulk";
-
-    QString WAVfilename = currentMP3filenameWithPath;
-    WAVfilename.replace(musicRootPath, bulkDirname);
-    QString resultsFilename = WAVfilename + ".results.txt";
-
-    ui->darkSeekBar->setAbsolutePathToSegmentFile(resultsFilename);
+    ui->darkSeekBar->setAbsolutePathToSegmentFile(sectionResultsPathForSong(currentMP3filenameWithPath));
     ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMSAMPLES);
     // ------------------
     if (ui->actionAutostart_playback->isChecked()) {
@@ -6700,7 +6701,7 @@ void MainWindow::stopLongSongTableOperation(QString s) {
     Q_UNUSED(s)
 }
 
-QString MainWindow::filepath2SongCategoryName(QString MP3Filename)
+QString MainWindow::filepath2SongCategoryName(QString MP3Filename) const
 {
     // returns the category name (as a string).  patter, hoedown -> "patter", as per user prefs
 
@@ -8569,12 +8570,7 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
     // ------------------------------------------------------------------------------------
     // we already know that we have at LEAST one row selected (because it's a context menu)
     //  let's find the row numbers
-    QList<int> selectedRows;
-    for (const auto &mi : ui->darkSongTable->selectionModel()->selectedRows()) {
-        if (!ui->darkSongTable->isRowHidden(mi.row())) {
-            selectedRows.append(mi.row());
-        }
-    }
+    QList<int> selectedRows = darkSongTableSelectedVisibleRows();
     int rowCount = selectedRows.count();
     // qDebug() << "rows selected: " << selectedRows;
 

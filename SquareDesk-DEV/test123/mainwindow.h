@@ -347,6 +347,27 @@ public:
     int vampStatus;
     void startSectionEstimation(const QStringList &paths);  // no confirmation dialog; caller asks the user first, if appropriate
     void removeSectionInfoForPath(const QString &path);     // delete just the cached .results.txt for one song
+
+    // Where the cached section info for one song lives.  THE single owner of that pathname --
+    //   everybody who writes, reads or deletes a .results.txt goes through here, so that a Music
+    //   Directory song and an Apple Music track can be keyed differently without five copies of
+    //   the rule drifting apart (issue #1760).
+    QString sectionResultsPathForSong(const QString &songPath) const;
+
+    // The Type of a song for section-info purposes.  An Apple Music track has no Type folder in
+    //   its pathname, so its mapped Type is used when there is one (issue #1760).
+    QString songCategoryForSectionInfo(const QString &songPath) const;
+
+    // Which of the given songs actually have sections worth calculating, i.e. are patter.
+    QStringList patterPathsAmong(const QStringList &paths) const;
+
+    // The selection in darkSongTable, skipping rows hidden by the current search filter.
+    QList<int> darkSongTableSelectedVisibleRows() const;
+    QStringList darkSongTablePathsForRows(const QList<int> &rows) const;
+
+    // Resolved once per run on the MAIN thread by startSectionEstimation(), then read (never
+    //   written) by processOneFile() on the thread pool.  See sectionResultsPathForSong().
+    QHash<QString, QString> sectionResultsPathSnapshot;
     void EstimateSectionsForThisSong(QString pathToMP3);
     void EstimateSectionsForTheseSongs(QList<int> rowNumbers);
     void RemoveSectionsForThisSong(QString pathToMP3);
@@ -843,10 +864,11 @@ private slots:
     void on_actionAuto_format_Lyrics_triggered();
     void on_actionSD_Output_triggered();
     void on_actionShow_Frames_triggered();
-    void on_darkSegmentButton_clicked();
+    void on_menuSections_aboutToShow();
     void on_actionEstimate_for_this_song_triggered();
-    void on_actionEstimate_for_all_songs_triggered();
+    void on_actionEstimate_for_selected_songs_triggered();
     void on_actionRemove_for_this_song_triggered();
+    void on_actionRemove_for_selected_songs_triggered();
     void on_actionRemove_for_all_songs_triggered();
     void on_actionUpdate_ID3_Tags_triggered();
     void on_action0paletteSlots_triggered();
@@ -1171,7 +1193,7 @@ private:
     QString convertCuesheetPathNameToCurrentRoot(QString str1);
     void loadGlobalSettingsForSong(QString songTitle);
     void randomizeFlashCall();
-    QString filepath2SongCategoryName(QString MP3Filename);
+    QString filepath2SongCategoryName(QString MP3Filename) const;
     int getRsyncFileCount(QString sourceDir, QString destDir);
 
     // ID3 tag operations
