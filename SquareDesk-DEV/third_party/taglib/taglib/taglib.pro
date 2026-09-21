@@ -1,6 +1,20 @@
 TEMPLATE = lib
 CONFIG += staticlib
 
+# taglib is vendored third-party code that we are not going to fix, so silence the one warning
+#   class it produces.  All 7 come from the bundled utfcpp header
+#   (third_party/taglib/3rdparty/utfcpp/utf8/core.h), pulled in by toolkit/tstring.cpp, where
+#   utfchar32_t (char32_t) is compared against and added to utfchar16_t (char16_t).  Scoped to
+#   this .pro, so none of it reaches SquareDesk's own code: nothing outside third_party/taglib
+#   includes utfcpp.  Issue #1756.
+#
+#   These go on QMAKE_CXXFLAGS_WARN_ON rather than QMAKE_CXXFLAGS for the same reason as in
+#   third_party/sdlib/sdlib.pro (issue #1755): qmake appends -Wall -Wextra *after*
+#   QMAKE_CXXFLAGS, and the later flag wins, so anything -Wall or -Wextra implies would be
+#   turned straight back on.  QMAKE_CXXFLAGS_WARN_ON *is* the "-Wall -Wextra" variable, so
+#   appending here puts the negations after them, where they stick.
+QMAKE_CXXFLAGS_WARN_ON += -Wno-character-conversion
+
 INCLUDEPATH += $$PWD
 INCLUDEPATH += $$PWD/..
 INCLUDEPATH += $$PWD/ape
