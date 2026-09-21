@@ -53,6 +53,11 @@ struct PlaylistTrack {
     bool        ratingComputed;
     std::string addedDate;      // ISO 8601, empty if not set
     std::string lastPlayedDate; // ISO 8601, empty if never played
+
+    // Music.app's own identifier for this track, as 16 lowercase hex digits.  Unlike the path, it
+    //   survives a rename, a move, and a Title/Album edit -- Music renames the FILE when the Title
+    //   is edited, which is what makes the path unusable as a database key (issue #1747).
+    std::string persistentID;
 };
 
 // Returns all tracks from every playlist via the ITLibrary framework.
@@ -82,6 +87,7 @@ struct AppleMusicTrackMeta {
 
     int  rating         = 0;    // 0 = not set, otherwise 20/40/60/80/100
     bool ratingComputed = false; // true == derived from the album, not chosen by the user
+    std::string persistentID;   // see PlaylistTrack::persistentID (issue #1747)
     std::string addedDate;      // ISO 8601, empty if not set
     std::string lastPlayedDate; // ISO 8601, empty if never played.  Has no column of its own: it
                                 //   is folded into song_plays instead, so the Age and Recent

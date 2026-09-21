@@ -155,6 +155,7 @@ AppleMusicTrackMeta appleMusicMetaOf(const PlaylistTrack &track)
     meta.work        = track.work;
     meta.year        = track.year;
     meta.totalTimeMS = track.totalTimeMS;
+    meta.persistentID   = track.persistentID;    // the songs-table key for this track (issue #1747)
     meta.rating         = track.rating;          // was imported but dropped here until #1744
     meta.ratingComputed = track.ratingComputed;
     meta.addedDate      = track.addedDate;

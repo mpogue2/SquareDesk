@@ -1064,6 +1064,10 @@ private:
                                                    //   here gets its Label from its filename, like
                                                    //   a Music Directory song does (issue #1747).
     QHash<QString, QString> appleMusicLabelReasonByPath; // ...and why, for the Label cell's tooltip
+    QHash<QString, QString> appleMusicPersistentIDByPath;  // absolute path -> Music's persistentID,
+                                                   //   which is what the songs table keys an Apple
+                                                   //   Music track on, because the path is not
+                                                   //   stable across a Title edit (issue #1747)
 
     // Overwrites label/labelnum/labelnum_extra when the track's metadata supplies a Label, and
     //   leaves them alone (so the filename parse stands) when it doesn't.  Returns true if it

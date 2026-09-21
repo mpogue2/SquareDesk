@@ -674,7 +674,7 @@ void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent colu
 
     for (int i = 0; i < thisTable->rowCount(); i++) {
         QString origPath = thisTable->item(i,kPathCol)->data(Qt::UserRole).toString();
-        QString path = songSettings.removeRootDirs(origPath);
+        QString path = songSettings.songKeyFor(origPath);   // songs.filename key (issue #1747)
         QHash<QString,QString>::const_iterator age = ages.constFind(path);
 
         QString theAgeString    = (age == ages.constEnd() ? "" : ageToIntString(age.value()));

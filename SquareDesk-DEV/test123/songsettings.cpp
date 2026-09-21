@@ -36,6 +36,12 @@
 #include "songsettings.h"
 #include "sessioninfo.h"
 #include "default_colors.h"
+
+// The songs.filename prefix that marks a row as keyed by Apple Music's persistentID rather
+//   than by a path relative to the music root.  See setAppleMusicPersistentIDs() below for why
+//   an Apple Music track cannot be keyed by its path (issue #1747).
+static const QString kAppleMusicKeyPrefix = "applemusic:";
+
 using namespace std;
 
 
@@ -690,6 +696,17 @@ int SongSettings::getSongIDFromFilename(const QString &filename, const QString &
     int id = getSongIDFromFilenameAlone(filenameWithPathNormalized);
     if (-1 == id)
     {
+        // The fallback below matches on the bare filename and then RE-KEYS whatever row it finds.
+        //   That is right for a song that moved inside the Music Directory, but an Apple Music
+        //   track must not do it: Apple Music filenames are things like "01 Track.m4a" and collide
+        //   constantly, so this would find some unrelated Music Directory song and drag its row
+        //   over to an "applemusic:..." key, losing that song's settings to steal the wrong ones.
+        //   An Apple Music track is identified by its persistentID or not at all (issue #1747).
+        if (filenameWithPathNormalized.startsWith(kAppleMusicKeyPrefix))
+        {
+            return -1;
+        }
+
         id = getSongIDFromFilenameAlone(filename);
         if (-1 != id)
         {
@@ -721,6 +738,85 @@ int SongSettings::getSessionIDFromName(const QString &name)
 }
 
 
+// ---- Apple Music keying (issue #1747) --------------------------------------------------------
+//
+// A Music Directory song is keyed by its path relative to the music root.  That is stable because
+//   the user owns that tree and SquareDesk is told when things move inside it.
+//
+// An Apple Music track is not.  Music.app renames the FILE when the Title is edited, and moves it
+//   when the library is reorganized, so keying on the path means a single metadata edit orphans
+//   the song's pitch, tempo, loop, intro/outro, tags and play history.  Music's own persistentID
+//   survives all of that.  That is measured rather than assumed: renaming a track in Music.app
+//   changed its title and its path and left the persistentID byte-identical.
+//
+// The key is spelled "applemusic:<16 hex digits>".  It cannot collide with a Music Directory key,
+//   because removeRootDirs() always leaves those starting with "/", and no schema change is
+//   needed because songs.filename is already a text PRIMARY KEY.
+//
+// Caveat worth knowing: persistentID is per-library, so rebuilding a Music library from scratch
+//   reassigns the ids and orphans these rows.  That is no better and no worse than the path keying
+//   it replaces (a rebuild moves the files too), which is why migrateAppleMusicKeys() is written
+//   to be re-runnable rather than a one-shot.
+//   (kAppleMusicKeyPrefix is defined near the top of this file, because
+//    getSongIDFromFilename() above needs it too.)
+
+void SongSettings::setAppleMusicPersistentIDs(const QHash<QString, QString> &idByAbsolutePath)
+{
+    appleMusicKeyByPath.clear();
+    for (auto it = idByAbsolutePath.constBegin(); it != idByAbsolutePath.constEnd(); ++it)
+    {
+        if (!it.value().isEmpty())
+        {
+            appleMusicKeyByPath.insert(it.key(), kAppleMusicKeyPrefix + it.value());
+        }
+    }
+}
+
+QString SongSettings::songKeyFor(const QString &filenameWithPath)
+{
+    auto it = appleMusicKeyByPath.constFind(filenameWithPath);
+    if (it != appleMusicKeyByPath.constEnd())
+    {
+        return it.value();
+    }
+    return removeRootDirs(filenameWithPath);   // a Music Directory song, or Apple Music sync is off
+}
+
+int SongSettings::migrateAppleMusicKeys()
+{
+    if (!databaseOpened || appleMusicKeyByPath.isEmpty())
+    {
+        return 0;
+    }
+
+    // One transaction: the first run after this ships touches every Apple Music track the user
+    //   has ever played, and later runs are all no-ops but still cost one statement each.
+    m_db.transaction();
+
+    // The NOT EXISTS is what makes this safe to re-run AND safe against a collision: if a row is
+    //   already sitting at the persistentID key, this leaves the path-keyed row alone rather than
+    //   violating the primary key.  That can only happen if a row was created under the new key
+    //   before the old one was migrated, in which case the new key's row is the current one.
+    QSqlQuery q(m_db);
+    q.prepare("UPDATE songs SET filename = :newkey"
+              " WHERE filename = :oldpath"
+              "   AND NOT EXISTS (SELECT 1 FROM songs WHERE filename = :newkey2)");
+
+    int migrated = 0;
+    for (auto it = appleMusicKeyByPath.constBegin(); it != appleMusicKeyByPath.constEnd(); ++it)
+    {
+        q.bindValue(":newkey",  it.value());
+        q.bindValue(":oldpath", it.key());
+        q.bindValue(":newkey2", it.value());
+        exec("migrateAppleMusicKeys", q);
+        migrated += qMax(0, q.numRowsAffected());
+    }
+
+    m_db.commit();
+
+    return migrated;
+}
+
 QString SongSettings::primaryRootDir()
 {
     return root_directories[0];
@@ -742,7 +838,7 @@ QString SongSettings::removeRootDirs(const QString &filenameWithPath)
 
 void SongSettings::markSongPlayed(const QString &filename, const QString &filenameWithPath)
 {
-    QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
+    QString filenameWithPathNormalized = songKeyFor(filenameWithPath);
     int song_rowid = getSongIDFromFilename(filename, filenameWithPathNormalized);
 
     // #1684: a song only gets a songs row when saveSettings() runs (Import & Organize, or a
@@ -817,7 +913,7 @@ int SongSettings::importExternalPlays(const QHash<QString, QString> &lastPlayedB
         }
         const QString playedOn = lastPlayed.toUTC().toString("yyyy-MM-dd HH:mm:ss");
 
-        const QString filenameWithPathNormalized = removeRootDirs(it.key());
+        const QString filenameWithPathNormalized = songKeyFor(it.key());
         const QString songname = QFileInfo(it.key()).fileName();
 
         // Deliberately getSongIDFromFilenameAlone() and not getSongIDFromFilename(): the latter
@@ -994,7 +1090,7 @@ QString SongSettings::getSongAge(const QString &filename, const QString &filenam
     // return(QString("999")); // I don't think the return value is actually used anywhere nowadays, so let's avoid making 2 sqlite queries per songTable entry
     //                         // Using "999" in case this shows up somewhere.  (So far, I don't see any...)
 #if 1
-    QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
+    QString filenameWithPathNormalized = songKeyFor(filenameWithPath);
     // qDebug() << "getSongAge" << filename << filenameWithPath << show_all_sessions << filenameWithPathNormalized;
     QString sql = "SELECT julianday('now') - julianday(played_on) FROM song_plays JOIN songs ON songs.rowid = song_plays.song_rowid WHERE ";
     if (!show_all_sessions)
@@ -1068,7 +1164,7 @@ QDebug operator<<(QDebug dbg, const SongSetting &setting)
 void SongSettings::saveSettings(const QString &filenameWithPath,
                                 const SongSetting &settings)
 {
-    QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
+    QString filenameWithPathNormalized = songKeyFor(filenameWithPath);
     int id = getSongIDFromFilename(settings.getFilename(), filenameWithPathNormalized);
 
 //    qDebug() << "saveSettings: id = " << id;
@@ -1204,7 +1300,7 @@ bool SongSettings::loadSettings(const QString &filenameWithPath,
 //    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags, replayGain FROM songs WHERE ";
     // Adding a new per-song setting?  This is location 6 out of 6 to change.
     QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags, VSTsettings FROM songs WHERE ";
-    QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
+    QString filenameWithPathNormalized = songKeyFor(filenameWithPath);
 
 //    qDebug() << "********* DEBUG get/setSongMarkers **********";
 

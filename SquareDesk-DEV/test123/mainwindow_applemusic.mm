@@ -26,6 +26,8 @@
 #import <Foundation/Foundation.h>
 #import <iTunesLibrary/iTunesLibrary.h>
 
+#include <cstdio>   // snprintf, for formatting persistentID (issue #1747)
+
 #include "mainwindow_applemusic.h"
 
 std::vector<PlaylistTrack> readAllPlaylists(std::string &errorOut)
@@ -102,6 +104,17 @@ std::vector<PlaylistTrack> readAllPlaylists(std::string &errorOut)
                 if (item.lastPlayedDate)
                     lastPlayedDate = [iso8601 stringFromDate:item.lastPlayedDate].UTF8String;
 
+                // 16 lowercase hex digits.  This is what the songs table keys an Apple Music
+                //   track on, so the spelling has to be stable -- hence the explicit width and
+                //   case rather than whatever %llx happens to produce (issue #1747).
+                std::string persistentID;
+                if (item.persistentID) {
+                    char pidBuf[17];
+                    snprintf(pidBuf, sizeof(pidBuf), "%016llx",
+                             (unsigned long long)[item.persistentID unsignedLongLongValue]);
+                    persistentID = pidBuf;
+                }
+
                 result.push_back({
                     type,
                     name,
@@ -123,7 +136,8 @@ std::vector<PlaylistTrack> readAllPlaylists(std::string &errorOut)
                     (int)item.totalTime,
                     (bool)item.isRatingComputed,
                     addedDate,
-                    lastPlayedDate
+                    lastPlayedDate,
+                    persistentID
                 });
             }
         }

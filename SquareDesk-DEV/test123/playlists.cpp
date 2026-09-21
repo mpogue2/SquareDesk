@@ -405,7 +405,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
         // Bulk caller already SELECTed every song's settings in one query, so skip the per-row
         //   one.  A miss leaves 'settings' default-constructed, exactly as loadSettings() does
         //   when the song has no row in the DB.  (issue #1695)
-        settings = settingsCache->value(songSettings.removeRootDirs(origPath));
+        settings = settingsCache->value(songSettings.songKeyFor(origPath));  // songs.filename key (issue #1747)
     } else {
         songSettings.loadSettings(origPath,
                                   settings);
@@ -2105,6 +2105,7 @@ void MainWindow::getAppleMusicInfo() {
     appleMusicTypeReasonByPath.clear();
     appleMusicLabelByPath.clear();
     appleMusicLabelReasonByPath.clear();
+    appleMusicPersistentIDByPath.clear();
     appleMusicMetaByPath.clear();
 
     // qDebug() << "type,name,itemnumber,title,artist,title,genre,BPM,rating,year,grouping,work,modifiedDate";
@@ -2149,6 +2150,15 @@ void MainWindow::getAppleMusicInfo() {
         }
         if (!exists.value()) {
             continue;
+        }
+
+        // Music's own id for this track, which is what the songs table keys it on (issue #1747).
+        //   Recorded BEFORE the square dance filter below, so that the key map -- and therefore
+        //   migrateAppleMusicKeys() -- covers every track SquareDesk could see, not just the ones
+        //   the filter admits today.  A user who tightens their filter should not strand the
+        //   settings of the songs it now excludes.
+        if (!t.persistentID.empty()) {
+            appleMusicPersistentIDByPath.insert(absolutePath, QString::fromStdString(t.persistentID));
         }
 
         // Is this square dance music at all, and if so what Type is it?  Both questions are
@@ -2286,6 +2296,19 @@ void MainWindow::getAppleMusicInfo() {
 
     allAppleMusicPlaylistNames.sort(Qt::CaseInsensitive);   // Sort (case INsensitive)
     allAppleMusicPlaylistNames.removeDuplicates();          // Remove duplicates
+
+    // ---- Tell the database how to key these tracks, then move any rows that are still keyed by
+    //   an absolute path over to their persistentID (issue #1747).  Both happen here, before
+    //   anything below reads or writes a song row, so that the plays imported further down land
+    //   on the new keys rather than creating a second row under the old ones.
+    songSettings.setAppleMusicPersistentIDs(appleMusicPersistentIDByPath);
+    {
+        int migrated = songSettings.migrateAppleMusicKeys();
+        if (migrated > 0) {
+            qDebug() << "getAppleMusicInfo: re-keyed" << migrated
+                     << "Apple Music song row(s) from pathname to persistentID";
+        }
+    }
 
     // ---- Fold Music.app's own lastPlayedDate into song_plays, so a track last played in Music
     //   rather than in SquareDesk still gets a sensible Age and Recent (issue #1745).  Those two

@@ -118,6 +118,25 @@ public:
     QString removeRootDirs(const QString &filenameWithPath);
     QString primaryRootDir();
 
+    // ---- Apple Music keying (issue #1747) ----
+    // The songs.filename key for a song.  For a song in the Music Directory this is its path
+    //   relative to the music root, exactly as removeRootDirs() gives it.  For an Apple Music
+    //   track it is Music's own persistentID instead, because the track's PATH is not stable:
+    //   Music.app renames the file when the Title is edited, and moves it when the library is
+    //   reorganized, either of which silently orphans every setting, play and tag for that song.
+    QString songKeyFor(const QString &filenameWithPath);
+
+    // Hands over the absolute path -> persistentID map for the current Apple Music library, as
+    //   read by getAppleMusicInfo().  Must be called before songKeyFor() can recognize an Apple
+    //   Music path; until then those tracks simply key by path, as they used to.
+    void setAppleMusicPersistentIDs(const QHash<QString, QString> &idByAbsolutePath);
+
+    // Moves any songs row still keyed by an Apple Music track's absolute path over to that
+    //   track's persistentID key, so existing settings survive the change.  Re-runnable: it only
+    //   moves a row when there is no row at the persistentID key already, so a second run finds
+    //   nothing to do.  Returns the number of rows moved.
+    int migrateAppleMusicKeys();
+
     QString getCallTaughtOn(const QString &program, const QString &call_name);
     void setCallTaught(const QString &program, const QString &call_name);
     void deleteCallTaught(const QString &program, const QString &call_name);
@@ -184,6 +203,11 @@ private:
     QHash<QString,QPair<QString,QString>> tagColorCache;
     
     std::vector<QString> root_directories;
+
+    // absolute path -> "applemusic:<16 hex digits>", for every track in the Apple Music library
+    //   that SquareDesk can see (issue #1747).  Empty when Apple Music sync is off, in which case
+    //   songKeyFor() degrades to removeRootDirs() for everything.
+    QHash<QString, QString> appleMusicKeyByPath;
 };
 
 #endif /* ifndef SONGSETTINGS_H_INCLUDED */

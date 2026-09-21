@@ -2327,7 +2327,10 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         ui->darkSongTable->setItem(i, kTitleCol, titleItem);
 
         // TITLE WIDGET (WITH TAGS) -----
-        QString normalizedPath = songSettings.removeRootDirs(origPath);
+        // The songs.filename key for this row: the music-root-relative path for a Music Directory
+        //   song, or the persistentID for an Apple Music track (issue #1747).  Has to match what
+        //   loadSettingsForAllSongs()/getSongAges() keyed their hashes by, which is that column.
+        QString normalizedPath = songSettings.songKeyFor(origPath);
         SongSetting settings = settingsByFilename.value(normalizedPath); // batch-fetched above (default SongSetting, if not in the DB)
         if (settings.isSetTags()) {
             songSettings.addTags(settings.getTags());
@@ -2352,9 +2355,14 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
         // AGE FIELD -----
         QString ageString = agesByFilename.value(normalizedPath); // batch-fetched above
-        if (ageString.isEmpty()) {
+        if (ageString.isEmpty() && !appleMusicPersistentIDByPath.contains(origPath)) {
             // fallback for legacy DB rows keyed by base filename instead of relative path
             // (same fallback order as getSongAge())
+            //
+            // Deliberately NOT for an Apple Music track: those filenames are things like
+            //   "01 Track.m4a" and collide constantly, so this would show some unrelated song's
+            //   age.  An Apple Music track is found by its persistentID or not at all, which is
+            //   the same rule getSongIDFromFilename() follows (issue #1747).
             ageString = agesByFilename.value(fi.completeBaseName());
         }
         QString ageAsIntString = ageToIntString(ageString);
