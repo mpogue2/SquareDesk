@@ -430,7 +430,7 @@ static void multiple_move_innards(
    const int8_t *getptr;
 
    setup_kind xorigkind[16];
-   int xorigrot[16];
+   int xorigrot[16] = {0}; // -mpogue, 2026/09/20
 
    setup_command *sscmd = &ss->cmd;
    uint32_t rot = maps->rot;
@@ -1591,7 +1591,7 @@ extern void divided_setup_move(
    whuzzisthingy *thing /* = 0 */ ) THROW_DECL
 {
    int i, j;
-   int vflags[16];
+   int vflags[16] = {0};  // -mpogue, 2026/09/20
    setup x[16];
 
    const map::map_thing *maps = map::get_map_from_code(map_encoding);
