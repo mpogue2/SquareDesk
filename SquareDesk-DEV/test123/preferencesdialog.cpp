@@ -1196,6 +1196,7 @@ void PreferencesDialog::setupAppleMusicTab()
     SetPulldownValuesToItemNumberPlusN(ui->appleMusicTypeFieldCombo, 0);
     SetPulldownValuesToItemNumberPlusN(ui->appleMusicTypeDefaultCombo, 0);
     SetPulldownValuesToItemNumberPlusN(ui->appleMusicTypeColumnFormatCombo, 0);
+    SetPulldownValuesToItemNumberPlusN(ui->appleMusicLabelFieldCombo, 0);
 
     // Recounting walks the whole library, so coalesce the keystrokes of someone typing a value.
     appleMusicRecountTimer = new QTimer(this);
@@ -1209,6 +1210,7 @@ void PreferencesDialog::setupAppleMusicTab()
     connect(ui->appleMusicFilterMatchCombo,          &QComboBox::currentIndexChanged, this, [this]{ appleMusicSettingsChanged(); });
     connect(ui->appleMusicTypeDefaultCombo,          &QComboBox::currentIndexChanged, this, [this]{ appleMusicSettingsChanged(); });
     connect(ui->appleMusicTypeColumnFormatCombo,     &QComboBox::currentIndexChanged, this, [this]{ appleMusicSettingsChanged(); });
+    connect(ui->appleMusicLabelFieldCombo,           &QComboBox::currentIndexChanged, this, [this]{ appleMusicSettingsChanged(); });
 
     connect(ui->appleMusicTypeFieldCombo, &QComboBox::currentIndexChanged, this, [this]{
         // the four Type value pickers below now offer values from a different field
@@ -1448,6 +1450,10 @@ AppleMusicFilter PreferencesDialog::appleMusicFilterFromWidgets() const
     filter.typeDefault      = ui->appleMusicTypeDefaultCombo->currentIndex();
     filter.typeColumnFormat = ui->appleMusicTypeColumnFormatCombo->currentIndex();
 
+    // 0 is "The filename -- parse it as usual"; 1..N index appleMusicFields (issue #1747)
+    const int labelFieldIndex = ui->appleMusicLabelFieldCombo->currentIndex();
+    filter.labelFieldKey = (labelFieldIndex > 0) ? appleMusicFields[labelFieldIndex - 1].key : QString();
+
     return filter;
 }
 
@@ -1643,6 +1649,7 @@ void PreferencesDialog::updateAppleMusicEnabledStates()
     ui->appleMusicTypeSection->setEnabled(syncOn);
     ui->appleMusicTypeColumnLabel->setEnabled(syncOn);
     ui->appleMusicTypeColumnFormatCombo->setEnabled(syncOn);
+    ui->appleMusicLabelSection->setEnabled(syncOn);
 
     const bool filterOn = ui->appleMusicFilterEnabledRadio->isChecked();
     ui->appleMusicFilterMatchCombo->setEnabled(filterOn);
@@ -1703,23 +1710,34 @@ void PreferencesDialog::updateAppleMusicPreview()
     const QString typeFieldKey = filter.typeFieldKey;
     const bool showTypeField = filter.typeComesFromMetadata();
 
-    // Column 0 is the Type, column 1 is the field that produced it (when there is one), and
-    //   then the fields worth seeing anyway -- minus whichever one is already column 1, so the
+    // Same idea for the Label: when a Label field has been chosen, show the Label it produces,
+    //   so it's obvious which tracks got one and which fell back to their filename (issue #1747).
+    const QString labelFieldKey = filter.labelFieldKey;
+    const bool showLabelField = filter.labelComesFromMetadata();
+
+    // Column 0 is the Type, then the Label (when a Label field is chosen), then the fields that
+    //   produced them, and then the fields worth seeing anyway -- each field only once, so the
     //   same values never appear in two columns.
     static const char *previewColumnKeys[] = { "title", "artist", "album", "genre", "grouping" };
 
-    QStringList fieldKeys;    // one per column AFTER the Type column
+    QStringList fieldKeys;    // one per column AFTER the Type and Label columns
     if (showTypeField) {
         fieldKeys << typeFieldKey;
     }
+    if (showLabelField && !fieldKeys.contains(labelFieldKey)) {
+        fieldKeys << labelFieldKey;
+    }
     for (const char *key : previewColumnKeys) {
-        if (typeFieldKey != key) {
+        if (!fieldKeys.contains(QString(key))) {
             fieldKeys << key;
         }
     }
 
     QStringList headers;
     headers << "Type";
+    if (showLabelField) {
+        headers << "Label";
+    }
     for (const QString &fieldKey : std::as_const(fieldKeys)) {
         headers << appleMusicFieldDisplay(fieldKey);
     }
@@ -1749,6 +1767,7 @@ void PreferencesDialog::updateAppleMusicPreview()
 
     int matched = 0;
     int shown = 0;
+    int labelFromFilename = 0;   // tracks whose chosen Label field is empty (issue #1747)
     QHash<QString,int> byType;
 
     for (const AppleMusicTrackMeta &track : appleMusicTracks) {
@@ -1763,6 +1782,13 @@ void PreferencesDialog::updateAppleMusicPreview()
             byType[type]++;
         }
 
+        // Counted for every matching track, not just the listed ones, so the tally below is a
+        //   tally of the library rather than of the first few hundred rows.
+        const AppleMusicLabel trackLabel = showLabelField ? filter.labelOf(track) : AppleMusicLabel();
+        if (showLabelField && trackLabel.isEmpty()) {
+            labelFromFilename++;
+        }
+
         if (shown >= kApplePreviewMaxRows) {
             continue;
         }
@@ -1771,6 +1797,12 @@ void PreferencesDialog::updateAppleMusicPreview()
         cells << (!showTypeField     ? QString("\u2014")            // no Type field chosen: unchanged
                   : type.isEmpty()   ? QString("(not imported)")
                                      : type);
+        if (showLabelField) {
+            // Spelled the way the song table's Label column spells it: label + " " + number.
+            cells << (trackLabel.isEmpty()
+                          ? QString("(from filename)")
+                          : (trackLabel.label + " " + trackLabel.labelnum + trackLabel.labelnum_extra).simplified());
+        }
         for (const QString &fieldKey : std::as_const(fieldKeys)) {
             // An empty cell is already legible as "this track has no value for that field", and
             //   spelling it out would read like a value someone actually typed, as well as
@@ -1846,6 +1878,11 @@ void PreferencesDialog::updateAppleMusicPreview()
         // runs of spaces collapse in rich text, so space the asides out with non-breaking ones
         if (!showTypeField) {
             summary += "&nbsp;&nbsp; No Type field chosen, so these keep the Type column and color they have now.";
+        }
+        if (showLabelField && labelFromFilename > 0) {
+            summary += QString("&nbsp;&nbsp; %1 have no %2, so their Label comes from the filename.")
+                           .arg(locale.toString(labelFromFilename))
+                           .arg(appleMusicFieldDisplay(labelFieldKey));
         }
         if (matched > shown) {
             summary += QString("&nbsp;&nbsp; Showing the first %1.").arg(locale.toString(shown));

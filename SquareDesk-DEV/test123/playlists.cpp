@@ -2103,6 +2103,8 @@ void MainWindow::getAppleMusicInfo() {
     appleMusicTitleByPath.clear();
     appleMusicTypeByPath.clear();
     appleMusicTypeReasonByPath.clear();
+    appleMusicLabelByPath.clear();
+    appleMusicLabelReasonByPath.clear();
     appleMusicMetaByPath.clear();
 
     // qDebug() << "type,name,itemnumber,title,artist,title,genre,BPM,rating,year,grouping,work,modifiedDate";
@@ -2224,6 +2226,24 @@ void MainWindow::getAppleMusicInfo() {
             allAppleMusicPlaylists.append(strList); // needed to load Apple Music playlist into a slot
             appleMusicTitleByPath.insert(absPath, title); // so any table row can recover the real title
             appleMusicMetaByPath.insert(absPath, meta);   // ...and the metadata for its extra columns
+
+            // The Label its metadata says it is, for someone who keeps "HH-1234" in Album rather
+            //   than in the filename.  Nothing is inserted when no Label field has been chosen, or
+            //   when this track's copy of that field is empty -- in both cases the song table
+            //   parses the filename instead, exactly as it does for a Music Directory song
+            //   (issue #1747).
+            const AppleMusicLabel trackLabel = appleMusicFilter.labelOf(meta);
+            if (!trackLabel.isEmpty()) {
+                appleMusicLabelByPath.insert(absPath, trackLabel);
+
+                // Why that Label, for the tooltip on the Label cell -- the same courtesy the Type
+                //   cell gets, and the thing that makes a surprising Label self-diagnosing.
+                appleMusicLabelReasonByPath.insert(
+                    absPath,
+                    QString("Apple Music: %1 = \"%2\"")
+                        .arg(appleMusicFieldDisplay(appleMusicFilter.labelFieldKey))
+                        .arg(appleMusicFieldValue(meta, appleMusicFilter.labelFieldKey).trimmed()));
+            }
             if (!songType.isEmpty()) {
                 appleMusicTypeByPath.insert(absPath, songType); // ...and the Type its metadata says it is
 

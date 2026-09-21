@@ -2332,6 +2332,76 @@ Click on a color square to change the color associated with that Music Type.  Se
               </widget>
              </item>
              <item>
+              <widget class="QWidget" name="appleMusicLabelSection" native="true">
+               <layout class="QVBoxLayout" name="appleMusicLabelLayout">
+                <property name="leftMargin"><number>0</number></property>
+                <property name="topMargin"><number>0</number></property>
+                <property name="rightMargin"><number>0</number></property>
+                <item>
+                 <widget class="QLabel" name="appleMusicLabelHeaderLabel">
+                  <property name="text">
+                   <string>&lt;b&gt;How to determine a track's Label&lt;/b&gt;</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="Line" name="appleMusicLabelHeaderLine">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="appleMusicLabelFieldLayout">
+                  <item>
+                   <widget class="QLabel" name="appleMusicLabelFieldLabel">
+                    <property name="text">
+                     <string>Read Label from:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="appleMusicLabelFieldCombo">
+                    <property name="toolTip">
+                     <string>Where the Label column gets &quot;HH 1234&quot; from.  A metadata field wins when it has something in it; otherwise the filename is parsed as usual.</string>
+                    </property>
+<item><property name="text"><string>The filename — parse it as usual</string></property></item>
+<item><property name="text"><string>Genre</string></property></item>
+<item><property name="text"><string>Grouping</string></property></item>
+<item><property name="text"><string>Album</string></property></item>
+<item><property name="text"><string>Album Artist</string></property></item>
+<item><property name="text"><string>Artist</string></property></item>
+<item><property name="text"><string>Composer</string></property></item>
+<item><property name="text"><string>Comments</string></property></item>
+<item><property name="text"><string>Work</string></property></item>
+<item><property name="text"><string>Title</string></property></item>
+</widget>
+
+                  </item>
+                  <item>
+                   <spacer name="appleMusicLabelFieldSpacer">
+                    <property name="orientation">
+                     <enum>Qt::Orientation::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size><width>40</width><height>20</height></size>
+                    </property>
+                   </spacer>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <widget class="QLabel" name="appleMusicLabelHintLabel">
+                  <property name="text">
+                   <string>&lt;i&gt;A track whose chosen field is empty falls back to its filename.  &quot;RYL-220&quot; and &quot;RYL 220&quot; are treated the same; dashes inside a label name, like 4-Bar-B, are kept.&lt;/i&gt;</string>
+                  </property>
+                  <property name="wordWrap"><bool>true</bool></property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
               <layout class="QHBoxLayout" name="appleMusicTypeColumnLayout">
                <item>
                 <widget class="QLabel" name="appleMusicTypeColumnLabel">

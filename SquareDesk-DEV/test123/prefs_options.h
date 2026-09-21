@@ -132,6 +132,11 @@ CONFIG_ATTRIBUTE_COMBO(appleMusicTypeDefaultCombo, appleMusicTypeDefault, 3)  //
 // How the Type column in darkSongTable renders an Apple Music track.
 CONFIG_ATTRIBUTE_COMBO(appleMusicTypeColumnFormatCombo, appleMusicTypeColumnFormat, 0)  // 0=type+playlist 1=playlist only 2=type only
 
+// Which metadata field holds the record label, for someone who keeps "HH-1234" in Album rather
+//   than in the filename (issue #1747).  0 = read it from the filename, like a Music Directory
+//   song, which is the default because it's what SquareDesk has always done.
+CONFIG_ATTRIBUTE_COMBO(appleMusicLabelFieldCombo, appleMusicLabelField, 0)
+
 CONFIG_ATTRIBUTE_BOOLEAN(useTipNumbersCheckbox,useTipNumbers, false) // issue #1714
 
 //CONFIG_ATTRIBUTE_BOOLEAN(enableFlashCallsCheckbox,enableFlashCalls, false)

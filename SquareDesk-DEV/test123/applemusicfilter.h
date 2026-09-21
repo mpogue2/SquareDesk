@@ -92,6 +92,16 @@ struct AppleMusicRule {
     QString value;
 };
 
+// A track's record label, split the way the song table's Label column wants it: the column
+//   shows label + " " + labelnum (issue #1747).
+struct AppleMusicLabel {
+    QString label;
+    QString labelnum;
+    QString labelnum_extra;
+
+    bool isEmpty() const { return label.isEmpty() && labelnum.isEmpty(); }
+};
+
 class AppleMusicFilter
 {
 public:
@@ -104,6 +114,14 @@ public:
     QString typeOf(const AppleMusicTrackMeta &track) const;
 
     bool typeComesFromMetadata() const { return !typeFieldKey.isEmpty(); }
+
+    // The label this track's chosen metadata field says it is.  Empty when no Label field has
+    //   been chosen, or when this track's copy of that field is empty -- in both cases the
+    //   caller falls back to parsing the filename, exactly as a Music Directory song does
+    //   (issue #1747).
+    AppleMusicLabel labelOf(const AppleMusicTrackMeta &track) const;
+
+    bool labelComesFromMetadata() const { return !labelFieldKey.isEmpty(); }
 
     static QList<AppleMusicRule> rulesFromJSON(const QString &json);
     static QString rulesToJSON(const QList<AppleMusicRule> &rules);
@@ -122,6 +140,10 @@ public:
     QString typeExtras;
     int typeDefault = AppleMusicDefaultExtras;
     int typeColumnFormat = AppleMusicTypeThenPlaylist;
+
+    // which metadata field holds the record label, e.g. "album" for someone who keeps "HH-1234"
+    //   in the Album field.  "" = read the label out of the filename instead (issue #1747).
+    QString labelFieldKey;
 };
 
 #endif // APPLEMUSICFILTER_H

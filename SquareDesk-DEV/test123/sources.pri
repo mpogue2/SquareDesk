@@ -32,6 +32,7 @@ SOURCES += main.cpp\
     newdancedialog.cpp \
     playlists.cpp \
     applemusicfilter.cpp \
+    labelparser.cpp \
     preferencesdialog.cpp \
     choreosequencedialog.cpp \
     cuesheetmatchingdebugdialog.cpp \
@@ -117,6 +118,7 @@ HEADERS  += mainwindow.h \
     sessioninfo.h \
     songhistoryexportdialog.h \
     applemusicfilter.h \
+    labelparser.h \
     preferencesdialog.h \
     choreosequencedialog.h \
     cuesheetmatchingdebugdialog.h \

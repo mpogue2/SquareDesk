@@ -26,6 +26,7 @@
 #include "applemusicfilter.h"
 #include "prefsmanager.h"
 #include "playlist_constants.h"
+#include "labelparser.h"
 
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -181,6 +182,12 @@ void AppleMusicFilter::loadFrom(PreferencesManager &prefs)
     typeExtras       = prefs.GetappleMusicTypeExtras();
     typeDefault      = prefs.GetappleMusicTypeDefault();
     typeColumnFormat = prefs.GetappleMusicTypeColumnFormat();
+
+    // 0 is "The filename"; 1..N index appleMusicFields (issue #1747)
+    const int labelFieldIndex = prefs.GetappleMusicLabelField();
+    labelFieldKey = (labelFieldIndex > 0 && labelFieldIndex <= numAppleMusicFields)
+                        ? appleMusicFields[labelFieldIndex - 1].key
+                        : QString();
 }
 
 bool AppleMusicFilter::passes(const AppleMusicTrackMeta &track) const
@@ -230,6 +237,30 @@ QString AppleMusicFilter::typeOf(const AppleMusicTrackMeta &track) const
         case AppleMusicDefaultExtras:  return "extras";
         default:                       return "";      // AppleMusicDefaultSkip
     }
+}
+
+// Where a track's Label comes from, per Preferences > Apple Music > "Read Label from".
+//
+// Precedence, not merging: the chosen metadata field wins outright when it has something in it,
+//   and otherwise we say nothing and the caller parses the filename instead.  The field is the
+//   one the user curated; the filename is the one Music.app rewrites out from under them when a
+//   Title is edited.  A merge rule would be unexplainable to someone looking at the cell
+//   (issue #1747).
+AppleMusicLabel AppleMusicFilter::labelOf(const AppleMusicTrackMeta &track) const
+{
+    AppleMusicLabel out;
+
+    if (!labelComesFromMetadata()) {
+        return out;   // no field chosen: the filename is the source of truth
+    }
+
+    const QString value = appleMusicFieldValue(track, labelFieldKey);
+    if (value.trimmed().isEmpty()) {
+        return out;   // this track has no value there, so fall back to the filename
+    }
+
+    parseLabelFieldIntoParts(value, out.label, out.labelnum, out.labelnum_extra);
+    return out;
 }
 
 QList<AppleMusicRule> AppleMusicFilter::rulesFromJSON(const QString &json)

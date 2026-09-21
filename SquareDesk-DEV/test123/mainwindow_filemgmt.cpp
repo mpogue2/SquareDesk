@@ -1467,6 +1467,27 @@ static QString applyAppleMusicTypeColumnFormat(const QString &playlistPart,
     }
 }
 
+// Where an Apple Music track's Label comes from (issue #1747).
+//
+// Precedence, not merging: the metadata field the user chose in Preferences > Apple Music wins
+//   when it has something in it, and otherwise this says nothing at all and whatever
+//   breakFilenameIntoParts() got from the filename stands.  The field is the one the user
+//   curated; the filename is the one Music.app rewrites out from under them when a Title is
+//   edited.  A song in the Music Directory never has an entry here, so it is unaffected.
+bool MainWindow::appleMusicLabelFor(const QString &absPath,
+                                    QString &label, QString &labelnum, QString &labelnum_extra) const
+{
+    auto it = appleMusicLabelByPath.constFind(absPath);
+    if (it == appleMusicLabelByPath.constEnd()) {
+        return false;   // not an Apple Music track, no Label field chosen, or that field is empty
+    }
+
+    label          = it.value().label;
+    labelnum       = it.value().labelnum;
+    labelnum_extra = it.value().labelnum_extra;
+    return true;
+}
+
 // Both sources of a duration -- ITLibrary's totalTimeMS for an Apple Music track, and the file's
 //   own header for a song in the Music Directory (issue #1753) -- give it in milliseconds.  The
 //   Duration column wants "3:45", or "1:02:33" for the occasional long one.
@@ -1972,6 +1993,12 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
         // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
         breakFilenameIntoParts(baseName, label, labelnum, labelnum_extra, title, shortTitle);
+
+        // An Apple Music track whose chosen metadata field holds its Label overrides what the
+        //   filename said.  Deliberately BEFORE labelnum_extra is folded in below, so that both
+        //   sources end up spelled the same way (issue #1747).
+        appleMusicLabelFor(origPath, label, labelnum, labelnum_extra);
+
         labelnum += labelnum_extra;
 
         QString pitchOverride = "";
@@ -1988,7 +2015,6 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
             QStringList sl10 = type.split("$!$");
             QString ApplePlaylistName = sl10[0];
             QString AppleLineNumber = sl10[1];
-            label = "Apple Music";
             title = sl10[2];
             shortTitle = title;
 
@@ -1997,8 +2023,13 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
             type = appleSymbol + " " + sl10[0] + " " + AppleLineNumber; // this is tricky.  Leading Apple will force sort to bottom for "<APPLESYMBOL> Apple Playlist Name".
             appleMusicType = appleMusicTypeByPath.value(origPath);
             type = applyAppleMusicTypeColumnFormat(type, appleMusicType, appleMusicTypeColumnFormat);
-            labelnum = "";
-            labelnum_extra = "";
+
+            // The Label used to be forced to the literal "Apple Music" here, with the number
+            //   blanked -- which collapsed every Apple Music track into one bucket, so the Label
+            //   column couldn't be sorted or filtered by an actual label, and disagreed with the
+            //   playlist branch below, which has always kept what the filename said.  Both
+            //   branches now go through breakFilenameIntoParts() plus appleMusicLabelFor() above,
+            //   so the same song gets the same Label in either view (issue #1747).
             // totalNumberOfAppleSongs++;
         } else if (type.contains("%!%")) {
             // This is a SquareDesk Playlist, so we're going to override everything that breakFilenameIntoParts did (or tried to do)
@@ -2204,9 +2235,18 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         ui->darkSongTable->setItem(i, kTypeCol, twi1);
 
         // LABEL + LABELNUM FIELD -----
-        QTableWidgetItem *twi2 = new QTableWidgetItem(label + " " + labelnum);
+        QTableWidgetItem *twi2 = new QTableWidgetItem((label + " " + labelnum).simplified());
         twi2->setForeground(textBrush);
         twi2->setFlags(twi2->flags() & ~Qt::ItemIsEditable);      // not editable
+        {
+            // e.g. 'Apple Music: Album = "RYL-220"'.  Without this there is no way to see WHERE a
+            //   Label came from, which matters now that it can come from either the filename or a
+            //   metadata field (issue #1747).
+            const QString labelReason = appleMusicLabelReasonByPath.value(origPath);
+            if (!labelReason.isEmpty()) {
+                twi2->setToolTip(labelReason);
+            }
+        }
         ui->darkSongTable->setItem(i, kLabelCol, twi2);
 
         // APPLE MUSIC METADATA FIELDS -----

@@ -30,6 +30,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Welaborated-enum-base"
 #include "mainwindow.h"
+#include "labelparser.h"
 #include "cuesheetmatchingdebugdialog.h"
 #pragma clang diagnostic pop
 
@@ -150,30 +151,12 @@ bool MainWindow::breakFilenameIntoParts(const QString &s,
     int match_num = 0;
     struct FilenameMatchers *matches = getFilenameMatchersForType(songFilenameFormat);
 
-    // special pre-processing for labels with dashes in their names
-    QString s2 = s;
-
-    static QRegularExpression regex1("(4-[Bb][Aa][Rr]-[Bb])");              // 4-Bar-B
-    static QRegularExpression regex2("([Cc][Ii][Rr][Cc][Ll][Ee]-[Dd])");    // Circle-D
-    static QRegularExpression regex3("([Jj][Aa][Yy]-[Bb][Aa][Rr]-[Kk][Aa][Yy])");  // Jay-Bar-Kay
-
-    QRegularExpressionMatch m1;
-    if (s2.contains(regex1, &m1)) {
-        // qDebug() << "MATCH 1: " << m1 << m1.captured(1);
-        s2.replace(m1.captured(1), "FOURBARB");
-    }
-
-    QRegularExpressionMatch m2;
-    if (s2.contains(regex2, &m2)) {
-        // qDebug() << "MATCH 2: " << m2 << m2.captured(1);
-        s2.replace(m2.captured(1), "CIRCLED");
-    }
-
-    QRegularExpressionMatch m3;
-    if (s2.contains(regex3, &m3)) {
-        // qDebug() << "MATCH 3: " << m3 << m3.captured(1);
-        s2.replace(m3.captured(1), "JAYBARKAY");
-    }
+    // special pre-processing for labels with dashes in their names ("4-Bar-B", "Circle-D",
+    //   "Jay-Bar-Kay").  Hoisted into DashedLabelMask so that parseLabelFieldIntoParts() --
+    //   which reads a label out of an Apple Music metadata field rather than out of a filename --
+    //   handles those same names identically (issue #1747).
+    DashedLabelMask dashMask;
+    QString s2 = dashMask.apply(s);
 
     for (match_num = 0;
          matches[match_num].label_match >= 0
@@ -182,10 +165,7 @@ bool MainWindow::breakFilenameIntoParts(const QString &s,
         QRegularExpressionMatch match = matches[match_num].regex.match(s2);
         if (match.hasMatch()) {
             if (matches[match_num].label_match >= 0) {
-                label = match.captured(matches[match_num].label_match);
-                label.replace("FOURBARB", m1.captured(1)); // keep original capitalization
-                label.replace("CIRCLED",  m2.captured(1)); // keep original capitalization
-                label.replace("JAYBARKAY", m3.captured(1)); // keep original capitalization
+                label = dashMask.unmask(match.captured(matches[match_num].label_match)); // keeps original capitalization
             }
             if (matches[match_num].title_match >= 0) {
                 title = match.captured(matches[match_num].title_match);

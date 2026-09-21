@@ -30,6 +30,7 @@
 
 #include "globaldefines.h"
 #include "mainwindow_applemusic.h"   // AppleMusicTrackMeta, for appleMusicMetaByPath
+#include "applemusicfilter.h"        // AppleMusicLabel, for appleMusicLabelByPath (issue #1747)
 
 #include "splashscreen.h"
 
@@ -1057,6 +1058,18 @@ private:
     QHash<QString, QString> appleMusicTypeByPath;   // absolute path -> "patter"/"singing"/"called"/"extras",
                                                    //   as the Type mapping in Preferences worked it out
     QHash<QString, QString> appleMusicTypeReasonByPath;  // ...and why, for the Type cell's tooltip
+    QHash<QString, AppleMusicLabel> appleMusicLabelByPath;  // absolute path -> the Label its metadata
+                                                   //   says it is, per Preferences > Apple Music >
+                                                   //   "Read Label from".  A track with no entry
+                                                   //   here gets its Label from its filename, like
+                                                   //   a Music Directory song does (issue #1747).
+    QHash<QString, QString> appleMusicLabelReasonByPath; // ...and why, for the Label cell's tooltip
+
+    // Overwrites label/labelnum/labelnum_extra when the track's metadata supplies a Label, and
+    //   leaves them alone (so the filename parse stands) when it doesn't.  Returns true if it
+    //   overwrote them (issue #1747).
+    bool appleMusicLabelFor(const QString &absPath,
+                            QString &label, QString &labelnum, QString &labelnum_extra) const;
     QHash<QString, AppleMusicTrackMeta> appleMusicMetaByPath;  // ...and the metadata behind the
                                                    //   Album/Album Artist/Composer/Comments/Year/
                                                    //   Duration columns (issue #1740, item 2)
