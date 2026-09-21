@@ -469,7 +469,7 @@ public slots:
     // ============================================================================
     void handleNewSort(QString newSortString);
     void changeApplicationState(Qt::ApplicationState state);
-    void haveDuration2(void);
+    void haveDuration2(const QString &decodedFilename);
     void focusChanged(QWidget *old, QWidget *now);
 
 #ifdef DEBUG_LIGHT_MODE

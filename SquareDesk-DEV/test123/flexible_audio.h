@@ -218,7 +218,7 @@ protected:
     qint64 writeData(const char* data, qint64 len) override;
 
 signals:
-    void haveDuration();
+    void haveDuration(const QString &filename);  // names the file the BPM/duration are FOR (issue #1757)
     void beatMapReady();  // #1604: forwarded from AudioDecoder, beat/bar maps are now available
 
 private slots:
@@ -232,6 +232,6 @@ private slots:
     void applySystemAudioOutputsChange();  // #1683: the deferred half of systemAudioOutputsChanged()
 
 public slots:
-    void decoderDone();
+    void decoderDone(const QString &filename);
 };
 

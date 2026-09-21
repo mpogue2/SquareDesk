@@ -1310,7 +1310,7 @@ void AudioDecoder::finished()
 
     updateWaveformMap();
 
-    emit done(); // triggers haveDuration, which invokes haveDuration2, which initiates beat detection and power/max detection (ONLY if enabled).
+    emit done(currentlyLoadedFilename); // triggers haveDuration, which invokes haveDuration2, which initiates beat detection and power/max detection (ONLY if enabled).
 }
 
 void AudioDecoder::updateProgress()

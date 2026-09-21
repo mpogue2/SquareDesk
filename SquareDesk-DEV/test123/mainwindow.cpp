@@ -330,8 +330,26 @@ void MainWindow::LyricsCopyAvailable(bool yes) {
 
 void InitializeSeekBar(MySlider *seekBar);  // forward decl
 
-void MainWindow::haveDuration2(void) {
+void MainWindow::haveDuration2(const QString &decodedFilename) {
 //    qDebug() << "MainWindow::haveDuration -- StreamCreate duration and songBPM now available! *****";
+
+    // A decode is asynchronous, and nothing stops a second song being loaded before the first
+    //   one's decode lands.  Everything below applies this decode's BPM and duration to whatever
+    //   song is current RIGHT NOW, so a late completion from the previous song would set up this
+    //   song's tempo slider -- mode, range, centre and default -- from the wrong audio, and
+    //   secondHalfOfLoad() would then finish the load as though that were correct.
+    //
+    // The BPM is also what decides whether the tempo slider is in BPM or percent for this song,
+    //   and the saved tempo is stored with a flag saying which.  Get the pairing wrong once and
+    //   the stored setting is wrong from then on (issue #1757).
+    //
+    // An empty name means the decoder didn't say, in which case trust it rather than drop the
+    //   load on the floor.
+    if (!decodedFilename.isEmpty() && decodedFilename != currentMP3filenameWithPath) {
+        // qDebug() << "haveDuration2: ignoring stale decode for" << decodedFilename
+        //          << "because the current song is" << currentMP3filenameWithPath;
+        return;
+    }
 
     // NOTE: This function is called once at load time, and adds less than 1ms
     currentSongMP3SampleRate = getMP3SampleRate(currentMP3filenameWithPath);
@@ -5535,7 +5553,33 @@ void MainWindow::loadSettingsForSong(QString songTitle)
                                   settings))
     {
         if (settings.isSetPitch()) { pitch = settings.getPitch(); }
-        if (settings.isSetTempo()) { tempo = settings.getTempo(); /*qDebug() << "loadSettingsForSong: " << tempo;*/ }
+
+        // A saved tempo is a bare number whose meaning depends on the units it was saved in:
+        //   130 means 130 BPM or 130%, and tempoIsPercent is what says which.  handleDurationBPM()
+        //   has already chosen this load's units (tempoIsBPM) and sized the slider to match, so a
+        //   saved value in the OTHER units is not a tempo for this slider at all -- applying it
+        //   would just let setValue() clamp it to the nearest end of the range, silently, which
+        //   is how a song ends up playing at 120% or pinned to the bottom of its BPM range.
+        //
+        //   There is no conversion to make here: a percent was taken against a base BPM we no
+        //   longer know, so the honest thing is to keep the default handleDurationBPM() just
+        //   computed, which is correct for this song (issue #1757).
+        if (settings.isSetTempo()) {
+            const int savedTempo = settings.getTempo();
+            if (settings.isSetTempoIsPercent()) {
+                // tempoIsPercent is stored as !tempoIsBPM, so the units agree exactly when it
+                //   differs from this load's tempoIsBPM.
+                if (settings.getTempoIsPercent() != tempoIsBPM) {
+                    tempo = savedTempo; /*qDebug() << "loadSettingsForSong: " << tempo;*/
+                }
+            } else if (savedTempo >= ui->darkTempoSlider->minimum()
+                       && savedTempo <= ui->darkTempoSlider->maximum()) {
+                // A row from before the units were recorded.  Accept it only when it already fits
+                //   this song's slider -- which is the test clamping would have applied anyway,
+                //   just silently and with a wrong answer instead of no answer.
+                tempo = savedTempo;
+            }
+        }
         if (settings.isSetVolume()) { volume = settings.getVolume(); }
         if (settings.isSetIntroPos()) { intro = settings.getIntroPos(); }
         if (settings.isSetOutroPos()) { outro = settings.getOutroPos(); }
@@ -7221,46 +7265,61 @@ void MainWindow::handleDurationBPM() {
     // TODO: make the types for turning off BPM detection a preference
     bool songBPMinRange = songBPM_fromID3tag ? (songBPM >= 60 && songBPM <= 300)
                                               : (songBPM >= 125-15 && songBPM <= 125+15);
+    // Switching the tempo slider over to this song is ONE change of three things that have to
+    //   agree: the mode flag (tempoIsBPM), the range, and the value.  They cannot be changed
+    //   atomically, because setMinimum()/setMaximum() emit valueChanged() whenever they clamp
+    //   what the slider is currently holding -- and what it is holding right now is the PREVIOUS
+    //   song's tempo, in the previous song's units.
+    //
+    // Anything that ran on those intermediate emissions would see this song's mode flag paired
+    //   with the last song's number.  on_darkTempoSlider_valueChanged() is one of those things,
+    //   and it calls saveCurrentSongSettings(), which stores tempo together with
+    //   tempoIsPercent = !tempoIsBPM.  Store that pair once with the units wrong and every later
+    //   load of the song reads a value in the wrong units (issue #1757).
+    //
+    // So: block the slider's signals, settle mode + range + value, then emit once, deliberately.
+    const bool sliderWasBlocked = ui->darkTempoSlider->blockSignals(true);
+
+    int newTempoMinimum, newTempoMaximum, newTempoValue;
+
     if (songBPMinRange && currentSongCategoryName != "extras") {
         tempoIsBPM = true;
         // ui->currentTempoLabel->setText(QString::number(songBPM) + " BPM (100%)"); // initial load always at 100%
+        newTempoMinimum = songBPM - 15;
+        newTempoMaximum = songBPM + 15;
+        newTempoValue   = songBPM;
 
-        // ui->tempoSlider->setMinimum(songBPM-15);
-        // ui->tempoSlider->setMaximum(songBPM+15);
-
-        ui->darkTempoSlider->setMinimum(songBPM-15);
-        ui->darkTempoSlider->setMaximum(songBPM+15);
-
-        // ui->tempoSlider->setValue(songBPM);  // qDebug() << "handleDurationBPM set tempo slider to: " << songBPM;
-        // Necessary because we've changed the minimum and maximum, but haven't forced a redraw, and the on_... only changes the value if it's changed. This forces a redraw.
-        ui->darkTempoSlider->setValue(songBPM);
-        // emit ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
-
-        // ui->tempoSlider->SetOrigin(songBPM);    // when double-clicked, goes here (MySlider function)
-
-        ui->darkTempoSlider->setDefaultValue(songBPM);  // when double-clicked, goes here
-
-        // ui->tempoSlider->setEnabled(true);
 //        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
 //                                 ", base tempo: " + QString::number(songBPM) + " BPM");
     }
     else {
         tempoIsBPM = false;
         // if we can't figure out a BPM, then use percent as a fallback (centered: 100%, range: +/-20%)
-        ui->darkTempoSlider->setMinimum(100-20);        // allow +/-20%
-        ui->darkTempoSlider->setMaximum(100+20);
-
-        // see comment above about forcing a redraw
-        ui->darkTempoSlider->setValue(100);
-        // emit ui->tempoSlider->valueChanged(100);  // fixes bug where second song with same 100% doesn't update songtable::tempo
-        // ui->tempoSlider->SetOrigin(100);  // when double-clicked, goes here
-
-        ui->darkTempoSlider->setDefaultValue(100);  // when double-clicked, goes here, this is "100%"
+        newTempoMinimum = 100 - 20;     // allow +/-20%
+        newTempoMaximum = 100 + 20;
+        newTempoValue   = 100;
 
         // ui->tempoSlider->setEnabled(true);
 //        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
 //                                 ", base tempo: 100%");
     }
+
+    // Range first, then value: setValue() clamps to the range, so setting the value against the
+    //   PREVIOUS song's range would silently pin it to that range's nearest end.  setRange()
+    //   rather than setMinimum()+setMaximum(), because the latter pair passes through a moment
+    //   where the new minimum is above the old maximum and Qt drags the maximum along with it.
+    ui->darkTempoSlider->setRange(newTempoMinimum, newTempoMaximum);
+    ui->darkTempoSlider->setValue(newTempoValue);
+    ui->darkTempoSlider->setDefaultValue(newTempoValue);  // when double-clicked, goes here
+
+    ui->darkTempoSlider->blockSignals(sliderWasBlocked);
+
+    // Mode, range and value now agree, so it is safe to let everyone hear about it.  This is
+    //   emitted unconditionally rather than relying on setValue() above, because setValue() stays
+    //   silent when the number happens to be unchanged -- which is how a second song with the
+    //   same BPM as the first used to leave the tempo label and the song table's tempo column
+    //   showing the previous song's values.
+    emit ui->darkTempoSlider->valueChanged(newTempoValue);
 
     // NOTE: we need to set the bounds BEFORE we set the actual positions
 //    qDebug() << "MainWindow::handleDurationBPM: length_sec = " << length_sec;

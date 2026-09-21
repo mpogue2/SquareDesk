@@ -43,7 +43,7 @@
 // ------------------------------------------------------------------
 flexible_audio::flexible_audio(void)
 {
-    connect(&decoder, SIGNAL(done()), this, SLOT(decoderDone()));  //
+    connect(&decoder, SIGNAL(done(QString)), this, SLOT(decoderDone(QString)));  //
     connect(&decoder, SIGNAL(beatMapReady()), this, SIGNAL(beatMapReady()));  // #1604: just forward it along
 
     currentSoundEffectID = 0;
@@ -303,11 +303,11 @@ void flexible_audio::durChanged(qint64 a)
 //    qDebug() << "***** flexible_audio::durChanged" << a;
 }
 
-void flexible_audio::decoderDone() // SLOT
+void flexible_audio::decoderDone(const QString &filename) // SLOT
 {
 //    qDebug() << "flexible_audio::decoder_done() time to alert the cBass!";
     Stream_BPM = decoder.getBPM();  // -1 = not ready yet, 0 = undetectable, else returns double
-    emit haveDuration();  // tell others that we have a valid duration and Stream_BPM now
+    emit haveDuration(filename);  // tell others that we have a valid duration and Stream_BPM now
 }
 
 void flexible_audio::bufferReady() // SLOT

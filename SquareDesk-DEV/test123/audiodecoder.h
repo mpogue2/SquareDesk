@@ -219,7 +219,10 @@ public:
     void shutdownAudioThread();
 
 signals:
-    void done();
+    // Names the file this decode was FOR.  A decode is asynchronous and a second song can be
+    //   loaded before the first one's decode lands, so whoever acts on this has to be able to tell
+    //   whether the result still belongs to the song that is loaded (issue #1757).
+    void done(const QString &filename);
     void beatMapReady();  // #1604: beatMap/measureMap are now filled in (cache hit or vamp finished)
 
 public slots:
