@@ -136,12 +136,10 @@ struct SongMatchInfo;
 
 
 // WHEN WE RELEASE A NEW VERSION:
+//   remember to change the version in the .plist file (2 places)
 //   remember to change the VERSIONSTRING below
-//   remember to change the VERSION in PackageIt.command and PackageIt_X86.command
-//   remember to change the version in the .plist file
-
-// Also remember to change the "latest" file on GitHub (for Beta releases)!
-#define VERSIONSTRING "1.1.14"
+// Also remember to change the "latest" file on GitHub!
+#define VERSIONSTRING "1.2.1"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
