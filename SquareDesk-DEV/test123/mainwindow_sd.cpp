@@ -5264,6 +5264,9 @@ void MainWindow::sdLoadDance(QString danceName) {
         // Add synonyms
         nameToLevel.insert("ms",  l_xyz); // "ms" allowed for "mainstream"
         nameToLevel.insert("ssd", l_xyz); // SD does not support SSD, but MS is a superset of SSD
+        nameToLevel.insert("ms26",         l_xyz); // 2026 Callerlab program names (#1767)
+        nameToLevel.insert("mainstream26", l_xyz);
+        nameToLevel.insert("plus26",       l_pqr);
 
         int usIdx = danceName.lastIndexOf('_');
         if (usIdx < 0 || usIdx >= danceName.length() - 1)
