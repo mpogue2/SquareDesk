@@ -303,7 +303,7 @@ if (rows.count() == 0) {
     // NOTE: the rows we moved to the top will still be selected!
     scrollToItem(item(0, 0));      // EnsureVisible for the first row in the table
 
-    ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the darkSongTable view immediately
+    ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the songTable view immediately
 
     return true; // we did it!
 } else {
@@ -352,7 +352,7 @@ if (rows.count() == 0) {
     // NOTE: the rows we moved to the top will still be selected!
     scrollToItem(item(0, 0));      // EnsureVisible for the first row in the table
 
-    ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the darkSongTable view immediately
+    ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the songTable view immediately
 
     return true; // we did it!
     }
@@ -411,7 +411,7 @@ bool MyTableWidget::moveSelectedItemsToBottom(bool scrollWhenDone) { // defaults
             scrollToBottom();
         }
 
-        ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the darkSongTable view immediately
+        ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the songTable view immediately
 
         return true; // we did it!
     } else {
@@ -461,7 +461,7 @@ bool MyTableWidget::moveSelectedItemsToBottom(bool scrollWhenDone) { // defaults
         // NOTE: the rows we moved to the bottom will still be selected!
         scrollToItem(item(rowCount()-1, 0));      // EnsureVisible for the last row in the table
 
-        ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the darkSongTable view immediately
+        ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the songTable view immediately
 
         return true; // we did it!
     }
@@ -506,7 +506,7 @@ bool MyTableWidget::removeSelectedItems() {
             // qDebug() << "AFTER selected rows: " << selectionModel()->selectedRows() << row;
         }
 
-        ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the darkSongTable view immediately
+        ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the songTable view immediately
 
         return true;
     } else {
@@ -549,7 +549,7 @@ bool MyTableWidget::removeSelectedItems() {
         // selectRow(0); // we are done deleting all the rows, so select first row (what would be better?)
         // scrollToItem(item(0, 0));     // EnsureVisible for the first row in the table
 
-        ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the darkSongTable view immediately
+        ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the songTable view immediately
 
         return true; // yeah, we handled this
     }
@@ -739,7 +739,7 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
         Q_UNUSED(dropAction)
         delete drag; // QDrag takes ownership of mimeData
     } else {
-        // the source is the darkSongTable --------
+        // the source is the songTable --------
 
         for (const auto &mi : selectionModel()->selectedRows()) {
             sourceRow = mi.row();  // this is the actual row number of each selected row, overriding the cursor-located row (just pick all selected rows)
@@ -755,7 +755,7 @@ void MyTableWidget::mouseMoveEvent(QMouseEvent *event)
             title.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if filename contains HTML encoded chars, put originals back
 
             if (isRowHidden(sourceRow)) {
-                // don't allow drag and drop for rows that are not visible!  This only is a problem for darkSongTable, which may have filters applied.
+                // don't allow drag and drop for rows that are not visible!  This only is a problem for songTable, which may have filters applied.
                 // qDebug() << "no drag and drop for you: " << sourceRow << title;
                 continue;
             } else {
@@ -985,10 +985,10 @@ void MyTableWidget::dropEvent(QDropEvent *event)
             copiedItems.append(items);
             QWidget* w = cellWidget(r, 1);
             if (w) {
-                darkPaletteSongTitleLabel* oldLabel = dynamic_cast<darkPaletteSongTitleLabel*>(w);
+                PaletteSongTitleLabel* oldLabel = dynamic_cast<PaletteSongTitleLabel*>(w);
                 if (oldLabel) {
                     // clone the fancy palette label
-                    darkPaletteSongTitleLabel* newLabel = new darkPaletteSongTitleLabel((MainWindow *)mw);
+                    PaletteSongTitleLabel* newLabel = new PaletteSongTitleLabel((MainWindow *)mw);
                     newLabel->setTextFormat(Qt::RichText);
                     newLabel->setText(oldLabel->text());
                     copiedWidgets.append(newLabel); // copy fancy label
@@ -1048,7 +1048,7 @@ void MyTableWidget::dropEvent(QDropEvent *event)
 
         ((MainWindow *)mw)->slotModified[whichSlot] = true;
 
-        ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the darkSongTable view immediately
+        ((MainWindow *)mw)->saveSlotNow(this);  // drag operations save and possibly update the songTable view immediately
 
         // Refresh indentation after internal move (issue #1547)
         ((MainWindow *)mw)->refreshAllPlaylists();
@@ -1056,7 +1056,7 @@ void MyTableWidget::dropEvent(QDropEvent *event)
         return;
     }
 
-    // ...existing code for drag from darkSongTable or other playlist...
+    // ...existing code for drag from songTable or other playlist...
     int itemNumber = 0;
     for (const auto &r : std::as_const(rows)) {
         // ...existing code...
@@ -1078,7 +1078,7 @@ void MyTableWidget::dropEvent(QDropEvent *event)
             sourceSlot = 1;
         } else if (sourceName == "playlist3Table") {
             sourceSlot = 2;
-        } else if (sourceName == "darkSongTable") {
+        } else if (sourceName == "songTable") {
             sourceSlot = -1;
         } else {
             qDebug() << "SLOT ERROR: " << sourceName;
@@ -1091,7 +1091,7 @@ void MyTableWidget::dropEvent(QDropEvent *event)
             destSlot = 1;
         } else if (destName == "playlist3Table") {
             destSlot = 2;
-        } else if (destName == "darkSongTable") {
+        } else if (destName == "songTable") {
             destSlot = -1;
         } else {
             qDebug() << "SLOT ERROR" << destName;
@@ -1115,15 +1115,15 @@ void MyTableWidget::dropEvent(QDropEvent *event)
         bool sourceIsTrackFilter = sourceRelPath.startsWith("/tracks/");
         bool destIsTrackFilter   = destRelPath.startsWith("/tracks/");
 
-        if (sourceName == "darkSongTable") {
-            if (destName == "darkSongTable") {
-                // NOPE.  We don't allow reordering of the darkSongTable ever.
+        if (sourceName == "songTable") {
+            if (destName == "songTable") {
+                // NOPE.  We don't allow reordering of the songTable ever.
                 // qDebug() << "NO REORDERING OF DARKSONGTABLE";
             } else {
-                // from darkSongTable to this playlist, this is feature request #1018
+                // from songTable to this playlist, this is feature request #1018
                 // qDebug() << "***** DROP:" << sourceName << sourceTrackName << sourcePitch << sourceTempo << sourcePath << targetRow;
 
-                // (MainWindow*)mw->darkAddPlaylistItemToBottom(whichSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, ""); // slot is 0 - 2
+                // (MainWindow*)mw->addPlaylistItemToBottom(whichSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, ""); // slot is 0 - 2
 
                 if (destIsTrackFilter) {
                     // qDebug() << "NO DROPPING FROM DARKSONGTABLE TO TRACK FILTERS";
@@ -1131,17 +1131,17 @@ void MyTableWidget::dropEvent(QDropEvent *event)
                     // FROM DARKSONGTABLE TO PLAYLIST-THAT-IS-NOT-A-TRACK-FILTER ================
                     if (mw != nullptr) {
                         // playlists only, not track filters
-                        // ((MainWindow *)mw)->darkAddPlaylistItemToBottom(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "");
-                        ((MainWindow *)mw)->darkAddPlaylistItemAt(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "", targetRow + itemNumber);
+                        // ((MainWindow *)mw)->addPlaylistItemToBottom(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "");
+                        ((MainWindow *)mw)->addPlaylistItemAt(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "", targetRow + itemNumber);
                         itemNumber++;
-                        ((MainWindow *)mw)->saveSlotNow(destSlot);  // drag operations save and possibly update the darkSongTable view immediately
+                        ((MainWindow *)mw)->saveSlotNow(destSlot);  // drag operations save and possibly update the songTable view immediately
                     } else {
                         qDebug() << "ERROR: mw not valid";
                     }
                 }
             }
         } else {
-            if (destName == "darkSongTable") {
+            if (destName == "songTable") {
                 // qDebug() << "NO DROPPING OF ANYTHING ON DARKSONGTABLE (YET)";
                 // NOPE.  Not yet at least.
                 return;
@@ -1159,9 +1159,9 @@ void MyTableWidget::dropEvent(QDropEvent *event)
                     // qDebug() << "***** DRAG N DROP from TRACK FILTER to PLAYLIST: " << sourceName << destName;
                     if (mw != nullptr) {
                         // qDebug() << "TF2PL: " << destSlot << sourceTrackName << sourcePitch << sourceTempo << sourcePath;
-                        ((MainWindow *)mw)->darkAddPlaylistItemAt(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "", targetRow + itemNumber);
+                        ((MainWindow *)mw)->addPlaylistItemAt(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "", targetRow + itemNumber);
                         itemNumber++;
-                        ((MainWindow *)mw)->saveSlotNow(destSlot);  // drag operations save and possibly update the darkSongTable view immediately
+                        ((MainWindow *)mw)->saveSlotNow(destSlot);  // drag operations save and possibly update the songTable view immediately
                     } else {
                         qDebug() << "ERROR: mw not valid";
                     }
@@ -1180,9 +1180,9 @@ void MyTableWidget::dropEvent(QDropEvent *event)
                         // dragging between playlists we want to support
                         // --- Fix: insert at drop position, not at end ---
                         if (mw != nullptr) {
-                            ((MainWindow *)mw)->darkAddPlaylistItemAt(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "", targetRow + itemNumber);
+                            ((MainWindow *)mw)->addPlaylistItemAt(destSlot, sourceTrackName, sourcePitch, sourceTempo, sourcePath, "", targetRow + itemNumber);
                             itemNumber++;
-                            ((MainWindow *)mw)->saveSlotNow(destSlot);  // drag operations save and possibly update the darkSongTable view immediately
+                            ((MainWindow *)mw)->saveSlotNow(destSlot);  // drag operations save and possibly update the songTable view immediately
                         } else {
                             qDebug() << "ERROR: mw not valid";
                         }
@@ -1303,7 +1303,7 @@ void MyTableWidget::onHeaderClicked(int column) {
 }
 
 void MyTableWidget::setOrderFromString(QString s) {
-    // called from darkloadMusicList to set the sort order in the darkSongTable
+    // called from darkloadMusicList to set the sort order in the songTable
     // qDebug() << "setOrderFromString:" << s;
 
     // sortOperations.clear(); // NO, DON'T clear out the old here, do it only when told in initializeSortOrder() (when resetting)

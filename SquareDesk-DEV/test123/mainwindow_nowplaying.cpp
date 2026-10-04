@@ -292,11 +292,11 @@ void MainWindow::updateNowPlayingMetadata() {
             //         printf("C++: Starting brief media activation cycle using UI button...\n");
                     
             //         // Use the same UI button that Control Center would trigger
-            //         ui->darkPlayButton->click();
+            //         ui->playButton->click();
                     
             //         QTimer::singleShot(5, [this]() {
             //             // Click again to pause after just 5ms
-            //             ui->darkPlayButton->click();
+            //             ui->playButton->click();
             //             printf("C++: Media activation cycle complete using UI - F8 should now work!\n");
             //             updateNowPlayingMetadata();
             //         });
@@ -336,11 +336,11 @@ void MainWindow::nowPlayingPlay() {
     if (Stream_State == BASS_ACTIVE_PLAYING) {
         // Currently playing, so pause it
         // printf("Remote play: Currently playing, pausing\n");
-        ui->darkPlayButton->click();
+        ui->playButton->click();
     } else {
         // Not playing (could be never played, paused, or stopped), so start/resume
         // printf("Remote play: Not playing (state %u), starting/resuming playback\n", Stream_State);
-        ui->darkPlayButton->click();
+        ui->playButton->click();
     }
     
     // Check the state after clicking to see what happened
@@ -359,7 +359,7 @@ void MainWindow::nowPlayingPause() {
     if (Stream_State == BASS_ACTIVE_PLAYING) {
         // Currently playing, so pause
         // qDebug() << "Remote pause: Pausing playback (stream state was" << Stream_State << ")";
-        ui->darkPlayButton->click();
+        ui->playButton->click();
     } else {
         // qDebug() << "Remote pause: Already paused/stopped (stream state:" << Stream_State << ")";
     }
@@ -412,7 +412,7 @@ void MainWindow::nowPlayingPrevious() {
 }
 
 void MainWindow::nowPlayingStop() {
-    ui->darkStopButton->click();
+    ui->stopButton->click();
 }
 
 void MainWindow::nowPlayingSeek(double timeInSeconds) {

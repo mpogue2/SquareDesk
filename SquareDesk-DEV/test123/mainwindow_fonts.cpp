@@ -136,17 +136,17 @@ void MainWindow::setFontSizes()
     preferredNowPlayingFontSize = 27;
 #endif
 
-    QFont font = ui->darkTempoLabel->font();  // system font for most everything
+    QFont font = ui->tempoLabel->font();  // system font for most everything
 
     // preferred very small text
     font.setPointSize(preferredVerySmallFontSize);
-    ui->darkSearch->setFont(font);
+    ui->search->setFont(font);
     ui->lineEditSDInput->setFont(font);  // SD Input box needs to resize, too.
-    ui->darkSongTable->setFont(font);
+    ui->songTable->setFont(font);
 
     ui->treeWidget->setFont(font);
-    // ui->darkStartLoopTime->setFont(font); // this doesn't seem to work
-    // ui->darkEndLoopTime->setFont(font);
+    // ui->startLoopTime->setFont(font); // this doesn't seem to work
+    // ui->endLoopTime->setFont(font);
 
     // preferred normal small text
     font.setPointSize(preferredSmallFontSize);
@@ -193,7 +193,7 @@ void MainWindow::adjustFontSizes()
     int index = pointSizeToIndex(currentMacPointSize);  // current index
 
     // give a little extra space when sorted...
-    int sortedSection = ui->darkSongTable->horizontalHeader()->sortIndicatorSection();
+    int sortedSection = ui->songTable->horizontalHeader()->sortIndicatorSection();
 
     // pixel perfection for each platform
 #if defined(Q_OS_MAC)
@@ -312,15 +312,15 @@ void MainWindow::adjustFontSizes()
 
     double extraWidth = (index != -1 ? extraColWidth[index] : 0.0);  // get rid of the error case where index returns as -1, make extraWidth zero in that case
 
-    ui->darkSongTable->setColumnWidth(kNumberCol, static_cast<int>((numberBase + (sortedSection==kNumberCol?numberFactor:0.0)) *currentFontPointSize));
-    ui->darkSongTable->setColumnWidth(kRecentCol, static_cast<int>((recentBase+(sortedSection==kRecentCol?recentFactor:0.0)+extraWidth)*currentFontPointSize));
-    ui->darkSongTable->setColumnWidth(kAgeCol, static_cast<int>((ageBase+(sortedSection==kAgeCol?ageFactor:0.0)+extraWidth)*currentFontPointSize));
-    ui->darkSongTable->setColumnWidth(kPitchCol, static_cast<int>((pitchBase+(sortedSection==kPitchCol?pitchFactor:0.0)+extraWidth)*currentFontPointSize));
-    ui->darkSongTable->setColumnWidth(kTempoCol, static_cast<int>((tempoBase+(sortedSection==kTempoCol?tempoFactor:0.0)+extraWidth)*currentFontPointSize));
+    ui->songTable->setColumnWidth(kNumberCol, static_cast<int>((numberBase + (sortedSection==kNumberCol?numberFactor:0.0)) *currentFontPointSize));
+    ui->songTable->setColumnWidth(kRecentCol, static_cast<int>((recentBase+(sortedSection==kRecentCol?recentFactor:0.0)+extraWidth)*currentFontPointSize));
+    ui->songTable->setColumnWidth(kAgeCol, static_cast<int>((ageBase+(sortedSection==kAgeCol?ageFactor:0.0)+extraWidth)*currentFontPointSize));
+    ui->songTable->setColumnWidth(kPitchCol, static_cast<int>((pitchBase+(sortedSection==kPitchCol?pitchFactor:0.0)+extraWidth)*currentFontPointSize));
+    ui->songTable->setColumnWidth(kTempoCol, static_cast<int>((tempoBase+(sortedSection==kTempoCol?tempoFactor:0.0)+extraWidth)*currentFontPointSize));
 
     int searchBoxHeight = (index != -1 ? searchBoxesHeight[index] : searchBoxesHeight[2]); // if index == -1 because error, use something in the middle
     int buttonHeight = (index != -1 ? cuesheetButtonHeight[index] : cuesheetButtonHeight[2]); // button height for cuesheet buttons
-    ui->darkSearch->setFixedHeight(searchBoxHeight);
+    ui->search->setFixedHeight(searchBoxHeight);
     ui->lineEditSDInput->setFixedHeight(searchBoxHeight);
 
     ui->dateTimeEditIntroTime->setFixedHeight(searchBoxHeight);
@@ -340,7 +340,7 @@ void MainWindow::adjustFontSizes()
 #endif
 
     // set all the related fonts to the same size
-    ui->darkSearch->setFont(currentFont);
+    ui->search->setFont(currentFont);
     ui->lineEditSDInput->setFont(currentFont);
 
     // ui->mixLabel->setFont(currentFont);
@@ -349,12 +349,12 @@ void MainWindow::adjustFontSizes()
     currentFontMax.setPointSize((int)fmin(20, currentFont.pointSize()));  // don't allow to get too big
 
     fitTempoLabelFont();
-    ui->darkPitchLabel->setFont(currentFontMax);
-    ui->darkVolumeLabel->setFont(currentFontMax);
+    ui->pitchLabel->setFont(currentFontMax);
+    ui->volumeLabel->setFont(currentFontMax);
 
     ui->treeWidget->setFont(currentFont);
-    // ui->darkStartLoopTime->setFont(currentFont); // this doesn't seem to work. changes field width, but not font
-    // ui->darkEndLoopTime->setFont(currentFont);
+    // ui->startLoopTime->setFont(currentFont); // this doesn't seem to work. changes field width, but not font
+    // ui->endLoopTime->setFont(currentFont);
 
     // ui->currentMixLabel->setFont(currentFont);
 
@@ -414,8 +414,8 @@ void MainWindow::adjustFontSizes()
     ui->tableWidgetCallList->setFont(currentFont);
     ui->tableWidgetCallList->horizontalHeader()->setFont(currentFont);
 
-    ui->darkSongTable->horizontalHeader()->setFont(currentFont);
-    ui->darkSongTable->horizontalHeader()->setFixedHeight(searchBoxHeight); // protected against index == -1
+    ui->songTable->horizontalHeader()->setFont(currentFont);
+    ui->songTable->horizontalHeader()->setFixedHeight(searchBoxHeight); // protected against index == -1
 
 //    qDebug() << "setting font to: " << currentFont;
 
@@ -441,8 +441,8 @@ void MainWindow::adjustFontSizes()
     // ui->previousSongButton->setIconSize(newIconSize);
     // ui->nextSongButton->setIconSize(newIconSize);
 
-    // ui->darkStopButton->setIconSize(newIconSize);
-    // ui->darkPlayButton->setIconSize(newIconSize);
+    // ui->stopButton->setIconSize(newIconSize);
+    // ui->playButton->setIconSize(newIconSize);
 
     //ui->pushButtonEditLyrics->setIconSize(newIconSize);
 
@@ -514,8 +514,8 @@ void MainWindow::adjustFontSizes()
     // ui->previousSongButton->setFixedSize(static_cast<int>(buttonSizeH*nowPlayingLabelFontSize), static_cast<int>(buttonSizeV*nowPlayingLabelFontSize));
     // ui->nextSongButton->setFixedSize(static_cast<int>(buttonSizeH*nowPlayingLabelFontSize), static_cast<int>(buttonSizeV*nowPlayingLabelFontSize));
 
-    // ui->darkStopButton->setFixedSize(static_cast<int>(buttonSizeH*nowPlayingLabelFontSize), static_cast<int>(buttonSizeV*nowPlayingLabelFontSize));
-    // ui->darkPlayButton->setFixedSize(static_cast<int>(buttonSizeH*nowPlayingLabelFontSize), static_cast<int>(buttonSizeV*nowPlayingLabelFontSize));
+    // ui->stopButton->setFixedSize(static_cast<int>(buttonSizeH*nowPlayingLabelFontSize), static_cast<int>(buttonSizeV*nowPlayingLabelFontSize));
+    // ui->playButton->setFixedSize(static_cast<int>(buttonSizeH*nowPlayingLabelFontSize), static_cast<int>(buttonSizeV*nowPlayingLabelFontSize));
 }
 
 
@@ -538,7 +538,7 @@ void MainWindow::usePersistentFontSize() {
 
     t.elapsed(__LINE__);
 
-    QFont currentFont = ui->darkSongTable->font();  // set the font size in the songTable
+    QFont currentFont = ui->songTable->font();  // set the font size in the songTable
 //    qDebug() << "index: " << pointSizeToIndex(newPointSize);
     int platformPS = indexToPointSize(pointSizeToIndex(newPointSize));  // convert to PLATFORM pointsize
 //    qDebug() << "platformPS: " << platformPS;
@@ -555,14 +555,14 @@ void MainWindow::usePersistentFontSize() {
     }
     applyCuesheetZoom();  // cuesheet zoom := totalZoom + this cuesheet's font size offset (#1682)
 
-    ui->darkSongTable->setFont(currentFont);
+    ui->songTable->setFont(currentFont);
     currentMacPointSize = newPointSize;
 
     t.elapsed(__LINE__);
 
     t.elapsed(__LINE__);
 
-    setSongTableFont(ui->darkSongTable, currentFont);
+    setSongTableFont(ui->songTable, currentFont);
 
     t.elapsed(__LINE__);
 
@@ -607,7 +607,7 @@ void MainWindow::zoomInOut(int increment) {
     int platformPS = indexToPointSize(pointSizeToIndex(newPointSize));  // convert to PLATFORM pointsize
     currentFont.setPointSize(platformPS);
 
-    ui->darkSongTable->setFont(currentFont);
+    ui->songTable->setFont(currentFont);
     currentMacPointSize = newPointSize;
 
     t.elapsed(__LINE__);
@@ -616,7 +616,7 @@ void MainWindow::zoomInOut(int increment) {
     t.elapsed(__LINE__);
     startLongSongTableOperation("zoomInOut");
     t.elapsed(__LINE__);
-    setSongTableFont(ui->darkSongTable, currentFont);
+    setSongTableFont(ui->songTable, currentFont);
     t.elapsed(__LINE__);
     adjustFontSizes();
     stopLongSongTableOperation("zoomInOut");
@@ -642,7 +642,7 @@ void MainWindow::on_actionReset_triggered()
     int platformPS = indexToPointSize(pointSizeToIndex(currentMacPointSize));  // convert to PLATFORM pointsize
 
     currentFont.setPointSize(platformPS);
-    ui->darkSongTable->setFont(currentFont);
+    ui->songTable->setFont(currentFont);
 
     // NOTE: this resets the global zoom LEVEL only.  The per-cuesheet font size offsets are user
     //   data now (#1682), so Reset intentionally leaves them alone; the current cuesheet keeps its
@@ -651,7 +651,7 @@ void MainWindow::on_actionReset_triggered()
     applyCuesheetZoom();
 
     persistNewFontSize(currentMacPointSize);
-    setSongTableFont(ui->darkSongTable, currentFont);
+    setSongTableFont(ui->songTable, currentFont);
     adjustFontSizes();
 
     zoomInOut(6); // zoom from level 0 to level 4 out of 8 when CMD-ZERO is pressed to reset to something reasonable that's in the middle
@@ -663,14 +663,14 @@ void MainWindow::fitTempoLabelFont() {
     int maxPts = (int)fmin(20.0, (double)font.pointSize());
 
     // Lock the label to the full-size font height so vertical centering always
-    // places the text at the same y coordinate as darkPitchLabel, regardless of
+    // places the text at the same y coordinate as pitchLabel, regardless of
     // whether we shrink the font below for the "%" case.
     font.setPointSize(maxPts);
-    ui->darkTempoLabel->setMinimumHeight(QFontMetrics(font).height());
+    ui->tempoLabel->setMinimumHeight(QFontMetrics(font).height());
 
-    if (ui->darkTempoLabel->text().endsWith("%")) {
+    if (ui->tempoLabel->text().endsWith("%")) {
         maxPts = (int)(maxPts * 0.80);  // "125%" is ~33% wider than "125"
         font.setPointSize(maxPts);
     }
-    ui->darkTempoLabel->setFont(font);
+    ui->tempoLabel->setFont(font);
 }

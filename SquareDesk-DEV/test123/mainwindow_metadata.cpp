@@ -627,7 +627,7 @@ void MainWindow::on_actionIn_Out_Loop_points_to_default_triggered(bool checked) 
 
         // qDebug() << "NOW SET THESE: " << loopStart_samples << loopLength_samples << loopStart_ms << loopEnd_ms;
 
-        ui->darkStartLoopTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(loopStart_ms)));
-        ui->darkEndLoopTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(loopEnd_ms)));
+        ui->startLoopTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(loopStart_ms)));
+        ui->endLoopTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(loopEnd_ms)));
     }
 }

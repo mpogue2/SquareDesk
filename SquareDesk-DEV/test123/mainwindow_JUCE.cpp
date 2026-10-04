@@ -552,8 +552,8 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
     }
 #endif
 
-    // Handle hover events on darkEndLoopButton to temporarily disable looping
-    if (watched == ui->darkEndLoopButton) {
+    // Handle hover events on endLoopButton to temporarily disable looping
+    if (watched == ui->endLoopButton) {
         if (event->type() == QEvent::Enter) {
             // Mouse entered the button
             uint32_t streamState = cBass->currentStreamState();

@@ -192,13 +192,13 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
         // qDebug("Starting up FileWatcher now (intentionally delayed from app startup, to avoid Box.net locks retriggering loadMusicList)");
         QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
 
-        if (!ui->darkSearch->hasFocus()) {
+        if (!ui->search->hasFocus()) {
             // qDebug() << "HACK: DARK SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
-            ui->darkSearch->setFocus();
+            ui->search->setFocus();
         }
 
-        ui->darkSongTable->selectRow(0);
-        ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
+        ui->songTable->selectRow(0);
+        ui->songTable->scrollToItem(ui->songTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
     });
 
     // NOTE: Splitter restoration moved to showEvent() to fix Issue #1558
@@ -211,20 +211,20 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
     initializeSessions();
 
     // this is down here intentionally.
-    // darkLoadMusicList will either:
+    // loadMusicList will either:
     //  a) not have a previous sort order, so it will sort by label/title/type
     //  b) it will have a previous sort order, so it will set that up.
     // Now that it's initialized, this connect will allow FUTURE clicks on the darksongTable's header to
     //   persist the NEW sort order, based on any FUTURE changes to it.
-    connect(ui->darkSongTable, SIGNAL(newStableSort(QString)),
-            this, SLOT(handleNewSort(QString))); // for persisting stable sort of darkSongTable
+    connect(ui->songTable, SIGNAL(newStableSort(QString)),
+            this, SLOT(handleNewSort(QString))); // for persisting stable sort of songTable
 
-    connect(ui->darkSongTable, &MyTableWidget::columnWidthsChanged,
+    connect(ui->songTable, &MyTableWidget::columnWidthsChanged,
             this, &MainWindow::handleNewColumnWidths); // and the same for its column widths
 
     // if the user wants to go back to the default sort order
-    ui->darkSongTable->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->darkSongTable->horizontalHeader(), &QTableWidget::customContextMenuRequested,
+    ui->songTable->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->songTable->horizontalHeader(), &QTableWidget::customContextMenuRequested,
             this, [this]() {
                 QMenu *hdrMenu = new QMenu(this);
                 hdrMenu->setProperty("theme", currentThemeString);
@@ -282,7 +282,7 @@ void MainWindow::initializeUI() {
     ui->setupUi(this);
 
     // Manually connect the loop toggle button signal
-    connect(ui->darkLoopToggleButton, &QToolButton::toggled, this, &MainWindow::on_darkLoopToggleButton_toggled);
+    connect(ui->loopToggleButton, &QToolButton::toggled, this, &MainWindow::on_loopToggleButton_toggled);
 
     ui->statusBar->showMessage("");
     micStatusLabel = new QLabel("MICS OFF");
@@ -575,9 +575,9 @@ void MainWindow::initializeUI() {
 
     ui->warningLabelCuesheet->setText("");
     ui->warningLabelSD->setText("");
-    ui->darkWarningLabel->setText("");
+    ui->warningLabel->setText("");
 #ifndef DEBUG_LIGHT_MODE
-    ui->darkWarningLabel->setStyleSheet("QLabel { color : red; }");
+    ui->warningLabel->setStyleSheet("QLabel { color : red; }");
 #endif
 
 #ifdef DEBUG_LIGHT_MODE
@@ -666,8 +666,8 @@ void MainWindow::initializeMusicPlaybackControls() {
 
     songLoaded = false;     // no song is loaded, so don't update the currentLocLabel
 
-    ui->darkPlayButton->setEnabled(false);
-    ui->darkStopButton->setEnabled(false);
+    ui->playButton->setEnabled(false);
+    ui->stopButton->setEnabled(false);
 
     currentPitch = 0;
     tempoIsBPM = false;
@@ -687,7 +687,7 @@ void MainWindow::initializeMusicPlaybackControls() {
     on_actionNormalize_Track_Audio_toggled(prefsManager.GetnormalizeTrackAudio());
 
 
-    ui->theSVGClock->setTimerLabel(ui->warningLabelCuesheet, ui->warningLabelSD, ui->darkWarningLabel);  // tell the clock which labels to use for the main patter timer
+    ui->theSVGClock->setTimerLabel(ui->warningLabelCuesheet, ui->warningLabelSD, ui->warningLabel);  // tell the clock which labels to use for the main patter timer
 
     // restore the Flash Calls menu checkboxes state -----
     on_flashcallbasic_toggled(prefsManager.Getflashcallbasic());
@@ -752,31 +752,31 @@ void MainWindow::initializeMusicPlaybackControls() {
 
     // DARK MODE UI TESTING --------------------
 
-    ui->darkWarningLabel->setToolTip("Shows Time-in-Tip (Patter) in MM:SS, and Section-in-Tip (Singer).\nClick here to reset.");
+    ui->warningLabel->setToolTip("Shows Time-in-Tip (Patter) in MM:SS, and Section-in-Tip (Singer).\nClick here to reset.");
     ui->currentLocLabel3->setToolTip("Shows Position-in-Song in MM:SS.");
     ui->songLengthLabel2->setToolTip("Shows Length-of-Song in MM:SS.");
 
     // LOOP CONTROLS =========
-    // NOTE: darkStartLoopButton/darkEndLoopButton tooltips are set dynamically by updateHotkeyTooltips()
+    // NOTE: startLoopButton/endLoopButton tooltips are set dynamically by updateHotkeyTooltips()
 
-    // Install event filter to handle hover on darkEndLoopButton
-    ui->darkEndLoopButton->installEventFilter(this);
+    // Install event filter to handle hover on endLoopButton
+    ui->endLoopButton->installEventFilter(this);
 
     // layout the QDials in QtDesigner, promote to svgDial's, and then make sure to init all 3 parameters (in this order)
-    ui->darkTrebleKnob->setKnobFile("knobs/knob_bg_regular.svg");
-    ui->darkTrebleKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
-    ui->darkTrebleKnob->setArcColor("#909090"); // no longer triggers finish of init
-    ui->darkTrebleKnob->setToolTip("Treble\nControls the amount of high frequencies in this song.");
+    ui->trebleKnob->setKnobFile("knobs/knob_bg_regular.svg");
+    ui->trebleKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
+    ui->trebleKnob->setArcColor("#909090"); // no longer triggers finish of init
+    ui->trebleKnob->setToolTip("Treble\nControls the amount of high frequencies in this song.");
 
-    ui->darkMidKnob->setKnobFile("knobs/knob_bg_regular.svg");
-    ui->darkMidKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
-    ui->darkMidKnob->setArcColor("#909090"); // no longer triggers finish of init
-    ui->darkMidKnob->setToolTip("Midrange\nControls the amount of midrange frequencies in this song.");
+    ui->midKnob->setKnobFile("knobs/knob_bg_regular.svg");
+    ui->midKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
+    ui->midKnob->setArcColor("#909090"); // no longer triggers finish of init
+    ui->midKnob->setToolTip("Midrange\nControls the amount of midrange frequencies in this song.");
 
-    ui->darkBassKnob->setKnobFile("knobs/knob_bg_regular.svg");
-    ui->darkBassKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
-    ui->darkBassKnob->setArcColor("#909090"); // no longer triggers finish of init
-    ui->darkBassKnob->setToolTip("Bass\nControls the amount of low frequencies in this song.");
+    ui->bassKnob->setKnobFile("knobs/knob_bg_regular.svg");
+    ui->bassKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
+    ui->bassKnob->setArcColor("#909090"); // no longer triggers finish of init
+    ui->bassKnob->setToolTip("Bass\nControls the amount of low frequencies in this song.");
 
 #ifndef DEBUG_LIGHT_MODE
     ui->label_T->setStyleSheet("color: " + darkTextColor);
@@ -787,58 +787,58 @@ void MainWindow::initializeMusicPlaybackControls() {
     // sliders ==========
 
     // VOLUME:
-    ui->darkVolumeSlider->setBgFile("sliders/slider_volume_deck.svg");
-    ui->darkVolumeSlider->setHandleFile("sliders/knob_volume_deck.svg");
-    ui->darkVolumeSlider->setVeinColor("#00797B");
-    ui->darkVolumeSlider->setDefaultValue(100.0);
-    ui->darkVolumeSlider->setIncrement(1.0);
-    ui->darkVolumeSlider->setCenterVeinType(false);
-    // NOTE: darkVolumeSlider tooltip is set dynamically by updateHotkeyTooltips()
+    ui->volumeSlider->setBgFile("sliders/slider_volume_deck.svg");
+    ui->volumeSlider->setHandleFile("sliders/knob_volume_deck.svg");
+    ui->volumeSlider->setVeinColor("#00797B");
+    ui->volumeSlider->setDefaultValue(100.0);
+    ui->volumeSlider->setIncrement(1.0);
+    ui->volumeSlider->setCenterVeinType(false);
+    // NOTE: volumeSlider tooltip is set dynamically by updateHotkeyTooltips()
 
 #ifndef DEBUG_LIGHT_MODE
-    ui->darkVolumeLabel->setStyleSheet("color: " + darkTextColor);
+    ui->volumeLabel->setStyleSheet("color: " + darkTextColor);
 #endif
 
     // TEMPO:
-    ui->darkTempoSlider->setBgFile("sliders/slider_pitch_deck2.svg");
-    ui->darkTempoSlider->setHandleFile("sliders/knob_volume_deck.svg");
-    ui->darkTempoSlider->setVeinColor("#CA4E09");
-    ui->darkTempoSlider->setDefaultValue(0.0);
-    ui->darkTempoSlider->setIncrement(1.0);
-    ui->darkTempoSlider->setCenterVeinType(true);
-    // NOTE: darkTempoSlider tooltip is set dynamically by updateHotkeyTooltips()
+    ui->tempoSlider->setBgFile("sliders/slider_pitch_deck2.svg");
+    ui->tempoSlider->setHandleFile("sliders/knob_volume_deck.svg");
+    ui->tempoSlider->setVeinColor("#CA4E09");
+    ui->tempoSlider->setDefaultValue(0.0);
+    ui->tempoSlider->setIncrement(1.0);
+    ui->tempoSlider->setCenterVeinType(true);
+    // NOTE: tempoSlider tooltip is set dynamically by updateHotkeyTooltips()
 
     // Connect tempo slider +/- buttons to actions
-    connect(ui->darkTempoSlider, &svgSlider::incrementRequested, ui->actionSpeed_Up, &QAction::trigger);
-    connect(ui->darkTempoSlider, &svgSlider::decrementRequested, ui->actionSlow_Down, &QAction::trigger);
+    connect(ui->tempoSlider, &svgSlider::incrementRequested, ui->actionSpeed_Up, &QAction::trigger);
+    connect(ui->tempoSlider, &svgSlider::decrementRequested, ui->actionSlow_Down, &QAction::trigger);
 
 #ifndef DEBUG_LIGHT_MODE
-    ui->darkTempoLabel->setStyleSheet("color: " + darkTextColor);
+    ui->tempoLabel->setStyleSheet("color: " + darkTextColor);
 #endif
 
     // PITCH:
-    ui->darkPitchSlider->setBgFile("sliders/slider_pitch_deck2.svg");
-    ui->darkPitchSlider->setHandleFile("sliders/knob_volume_deck.svg");
-    ui->darkPitchSlider->setVeinColor("#177D0F");
-    ui->darkPitchSlider->setDefaultValue(0.0);
-    ui->darkPitchSlider->setIncrement(1.0);
-    ui->darkPitchSlider->setCenterVeinType(true);
-    // NOTE: darkPitchSlider tooltip is set dynamically by updateHotkeyTooltips()
+    ui->pitchSlider->setBgFile("sliders/slider_pitch_deck2.svg");
+    ui->pitchSlider->setHandleFile("sliders/knob_volume_deck.svg");
+    ui->pitchSlider->setVeinColor("#177D0F");
+    ui->pitchSlider->setDefaultValue(0.0);
+    ui->pitchSlider->setIncrement(1.0);
+    ui->pitchSlider->setCenterVeinType(true);
+    // NOTE: pitchSlider tooltip is set dynamically by updateHotkeyTooltips()
 
     // Connect pitch slider +/- buttons to actions
-    connect(ui->darkPitchSlider, &svgSlider::incrementRequested, ui->actionPitch_Up, &QAction::trigger);
-    connect(ui->darkPitchSlider, &svgSlider::decrementRequested, ui->actionPitch_Down, &QAction::trigger);
+    connect(ui->pitchSlider, &svgSlider::incrementRequested, ui->actionPitch_Up, &QAction::trigger);
+    connect(ui->pitchSlider, &svgSlider::decrementRequested, ui->actionPitch_Down, &QAction::trigger);
 
 #ifndef DEBUG_LIGHT_MODE
-    ui->darkPitchLabel->setStyleSheet("color: " + darkTextColor);
+    ui->pitchLabel->setStyleSheet("color: " + darkTextColor);
 #endif
 
     // VUMETER:
-    ui->darkVUmeter->levelChanged(0, 0, false);  // initialize the VUmeter
+    ui->vuMeter->levelChanged(0, 0, false);  // initialize the VUmeter
 
     // TITLE:
-    setProp(ui->darkTitle, "flashcall", false);
-    ui->darkTitle->setText(""); // get rid of the placeholder text
+    setProp(ui->title, "flashcall", false);
+    ui->title->setText(""); // get rid of the placeholder text
 
     // TOOLBUTTONS:
     QString toolButtonIconColor = "#A0A0A0";
@@ -852,7 +852,7 @@ void MainWindow::initializeMusicPlaybackControls() {
     //#endif
     //    pixmap.save("darkPlay.png");
 
-    darkPlayIcon = new QIcon(pixmap);
+    playIcon = new QIcon(pixmap);
 
     pixmap = style->standardPixmap(QStyle::SP_MediaPause);
     //#ifndef DEBUG_LIGHT_MODE
@@ -862,7 +862,7 @@ void MainWindow::initializeMusicPlaybackControls() {
     //#endif
     //    pixmap.save("darkPause.png");
 
-    darkPauseIcon = new QIcon(pixmap);
+    pauseIcon = new QIcon(pixmap);
 
     pixmap = style->standardPixmap(QStyle::SP_MediaStop);
     //#ifndef DEBUG_LIGHT_MODE
@@ -873,15 +873,15 @@ void MainWindow::initializeMusicPlaybackControls() {
 
     //    pixmap.save("darkStop.png");
 
-    darkStopIcon = new QIcon(pixmap);
+    stopIcon = new QIcon(pixmap);
 
-    ui->darkStopButton->setIcon(*darkStopIcon);  // SET THE INITIAL STOP BUTTON ICON
-    ui->darkPlayButton->setIcon(*darkPlayIcon);  // SET THE INITIAL PLAY BUTTON ICON
+    ui->stopButton->setIcon(*stopIcon);  // SET THE INITIAL STOP BUTTON ICON
+    ui->playButton->setIcon(*playIcon);  // SET THE INITIAL PLAY BUTTON ICON
 
     // Note: I don't do it this way below, because changing color then requires editing the resource files.
     //  Instead, the above method allows me to change colors at any time by regenerating the cached icons from pixmaps.
     //    QPixmap pixmap2(":/graphics/darkPlay.png");
-    //    QIcon darkPlayPixmap2(pixmap2);
+    //    QIcon playPixmap2(pixmap2);
 
     //    QIcon dd(":/graphics/darkPlay.png"); // I can't stick this in the MainWindow object without getting errors either...
 
@@ -898,15 +898,15 @@ void MainWindow::initializeMusicPlaybackControls() {
 
     ui->theSVGClock->finishInit();
 
-    ui->darkSeekBar->finishInit();  // load everything up!
+    ui->seekBar->finishInit();  // load everything up!
 
-    ui->darkTrebleKnob->finishInit();
-    ui->darkMidKnob->finishInit();
-    ui->darkBassKnob->finishInit();
+    ui->trebleKnob->finishInit();
+    ui->midKnob->finishInit();
+    ui->bassKnob->finishInit();
 
-    ui->darkPitchSlider->finishInit();
-    ui->darkTempoSlider->finishInit();
-    ui->darkVolumeSlider->finishInit();
+    ui->pitchSlider->finishInit();
+    ui->tempoSlider->finishInit();
+    ui->volumeSlider->finishInit();
 
     ui->FXbutton->setVisible(false); // if USE_JUCE is enabled, and if LoudMax AU is present, this button will be made visible
     ui->FXbutton->setChecked(false); // checked = LoudMaxWin is visible
@@ -1394,13 +1394,13 @@ void MainWindow::initializeMusicPlaylists() {
 void MainWindow::initializeMusicSearch() {
     currentTreePath = "Tracks/";
 
-    ui->darkSearch->setFocus();  // this should be the intial focus
+    ui->search->setFocus();  // this should be the intial focus
 
     // TREEWIDGET:
     QList<QTreeWidgetItem *> trackItem = ui->treeWidget->findItems("Tracks", Qt::MatchExactly);
-    doNotCallDarkLoadMusicList = true;
+    doNotCallLoadMusicList = true;
     trackItem[0]->setSelected(true); // entire Tracks was already loaded by actionTags
-    doNotCallDarkLoadMusicList = false;
+    doNotCallLoadMusicList = false;
 
     // enable context menus for TreeWidget
     ui->treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -1414,7 +1414,7 @@ void MainWindow::initializeMusicSearch() {
     });
 
     // SEARCH BOX:
-    ui->darkSearch->setToolTip("Search\nFilter songs by specifying Type:Label:Title.\n\nExamples:\nlove = any song where type or label or title contains 'love'\nsing::heart = singing calls where title contains 'heart'\np:riv = patter from Riverboat\netc.");
+    ui->search->setToolTip("Search\nFilter songs by specifying Type:Label:Title.\n\nExamples:\nlove = any song where type or label or title contains 'love'\nsing::heart = singing calls where title contains 'heart'\np:riv = patter from Riverboat\netc.");
 
     // SEARCH -----------
     typeSearch = labelSearch = titleSearch = ""; // no filters at startup
@@ -1424,15 +1424,15 @@ void MainWindow::initializeMusicSearch() {
 
 // ====================================================
 void MainWindow::initializeMusicSongTable() {
-    doNotCallDarkLoadMusicList = false;
+    doNotCallLoadMusicList = false;
     longSongTableOperationCount = 0;  // initialize counter to zero (unblocked)
     startLongSongTableOperation("MainWindow");
 
-    // The .ui declares only 8 columns for darkSongTable, and they are Designer placeholders that
+    // The .ui declares only 8 columns for songTable, and they are Designer placeholders that
     //   don't even match the real indices (they read #/Type/Label/Title/Age/Pitch/Tempo, with
     //   Levels and Recent missing).  Every label is overwritten by setHorizontalHeaderLabels()
     //   anyway, so the only thing the .ui really contributes here is a column COUNT that is
-    //   wrong, and until now kNumSongTableCols columns didn't exist until darkLoadMusicList()
+    //   wrong, and until now kNumSongTableCols columns didn't exist until loadMusicList()
     //   called setColumnCount() much later.  Two things went wrong because of that:
     //
     //   - setColumnWidth() bounds-checks and silently does nothing, so the initial widths set
@@ -1440,11 +1440,11 @@ void MainWindow::initializeMusicSongTable() {
     //     Qt's default width instead.
     //   - QHeaderView::setSectionResizeMode() does NOT bounds-check.  It asserts in a debug
     //     build and indexes its section list with -1 in a release one, so updateSongTableColumnView()
-    //     was only safe by virtue of running after the first darkLoadMusicList().
+    //     was only safe by virtue of running after the first loadMusicList().
     //
-    // Create the real columns up front instead.  darkLoadMusicList() still calls setColumnCount()
+    // Create the real columns up front instead.  loadMusicList() still calls setColumnCount()
     //   with the same value, which is then a no-op that leaves these widths alone (issue #1744).
-    ui->darkSongTable->setColumnCount(kNumSongTableCols);
+    ui->songTable->setColumnCount(kNumSongTableCols);
 
     // Must happen before the setColumnHidden() below, and before anything else hides a column.
     //   QHeaderViewPrivate::hasAutoResizeSections() counts stretchLastSection, and
@@ -1452,44 +1452,44 @@ void MainWindow::initializeMusicSongTable() {
     //   defers to a relayout that then finds nothing to lay out, and the hidden column keeps its
     //   full width while painting nothing.  The .ui ships this as true.  See the longer comment
     //   in updateSongTableColumnView() (issue #1744).
-    ui->darkSongTable->horizontalHeader()->setStretchLastSection(false);
+    ui->songTable->horizontalHeader()->setStretchLastSection(false);
 
     // Establish these two up front rather than later, because MyTableWidget decides which column
     //   widths are worth persisting from the resize mode and the slack column -- and the first
-    //   darkLoadMusicList() restores widths before updateSongTableColumnView() has ever run.
+    //   loadMusicList() restores widths before updateSongTableColumnView() has ever run.
     //   Without this, Audition and Title would both look like ordinary user-resizable columns at
     //   exactly the wrong moment (issue #1744).  Both are set again later; that is harmless.
-    ui->darkSongTable->horizontalHeader()->setSectionResizeMode(kNumberCol, QHeaderView::Fixed);
-    ui->darkSongTable->setSlackColumn(kTitleCol);
+    ui->songTable->horizontalHeader()->setSectionResizeMode(kNumberCol, QHeaderView::Fixed);
+    ui->songTable->setSlackColumn(kTitleCol);
 
-    connect(ui->darkSongTable->horizontalHeader(), &QHeaderView::sortIndicatorChanged,
-            ui->darkSongTable, &MyTableWidget::onHeaderClicked);
+    connect(ui->songTable->horizontalHeader(), &QHeaderView::sortIndicatorChanged,
+            ui->songTable, &MyTableWidget::onHeaderClicked);
 
-    ui->darkSongTable->setColumnWidth(kNumberCol,40);  // NOTE: This must remain a fixed width, due to a bug in Qt's tracking of its width.
-    ui->darkSongTable->setColumnWidth(kTypeCol,96);
-    ui->darkSongTable->setColumnWidth(kLabelCol,80);
+    ui->songTable->setColumnWidth(kNumberCol,40);  // NOTE: This must remain a fixed width, due to a bug in Qt's tracking of its width.
+    ui->songTable->setColumnWidth(kTypeCol,96);
+    ui->songTable->setColumnWidth(kLabelCol,80);
 
-    ui->darkSongTable->setColumnWidth(kTitleCol,350);
+    ui->songTable->setColumnWidth(kTitleCol,350);
     //  TODO: kTitleCol should be always expandable, so don't set width here
 
-    ui->darkSongTable->setColumnWidth(kLevelsCol, 60);
-    ui->darkSongTable->setColumnWidth(kRecentCol, 70);
-    ui->darkSongTable->setColumnWidth(kAgeCol, 60);
-    ui->darkSongTable->setColumnWidth(kPitchCol,60);
-    ui->darkSongTable->setColumnWidth(kTempoCol,60);
+    ui->songTable->setColumnWidth(kLevelsCol, 60);
+    ui->songTable->setColumnWidth(kRecentCol, 70);
+    ui->songTable->setColumnWidth(kAgeCol, 60);
+    ui->songTable->setColumnWidth(kPitchCol,60);
+    ui->songTable->setColumnWidth(kTempoCol,60);
 
-    ui->darkSongTable->setColumnWidth(kAlbumCol, 140);
-    ui->darkSongTable->setColumnWidth(kAlbumArtistCol, 120);
-    ui->darkSongTable->setColumnWidth(kComposerCol, 120);
-    ui->darkSongTable->setColumnWidth(kCommentsCol, 140);
-    ui->darkSongTable->setColumnWidth(kYearCol, 50);
-    ui->darkSongTable->setColumnWidth(kDurationCol, 60);
+    ui->songTable->setColumnWidth(kAlbumCol, 140);
+    ui->songTable->setColumnWidth(kAlbumArtistCol, 120);
+    ui->songTable->setColumnWidth(kComposerCol, 120);
+    ui->songTable->setColumnWidth(kCommentsCol, 140);
+    ui->songTable->setColumnWidth(kYearCol, 50);
+    ui->songTable->setColumnWidth(kDurationCol, 60);
 
-    ui->darkSongTable->setColumnWidth(kArtistCol, 140);
-    ui->darkSongTable->setColumnWidth(kRatingCol, 80);     // 5 stars
-    ui->darkSongTable->setColumnWidth(kDateAddedCol, 130); // e.g. "3/3/18, 1:39 PM"
+    ui->songTable->setColumnWidth(kArtistCol, 140);
+    ui->songTable->setColumnWidth(kRatingCol, 80);     // 5 stars
+    ui->songTable->setColumnWidth(kDateAddedCol, 130); // e.g. "3/3/18, 1:39 PM"
 
-    ui->darkSongTable->setColumnHidden(kLevelsCol, true); // levels column starts out hidden, same as the playlist Levels column
+    ui->songTable->setColumnHidden(kLevelsCol, true); // levels column starts out hidden, same as the playlist Levels column
 
     // The Audition column's header is a blank square in the top left corner.  It was sortable,
     //   which is worse than useless: every row has an audition button and the item behind it has
@@ -1497,8 +1497,8 @@ void MainWindow::initializeMusicSongTable() {
     //   sort FIFO, which holds only 4 entries, so a stray click there silently evicted one of the
     //   user's real sorts.  Take the space back for the column-visibility menu instead
     //   (issue #1740, item 2).
-    ui->darkSongTable->setColumnNotSortable(kNumberCol);
-    ui->darkSongTable->setCornerMenu(ui->menuColumns);
+    ui->songTable->setColumnNotSortable(kNumberCol);
+    ui->songTable->setCornerMenu(ui->menuColumns);
 
     zoomInOut(0);  // trigger reloading of all fonts, including horizontalHeader of songTable()
 
@@ -1521,11 +1521,11 @@ void MainWindow::initializeMusicSongTable() {
         ui->statusBar->setToolTip(""); // no problems, so no tooltip for you
     }
 
-    doNotCallDarkLoadMusicList = false; // We want it to load the darkSongTable
+    doNotCallLoadMusicList = false; // We want it to load the songTable
 
     currentlyShowingPathStack = pathStack;  // IMPORTANT: the very first time, we must work with the pathStack (Tracks)
-    ui->actionViewTags->setChecked(prefsManager.GetshowSongTags()); // this can invoke darkLoadMusicList, so currentlyShowingPathStack must be set to pathStack by here
-    on_actionViewTags_toggled(prefsManager.GetshowSongTags()); // NOTE: Calls darkLoadMusicList() to load songs, but it will be shortcutted, because it was (probably) already called above
+    ui->actionViewTags->setChecked(prefsManager.GetshowSongTags()); // this can invoke loadMusicList, so currentlyShowingPathStack must be set to pathStack by here
+    on_actionViewTags_toggled(prefsManager.GetshowSongTags()); // NOTE: Calls loadMusicList() to load songs, but it will be shortcutted, because it was (probably) already called above
 
     updateSongTableColumnView(); // update the actual view of Age/Pitch/Tempo in the songTable view
 
@@ -1580,35 +1580,35 @@ void MainWindow::initializeMusicSongTable() {
 
     lastSongTableRowSelected = -1;  // meaning "no selection"
 
-    if (ui->darkSongTable->rowCount() >= 1) {
-        // ui->darkSongTable->selectRow(0); // select row 1 after initial load of the songTable (if there are rows)
-        ui->darkSearch->setFocus();
+    if (ui->songTable->rowCount() >= 1) {
+        // ui->songTable->selectRow(0); // select row 1 after initial load of the songTable (if there are rows)
+        ui->search->setFocus();
     }
 
     // SONGTABLE:
-    ui->darkSongTable->setAutoScroll(true); // Ensure that selection is always visible
+    ui->songTable->setAutoScroll(true); // Ensure that selection is always visible
 
-    QHeaderView *verticalHeader = ui->darkSongTable->verticalHeader();
+    QHeaderView *verticalHeader = ui->songTable->verticalHeader();
     verticalHeader->setSectionResizeMode(QHeaderView::ResizeToContents);
 
-    ui->darkSongTable->setAlternatingRowColors(true);
+    ui->songTable->setAlternatingRowColors(true);
 
 #ifndef DEBUG_LIGHT_MODE
-    ui->darkSongTable->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
+    ui->songTable->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
 #endif
 
 //    splash->setProgress(45, "Adjusting the column layout...");
 
-    ui->darkSongTable->resizeColumnToContents(kNumberCol);  // and force resizing of column widths to match songs
-    ui->darkSongTable->resizeColumnToContents(kTypeCol);
-    ui->darkSongTable->resizeColumnToContents(kLabelCol);
-    ui->darkSongTable->resizeColumnToContents(kPitchCol);
-    ui->darkSongTable->resizeColumnToContents(kTempoCol);
+    ui->songTable->resizeColumnToContents(kNumberCol);  // and force resizing of column widths to match songs
+    ui->songTable->resizeColumnToContents(kTypeCol);
+    ui->songTable->resizeColumnToContents(kLabelCol);
+    ui->songTable->resizeColumnToContents(kPitchCol);
+    ui->songTable->resizeColumnToContents(kTempoCol);
 
     // AFTER the resizes above, which would otherwise overwrite them (issue #1744).
-    ui->darkSongTable->setColumnWidthsFromString(prefsManager.GetsongTableColumnWidths());
+    ui->songTable->setColumnWidthsFromString(prefsManager.GetsongTableColumnWidths());
 
-    ui->darkSongTable->setMainWindow(this);
+    ui->songTable->setMainWindow(this);
 
     stopLongSongTableOperation("MainWindow");
 
@@ -1644,21 +1644,21 @@ void MainWindow::initializeCuesheetTab() {
     ui->pushButtonSetIntroTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
     ui->pushButtonSetOutroTime->setEnabled(false);
 
-    ui->darkStartLoopButton->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
-    ui->darkEndLoopButton->setEnabled(false);
+    ui->startLoopButton->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
+    ui->endLoopButton->setEnabled(false);
 
     ui->dateTimeEditIntroTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
     ui->dateTimeEditOutroTime->setEnabled(false);
 
-    ui->darkStartLoopTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
-    ui->darkEndLoopTime->setEnabled(false);
+    ui->startLoopTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
+    ui->endLoopTime->setEnabled(false);
 
     ui->pushButtonTestLoop->setHidden(false); // ALWAYS VISIBLE NOW
     ui->pushButtonTestLoop->setEnabled(false);
 
-    //    ui->darkTestLoopButton->setHidden(true);
-    ui->darkTestLoopButton->setEnabled(false);
-    ui->darkLoopToggleButton->setEnabled(false);
+    //    ui->testLoopButton->setHidden(true);
+    ui->testLoopButton->setEnabled(false);
+    ui->loopToggleButton->setEnabled(false);
 
     lastCuesheetSavePath = prefsManager.MySettings.value("lastCuesheetSavePath").toString();
 
@@ -2312,8 +2312,8 @@ void MainWindow::initializeLightDarkTheme() {
     themePreference = prefsManager.GetactiveTheme();
     // qDebug() << "themePreference:" << themePreference;
 
-    // set the theme, but do not call darkLoadSongList again
-    doNotCallDarkLoadMusicList = true;  // avoid calling it twice at startup, but allow later for it to be called by both actionViewTags and ThemeToggled
+    // set the theme, but do not call loadSongList again
+    doNotCallLoadMusicList = true;  // avoid calling it twice at startup, but allow later for it to be called by both actionViewTags and ThemeToggled
     if (themePreference == "Light") {
         // qDebug() << "    setting to Light";
         ui->actionLight->setChecked(true);
@@ -2323,5 +2323,5 @@ void MainWindow::initializeLightDarkTheme() {
         ui->actionDark->setChecked(true);
         themeTriggered(ui->actionDark);
     }
-    doNotCallDarkLoadMusicList = false;
+    doNotCallLoadMusicList = false;
 }

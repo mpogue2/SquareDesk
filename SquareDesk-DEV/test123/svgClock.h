@@ -105,11 +105,11 @@ public:
     QString singingCallSection;
 
     bool editModeSD;
-    clickableLabel *timerLabelDark;
+    clickableLabel *timerLabelWarning;
     clickableLabel *timerLabelCuesheet;
     QLabel *timerLabelSD; // intentionally not clickable
 
-    void setTimerLabel(clickableLabel *theLabelCuesheet, QLabel *theLabelSD, clickableLabel *theLabelDark);
+    void setTimerLabel(clickableLabel *theLabelCuesheet, QLabel *theLabelSD, clickableLabel *theLabelWarning);
     void setSDEditMode(bool e);
     void setSingingCallSection(QString s);
     void handleTimerLabels(); // do whatever is needed (called by updateClock())

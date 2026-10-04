@@ -43,7 +43,7 @@ svgClock::svgClock(QWidget *parent) :
     // TIMER LABEL HANDLING ---------------
     timerLabelCuesheet = nullptr;
     timerLabelSD = nullptr;
-    timerLabelDark = nullptr;
+    timerLabelWarning = nullptr;
     currentTimerState = TIMERNOTEXPIRED;
     singingCallSection = "";
     // ------------------------------------
@@ -600,7 +600,7 @@ void svgClock::handleTimerLabels() {
     // DDD(maxBreakLength)
 
     currentTimerState = TIMERNOTEXPIRED;  // clear clear
-    if (timerLabelSD != nullptr && timerLabelCuesheet != nullptr && timerLabelDark != nullptr) {
+    if (timerLabelSD != nullptr && timerLabelCuesheet != nullptr && timerLabelWarning != nullptr) {
         if (patterLengthSecs == -1 || !tipLengthTimerEnabled) {
             // if not patter, or the patter timer is disabled
             if (breakLengthSecs == -1 || !breakLengthTimerEnabled) {
@@ -619,17 +619,17 @@ void svgClock::handleTimerLabels() {
                     timerLabelCuesheet->setVisible(true);  // make the timerLabelCuesheet appear
                     timerLabelCuesheet->setText(singingCallSection);
 
-                    timerLabelDark->setVisible(true);  // make the timerLabelDark appear
-                    timerLabelDark->setText(singingCallSection);
+                    timerLabelWarning->setVisible(true);  // make the timerLabelWarning appear
+                    timerLabelWarning->setText(singingCallSection);
                     update(); // FIX: IS THIS NEEDED?
                 } else {
                     timerLabelCuesheet->setText("");
                     timerLabelSD->setText("");
-                    timerLabelDark->setText("");
+                    timerLabelWarning->setText("");
 
                     // if (timerLabelCuesheet->text() != "") {
                     //     timerLabelCuesheet->setText("");
-                    //     timerLabelDark->setText("");
+                    //     timerLabelWarning->setText("");
                     // }
                     // if (timerLabelSD->text() != "") {
                     //     timerLabelSD->setText("");
@@ -639,8 +639,8 @@ void svgClock::handleTimerLabels() {
                 // it is for sure a BREAK, the break timer is enabled, and it's under the break time limit,
                 //   and we played something before the break, and we're currently in state NONE (NOTE: can't use patter or singing calls or extras as break music)
                 // qDebug() << "for sure a BREAK";
-                timerLabelDark->setVisible(true);
-                timerLabelDark->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
+                timerLabelWarning->setVisible(true);
+                timerLabelWarning->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
 
                 timerLabelSD->setVisible(!editModeSD); // make it visible if we are NOT in edit mode
                 timerLabelSD->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
@@ -663,7 +663,7 @@ void svgClock::handleTimerLabels() {
                 //                qDebug() << "expired BREAK";
                 // timerLabel->setVisible(true);
                 timerLabelCuesheet->setVisible(true);
-                timerLabelDark->setVisible(true);
+                timerLabelWarning->setVisible(true);
                 timerLabelSD->setVisible(!editModeSD); // make it visible if SD is NOT in edit mode
 
                 // setTimerLabelColor("red"); // turns red when break is over
@@ -673,12 +673,12 @@ void svgClock::handleTimerLabels() {
     // alternate the time (negative now), and "END BREAK"
                 if (b_ss % 2 == 0) {
                     // timerLabel->setText("End BRK");
-                    timerLabelDark->setText("End BRK");
+                    timerLabelWarning->setText("End BRK");
                     timerLabelSD->setText("End BRK");
                     timerLabelCuesheet->setText("End BRK");
                 } else {
                     QString newtext = QString("-") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0'));
-                    timerLabelDark->setText(newtext);
+                    timerLabelWarning->setText(newtext);
                     timerLabelSD->setText(newtext);
                     timerLabelCuesheet->setText(newtext);
                 }
@@ -690,7 +690,7 @@ void svgClock::handleTimerLabels() {
                 //   we are not in None state right now, and we know what we're doing (e.g. playing Extras or Singers as break music)
                 //                qDebug() << "none state";
                 timerLabelCuesheet->setText("");
-                timerLabelDark->setText("");
+                timerLabelWarning->setText("");
                 timerLabelSD->setText("");
             }
         } else if (patterLengthSecs < maxPatterLength) {
@@ -701,8 +701,8 @@ void svgClock::handleTimerLabels() {
 
             QString newtext = QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0'));
 
-            timerLabelDark->setVisible(true);
-            timerLabelDark->setText(newtext);
+            timerLabelWarning->setVisible(true);
+            timerLabelWarning->setText(newtext);
 
             timerLabelSD->setVisible(!editModeSD); // make visible if SD is NOT in edit mode
             timerLabelSD->setText(newtext);
@@ -735,8 +735,8 @@ void svgClock::handleTimerLabels() {
             // DDD(maxPatterLength+15)
             QString newtext = QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0'));
 
-            timerLabelDark->setVisible(true);
-            timerLabelDark->setText(newtext);
+            timerLabelWarning->setVisible(true);
+            timerLabelWarning->setText(newtext);
 
             timerLabelSD->setVisible(!editModeSD); // make it visible if SD is NOT in edit mode
             timerLabelSD->setText(newtext);
@@ -756,18 +756,18 @@ void svgClock::handleTimerLabels() {
             // REALLY OVER THE TIME LIMIT!!  So, flash "LONG TIP" alternately with the time-in-patter.
 
             timerLabelCuesheet->setVisible(true);
-            timerLabelDark->setVisible(true);
+            timerLabelWarning->setVisible(true);
             timerLabelSD->setVisible(!editModeSD); // make visible if SD is NOT in edit mode
 
             goToState("LONG_PATTER");
 
             if (ss % 2 == 0) {
-                timerLabelDark->setText("LONG");
+                timerLabelWarning->setText("LONG");
                 timerLabelSD->setText("LONG");
                 timerLabelCuesheet->setText("LONG");
             } else {
                 QString newtext = QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0'));
-                timerLabelDark->setText(newtext);
+                timerLabelWarning->setText(newtext);
                 timerLabelSD->setText(newtext);
                 timerLabelCuesheet->setText(newtext);
             }
@@ -797,7 +797,7 @@ void svgClock::setSDEditMode(bool e) {
 }
 
 // -------------------------------------------------------------------------
-void svgClock::setTimerLabel(clickableLabel *theCuesheetLabel, QLabel *theSDLabel, clickableLabel *theDarkWarningLabel)
+void svgClock::setTimerLabel(clickableLabel *theCuesheetLabel, QLabel *theSDLabel, clickableLabel *theWarningLabel)
 {
     // qDebug() << "svgClock::setTimerLabel";
     timerLabelSD = theSDLabel;
@@ -808,8 +808,8 @@ void svgClock::setTimerLabel(clickableLabel *theCuesheetLabel, QLabel *theSDLabe
     timerLabelCuesheet->setText("STL");
     timerLabelCuesheet->setVisible(true);
 
-    timerLabelDark = theDarkWarningLabel;
-        timerLabelDark->setText("STL");
+    timerLabelWarning = theWarningLabel;
+        timerLabelWarning->setText("STL");
         timerLabelCuesheet->setVisible(true);
 }
 
@@ -818,7 +818,7 @@ void svgClock::resetPatter(void)
 {
     timerLabelSD->setText("00:00");
     timerLabelCuesheet->setText("00:00");
-    timerLabelDark->setText("00:00");
+    timerLabelWarning->setText("00:00");
 
     typeTracker.addStop();
 }

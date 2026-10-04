@@ -69,7 +69,7 @@ void MainWindow::svgClockStateChanged(QString newStateName) {
     if (newStateName != currentAnalogClockState) {
         currentAnalogClockState = newStateName;
         // qDebug() << "*** svgClockStateChanged to something new:" << newStateName;
-        setProp(ui->darkWarningLabel,     "state", newStateName);
+        setProp(ui->warningLabel,     "state", newStateName);
         setProp(ui->warningLabelCuesheet, "state", newStateName);
         setProp(ui->warningLabelSD, "state", newStateName);
     }
@@ -108,21 +108,21 @@ void MainWindow::themeTriggered(QAction * action) {
     // qDebug() << "activeTheme now set to: " << prefsManager.GetactiveTheme();
 
     setDynamicPropertyOnAllWidgets("theme", action->text()); // use this info in the QSS
-    ui->darkSeekBar->updateBgPixmap((float*)1, 1);           // update the cached bg pixmap, too
+    ui->seekBar->updateBgPixmap((float*)1, 1);           // update the cached bg pixmap, too
     ui->theSVGClock->finishInit();                           // update the tick colors on the clock too
 
     currentThemeString = action->text(); // remember for popups
     ui->theSVGClock->setTheme(action->text()); // tell the clock, too (it does not have access to mw)
 
-    ui->darkTrebleKnob->reinit();  // update the cached files
-    ui->darkMidKnob->reinit();  // update the cached files
-    ui->darkBassKnob->reinit();  // update the cached files
+    ui->trebleKnob->reinit();  // update the cached files
+    ui->midKnob->reinit();  // update the cached files
+    ui->bassKnob->reinit();  // update the cached files
 
-    ui->darkPitchSlider->reinit(); // update
-    ui->darkTempoSlider->reinit();
-    ui->darkVolumeSlider->reinit();
+    ui->pitchSlider->reinit(); // update
+    ui->tempoSlider->reinit();
+    ui->volumeSlider->reinit();
 
-    // and update the colors in the darkSongTable, because they MIGHT have changed
+    // and update the colors in the songTable, because they MIGHT have changed
     //  well, they probably did.
     // set initial colors for text in songTable, also used for shading the clock
     patterColorString = prefsManager.GetpatterColorString();
@@ -130,8 +130,8 @@ void MainWindow::themeTriggered(QAction * action) {
     calledColorString = prefsManager.GetcalledColorString();
     extrasColorString = prefsManager.GetextrasColorString();
 
-    if (!doNotCallDarkLoadMusicList) {    // I hate this.
-        darkLoadMusicList(nullptr, currentTypeFilter, true, true); // refresh whatever is there
+    if (!doNotCallLoadMusicList) {    // I hate this.
+        loadMusicList(nullptr, currentTypeFilter, true, true); // refresh whatever is there
         reloadPaletteSlots();
     }
 

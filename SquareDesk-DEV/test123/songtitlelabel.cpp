@@ -35,12 +35,12 @@
 static QRegularExpression title_tags_remover3("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
 static QRegularExpression spanPrefixRemover3("<span style=\"color:.*\">(.*)</span>", QRegularExpression::InvertedGreedinessOption);
 
-void darkSongTitleLabel::mouseDoubleClickEvent(QMouseEvent *e)
+void SongTitleLabel::mouseDoubleClickEvent(QMouseEvent *e)
 {
-    mw->darkTitleLabelDoubleClicked(e);
+    mw->titleLabelDoubleClicked(e);
 }
 
-void darkSongTitleLabel::mousePressEvent(QMouseEvent *event)
+void SongTitleLabel::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
         dragStartPosition = event->pos();
@@ -48,9 +48,9 @@ void darkSongTitleLabel::mousePressEvent(QMouseEvent *event)
     QLabel::mousePressEvent(event);
 }
 
-void darkSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
+void SongTitleLabel::mouseMoveEvent(QMouseEvent *event)
 {
-    // qDebug() << "darkSongTitleLabel::mouseMoveEvent";
+    // qDebug() << "SongTitleLabel::mouseMoveEvent";
     if (!(event->buttons() & Qt::LeftButton)) {
         // qDebug() << "return 1";
         return; // return if not left button down and move
@@ -74,12 +74,12 @@ void darkSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
     // int row = theTable->indexAt(pos).row()
     // qDebug() << "INDEX AT ROW: " << row;
 
-    // the source is the darkSongTable --------
+    // the source is the songTable --------
     int sourceRow;
     int rowNum = 0;
     for (const auto &mi : theTable->selectionModel()->selectedRows()) {
         sourceRow = mi.row();  // this is the actual row number of each selected row, overriding the cursor-located row (just pick all selected rows)
-        // qDebug() << "***** darkSongTitleLabel: DRAGGING THIS ROW NUMBER:" << sourceRow;
+        // qDebug() << "***** SongTitleLabel: DRAGGING THIS ROW NUMBER:" << sourceRow;
 
         QString title = text();
         title.replace(spanPrefixRemover3, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
@@ -90,14 +90,14 @@ void darkSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
         title.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if filename contains HTML encoded chars, put originals back
 
         if (theTable->isRowHidden(sourceRow)) {
-            // don't allow drag and drop for rows that are not visible!  This only is a problem for darkSongTable, which may have filters applied.
+            // don't allow drag and drop for rows that are not visible!  This only is a problem for songTable, which may have filters applied.
             // qDebug() << "no drag and drop for you: " << sourceRow << title;
             continue;
         } else {
             // qDebug() << "drag and drop is OK for you: " << sourceRow << title;
         }
 
-        QString sourceName = "darkSongTable";
+        QString sourceName = "songTable";
 
         QString sourceTrackName = theTable->item(sourceRow, kLabelCol)->text() + " - " + title; // e.g. "ESP 1234 - Ricochet"
         QString sourcePitch = theTable->item(sourceRow, kPitchCol)->text();
@@ -129,32 +129,32 @@ void darkSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
 
 
 // ===============================================================
-void darkPaletteSongTitleLabel::mouseDoubleClickEvent(QMouseEvent *e)
+void PaletteSongTitleLabel::mouseDoubleClickEvent(QMouseEvent *e)
 {
     // tell the tableWidget that this item was double-clicked (it should be selected)
-    // mtw->darkPaletteTitleLabelDoubleClicked(e);
-    mw->darkPaletteTitleLabelDoubleClicked(e);
+    // mtw->paletteTitleLabelDoubleClicked(e);
+    mw->paletteTitleLabelDoubleClicked(e);
 }
 
-void darkPaletteSongTitleLabel::mousePressEvent(QMouseEvent *event)
+void PaletteSongTitleLabel::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
-        // qDebug() << "***** darkPaletteSongTitleLabel::mousePressEvent";
+        // qDebug() << "***** PaletteSongTitleLabel::mousePressEvent";
         dragStartPosition = event->pos();
         // qDebug() << "setting dragStartPosition" << dragStartPosition;
     }
     QLabel::mousePressEvent(event);
 }
 
-void darkPaletteSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
+void PaletteSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
 {
-    // qDebug() << "***** darkPaletteSongTitleLabel::mouseMoveEvent";
+    // qDebug() << "***** PaletteSongTitleLabel::mouseMoveEvent";
     if (!(event->buttons() & Qt::LeftButton)) {
-        // qDebug() << "return darkPaletteSongTitleLabel no left button pressed";
+        // qDebug() << "return PaletteSongTitleLabel no left button pressed";
         return; // return if not left button down and move
     }
     if ((event->pos() - dragStartPosition).manhattanLength() < QApplication::startDragDistance()) {
-        // qDebug() << "return darkPaletteSongTitleLabel not moved far enough";
+        // qDebug() << "return PaletteSongTitleLabel not moved far enough";
         return; // return if haven't moved far enough with L mouse button down
     }
 
@@ -172,12 +172,12 @@ void darkPaletteSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
     // int row = theTable->indexAt(pos).row()
     // qDebug() << "INDEX AT ROW: " << row;
 
-    // the source is the darkSongTable --------
+    // the source is the songTable --------
     int sourceRow;
     int rowNum = 0;
     for (const auto &mi : theTable->selectionModel()->selectedRows()) {
         sourceRow = mi.row();  // this is the actual row number of each selected row, overriding the cursor-located row (just pick all selected rows)
-        // qDebug() << "***** darkSongTitleLabel: DRAGGING THIS ROW NUMBER:" << sourceRow;
+        // qDebug() << "***** SongTitleLabel: DRAGGING THIS ROW NUMBER:" << sourceRow;
 
         QString title = text();
         title.replace(spanPrefixRemover3, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
@@ -220,7 +220,7 @@ void darkPaletteSongTitleLabel::mouseMoveEvent(QMouseEvent *event)
 #define ENABLESTRIKETHROUGH 0
 
 // true = song was used recently (Recent == "*")
-void darkSongTitleLabel::setSongUsed(bool b) {
+void SongTitleLabel::setSongUsed(bool b) {
     return; // DISABLED FOR NOW
 #if ENABLESTRIKETHROUGH==1
     // qDebug() << "setSongUsed: current text =" << this->text() << songUsed << b;
@@ -251,7 +251,7 @@ void darkSongTitleLabel::setSongUsed(bool b) {
 }
 
 // true = song was used recently (Recent == "*")
-void darkPaletteSongTitleLabel::setSongUsed(bool b) {
+void PaletteSongTitleLabel::setSongUsed(bool b) {
 #if ENABLESTRIKETHROUGH==1
     // qDebug() << "PALETTE setSongUsed: current text =" << text() << songUsed << b;
 

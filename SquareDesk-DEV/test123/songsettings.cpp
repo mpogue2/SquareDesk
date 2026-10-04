@@ -867,7 +867,7 @@ void SongSettings::markSongPlayed(const QString &filename, const QString &filena
 // #1745: fold plays that happened somewhere else -- today, Apple Music's lastPlayedDate -- into
 //   song_plays, so the Age and Recent columns can see them.  Those columns need no changes at all
 //   for this: getSongAges() already does max(played_on) per song, keyed by the same normalized
-//   path that darkLoadMusicList() looks each row up by, and Recent is derived from Age.
+//   path that loadMusicList() looks each row up by, and Recent is derived from Age.
 //
 //   Three things make this safe to run on every resync:
 //     - session_rowid is NULL, because an Apple Music play belongs to no session (see the schema
@@ -1386,7 +1386,7 @@ bool SongSettings::loadSettings(const QString &filenameWithPath,
 
 // Batch version of loadSettings(): loads the settings rows for ALL songs in one
 // query, keyed by the songs.filename column (normally the path relative to the
-// music root dir -- see removeRootDirs()). Used at startup by darkLoadMusicList(),
+// music root dir -- see removeRootDirs()). Used at startup by loadMusicList(),
 // where one big SELECT is much faster than one SELECT per song (Issue #1669).
 // Unlike loadSettings(), this does NOT call addTags() -- the caller already does.
 void SongSettings::loadSettingsForAllSongs(QHash<QString, SongSetting> &settingsByFilename)

@@ -1810,7 +1810,7 @@ void PreferencesDialog::updateAppleMusicPreview()
             cells << appleMusicFieldValue(track, fieldKey);
         }
 
-        // Color the row by its Type, exactly as darkSongTable does, so a track that came out the
+        // Color the row by its Type, exactly as songTable does, so a track that came out the
         //   wrong Type is something you SEE rather than something you have to read for.
         QColor rowColor;                       // stays invalid when there is nothing to say
         if (!showTypeField) {
@@ -1905,7 +1905,7 @@ void PreferencesDialog::on_appleMusicCopyTypesButton_clicked()
 {
     // Most people's iTunes vocabulary won't match their folder names, but when it does this
     //   saves retyping.  These are deliberately separate preferences: the Music Types tab's
-    //   lists double as folder names in the Music Directory (see darkLoadMusicList()).
+    //   lists double as folder names in the Music Directory (see loadMusicList()).
     ui->lineEditAppleMusicTypePatter->setText(ui->lineEditMusicTypePatter->text());
     ui->lineEditAppleMusicTypeSinging->setText(ui->lineEditMusicTypeSinging->text());
     ui->lineEditAppleMusicTypeCalled->setText(ui->lineEditMusicTypeCalled->text());

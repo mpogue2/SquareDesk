@@ -86,7 +86,7 @@ public:
     void setOrderFromString(QString s);
     void initializeSortOrder();
 
-    // Columns that must not take part in sorting, e.g. darkSongTable's Audition column, whose
+    // Columns that must not take part in sorting, e.g. songTable's Audition column, whose
     //   items have no text at all (issue #1740).
     void setColumnNotSortable(int column);
 
@@ -101,7 +101,7 @@ public:
     //   keeps the width the user gave it.
     //
     // This is deliberately NOT QHeaderView::Stretch.  Stretch reacts to any section resize, a
-    //   divider drag included, which is what made most of darkSongTable's dividers misbehave --
+    //   divider drag included, which is what made most of songTable's dividers misbehave --
     //   Title absorbed the drag and the column slid sideways instead of resizing (issue #1744).
     //   Keying off the VIEWPORT width instead means a drag can never trigger it, because dragging
     //   a divider doesn't change the viewport.
@@ -116,7 +116,7 @@ public:
     //
     // Two kinds of column are deliberately left out, because their width isn't the user's to
     //   choose and restoring it would fight whatever does own it:
-    //     - Fixed sections (darkSongTable's Audition column), which aren't user-resizable.
+    //     - Fixed sections (songTable's Audition column), which aren't user-resizable.
     //     - The slack column, which is recomputed from the viewport width anyway.
     QString columnWidthsToString() const;
     void setColumnWidthsFromString(const QString &widthString);

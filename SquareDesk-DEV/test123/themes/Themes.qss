@@ -95,70 +95,70 @@ QLabel[theme="Light"] {
     color: #000;
 }
 
-#darkVolumeLabel[volumeIsMin="true"] {
+#volumeLabel[volumeIsMin="true"] {
     color: black;
     background-color: #FF0000;
 }
 
-QLabel#darkTitle[flashcall="false"][theme="Light"] {
+QLabel#title[flashcall="false"][theme="Light"] {
     color: #000;
     font-style: normal;
 }
 
-QLabel#darkTitle[flashcall="false"][theme="Dark"] {
+QLabel#title[flashcall="false"][theme="Dark"] {
     color: #c0c0c0;
     font-style: normal;
 }
 
-QLabel#darkTitle[flashcall="true"] {
+QLabel#title[flashcall="true"] {
     color: #F00;
     font-style: italic;
 }
 
 /* WARNING LABELS ---------------- */
-QLabel#darkWarningLabel[state="IN_PATTER"][theme="Light"],
+QLabel#warningLabel[state="IN_PATTER"][theme="Light"],
 QLabel#warningLabelSD[state="IN_PATTER"][theme="Light"],
 QLabel#warningLabelCuesheet[state="IN_PATTER"][theme="Light"] {
     color: black;
     font-style: normal;
 }
 
-QLabel#darkWarningLabel[state="IN_PATTER"][theme="Dark"],
+QLabel#warningLabel[state="IN_PATTER"][theme="Dark"],
 QLabel#warningLabelSD[state="IN_PATTER"][theme="Dark"],
 QLabel#warningLabelCuesheet[state="IN_PATTER"][theme="Dark"] {
     color: #C0C0C0;
     font-style: normal;
 }
 
-QLabel#darkWarningLabel[state="PATTER_OVER"],
+QLabel#warningLabel[state="PATTER_OVER"],
 QLabel#warningLabelSD[state="PATTER_OVER"],
 QLabel#warningLabelCuesheet[state="PATTER_OVER"] {
     color: red;
     font-style: normal;
 }
 
-QLabel#darkWarningLabel[state="LONG_PATTER"],
+QLabel#warningLabel[state="LONG_PATTER"],
 QLabel#warningLabelSD[state="LONG_PATTER"],
 QLabel#warningLabelCuesheet[state="LONG_PATTER"] {
     color: red;
     font-style: italic;
 }
 
-QLabel#darkWarningLabel[state="IN_SINGER"],
+QLabel#warningLabel[state="IN_SINGER"],
 QLabel#warningLabelSD[state="IN_SINGER"],
 QLabel#warningLabelCuesheet[state="IN_SINGER"] {
     color: red;
     font-style: normal;
 }
 
-QLabel#darkWarningLabel[state="IN_BREAK"],
+QLabel#warningLabel[state="IN_BREAK"],
 QLabel#warningLabelSD[state="IN_BREAK"],
 QLabel#warningLabelCuesheet[state="IN_BREAK"] {
     color: #88F;
     font-style: normal;
 }
 
-QLabel#darkWarningLabel[state="BREAK_OVER"],
+QLabel#warningLabel[state="BREAK_OVER"],
 QLabel#warningLabelSD[state="BREAK_OVER"],
 QLabel#warningLabelCuesheet[state="BREAK_OVER"] {
     color: red;
@@ -211,10 +211,10 @@ QToolButton[theme="Dark"] {
     color: #CCC;
 }
 
-QToolButton#darkLoopToggleButton[theme="Dark"] {
+QToolButton#loopToggleButton[theme="Dark"] {
     qproperty-icon: url(:/graphics/arrow-loop-C-white.png);
 }
-QToolButton#darkLoopToggleButton[theme="Light"] {
+QToolButton#loopToggleButton[theme="Light"] {
     qproperty-icon: url(:/graphics/arrow-loop-C.png);
 }
 
@@ -247,13 +247,13 @@ QToolButton:pressed[theme="Light"]
 }
 
 /* Loop Toggle Button - checked state */
-QToolButton#darkLoopToggleButton:checked[theme="Dark"] {
+QToolButton#loopToggleButton:checked[theme="Dark"] {
     background-color: qlineargradient(x1:0 y1:1, x2:0 y2:0, stop:0 #2a5a2a, stop:1 #3a7a3a);
     border: 2px solid #4a9a4a;
     qproperty-icon: url(:/graphics/arrow-loop-C-white.png);
 }
 
-QToolButton#darkLoopToggleButton:checked[theme="Light"] {
+QToolButton#loopToggleButton:checked[theme="Light"] {
     background-color: #c8e6c8;
     border: 2px solid #4a9a4a;
     qproperty-icon: url(:/graphics/arrow-loop.png);
@@ -440,15 +440,15 @@ QStatusBar QLabel[theme="Light"] {
     color: #000;
 }
 
-QWidget#darkVUmeter[theme="Dark"] {
+QWidget#vuMeter[theme="Dark"] {
     qproperty-bgColor: #212121;
 }
 
-QWidget#darkVUmeter[theme="Light"] {
+QWidget#vuMeter[theme="Light"] {
     qproperty-bgColor: #dadada;
 }
 
-QLabel#darkPitchLabel {
+QLabel#pitchLabel {
     padding-left: 6px;
 }
 
@@ -513,7 +513,7 @@ QKeySequenceEdit[theme="Dark"] {
 	border: 1px solid #101010;
 }
 
-#darkSearch[theme="Dark"] {
+#search[theme="Dark"] {
     background-color: #3c3c3c;
     color: #ccc;
     border: 1px solid #1a1a1a;
@@ -564,7 +564,7 @@ QTreeWidget#treeWidget[theme="Dark"],
 #playlist1Table[theme="Dark"],
 #playlist2Table[theme="Dark"],
 #playlist3Table[theme="Dark"],
-#darkSongTable[theme="Dark"],
+#songTable[theme="Dark"],
 #listEasy[theme="Dark"],
 #listMedium[theme="Dark"],
 #listHard[theme="Dark"],
@@ -693,7 +693,7 @@ QGraphicsView {
     border: none;
 }
 
-QSlider#darkSeekBar[theme="Dark"] {
+QSlider#seekBar[theme="Dark"] {
     qproperty-bgColor: #1a1a1a;
     qproperty-darkeningColor: #80000000;
     qProperty-loopColor: #00a7f4;
@@ -701,7 +701,7 @@ QSlider#darkSeekBar[theme="Dark"] {
     /* TODO: add colors for singers, and for sections */
 }
 
-QSlider#darkSeekBar[theme="Light"] {
+QSlider#seekBar[theme="Light"] {
     qproperty-bgColor: #d5d5d5;
     qproperty-darkeningColor: #30000000;
     qProperty-loopColor: #00a7f4;
@@ -722,7 +722,7 @@ QSlider#darkSeekBar[theme="Light"] {
 #playlist2Table[theme="Light"],
 #playlist3Label[theme="Light"],
 #playlist3Table[theme="Light"],
-#darkSongTable[theme="Light"] {
+#songTable[theme="Light"] {
     border: 1px solid #bababa;
     /* bababa */
     selection-background-color: #A0D2FF;
@@ -740,7 +740,7 @@ QSlider#darkSeekBar[theme="Light"] {
 #playlist2Table[theme="Dark"],
 #playlist3Label[theme="Dark"],
 #playlist3Table[theme="Dark"],
-#darkSongTable[theme="Dark"] {
+#songTable[theme="Dark"] {
     border: 1px solid #2b2b2b;
 }
 
@@ -858,18 +858,18 @@ QToolTip {
 } */
 
 /* EQ knobs ================================= */
-#darkTrebleKnob[theme="Light"], 
-#darkMidKnob[theme="Light"], 
-#darkBassKnob[theme="Light"]
+#trebleKnob[theme="Light"], 
+#midKnob[theme="Light"], 
+#bassKnob[theme="Light"]
 {
 	qproperty-knobFile: "knobs/knob_bg_light.svg";
 	qproperty-needleFile: "knobs/knob_indicator_light.svg";
 	qproperty-arcColor: "#009CFF";
 }
 
-#darkTrebleKnob[theme="Dark"],
-#darkMidKnob[theme="Dark"], 
-#darkBassKnob[theme="Dark"]
+#trebleKnob[theme="Dark"],
+#midKnob[theme="Dark"], 
+#bassKnob[theme="Dark"]
 {
 	qproperty-knobFile: "knobs/knob_bg_dark.svg";
 	qproperty-needleFile: "knobs/knob_indicator_dark.svg";
@@ -877,7 +877,7 @@ QToolTip {
 }
 
 /* Pitch, Tempo, Volume sliders ============= */	
-#darkPitchSlider[theme="Light"]
+#pitchSlider[theme="Light"]
 {
 	qproperty-bgFile: "sliders/slider_light_pitchtempo.svg";
 	qproperty-handleFile: "sliders/knob_light.svg";
@@ -885,7 +885,7 @@ QToolTip {
 	qproperty-centerVeinType: true;
 }
 
-#darkTempoSlider[theme="Light"]
+#tempoSlider[theme="Light"]
 {
 	qproperty-bgFile: "sliders/slider_light_pitchtempo.svg";
 	qproperty-handleFile: "sliders/knob_light.svg";
@@ -893,7 +893,7 @@ QToolTip {
 	qproperty-centerVeinType: true;
 }
 
-#darkVolumeSlider[theme="Light"]
+#volumeSlider[theme="Light"]
 {
 	qproperty-bgFile: "sliders/slider_light_volume.svg";
 	qproperty-handleFile: "sliders/knob_light.svg";
@@ -901,7 +901,7 @@ QToolTip {
 	qproperty-centerVeinType: false;
 }
 
-#darkPitchSlider[theme="Dark"]
+#pitchSlider[theme="Dark"]
 {
 	qproperty-bgFile: "sliders/slider_dark_pitchtempo.svg";
 	qproperty-handleFile: "sliders/knob_dark.svg";
@@ -909,7 +909,7 @@ QToolTip {
 	qproperty-centerVeinType: true;
 }
 
-#darkTempoSlider[theme="Dark"]
+#tempoSlider[theme="Dark"]
 {
 	qproperty-bgFile: "sliders/slider_dark_pitchtempo.svg";
 	qproperty-handleFile: "sliders/knob_dark.svg";
@@ -917,7 +917,7 @@ QToolTip {
 	qproperty-centerVeinType: true;
 }
 
-#darkVolumeSlider[theme="Dark"]
+#volumeSlider[theme="Dark"]
 {
 	qproperty-bgFile: "sliders/slider_dark_volume.svg";
 	qproperty-handleFile: "sliders/knob_dark.svg";

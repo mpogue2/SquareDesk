@@ -129,7 +129,7 @@ CONFIG_ATTRIBUTE_STRING(lineEditAppleMusicTypeCalled,  appleMusicTypeCalled,  ""
 CONFIG_ATTRIBUTE_STRING(lineEditAppleMusicTypeExtras,  appleMusicTypeExtras,  "")
 CONFIG_ATTRIBUTE_COMBO(appleMusicTypeDefaultCombo, appleMusicTypeDefault, 3)  // 0=patter 1=singing 2=called 3=extras 4=don't import
 
-// How the Type column in darkSongTable renders an Apple Music track.
+// How the Type column in songTable renders an Apple Music track.
 CONFIG_ATTRIBUTE_COMBO(appleMusicTypeColumnFormatCombo, appleMusicTypeColumnFormat, 0)  // 0=type+playlist 1=playlist only 2=type only
 
 // Which metadata field holds the record label, for someone who keeps "HH-1234" in Album rather
@@ -261,7 +261,7 @@ CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastDance,  "")
 
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(currentSortOrder, "")
 
-// darkSongTable's per-column widths, as "col:width,col:width,..." (issue #1744).  Empty means
+// songTable's per-column widths, as "col:width,col:width,..." (issue #1744).  Empty means
 //   "never been set", in which case the built-in defaults and resizeColumnToContents() decide.
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(songTableColumnWidths, "")
 

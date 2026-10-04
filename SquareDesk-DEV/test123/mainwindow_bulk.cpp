@@ -438,12 +438,12 @@ void MainWindow::startSectionEstimation(const QStringList &paths) {
 }
 
 // Music > Sections.  "Current Song" is the song that's loaded; "Selected Songs" is the selection
-//   in darkSongTable, which is how a user does a big run now that "for all songs..." is gone --
+//   in songTable, which is how a user does a big run now that "for all songs..." is gone --
 //   Select All in the song table, then Calculate, and the dialog tells them what they're in for
 //   before anything starts (issue #1760).
 void MainWindow::on_menuSections_aboutToShow()
 {
-    const int selectedCount = darkSongTableSelectedVisibleRows().count();
+    const int selectedCount = songTableSelectedVisibleRows().count();
 
     const bool haveCurrentSong = !currentMP3filenameWithPath.isEmpty();
     ui->actionEstimate_for_this_song->setEnabled(haveCurrentSong);
@@ -469,7 +469,7 @@ void MainWindow::on_actionEstimate_for_this_song_triggered()
 
 void MainWindow::on_actionEstimate_for_selected_songs_triggered()
 {
-    EstimateSectionsForTheseSongs(darkSongTableSelectedVisibleRows());
+    EstimateSectionsForTheseSongs(songTableSelectedVisibleRows());
 }
 
 
@@ -481,7 +481,7 @@ void MainWindow::on_actionRemove_for_this_song_triggered()
 
 void MainWindow::on_actionRemove_for_selected_songs_triggered()
 {
-    RemoveSectionsForTheseSongs(darkSongTableSelectedVisibleRows());
+    RemoveSectionsForTheseSongs(songTableSelectedVisibleRows());
 }
 
 
@@ -528,25 +528,25 @@ void MainWindow::on_actionRemove_for_all_songs_triggered()
 
     // We definitely cleared the section info for the currently loaded song, so get rid of the coloring in the waveform display
     //   in case there was any...
-    ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, since we no longer have section info for this song
+    ui->seekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, since we no longer have section info for this song
 }
 
-// The rows the user has selected in darkSongTable, skipping any hidden by the current search
+// The rows the user has selected in songTable, skipping any hidden by the current search
 //   filter.  A song you can't see isn't one you meant to select.
-QList<int> MainWindow::darkSongTableSelectedVisibleRows() const {
+QList<int> MainWindow::songTableSelectedVisibleRows() const {
     QList<int> selectedRows;
-    for (const auto &mi : ui->darkSongTable->selectionModel()->selectedRows()) {
-        if (!ui->darkSongTable->isRowHidden(mi.row())) {
+    for (const auto &mi : ui->songTable->selectionModel()->selectedRows()) {
+        if (!ui->songTable->isRowHidden(mi.row())) {
             selectedRows.append(mi.row());
         }
     }
     return(selectedRows);
 }
 
-QStringList MainWindow::darkSongTablePathsForRows(const QList<int> &rows) const {
+QStringList MainWindow::songTablePathsForRows(const QList<int> &rows) const {
     QStringList paths;
     for (const auto &r : std::as_const(rows)) {
-        QTableWidgetItem *theItem = ui->darkSongTable->item(r, kPathCol);
+        QTableWidgetItem *theItem = ui->songTable->item(r, kPathCol);
         if (theItem != nullptr) {
             paths.append(theItem->data(Qt::UserRole).toString());
         }
@@ -567,17 +567,17 @@ static QString humanizedDuration(double seconds) {
 }
 
 void MainWindow::EstimateSectionsForTheseSongs(QList<int> rows) {
-    // qDebug() << "Estimate Sections for these rows in darkSongTable: " << rows;
-    EstimateSectionsForThesePaths(darkSongTablePathsForRows(rows));
+    // qDebug() << "Estimate Sections for these rows in songTable: " << rows;
+    EstimateSectionsForThesePaths(songTablePathsForRows(rows));
 }
 
 void MainWindow::RemoveSectionsForTheseSongs(QList<int> rows) {
     // qDebug() << "Remove Sections for rows: " << rows;
-    RemoveSectionsForThesePaths(darkSongTablePathsForRows(rows));
+    RemoveSectionsForThesePaths(songTablePathsForRows(rows));
 }
 
 // THE implementation for "calculate section info for this set of songs".  Everything that offers
-//   that command -- the Music > Sections menu, the darkSongTable context menu, the playlist slot
+//   that command -- the Music > Sections menu, the songTable context menu, the playlist slot
 //   context menu -- lands here, so the filtering and the warning are the same wherever you start.
 void MainWindow::EstimateSectionsForThesePaths(QStringList mp3Paths) {
     // qDebug() << "Estimate Sections for these paths: " << mp3Paths;
@@ -686,7 +686,7 @@ void MainWindow::RemoveSectionsForThesePaths(QStringList mp3Paths) {
 
         if (filenameToRemove == currentMP3filenameWithPath) {
             // if we just cleared the section info for the currently loaded song, get rid of the coloring in the waveform display
-            ui->darkSeekBar->updateBgPixmap((float*)1, 1);
+            ui->seekBar->updateBgPixmap((float*)1, 1);
         }
     }
 }

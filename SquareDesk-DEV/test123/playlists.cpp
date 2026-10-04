@@ -343,7 +343,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     bool isAppleMusicFile = appleMusicTitleByPath.contains(theRealPath)
                             || theRealPath.contains("/iTunes/iTunes Media/")
                             || theRealPath.contains("/Music/Music/Media/");
-    bool isDarkSongTable = (whichTable == ui->darkSongTable);
+    bool isSongTable = (whichTable == ui->songTable);
 
     static QRegularExpression dotMusicSuffix(SUPPORTED_AUDIO_EXTENSIONS_REGEX, QRegularExpression::CaseInsensitiveOption); // match with music extensions
     QString shortTitle = relativePath.split('/').last().replace(dotMusicSuffix, "");
@@ -359,7 +359,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     QColor textCol; // = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
 
     // An Apple Music track whose Type came from its metadata is colored by that Type, exactly as
-    //   darkLoadMusicList() colors it, so the same song doesn't look like patter in the song
+    //   loadMusicList() colors it, so the same song doesn't look like patter in the song
     //   table and like an extra in a palette slot (issue #1740, item 6).  With no Type mapping
     //   configured there is nothing better to go on, so it falls back to the extras color below,
     //   the way it always has.
@@ -391,9 +391,9 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
         textCol = QColor(extrasColorString);
     }
 
-    // darkPaletteSongTitleLabel *title = new darkPaletteSongTitleLabel(this, (MyTableWidget *)whichTable);
-    darkPaletteSongTitleLabel *title = new darkPaletteSongTitleLabel(this);
-    // darkPaletteSongTitleLabel *title = new darkPaletteSongTitleLabel(slotNumber);
+    // PaletteSongTitleLabel *title = new PaletteSongTitleLabel(this, (MyTableWidget *)whichTable);
+    PaletteSongTitleLabel *title = new PaletteSongTitleLabel(this);
+    // PaletteSongTitleLabel *title = new PaletteSongTitleLabel(slotNumber);
     title->setTextFormat(Qt::RichText);
     // title->textColor = "red";  // remember the text color, so we can restore it when deselected
 
@@ -416,7 +416,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
 
     // format the title string -----
     QString appleSymbol = QChar(APPLE_SYMBOL_UNICODE);
-    if (isAppleMusicFile && !isDarkSongTable) {
+    if (isAppleMusicFile && !isSongTable) {
         shortTitle = appleSymbol + " " + shortTitle; // add Apple space as prefix to actual short title
     }
 
@@ -820,7 +820,7 @@ void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativ
     PaletteTableBulkUpdate bulk(theTableWidget);
 
     // The only way to get here is to RIGHT-CLICK on a Tracks/filterName in the TreeWidget.
-    // In that case, the darkSongTable has already been loaded with the filtered rows.
+    // In that case, the songTable has already been loaded with the filtered rows.
     // We just need to transfer them up to the playlist.
 
     static QRegularExpression title_tags_remover("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
@@ -832,15 +832,15 @@ void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativ
 
     // Pre-size the table to the most rows we could possibly need, and trim after the loop, so
     //   we don't grow it one row at a time.  (issue #1695)
-    theTableWidget->setRowCount(ui->darkSongTable->rowCount());
+    theTableWidget->setRowCount(ui->songTable->rowCount());
 
     songCount = 0;
     bool currentlyUnderMarker = false;  // Track if we're in a section under a marker (issue #1547)
-    for (int i = 0; i < ui->darkSongTable->rowCount(); i++) {
-        if (true || !ui->darkSongTable->isRowHidden(i)) {
+    for (int i = 0; i < ui->songTable->rowCount(); i++) {
+        if (true || !ui->songTable->isRowHidden(i)) {
 
             // make sure this song has the "type" that we're looking for...
-            QString pathToMP3 = ui->darkSongTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+            QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
             QString p1 = pathToMP3;
             p1 = p1.replace(musicRootPath + "/", "");
 
@@ -851,8 +851,8 @@ void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativ
             }
 
             // type IS what we want, so add it to the playlist slot -----
-            QString label = ui->darkSongTable->item(i, kLabelCol)->text();
-            QString shortTitle = dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(i, kTitleCol))->text();
+            QString label = ui->songTable->item(i, kLabelCol)->text();
+            QString shortTitle = dynamic_cast<QLabel*>(ui->songTable->cellWidget(i, kTitleCol))->text();
             QString coloredTitle = shortTitle; // title with coloring AND tags with coloring
 
             shortTitle.replace(spanPrefixRemover, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
@@ -865,17 +865,17 @@ void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativ
             shortTitle.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if title contains HTML encoded chars, put originals back
 
             if (shortTitle.contains("span")) { // DEBUG DEBUG
-                // qDebug() << "FOUND SPAN BEFORE: " << dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(i, kTitleCol))->text();
+                // qDebug() << "FOUND SPAN BEFORE: " << dynamic_cast<QLabel*>(ui->songTable->cellWidget(i, kTitleCol))->text();
                 // qDebug() << "FOUND SPAN AFTER: " << shortTitle;
             }
 
-            QString pitch = ui->darkSongTable->item(i, kPitchCol)->text();
-            QString tempo = ui->darkSongTable->item(i, kTempoCol)->text();
+            QString pitch = ui->songTable->item(i, kPitchCol)->text();
+            QString tempo = ui->songTable->item(i, kTempoCol)->text();
 
             songCount++;
 
             // make a new row, if needed (the pre-size above normally covers us, but a filter
-            //   that somehow matches more rows than darkSongTable has must still work)
+            //   that somehow matches more rows than songTable has must still work)
             if (songCount > theTableWidget->rowCount()) {
                 theTableWidget->insertRow(theTableWidget->rowCount());
             }
@@ -912,7 +912,7 @@ void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativ
             setTitleField(theTableWidget, songCount-1, fakePath, false, PlaylistFileName, "", shouldIndent, &settingsCache); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
 
             // LEVELS column
-            QString levels = ui->darkSongTable->item(i, kLevelsCol)->text();
+            QString levels = ui->songTable->item(i, kLevelsCol)->text();
             QTableWidgetItem *lev = new QTableWidgetItem(levels);
             lev->setTextAlignment(Qt::AlignCenter);
             theTableWidget->setItem(songCount-1, COLUMN_LEVELS, lev);
@@ -1259,7 +1259,7 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
     PerfTimer t("on_playlistTable_itemDoubleClicked", __LINE__);
     t.start(__LINE__);
 
-    on_darkStopButton_clicked();  // if we're loading a new MP3 file, stop current playback
+    on_stopButton_clicked();  // if we're loading a new MP3 file, stop current playback
     saveCurrentSongSettings();
 
     t.elapsed(__LINE__);
@@ -1375,12 +1375,12 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();
 
-    ui->darkPitchSlider->setValue(pitchInt);
+    ui->pitchSlider->setValue(pitchInt);
 
-    on_darkPitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
+    on_pitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
         //   exactly the same as the previous value.  This will ensure that cBass->setPitch() gets called (right now) on the new stream.
     if (ui->actionAutostart_playback->isChecked()) {
-        on_darkPlayButton_clicked();
+        on_playButton_clicked();
     }
 
     tableWidget->setFocus();
@@ -1706,8 +1706,8 @@ void MainWindow::saveSlotNow(int whichSlot) {
         qDebug() << "ERROR: could not save playlist to CSV file: " << relPathInSlot[whichSlot];
     }
 
-    // special case:  If a CSV playlist is in a Palette Slot, and also is visible as a playlist in the darkSongTable,
-    //   we need to reload the darkSongTable when the Palette Slot is changed (10s after the last change).
+    // special case:  If a CSV playlist is in a Palette Slot, and also is visible as a playlist in the songTable,
+    //   we need to reload the songTable when the Palette Slot is changed (10s after the last change).
 
     // qDebug() << "saveSlotNow: currentTreePath = " << currentTreePath; // e.g. "Playlists/Jokers/2025/"
     // qDebug() << "saveSlotNow: header title = " << theTableLabelText; // e.g. "<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers/2025/Test_2025.05.22"
@@ -1718,7 +1718,7 @@ void MainWindow::saveSlotNow(int whichSlot) {
         QString headerTitle = theTableLabelText.replace(QRegularExpression("^<img.*>"), "");
         // qDebug() << "ctp and headerTitle:" << ctp << headerTitle;
         if (headerTitle.startsWith(ctp)) {
-            // it's a playlist, and the title of the modified playlist would be visible in the darkSongTable right now
+            // it's a playlist, and the title of the modified playlist would be visible in the songTable right now
             // qDebug() << "***** NEED TO RELOAD THE SONG TABLE: ";
 
             // // before removal
@@ -1756,8 +1756,8 @@ void MainWindow::saveSlotNow(int whichSlot) {
             // for (const auto &item : *pathStackPlaylists) {
             //     qDebug() << "after 2: " << item;
             // }
-            // then finally we force a refresh of the darkSongTable
-            darkLoadMusicList(pathStackPlaylists, currentTypeFilter, true, false, true);  // refresh and force same filter, and YES suppress focus/selection change
+            // then finally we force a refresh of the songTable
+            loadMusicList(pathStackPlaylists, currentTypeFilter, true, false, true);  // refresh and force same filter, and YES suppress focus/selection change
         }
     }
 }
@@ -1959,7 +1959,7 @@ void MainWindow::printPlaylistFromSlot(int whichSlot)
 }
 
 // ----------------------------------------------
-void MainWindow::darkPaletteTitleLabelDoubleClicked(QMouseEvent * e)
+void MainWindow::paletteTitleLabelDoubleClicked(QMouseEvent * e)
 {
     Q_UNUSED(e)
     // qDebug() << "SOME PALETTE TITLE FIELD HAS BEEN DOUBLE-CLICKED.";
@@ -2044,7 +2044,7 @@ void MainWindow::refreshAllPlaylists() {
 
                 // A single Apple Music song can be dragged into any slot, not just a slot holding a
                 //   whole Apple Music playlist, so the Apple Music title has to be recovered per ROW.
-                //   Without this, the title set by darkAddPlaylistItemAt() was immediately rebuilt
+                //   Without this, the title set by addPlaylistItemAt() was immediately rebuilt
                 //   from the filename here, e.g. "10 Five Foot Two Eyes of Blue" (issue #1740).
                 QString appleRelativePath = appleMusicTitleAsRelativePath(absPath);
                 if (!appleRelativePath.isEmpty()) {
@@ -2511,7 +2511,7 @@ QString MainWindow::makeCanonicalRelativePath(QString s) {
     QString name = fi1.completeBaseName();
     QString suffix = fi1.suffix();
 
-    // Use the shared filename parser (same one used by darkSongTable and playlist CSV reload),
+    // Use the shared filename parser (same one used by songTable and playlist CSV reload),
     //   so that all paths agree on how e.g. "Shivers - NB-334NM.mp3" is parsed (issue #1665)
     QString label, labelnum, labelnum_extra, title, shortTitle;
     if (breakFilenameIntoParts(name, label, labelnum, labelnum_extra, title, shortTitle)
@@ -2544,11 +2544,11 @@ QString MainWindow::appleMusicTitleAsRelativePath(const QString &absPath) {
     return "/xtras/" + appleTitle;
 }
 
-void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, const QString &thePitch, const QString &theTempo, const QString &theFullPath, const QString &extra, int insertRowNum) {
+void MainWindow::addPlaylistItemAt(int whichSlot, const QString &trackName, const QString &thePitch, const QString &theTempo, const QString &theFullPath, const QString &extra, int insertRowNum) {
     Q_UNUSED(trackName)
     Q_UNUSED(extra)
 
-    // qDebug() << "darkAddPlaylistItemAt:" << whichSlot << trackName << extra << theFullPath << insertRowNum;
+    // qDebug() << "addPlaylistItemAt:" << whichSlot << trackName << extra << theFullPath << insertRowNum;
 
     MyTableWidget *destTableWidget;
     QString PlaylistFileName = "foobar";
@@ -2588,7 +2588,7 @@ void MainWindow::darkAddPlaylistItemAt(int whichSlot, const QString &trackName, 
     QString absPath = theFullPath; // already is fully qualified
 
     theRelativePath.replace(musicRootPath, "");
-    // qDebug() << "darkAddPlaylistItemAt calling setTitleField" << theRelativePath;
+    // qDebug() << "addPlaylistItemAt calling setTitleField" << theRelativePath;
 
     QString theCanonicalRelativePath = makeCanonicalRelativePath(theRelativePath);
 

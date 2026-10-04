@@ -1233,7 +1233,6 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 QString theCall = match.captured(2);
                 QString thePrettifiedCall = prettify(theCall);
 
-#ifndef darkgreencomments
                 QString lcPrettifiedCall = thePrettifiedCall.toLower();
                 bool containsHighlightedCall = false;
 
@@ -1251,14 +1250,9 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                     moveItem->setForeground(QBrush(QColor("red"))); // set highlighted items to RED
                 }
 
-#else
-                QLabel *moveItem(new QLabel(thePrettifiedCall));
-#endif
-
                 QString level = translateCallToLevel(thePrettifiedCall);
 //                qDebug() << "level: " << level;
 
-#ifndef darkgreencomments
                 if (level == "Mainstream") {
                     moveItem->setBackground(QBrush("#E0E0FF"));
                 } else if (level == "Plus") {
@@ -1273,22 +1267,6 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 
 //                ui->tableWidgetCurrentSequence->setRowCount(sdLastLine + sdLastLineOffset);
                 ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, kColCurrentSequenceCall, moveItem);
-#else
-                if (level == "Mainstream") {
-                    moveItem->setStyleSheet("background-color: #E0E0FF;");
-                } else if (level == "Plus") {
-                    moveItem->setStyleSheet("background-color: #BFFFC0;");
-                } else if (level == "A1" || level == "A2") {
-                    moveItem->setStyleSheet("background-color: #FFF0C0;");
-                } else if (level == "C1") {
-                    moveItem->setStyleSheet("background-color: #FEE0E0;");
-                } else {
-//                    qDebug() << "ERROR: unknown level for setting BG color of SD item: " << level;
-                }
-
-                moveItem->setFont(ui->songTable->font());
-                ui->tableWidgetCurrentSequence->setCellWidget(sdLastLine - 1, kColCurrentSequenceCall, moveItem);
-#endif
 
 //                qDebug() << "on_sd_add_new_line: adding " << thePrettifiedCall;
 
@@ -4369,18 +4347,10 @@ void MainWindow::SDReplaceCurrentSequence() {
 
                 if (ui->tableWidgetCurrentSequence->rowCount() >= 1) {
                     for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
-#ifndef darkgreencomments
                         // SDCOMMENTS: REPLACE, CHANGE CURLY BRACES TO PARENS ON WRITE OUT TO FILE
                         QString theText = ui->tableWidgetCurrentSequence->item(i, 0)->text();
                         QString theText2 = theText.replace('{','(').replace('}', ')');
                         outFile << theText2 << "\n"; // COPY IN THE REPLACEMENT
-#else
-                        QString theText = ((QLabel *)(ui->tableWidgetCurrentSequence->cellWidget(i,0)))->text();
-                        QString theText2 = theText.replace('{','(').replace('}', ')');
-                        QString theText3 = theText2.replace("<span style=\"color:darkgreen;\">","").replace("</span>","");
-                        qDebug() << "writing replacement sequence: " << theText << theText2 << theText3;
-                        outFile << theText3 << "\n"; // COPY IN THE REPLACEMENT
-#endif
                     }
                 } else {
                     outFile << "just as you are\n"; // EMPTY SEQUENCE

@@ -77,7 +77,7 @@
                   <number>0</number>
                  </property>
                  <item alignment="Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignBottom">
-                  <widget class="QLabel" name="darkTitle">
+                  <widget class="QLabel" name="title">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -117,7 +117,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="clickableLabel" name="darkWarningLabel">
+                  <widget class="clickableLabel" name="warningLabel">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -250,7 +250,7 @@
                     <number>5</number>
                    </property>
                    <item>
-                    <widget class="QToolButton" name="darkStopButton">
+                    <widget class="QToolButton" name="stopButton">
                      <property name="minimumSize">
                       <size>
                        <width>45</width>
@@ -274,7 +274,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QToolButton" name="darkPlayButton">
+                    <widget class="QToolButton" name="playButton">
                      <property name="minimumSize">
                       <size>
                        <width>45</width>
@@ -311,7 +311,7 @@
                  <item>
                   <layout class="QVBoxLayout" name="verticalLayout_5">
                    <item>
-                    <widget class="svgWaveformSlider" name="darkSeekBar">
+                    <widget class="svgWaveformSlider" name="seekBar">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                        <horstretch>0</horstretch>
@@ -344,7 +344,7 @@
                    <item>
                     <layout class="QHBoxLayout" name="horizontalLayout_6">
                      <item>
-                      <widget class="QToolButton" name="darkStartLoopButton">
+                      <widget class="QToolButton" name="startLoopButton">
                        <property name="font">
                         <font>
                          <family>Avenir Next</family>
@@ -361,7 +361,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="myDateTimeEdit" name="darkStartLoopTime">
+                      <widget class="myDateTimeEdit" name="startLoopTime">
                        <property name="enabled">
                         <bool>true</bool>
                        </property>
@@ -374,7 +374,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QToolButton" name="darkEndLoopButton">
+                      <widget class="QToolButton" name="endLoopButton">
                        <property name="font">
                         <font>
                          <family>Avenir Next</family>
@@ -388,14 +388,14 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="myDateTimeEdit" name="darkEndLoopTime">
+                      <widget class="myDateTimeEdit" name="endLoopTime">
                        <property name="displayFormat">
                         <string>mm:ss.zzz</string>
                        </property>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QToolButton" name="darkLoopToggleButton">
+                      <widget class="QToolButton" name="loopToggleButton">
                        <property name="enabled">
                         <bool>false</bool>
                        </property>
@@ -421,7 +421,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QToolButton" name="darkTestLoopButton">
+                      <widget class="QToolButton" name="testLoopButton">
                        <property name="font">
                         <font>
                          <family>Avenir Next</family>
@@ -520,7 +520,7 @@
                  <number>7</number>
                 </property>
                 <item alignment="Qt::AlignmentFlag::AlignHCenter">
-                 <widget class="svgSlider" name="darkPitchSlider">
+                 <widget class="svgSlider" name="pitchSlider">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -561,7 +561,7 @@
                  </spacer>
                 </item>
                 <item>
-                 <widget class="QLabel" name="darkPitchLabel">
+                 <widget class="QLabel" name="pitchLabel">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
                     <horstretch>0</horstretch>
@@ -593,7 +593,7 @@
               <item>
                <layout class="QVBoxLayout" name="verticalLayout_16">
                 <item alignment="Qt::AlignmentFlag::AlignHCenter">
-                 <widget class="svgSlider" name="darkTempoSlider">
+                 <widget class="svgSlider" name="tempoSlider">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -634,7 +634,7 @@
                  </spacer>
                 </item>
                 <item>
-                 <widget class="QLabel" name="darkTempoLabel">
+                 <widget class="QLabel" name="tempoLabel">
                   <property name="font">
                    <font>
                     <family>Avenir Next</family>
@@ -686,7 +686,7 @@
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_10">
               <item>
-               <widget class="svgVUmeter" name="darkVUmeter">
+               <widget class="svgVUmeter" name="vuMeter">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -700,7 +700,7 @@
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>darkVUmeter</string>
+                 <string>vuMeter</string>
                 </property>
                 <property name="text">
                  <string>TextLabel</string>
@@ -713,7 +713,7 @@
               <item>
                <layout class="QVBoxLayout" name="verticalLayout_14">
                 <item alignment="Qt::AlignmentFlag::AlignHCenter">
-                 <widget class="svgSlider" name="darkVolumeSlider">
+                 <widget class="svgSlider" name="volumeSlider">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -745,7 +745,7 @@
                  </spacer>
                 </item>
                 <item>
-                 <widget class="QLabel" name="darkVolumeLabel">
+                 <widget class="QLabel" name="volumeLabel">
                   <property name="font">
                    <font>
                     <family>Avenir Next</family>
@@ -883,7 +883,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="svgDial" name="darkTrebleKnob">
+                 <widget class="svgDial" name="trebleKnob">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -961,7 +961,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="svgDial" name="darkMidKnob">
+                 <widget class="svgDial" name="midKnob">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -1039,7 +1039,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="svgDial" name="darkBassKnob">
+                 <widget class="svgDial" name="bassKnob">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -1183,7 +1183,7 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_18">
               <item>
-               <widget class="QLineEdit" name="darkSearch">
+               <widget class="QLineEdit" name="search">
                 <property name="placeholderText">
                  <string>Search...</string>
                 </property>
@@ -2105,7 +2105,7 @@
              </item>
             </layout>
            </widget>
-           <widget class="MyTableWidget" name="darkSongTable">
+           <widget class="MyTableWidget" name="songTable">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
               <horstretch>0</horstretch>

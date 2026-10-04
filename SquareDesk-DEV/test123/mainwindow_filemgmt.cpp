@@ -217,7 +217,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         // The mapping produces the canonical category names, but setCurrentSongMetadata() matches
         //   against the user's OWN type names from the Music Types tab, which they are free to
         //   edit (a user whose patter list is just "hoedown" would otherwise get no match at all).
-        //   So hand it their first word for the category, the way darkLoadMusicList() picks
+        //   So hand it their first word for the category, the way loadMusicList() picks
         //   default folder names.
         if (appleMusicSongType == "patter") {
             songType = songTypeNamesForPatter.value(0, "patter");
@@ -254,7 +254,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     songLoaded = false;  // seekBar updates are disabled, while we are loading
 
-    ui->darkSeekBar->setWholeTrackPeak(1.0); // disable waveform scaling until after we know scale
+    ui->seekBar->setWholeTrackPeak(1.0); // disable waveform scaling until after we know scale
 
     filewatcherIsTemporarilyDisabled = true;  // disable the FileWatcher for a few seconds to workaround the Ventura extended attribute problem
     fileWatcherDisabledTimer->start(std::chrono::milliseconds(5000)); // re-enable the FileWatcher after 5s
@@ -326,11 +326,11 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     else {
         setNowPlayingLabelWithColor(currentMP3filename);
     }
-    currentSongTitle = ui->darkTitle->text();  // save, in case we are Flash Calling
+    currentSongTitle = ui->title->text();  // save, in case we are Flash Calling
 
     // now clear out the waveform (if there is one)
     // qDebug() << "updateBgPixmap called from loadMP3File with nullptr, 0 to clear out";
-    ui->darkSeekBar->updateBgPixmap(nullptr, 0); // this means clear it out!
+    ui->seekBar->updateBgPixmap(nullptr, 0); // this means clear it out!
 //    QDir md(MP3FileName);
 //    QString canonicalFN = md.canonicalPath();
 
@@ -384,8 +384,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     fileModified = false;
 
-    ui->darkPlayButton->setEnabled(true);
-    ui->darkStopButton->setEnabled(true);
+    ui->playButton->setEnabled(true);
+    ui->stopButton->setEnabled(true);
     ui->actionPlay->setEnabled(true);
     ui->actionStop->setEnabled(true);
     ui->actionSkip_Forward->setEnabled(true);
@@ -1176,7 +1176,7 @@ bool MainWindow::findMusic(QString mainRootDir, bool refreshDatabase, bool force
 
 
 // Incrementally add files that were just copied INTO the music directory (e.g. by
-// drag/drop import from the Finder) to the pathStacks, and refresh the darkSongTable,
+// drag/drop import from the Finder) to the pathStacks, and refresh the songTable,
 // WITHOUT waiting for the FileWatcher's 2s debounce + full findFilesRecursively()
 // disk walk (Issue #1664). Each entry is built exactly as findFilesRecursively()
 // would have built it, so search/load/cuesheet-matching behave identically.
@@ -1250,8 +1250,8 @@ void MainWindow::addFilesToPathStacks(const QStringList &copiedFilePaths)
         songLevelsComputed = true;
     }
 
-    darkLoadMusicList(nullptr, currentTypeFilter, true, true); // refresh whichever pathStack is showing
-    darkFilterMusic();                                         // and re-apply the current search filter
+    loadMusicList(nullptr, currentTypeFilter, true, true); // refresh whichever pathStack is showing
+    filterMusic();                                         // and re-apply the current search filter
 
     ui->statusBar->showMessage(QString("Songs found: %1").arg(QString::number(pathStack->size())));
 }
@@ -1312,11 +1312,11 @@ bool filterContains(QString str, const QStringList &list)
 }
 
 // --------------------------------------------------------------------------------
-void MainWindow::darkFilterMusic()
+void MainWindow::filterMusic()
 {
-    // qDebug() << "darkFilterMusic()" << typeSearch << labelSearch << titleSearch << searchAllFields;
+    // qDebug() << "filterMusic()" << typeSearch << labelSearch << titleSearch << searchAllFields;
 
-    PerfTimer t("darkFilterMusic", __LINE__);
+    PerfTimer t("filterMusic", __LINE__);
     t.start(__LINE__);
 
     //    static QRegularExpression rx("(\\ |\\,|\\.|\\:|\\t\\')"); //RegEx for ' ' or ',' or '.' or ':' or '\t', includes ' to handle the "it's" case.
@@ -1328,9 +1328,9 @@ void MainWindow::darkFilterMusic()
     QStringList title = titleSearch.split(rx);
 
     //    qDebug() << "filterMusic: title: " << title;
-    ui->darkSongTable->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);  // DO NOT SET height of rows (for now)
+    ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);  // DO NOT SET height of rows (for now)
 
-    ui->darkSongTable->setSortingEnabled(false);
+    ui->songTable->setSortingEnabled(false);
 
     // The Apple Music metadata columns take part in the search too, but only the ones that are
     //   actually SHOWING (issue #1740, item 4).  Searching a hidden column would produce matches
@@ -1339,20 +1339,20 @@ void MainWindow::darkFilterMusic()
     // Worked out once here rather than per row.
     QList<int> searchableMetaCols;
     for (int col : { kAlbumCol, kAlbumArtistCol, kComposerCol, kCommentsCol, kYearCol, kDurationCol }) {
-        if (!ui->darkSongTable->isColumnHidden(col)) {
+        if (!ui->songTable->isColumnHidden(col)) {
             searchableMetaCols.append(col);
         }
     }
 
-    int initialRowCount = ui->darkSongTable->rowCount();
+    int initialRowCount = ui->songTable->rowCount();
     int rowsVisible = initialRowCount;
     int firstVisibleRow = -1;
-    for (int i=0; i<ui->darkSongTable->rowCount(); i++) {
-//        QString songTitle = getTitleColText(ui->darkSongTable, i);
-        QString songTitle = dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(i, kTitleCol))->text();
+    for (int i=0; i<ui->songTable->rowCount(); i++) {
+//        QString songTitle = getTitleColText(ui->songTable, i);
+        QString songTitle = dynamic_cast<QLabel*>(ui->songTable->cellWidget(i, kTitleCol))->text();
 
-        QString songType = ui->darkSongTable->item(i,kTypeCol)->text();
-        QString songLabel = ui->darkSongTable->item(i,kLabelCol)->text();
+        QString songType = ui->songTable->item(i,kTypeCol)->text();
+        QString songLabel = ui->songTable->item(i,kLabelCol)->text();
 
         bool show = true;
 
@@ -1384,7 +1384,7 @@ void MainWindow::darkFilterMusic()
                 //   reached when the three original fields already missed, so this costs nothing
                 //   for a row that has already matched.
                 for (int col : std::as_const(searchableMetaCols)) {
-                    QTableWidgetItem *item = ui->darkSongTable->item(i, col);
+                    QTableWidgetItem *item = ui->songTable->item(i, col);
                     if (item && !item->text().isEmpty() && filterContains(item->text(), title)) {
                         show = true;
                         break;
@@ -1393,29 +1393,29 @@ void MainWindow::darkFilterMusic()
             }
         }
 
-        ui->darkSongTable->setRowHidden(i, !show);
+        ui->songTable->setRowHidden(i, !show);
         rowsVisible -= (show ? 0 : 1); // decrement row count, if hidden
         if (show && firstVisibleRow == -1) {
             firstVisibleRow = i;
         }
     }
-    ui->darkSongTable->setSortingEnabled(true);
+    ui->songTable->setSortingEnabled(true);
 
     t.elapsed(__LINE__);
 
-    // qDebug() << "darkFilterMusic::firstVisibleRow: " << firstVisibleRow;
+    // qDebug() << "filterMusic::firstVisibleRow: " << firstVisibleRow;
 
     if (rowsVisible > 0) {
         // qDebug() << "good select row!" << firstVisibleRow;
-        ui->darkSongTable->selectRow(firstVisibleRow);
+        ui->songTable->selectRow(firstVisibleRow);
     }
-    ui->darkSearch->setFocus();  // restore focus after selectRow
+    ui->search->setFocus();  // restore focus after selectRow
 
     t.stop(__LINE__);
 }
 
 // --------------------------------------------------------------------------------
-// filter from a pathStack into the darkSongTable, BUT
+// filter from a pathStack into the songTable, BUT
 //   nullptr: just refresh what's there (currentlyShowingPathStack)
 //   pathStack, pathStackPlaylists: use one of these
 //
@@ -1524,11 +1524,11 @@ static QString appleMusicDateText(const QDateTime &when)
 }
 
 // --------------------------------------------------------------------------------
-// Fill in the Duration cells of the rows that are already in the darkSongTable, for songs in
+// Fill in the Duration cells of the rows that are already in the songTable, for songs in
 //   the Music Directory (issue #1753).
 //
 // Called when the Duration column goes NOT VISIBLE -> VISIBLE.  While the column was off,
-//   darkLoadMusicList() deliberately didn't open any audio files, so those cells are empty and
+//   loadMusicList() deliberately didn't open any audio files, so those cells are empty and
 //   have to be caught up now.  Only the local songs: an Apple Music track's Duration came from
 //   ITLibrary and was filled in at load time whether the column was showing or not.
 void MainWindow::fillDurationColumn()
@@ -1537,7 +1537,7 @@ void MainWindow::fillDurationColumn()
         return;
     }
 
-    const int rowCount = ui->darkSongTable->rowCount();
+    const int rowCount = ui->songTable->rowCount();
 
     // Which songs are these, and which of them do we have to read?
     QList<QString> pathByRow;
@@ -1545,7 +1545,7 @@ void MainWindow::fillDurationColumn()
 
     QStringList localSongPaths;
     for (int row = 0; row < rowCount; row++) {
-        QTableWidgetItem *pathItem = ui->darkSongTable->item(row, kPathCol);   // origPath lives here
+        QTableWidgetItem *pathItem = ui->songTable->item(row, kPathCol);   // origPath lives here
         QString origPath = (pathItem == nullptr ? QString() : pathItem->data(Qt::UserRole).toString());
         pathByRow.append(origPath);
 
@@ -1562,9 +1562,9 @@ void MainWindow::fillDurationColumn()
 
     // Sorting MUST be off while we do this.  setItem() on a sorted table re-sorts as it goes,
     //   which would shuffle the rows out from under pathByRow.
-    const bool wasSorting = ui->darkSongTable->isSortingEnabled();
-    ui->darkSongTable->setSortingEnabled(false);
-    ui->darkSongTable->blockSignals(true);
+    const bool wasSorting = ui->songTable->isSortingEnabled();
+    ui->songTable->setSortingEnabled(false);
+    ui->songTable->blockSignals(true);
 
     for (int row = 0; row < rowCount; row++) {
         const QString &origPath = pathByRow[row];
@@ -1575,11 +1575,11 @@ void MainWindow::fillDurationColumn()
         const qint64 durationMS = cachedSongDurationMS(origPath);
         const QString durationText = songDurationText(durationMS);
 
-        // Same kind of cell darkLoadMusicList() would have made: "3:45" sorts neither
+        // Same kind of cell loadMusicList() would have made: "3:45" sorts neither
         //   alphabetically nor numerically, so the value to sort on rides alongside it.
         TableSortKeyItem *item = new TableSortKeyItem(durationText, static_cast<double>(durationMS),
                                                       !durationText.isEmpty());
-        QTableWidgetItem *oldItem = ui->darkSongTable->item(row, kDurationCol);
+        QTableWidgetItem *oldItem = ui->songTable->item(row, kDurationCol);
         if (oldItem != nullptr) {
             item->setForeground(oldItem->foreground());   // the row's Type color, set at load time
         }
@@ -1588,15 +1588,15 @@ void MainWindow::fillDurationColumn()
             item->setToolTip(durationText);   // this column is narrow and elides
         }
 
-        ui->darkSongTable->setItem(row, kDurationCol, item);
+        ui->songTable->setItem(row, kDurationCol, item);
     }
 
-    ui->darkSongTable->blockSignals(false);
-    ui->darkSongTable->setSortingEnabled(wasSorting);
+    ui->songTable->blockSignals(false);
+    ui->songTable->setSortingEnabled(wasSorting);
 }
 
 // The playlist name and item number inside a pathStack entry's type field, for issue #1750's
-//   de-duplication.  Three entry shapes reach darkLoadMusicList():
+//   de-duplication.  Three entry shapes reach loadMusicList():
 //     "PlaylistName%!%pitch,tempo,NNN#!#AbsPath"        -- SquareDesk playlists, and Apple Music
 //                                                          playlists routed through Playlists
 //     "PlaylistName$!$NNN$!$Title#!#AbsPath"            -- Apple Music, pathStackApplePlaylists
@@ -1689,9 +1689,9 @@ static QStringList dedupePlaylistEntriesByPath(const QStringList &entries,
     return result;
 }
 
-void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilter, bool forceFilter, bool reloadPaletteSlots, bool suppressSelectionChange)
+void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, bool forceFilter, bool reloadPaletteSlots, bool suppressSelectionChange)
 {
-    // qDebug() << "darkLoadMusicList: " << typeFilter << forceFilter << reloadPaletteSlots;
+    // qDebug() << "loadMusicList: " << typeFilter << forceFilter << reloadPaletteSlots;
 
     // if (aPathStack != nullptr) {
     //     int size0 = aPathStack->size();
@@ -1751,33 +1751,33 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         return; // nothing to do, if not a forced refresh and what's showing is what was asked for
     }
 
-    // if we get here, for sure we are refreshing the contents of the darkSongTable --------
+    // if we get here, for sure we are refreshing the contents of the songTable --------
 
-    // qDebug() << "***** darkLoadMusicList()";
-    PerfTimer t("darkLoadMusicList", __LINE__);
+    // qDebug() << "***** loadMusicList()";
+    PerfTimer t("loadMusicList", __LINE__);
     t.start(__LINE__);
 
     // for performance ---
-    ui->darkSongTable->hide();
-    ui->darkSongTable->setSortingEnabled(false);
-    ui->darkSongTable->blockSignals(true);  // block signals, so changes are not recursive
+    ui->songTable->hide();
+    ui->songTable->setSortingEnabled(false);
+    ui->songTable->blockSignals(true);  // block signals, so changes are not recursive
 
     // clear out the table
-    ui->darkSongTable->setRowCount(0);
-    ui->darkSongTable->setColumnCount(kNumSongTableCols);
+    ui->songTable->setRowCount(0);
+    ui->songTable->setColumnCount(kNumSongTableCols);
 
     QStringList m_TableHeader;
     m_TableHeader << "" << "Type" << "Label" << "Title" << "Levels" << "Recent" << "Age" << "Pitch" << "Tempo"
                   << "Album" << "Album Artist" << "Composer" << "Comments" << "Year" << "Duration"
                   << "Artist" << "Rating" << "Date Added";
-    ui->darkSongTable->setHorizontalHeaderLabels(m_TableHeader);
+    ui->songTable->setHorizontalHeaderLabels(m_TableHeader);
     // AlignLeft on its own says nothing about the vertical, which then defaults to the TOP.  The
     //   older columns don't show it because updateSongTableColumnView() sets an explicit
     //   alignment on their header items, and setHorizontalHeaderLabels() reuses existing items
     //   rather than replacing them -- so only newly added columns, i.e. the Apple Music ones,
     //   came out top-aligned.  Fixed in the default, so any column added later is right too.
-    ui->darkSongTable->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    ui->darkSongTable->horizontalHeader()->setVisible(true);
+    ui->songTable->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    ui->songTable->horizontalHeader()->setVisible(true);
 
     // if we passed in nullptr, just use whatever is currently loaded
     if (aPathStack == nullptr) {
@@ -1804,7 +1804,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
     // QStringList justMyType = aPathStack->filter(typeFilterRegex);
 
     bool takeAll = (typeFilter == "") || (typeFilter == "Tracks") || (typeFilter == "Playlists") || (typeFilter == "Apple Music"); // NOTE: lack of final slash, means this is top level request
-    // qDebug() << "darkLoadMusicList filtering:" << typeFilter << takeAll;
+    // qDebug() << "loadMusicList filtering:" << typeFilter << takeAll;
 
     // NOTE: Items can look like:
     // "patter#!#/Users/mpogue/Library/Mobile Documents/com~apple~CloudDocs/SquareDance/squareDanceMusic_iCloud/patter/RIV 842 - Bluegrass Swing.mp3"
@@ -1859,7 +1859,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
     // qDebug() << "justMusic.size() = " << justMusic.size();
 
-    ui->darkSongTable->setRowCount(justMusic.length()); // make all the rows at once for speed
+    ui->songTable->setRowCount(justMusic.length()); // make all the rows at once for speed
     t.elapsed(__LINE__);
 
     // DURATION for songs in the Music Directory (issue #1753) -----
@@ -1901,7 +1901,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
     // Use the current zoomed font (kept up-to-date by setSongTableFont), so that the Title column
     //   reflects the current zoom level when the table is repopulated, e.g. by clicking in the
     //   treeWidget (Issue #1654).
-    QFont darkSongTableFont = currentSongTableFont;
+    QFont songTableFont = currentSongTableFont;
 
     // int totalNumberOfSquareDeskSongs = 0;
     // int totalNumberOfAppleSongs = 0;
@@ -2103,7 +2103,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         // newTableItem4->setTextAlignment(Qt::AlignCenter);
         // newTableItem4->setForeground(textCol);
         // // # items are editable by default
-        // ui->darkSongTable->setItem(i, kNumberCol, newTableItem4);
+        // ui->songTable->setItem(i, kNumberCol, newTableItem4);
 
         // # COLUMN IS NOW USED FOR AUDITION BUTTONS -----
         QTableWidgetItem *auditionItem = new QTableWidgetItem();
@@ -2111,7 +2111,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         // parented to the table, so the button always has an owner. setCellWidget() below
         //   reparents it to the table's viewport, which is where it ends up either way --
         //   this just means it is never briefly a parentless top-level widget. (Issue #1687)
-        auditionButton *auditionButton1 = new auditionButton(ui->darkSongTable);
+        auditionButton *auditionButton1 = new auditionButton(ui->songTable);
         auditionButton1->setFlat(true);
         auditionButton1->setObjectName("auditionButton");
         auditionButton1->origPath = origPath;
@@ -2127,9 +2127,9 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
                     auditionSetStartMs(origPath);
 
-                    // QModelIndexList list = this->ui->darkSongTable->selectionModel()->selectedRows();
+                    // QModelIndexList list = this->ui->songTable->selectionModel()->selectedRows();
                     // int row = list.at(0).row();
-                    // QString origPath = this->ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+                    // QString origPath = this->ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
                     // // qDebug() << "QPushButton pressed, row:" << row << origPath;
 
                     this->auditionPlayer.setSource(QUrl::fromLocalFile(origPath));
@@ -2149,12 +2149,12 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
         connect(auditionButton1, &QPushButton::released, this,
                 [this]() {
-                    // QModelIndexList list = this->ui->darkSongTable->selectionModel()->selectedRows();
+                    // QModelIndexList list = this->ui->songTable->selectionModel()->selectedRows();
                     // int row = list.at(0).row();
-                    // QString origPath = this->ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+                    // QString origPath = this->ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
                     // qDebug() << "QPushButton released, row:" << row << origPath;
                     this->auditionPlayer.stop();
-                    this->ui->darkSongTable->setFocus(); // just released a button, so set focus back to the darkSongTable
+                    this->ui->songTable->setFocus(); // just released a button, so set focus back to the songTable
 
                     auditionSingleShotTimer.start(1000);
                     // qDebug() << "KLUDGE: setting auditionInProgress to false 1000 ms in the future";
@@ -2170,8 +2170,8 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
         // auditionButton1->setIconSize(QSize(26,26));
 
-        ui->darkSongTable->setItem(i, kNumberCol, auditionItem);
-        ui->darkSongTable->setCellWidget(i, kNumberCol, auditionButton1);
+        ui->songTable->setItem(i, kNumberCol, auditionItem);
+        ui->songTable->setCellWidget(i, kNumberCol, auditionButton1);
 
         // TYPE FIELD -----
         QTableWidgetItem *twi1 = new QTableWidgetItem(type);
@@ -2196,7 +2196,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         if (!typeTooltipLines.isEmpty()) {
             twi1->setToolTip(typeTooltipLines.join("\n"));
         }
-        ui->darkSongTable->setItem(i, kTypeCol, twi1);
+        ui->songTable->setItem(i, kTypeCol, twi1);
 
         // LABEL + LABELNUM FIELD -----
         QTableWidgetItem *twi2 = new QTableWidgetItem((label + " " + labelnum).simplified());
@@ -2211,7 +2211,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
                 twi2->setToolTip(labelReason);
             }
         }
-        ui->darkSongTable->setItem(i, kLabelCol, twi2);
+        ui->songTable->setItem(i, kLabelCol, twi2);
 
         // APPLE MUSIC METADATA FIELDS -----
         // Only tracks that came from an Apple Music playlist have most of these.  A song in the
@@ -2266,9 +2266,9 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
                     item->setToolTip(metaCell.text);   // these columns are narrow and elide
                 }
                 if (metaCell.col == kRatingCol) {
-                    item->setFont(songTableRatingFont(darkSongTableFont));  // stars run large
+                    item->setFont(songTableRatingFont(songTableFont));  // stars run large
                 }
-                ui->darkSongTable->setItem(i, metaCell.col, item);
+                ui->songTable->setItem(i, metaCell.col, item);
             }
 
             // Stars are not a useful tooltip.  Say the number, and say so when Apple worked the
@@ -2280,7 +2280,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
                 if (meta.ratingComputed) {
                     tip += " (computed from the album rating)";
                 }
-                ui->darkSongTable->item(i, kRatingCol)->setToolTip(tip);
+                ui->songTable->item(i, kRatingCol)->setToolTip(tip);
             }
         }
 
@@ -2288,7 +2288,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 //         FYI: THIS IS FOR SORTING...
         InvisibleTableWidgetItem *titleItem(new InvisibleTableWidgetItem(title));
         titleItem->setFlags(titleItem->flags() & ~Qt::ItemIsEditable);      // not editable
-        ui->darkSongTable->setItem(i, kTitleCol, titleItem);
+        ui->songTable->setItem(i, kTitleCol, titleItem);
 
         // TITLE WIDGET (WITH TAGS) -----
         // The songs.filename key for this row: the music-root-relative path for a Music Directory
@@ -2302,20 +2302,20 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
         // format the title string --
         QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), textCol.name()));
-        darkSongTitleLabel *titleLabel = new darkSongTitleLabel(this);
+        SongTitleLabel *titleLabel = new SongTitleLabel(this);
         titleLabel->setTextFormat(Qt::RichText);
         titleLabel->setText(titlePlusTags);
         titleLabel->textColor = textCol.name();  // remember the text color, so we can restore it when deselected
-        titleLabel->setFont(darkSongTableFont);
+        titleLabel->setFont(songTableFont);
 
-        ui->darkSongTable->setCellWidget(i, kTitleCol, titleLabel);
+        ui->songTable->setCellWidget(i, kTitleCol, titleLabel);
 
         // LEVELS FIELD -----
         QTableWidgetItem *twiLevels = new QTableWidgetItem(songLevelsByPath.value(origPath, ""));
         twiLevels->setForeground(textBrush);
         twiLevels->setTextAlignment(Qt::AlignCenter);
         twiLevels->setFlags(twiLevels->flags() & ~Qt::ItemIsEditable);      // not editable
-        ui->darkSongTable->setItem(i, kLevelsCol, twiLevels);
+        ui->songTable->setItem(i, kLevelsCol, twiLevels);
 
         // AGE FIELD -----
         QString ageString = agesByFilename.value(normalizedPath); // batch-fetched above
@@ -2335,7 +2335,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         twi4->setTextAlignment(Qt::AlignCenter);
         twi4->setFlags(twi4->flags() & ~Qt::ItemIsEditable);      // not editable
         // qDebug() << "TITLE/AGE:" << title << ageString << ageAsIntString;
-        ui->darkSongTable->setItem(i, kAgeCol, twi4);
+        ui->songTable->setItem(i, kAgeCol, twi4);
 
         // RECENT FIELD (must come after AGE field, because it uses age to determine recent string) -----
         QString recentString = ageToRecent(ageString);  // passed as double string
@@ -2343,9 +2343,9 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         twi4b->setForeground(textBrush);
         twi4b->setTextAlignment(Qt::AlignCenter);
         twi4b->setFlags(twi4b->flags() & ~Qt::ItemIsEditable);      // not editable
-        ui->darkSongTable->setItem(i, kRecentCol, twi4b);
+        ui->songTable->setItem(i, kRecentCol, twi4b);
 
-        // ((darkSongTitleLabel *)(ui->darkSongTable->cellWidget(i, kTitleCol)))->setSongUsed(true || recentString != ""); // rewrite the song's title to be strikethrough and/or green background
+        // ((SongTitleLabel *)(ui->songTable->cellWidget(i, kTitleCol)))->setSongUsed(true || recentString != ""); // rewrite the song's title to be strikethrough and/or green background
 
         // PITCH FIELD -----
         int pitch = 0;
@@ -2355,7 +2355,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         twi5->setForeground(textBrush);
         twi5->setTextAlignment(Qt::AlignCenter);
         twi5->setFlags(twi5->flags() & ~Qt::ItemIsEditable);      // not editable
-        ui->darkSongTable->setItem(i, kPitchCol, twi5);
+        ui->songTable->setItem(i, kPitchCol, twi5);
 
         // TEMPO FIELD -----
         int tempo = 0;
@@ -2370,11 +2370,11 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
         twi6->setForeground(textBrush);
         twi6->setTextAlignment(Qt::AlignCenter);
         twi6->setFlags(twi6->flags() & ~Qt::ItemIsEditable);      // not editable
-        ui->darkSongTable->setItem(i, kTempoCol, twi6);
+        ui->songTable->setItem(i, kTempoCol, twi6);
 
         // PATH FIELD (VARIANT SAVED IN INVISIBLE LOCATION) -----
         // keep the path around, for loading in when we double click on it
-        ui->darkSongTable->item(i, kPathCol)->setData(Qt::UserRole, QVariant(origPath)); // path set on cell in col 0
+        ui->songTable->item(i, kPathCol)->setData(Qt::UserRole, QVariant(origPath)); // path set on cell in col 0
 
 //        if (i < 10) {
 //            qDebug() << type << label << labelnum << title << shortTitle; // << titlePlusTags;
@@ -2385,49 +2385,49 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
     t.elapsed(__LINE__);
 
-    // darkFilterMusic(); // I don't think this is needed here.
+    // filterMusic(); // I don't think this is needed here.
 
-    ui->darkSongTable->resizeColumnToContents(kNumberCol);  // and force resizing of column widths to match songs
-    ui->darkSongTable->resizeColumnToContents(kTypeCol);
-    ui->darkSongTable->resizeColumnToContents(kLabelCol);
-    ui->darkSongTable->resizeColumnToContents(kPitchCol);
-    ui->darkSongTable->resizeColumnToContents(kTempoCol);
+    ui->songTable->resizeColumnToContents(kNumberCol);  // and force resizing of column widths to match songs
+    ui->songTable->resizeColumnToContents(kTypeCol);
+    ui->songTable->resizeColumnToContents(kLabelCol);
+    ui->songTable->resizeColumnToContents(kPitchCol);
+    ui->songTable->resizeColumnToContents(kTempoCol);
 
     // Every reload re-runs the resizes above, which would otherwise throw away the widths the
     //   user chose -- switching playlists used to silently re-auto-size five columns (#1744).
-    ui->darkSongTable->setColumnWidthsFromString(prefsManager.GetsongTableColumnWidths());
+    ui->songTable->setColumnWidthsFromString(prefsManager.GetsongTableColumnWidths());
 
-    ui->darkSongTable->blockSignals(false);  // unblock signals
-    ui->darkSongTable->setSortingEnabled(true);
+    ui->songTable->blockSignals(false);  // unblock signals
+    ui->songTable->setSortingEnabled(true);
 
     // performance -----
     // these must be in "backwards" order to get the right order, which
     //   is that Type is primary, Title is secondary, Label is tertiary
-    // qDebug() << "darkLoadMusicList::sortItems";
+    // qDebug() << "loadMusicList::sortItems";
 
     // NOTE: here is where we set the sort order
 
     QString desiredSortOrder = prefsManager.GetcurrentSortOrder();
-    // qDebug() << "darkLoadMusicList desiredSortOrder: " << desiredSortOrder;
+    // qDebug() << "loadMusicList desiredSortOrder: " << desiredSortOrder;
     if (desiredSortOrder == "") {
         // it hasn't been set yet!
-        // ui->darkSongTable->sortItems(kLabelCol);  // sort last by label/label #
-        // ui->darkSongTable->sortItems(kTitleCol);  // sort second by title in alphabetical order
-        // ui->darkSongTable->sortItems(kTypeCol);   // sort first by type (singing vs patter)
+        // ui->songTable->sortItems(kLabelCol);  // sort last by label/label #
+        // ui->songTable->sortItems(kTitleCol);  // sort second by title in alphabetical order
+        // ui->songTable->sortItems(kTypeCol);   // sort first by type (singing vs patter)
         // qDebug() << "setting to default sort order!";
         sortByDefaultSortOrder();  // this will be persisted...
     } else {
         // qDebug() << "setting to new sort order!" << desiredSortOrder;
-        ui->darkSongTable->setOrderFromString(desiredSortOrder);
+        ui->songTable->setOrderFromString(desiredSortOrder);
     }
 
-    // qDebug() << "darkLoadMusicList::DONE with sortItems";
+    // qDebug() << "loadMusicList::DONE with sortItems";
 
-        ui->darkSongTable->show();
+        ui->songTable->show();
 
     if (!suppressSelectionChange) {
-        ui->darkSongTable->selectRow(0); // DEBUG
-        ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
+        ui->songTable->selectRow(0); // DEBUG
+        ui->songTable->scrollToItem(ui->songTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
 
     // // PERFORMANCE TESTING --------
     // QFile file("/Users/mpogue/pathStack.txt");
@@ -2443,7 +2443,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
     // }
 
 
-    // QString msg1 = QString::number(ui->darkSongTable->rowCount()) + QString(" audio files found");
+    // QString msg1 = QString::number(ui->songTable->rowCount()) + QString(" audio files found");
     // QString msg1 = QString("Songs found: %1 SquareDesk + %2 Apple Music, pathStack: %3")
     //         .arg(QString::number(totalNumberOfSquareDeskSongs))
     //         .arg(QString::number(totalNumberOfAppleSongs))
@@ -2453,26 +2453,26 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
     //         .arg(QString::number(totalNumberOfAppleSongs));
     // ui->statusBar->showMessage(msg1);
 
-        // do this only if we WANT the selection and focus to go to the darkSearch or darkSongTable
-        //   when reloading darkSongTable + filter because of a playlist change, do NOT change focus or selection
+        // do this only if we WANT the selection and focus to go to the search or songTable
+        //   when reloading songTable + filter because of a playlist change, do NOT change focus or selection
         lastSongTableRowSelected = -1;  // don't modify previous one, just set new selected one to color
-        on_darkSongTable_itemSelectionChanged();  // to re-highlight the selection, if music was reloaded while an item was selected
+        on_songTable_itemSelectionChanged();  // to re-highlight the selection, if music was reloaded while an item was selected
         lastSongTableRowSelected = 0; // first row is highlighted now
 
-        ui->darkSongTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-        ui->darkSongTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
-        bool searchHasFocus = ui->darkSearch->hasFocus();
-        bool darkSongTableHasFocus = ui->darkSongTable->hasFocus();
+        ui->songTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+        ui->songTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
+        bool searchHasFocus = ui->search->hasFocus();
+        bool songTableHasFocus = ui->songTable->hasFocus();
         // qDebug() << "yeah, I don't want to go to row 0 here";
-        // ui->darkSongTable->selectRow(0);
+        // ui->songTable->selectRow(0);
         if (searchHasFocus) {
-            ui->darkSearch->setFocus();
-        } else if (darkSongTableHasFocus) {
-            ui->darkSongTable->setFocus();
+            ui->search->setFocus();
+        } else if (songTableHasFocus) {
+            ui->songTable->setFocus();
         }
 
-        // ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
-        ui->darkSearch->setFocus();
+        // ui->songTable->scrollToItem(ui->songTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
+        ui->search->setFocus();
     } else {
         // qDebug() << "SELECTION/FOCUS CHANGE SUPPRESSED";
     }
@@ -2480,7 +2480,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
     t.elapsed(__LINE__);
 
     if (reloadPaletteSlots) {
-        // now, if we just loaded the darkMusicList, we have to check the palette slots, to see if they need to
+        // now, if we just loaded the musicList, we have to check the palette slots, to see if they need to
         //  be reloaded, too.  This normally happens just when the fileWatcher is triggered.
         // qDebug() << "reloading the palette slots too";
         for (int i = 0; i < 3; i++) {
@@ -2503,7 +2503,7 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
 
     currentTypeFilter = typeFilter;
 
-    ui->darkSongTable->updateSlackColumn();  // resizeColumnToContents() above changed the slack
+    ui->songTable->updateSlackColumn();  // resizeColumnToContents() above changed the slack
 }
 
 // Custom QTableWidgetItem for numeric sorting
@@ -2623,7 +2623,7 @@ void MainWindow::dropEvent(QDropEvent *event)
     // BEFORE doing any real work: the Finder blocks (beachball, then crash) until
     // the drop target finishes handling the drag, and it animates the dragged file
     // flying back ("put back") if the drop is never accepted. The import dialog,
-    // the copies, and the darkSongTable refresh all run from the event loop AFTER
+    // the copies, and the songTable refresh all run from the event loop AFTER
     // the drag session has completed.
     event->setDropAction(Qt::CopyAction);
     event->accept();
@@ -3024,7 +3024,7 @@ void MainWindow::importFilesFromFinder(const QStringList &droppedPaths)
         // qDebug() << "--- Begin Import Selections ---";
 
         // Our own copies must NOT trigger the FileWatcher's debounce + full rescan --
-        // we update the pathStacks and darkSongTable incrementally ourselves below,
+        // we update the pathStacks and songTable incrementally ourselves below,
         // which is much faster (Issue #1664). The re-enable timer is started AFTER
         // the copy loop, because the "File Exists" dialog can hold the loop open
         // for longer than the timer's 5s window.
@@ -3125,7 +3125,7 @@ void MainWindow::importFilesFromFinder(const QStringList &droppedPaths)
                 // qDebug() << "FOO:" << didCopy << patterSingingTypes << dest;
                 if (didCopy && (patterSingingTypes.contains(dest))) {
                     // qDebug() << "didCopy, so set the NEW tag on" << finalPath;
-                    darkChangeTagOnPathToMP3(finalPath, QString("NEW"), true); // add the NEW tag to the copied file
+                    changeTagOnPathToMP3(finalPath, QString("NEW"), true); // add the NEW tag to the copied file
                 }
             }
         }
@@ -3134,7 +3134,7 @@ void MainWindow::importFilesFromFinder(const QStringList &droppedPaths)
         fileWatcherDisabledTimer->start(std::chrono::milliseconds(5000)); // re-enable the FileWatcher after the dust settles
 
         if (!copiedFilePaths.isEmpty()) {
-            // add the just-copied files to the pathStacks and refresh the darkSongTable right
+            // add the just-copied files to the pathStacks and refresh the songTable right
             // now, so they are searchable immediately -- no FileWatcher full rescan needed (Issue #1664)
             addFilesToPathStacks(copiedFilePaths);
         }

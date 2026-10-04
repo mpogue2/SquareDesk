@@ -139,15 +139,15 @@ updateID3TagsDialog::updateID3TagsDialog(QWidget *parent) :
 
     // ==========
 
-    // double introTime = ((MainWindow *)mw)->ui->darkSeekBar->getIntro();
-    // double outroTime = ((MainWindow *)mw)->ui->darkSeekBar->getOutro();
+    // double introTime = ((MainWindow *)mw)->ui->seekBar->getIntro();
+    // double outroTime = ((MainWindow *)mw)->ui->seekBar->getOutro();
 
     // qDebug() << "introTime/outroTime:" << introTime << outroTime;
 
-    QTime currentIntroTime = mw->ui->darkStartLoopTime->time();
+    QTime currentIntroTime = mw->ui->startLoopTime->time();
     double currentIntroTimeSec = 60.0*currentIntroTime.minute() + currentIntroTime.second() + currentIntroTime.msec()/1000.0;
 
-    QTime currentOutroTime = mw->ui->darkEndLoopTime->time();
+    QTime currentOutroTime = mw->ui->endLoopTime->time();
     double currentOutroTimeSec = 60.0*currentOutroTime.minute() + currentOutroTime.second() + currentOutroTime.msec()/1000.0;
 
     // int sampleRate = mw->getMP3SampleRate(mw->currentMP3filenameWithPath);
@@ -172,12 +172,12 @@ updateID3TagsDialog::updateID3TagsDialog(QWidget *parent) :
         on_newLoopLengthEditBox_textChanged("-");
     }
 
-    // qDebug() << "TEMPO SLIDER DEFAULT VALUE: " << mw->ui->darkTempoSlider->getDefaultValue();
-    // QString newTempo = mw->ui->darkTempoLabel->text();
-    QString newTempo = QString::number(mw->ui->darkTempoSlider->getDefaultValue());
+    // qDebug() << "TEMPO SLIDER DEFAULT VALUE: " << mw->ui->tempoSlider->getDefaultValue();
+    // QString newTempo = mw->ui->tempoLabel->text();
+    QString newTempo = QString::number(mw->ui->tempoSlider->getDefaultValue());
     // qDebug() << "newTempo: " << newTempo;
 
-    if (mw->ui->darkTempoLabel->text().endsWith("%")) {
+    if (mw->ui->tempoLabel->text().endsWith("%")) {
         // qDebug() << "NEW TEMPO ENDS IN %" << newTempo;
         ui->newTBPMEditBox->setText(ui->currentTBPMLabel->text()); // use same as old
         on_newTBPMEditBox_textChanged(ui->currentTBPMLabel->text());

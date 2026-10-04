@@ -37,13 +37,13 @@
 
 //class MainWindow;
 
-class darkSongTitleLabel : public QLabel {
+class SongTitleLabel : public QLabel {
 private:
     MainWindow *mw;
     QPoint dragStartPosition;
     bool songUsed;
 public:
-    darkSongTitleLabel(MainWindow *mw) : QLabel(), mw(mw), songUsed(false) {}
+    SongTitleLabel(MainWindow *mw) : QLabel(), mw(mw), songUsed(false) {}
     void mouseDoubleClickEvent(QMouseEvent *) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
@@ -53,13 +53,13 @@ public:
 
 // ================================================================
 // when a MyTableWidget is in a palette slot, we need different handling for double-clicking
-class darkPaletteSongTitleLabel : public QLabel {
+class PaletteSongTitleLabel : public QLabel {
 private:
     MainWindow *mw;
     QPoint dragStartPosition;
     bool songUsed;
 public:
-    darkPaletteSongTitleLabel(MainWindow *mw) : QLabel(), mw(mw), songUsed(false) {}
+    PaletteSongTitleLabel(MainWindow *mw) : QLabel(), mw(mw), songUsed(false) {}
     void mouseDoubleClickEvent(QMouseEvent *) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;

@@ -1161,14 +1161,14 @@ void MainWindow::computeSongLevels() {
     saveSongLevelsCache();
 }
 
-// Updates the Levels column cell text in darkSongTable and all 3 playlist tables
+// Updates the Levels column cell text in songTable and all 3 playlist tables
 // from the already-computed songLevelsByPath, without doing a full table reload.
 // Used when the user toggles the Levels column on for the first time in a session
 // (computeSongLevels() runs lazily at that point, rather than at every startup).
 void MainWindow::refreshLevelsColumnDisplay() {
-    for (int row = 0; row < ui->darkSongTable->rowCount(); row++) {
-        QTableWidgetItem *pathItem = ui->darkSongTable->item(row, kPathCol);
-        QTableWidgetItem *levelsItem = ui->darkSongTable->item(row, kLevelsCol);
+    for (int row = 0; row < ui->songTable->rowCount(); row++) {
+        QTableWidgetItem *pathItem = ui->songTable->item(row, kPathCol);
+        QTableWidgetItem *levelsItem = ui->songTable->item(row, kLevelsCol);
         if (pathItem && levelsItem) {
             QString origPath = pathItem->data(Qt::UserRole).toString();
             levelsItem->setText(songLevelsByPath.value(origPath, ""));
@@ -1316,7 +1316,7 @@ void MainWindow::updateSongLevelsForOneCuesheet(const QString &absoluteFilePath,
     }
 
     if (anyChanged) {
-        refreshLevelsColumnDisplay(); // updates darkSongTable and all 3 palette slot tables (cheap: no I/O, no scoring)
+        refreshLevelsColumnDisplay(); // updates songTable and all 3 palette slot tables (cheap: no I/O, no scoring)
     }
 }
 

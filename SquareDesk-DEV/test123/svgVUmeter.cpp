@@ -201,8 +201,8 @@ void svgVUmeter::updateMeter() {
         boxesR = (boxesR + 12.0)/4.0; // map -12 to 4 --> 0 to 4
     }
 
-    valueL = boxesL / 10.0; // remap to 0.0 to 1.0 for the darkVUmeter
-    valueR = boxesR / 10.0; // remap to 0.0 to 1.0 for the darkVUmeter
+    valueL = boxesL / 10.0; // remap to 0.0 to 1.0 for the vuMeter
+    valueR = boxesR / 10.0; // remap to 0.0 to 1.0 for the vuMeter
     // -------------------------
 
     double limitL = bottom - valueL * (bottom - top);

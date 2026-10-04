@@ -46,8 +46,8 @@
  *  
  */
 
-KEYACTION(StopSong, "Stop Song", mw->on_darkStopButton_clicked() )
-KEYACTION(RestartSong, "Restart Song", mw->on_darkStopButton_clicked(); mw->on_darkPlayButton_clicked(); mw->on_darkWarningLabel_clicked() )
+KEYACTION(StopSong, "Stop Song", mw->on_stopButton_clicked() )
+KEYACTION(RestartSong, "Restart Song", mw->on_stopButton_clicked(); mw->on_playButton_clicked(); mw->on_warningLabel_clicked() )
 KEYACTION(Forward15Seconds, "Skip Forward 10 Seconds", mw->on_actionSkip_Forward_triggered())
 KEYACTION(Backward15Seconds, "Skip Backward 10 Seconds", mw->on_actionSkip_Backward_triggered())
 KEYACTION(VolumeMinus, "Volume -", mw->on_actionVolume_Down_triggered())
@@ -62,12 +62,12 @@ KEYACTION(PitchMinus, "Pitch -", mw->on_actionPitch_Down_triggered())
 KEYACTION(FadeOut , "Fade Out", mw->actionFadeOutAndPause())
 KEYACTION(LoopToggle, "Loop Toggle", mw->on_loopButton_toggled(!mw->ui->actionLoop->isChecked()))
 
-KEYACTION(StartLoop, "Start Loop", mw->on_darkStartLoopButton_clicked())
-KEYACTION(EndLoop,   "End Loop",   mw->on_darkEndLoopButton_clicked())
+KEYACTION(StartLoop, "Start Loop", mw->on_startLoopButton_clicked())
+KEYACTION(EndLoop,   "End Loop",   mw->on_endLoopButton_clicked())
 
 KEYACTION(TestLoop, "Test Loop", mw->on_actionTest_Loop_triggered())
 KEYACTION(NextTab, "Toggle Music/Cuesheet Tab ", mw->actionNextTab())
-KEYACTION(PlaySong, "Play/Pause Song", mw->on_darkPlayButton_clicked())
+KEYACTION(PlaySong, "Play/Pause Song", mw->on_playButton_clicked())
 KEYACTION(SwitchToMusicTab, "Switch to Music Tab", mw->actionSwitchToTab("Music"))
 KEYACTION(SwitchToTimersTab, "Switch to Timers Tab", mw->actionSwitchToTab("Timers"))
 KEYACTION(SwitchToLyricsTab, "Switch to Cuesheet Tab", mw->actionSwitchToTab("Cuesheet"))

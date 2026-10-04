@@ -359,9 +359,9 @@ public:
     // Which of the given songs actually have sections worth calculating, i.e. are patter.
     QStringList patterPathsAmong(const QStringList &paths) const;
 
-    // The selection in darkSongTable, skipping rows hidden by the current search filter.
-    QList<int> darkSongTableSelectedVisibleRows() const;
-    QStringList darkSongTablePathsForRows(const QList<int> &rows) const;
+    // The selection in songTable, skipping rows hidden by the current search filter.
+    QList<int> songTableSelectedVisibleRows() const;
+    QStringList songTablePathsForRows(const QList<int> &rows) const;
 
     // Resolved once per run on the MAIN thread by startSectionEstimation(), then read (never
     //   written) by processOneFile() on the thread pool.  See sectionResultsPathForSong().
@@ -375,7 +375,7 @@ public:
     void editTagsForPath(QString pathToMP3);                    // Path-based wrapper for playlists
     void changeTagForPath(QString pathToMP3, QString tag, bool add);  // Path-based wrapper for playlists
     void removeAllTagsForPath(QString pathToMP3);               // Path-based wrapper for playlists
-    void updateDarkSongTableRowForPath(QString pathToMP3);      // Helper to refresh darkSongTable
+    void updateSongTableRowForPath(QString pathToMP3);      // Helper to refresh songTable
     int MP3FileSampleRate(QString pathToMP3);
     QString getSongFileIdentifier(QString pathToSong);
 
@@ -437,12 +437,12 @@ public:
     void tableWidgetCallList_checkboxStateChanged(int row, int state);
 
     // UI helper functions
-    void darkPaletteTitleLabelDoubleClicked(QMouseEvent *e);
+    void paletteTitleLabelDoubleClicked(QMouseEvent *e);
     // settingsCache: optional, and only for callers that build many rows in one go.  Without it,
     //   setTitleField() does one SQLite SELECT per row; that was 102 ms of the 131 ms spent
     //   loading a 511-row Track Filter into a palette slot.  Callers that have many rows to do
     //   should fetch every song's settings up front with SongSettings::loadSettingsForAllSongs()
-    //   and pass the result here, the way darkLoadMusicList() already does (issues #1669, #1695).
+    //   and pass the result here, the way loadMusicList() already does (issues #1669, #1695).
     //   Keys are music-root-relative paths, i.e. SongSettings::removeRootDirs() of the abs path.
     void setTitleField(QTableWidget *whichTable, int whichRow, QString fullPath,
                        bool isPlaylist, QString PlaylistFileName, QString theRealPath = "",
@@ -450,7 +450,7 @@ public:
                        const QHash<QString, SongSetting> *settingsCache = nullptr);
     bool isPlaylistMarker(const QString &filename);
     bool shouldIndentPlaylistRow(QTableWidget *table, int rowNum);
-    void darkTitleLabelDoubleClicked(QMouseEvent * /* event */);
+    void titleLabelDoubleClicked(QMouseEvent * /* event */);
 #ifndef NO_TIMING_INFO
     void sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */);
 #endif
@@ -502,11 +502,11 @@ public slots:
     void PlaylistItemsMoveUp();
     void PlaylistItemsMoveDown();
     void PlaylistItemsRemove();
-    void darkAddPlaylistItemsToBottom(int slot);
-    void darkAddPlaylistItemToBottom(int whichSlot, QString title, QString thePitch, QString theTempo, QString theFullPath, QString isLoaded);
-    void darkAddPlaylistItemAt(int whichSlot, const QString &trackName, const QString &pitch, const QString &tempo, const QString &path, const QString &extra, int insertRow);
+    void addPlaylistItemsToBottom(int slot);
+    void addPlaylistItemToBottom(int whichSlot, QString title, QString thePitch, QString theTempo, QString theFullPath, QString isLoaded);
+    void addPlaylistItemAt(int whichSlot, const QString &trackName, const QString &pitch, const QString &tempo, const QString &path, const QString &extra, int insertRow);
     bool addItemsToPlaylistFile(const QString &playlistRelPath, const QList<SongDragInfo> &songs);
-    void darkRevealInFinder();
+    void revealInFinder();
     void refreshAllPlaylists();  // Issue #1547: refresh indentation after moves
     void updatePlaylistTipNumbers(QTableWidget *theTable);  // Issue #1714: tip numbers in the # column
 
@@ -532,7 +532,7 @@ protected:
     bool eventFilter(QObject *watched, QEvent *event) Q_DECL_OVERRIDE;
     // Protected UI event handlers
     void on_loopButton_toggled(bool checked);
-    void on_darkLoopToggleButton_toggled(bool checked);
+    void on_loopToggleButton_toggled(bool checked);
     void on_monoButton_toggled(bool checked);
     void on_flashcallbasic_toggled(bool checked);
     void on_flashcallmainstream_toggled(bool checked);
@@ -570,19 +570,19 @@ private slots:
     void on_actionNormalize_Track_Audio_toggled(bool arg1);
 
     // Dark mode audio controls
-    void on_darkPlayButton_clicked();
-    void on_darkStopButton_clicked();
-    void on_darkStartLoopButton_clicked();
-    void on_darkEndLoopButton_clicked();
-    void on_darkTestLoopButton_clicked();
-    void on_darkVolumeSlider_valueChanged(int value);
-    void on_darkTempoSlider_valueChanged(int value);
-    void on_darkPitchSlider_valueChanged(int value);
-    void on_darkTrebleKnob_valueChanged(int value);
-    void on_darkMidKnob_valueChanged(int value);
-    void on_darkBassKnob_valueChanged(int value);
-    void on_darkSeekBar_valueChanged(int value);
-    void on_darkSeekBar_sliderMoved(int value);
+    void on_playButton_clicked();
+    void on_stopButton_clicked();
+    void on_startLoopButton_clicked();
+    void on_endLoopButton_clicked();
+    void on_testLoopButton_clicked();
+    void on_volumeSlider_valueChanged(int value);
+    void on_tempoSlider_valueChanged(int value);
+    void on_pitchSlider_valueChanged(int value);
+    void on_trebleKnob_valueChanged(int value);
+    void on_midKnob_valueChanged(int value);
+    void on_bassKnob_valueChanged(int value);
+    void on_seekBar_valueChanged(int value);
+    void on_seekBar_sliderMoved(int value);
 
     // ============================================================================
     // SQUARE DANCE (SD) SLOTS
@@ -712,16 +712,16 @@ private slots:
     void on_seekBarCuesheet_valueChanged(int);
     void on_dateTimeEditIntroTime_timeChanged(const QTime &time);
     void on_dateTimeEditOutroTime_timeChanged(const QTime &time);
-    void on_darkStartLoopTime_timeChanged(const QTime &time);
-    void on_darkEndLoopTime_timeChanged(const QTime &time);
+    void on_startLoopTime_timeChanged(const QTime &time);
+    void on_endLoopTime_timeChanged(const QTime &time);
     void updateLoopAlignmentIndicators();  // #1604: recolor loop brackets (ID3/bar/beat/unaligned)
 
     // ============================================================================
     // SONG TABLE & PLAYLIST SLOTS
     // ============================================================================
-    void on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item);
-    void on_darkSongTable_customContextMenuRequested(const QPoint &pos);
-    void on_darkSongTable_itemSelectionChanged();
+    void on_songTable_itemDoubleClicked(QTableWidgetItem *item);
+    void on_songTable_customContextMenuRequested(const QPoint &pos);
+    void on_songTable_itemSelectionChanged();
     void on_treeWidget_itemSelectionChanged();
     void on_treeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column);
     void on_playlist1Table_itemSelectionChanged();
@@ -730,7 +730,7 @@ private slots:
     void handlePlaylistDoubleClick(QTableWidgetItem *item);
 
     // Song table operations
-    void darkEditTags();
+    void editTags();
     void revealLyricsFileInFinder();
     void copyIt();
     void pasteIt();
@@ -840,11 +840,11 @@ private slots:
     // ============================================================================
     // MISCELLANEOUS SLOTS
     // ============================================================================
-    void on_darkSearch_textChanged(const QString &arg1);
+    void on_search_textChanged(const QString &arg1);
     void on_tabWidget_currentChanged(int index);
     void microphoneStatusUpdate();
     void on_warningLabelCuesheet_clicked();
-    void on_darkWarningLabel_clicked();
+    void on_warningLabel_clicked();
     void on_menuLyrics_aboutToShow();
     void on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/);
     void on_actionExplore_Cuesheet_Matching_triggered();
@@ -959,7 +959,7 @@ private:
     bool flashCallsVisible;
     bool splittersRestored; // Issue #1558: track if splitters have been restored after window shown
     int lastSongTableRowSelected;
-    bool doNotCallDarkLoadMusicList;
+    bool doNotCallLoadMusicList;
     unsigned int screensaverSeconds;
     QLabel *micStatusLabel;
     bool justWentActive;
@@ -1256,11 +1256,11 @@ private:
     void addFilesToPathStacks(const QStringList &copiedFilePaths); // incremental import, no full rescan needed (Issue #1664)
     void importFilesFromFinder(const QStringList &droppedPaths);   // deferred from dropEvent so the Finder drag session can finish first (Issue #1664)
     void updateTreeWidget();
-    void darkFilterMusic();
-    void darkLoadMusicList(QList<QString> *aPathStack, QString typeFilter, bool forceTypeFilter, bool reloadPaletteSlots, bool suppressSelectionChange = false);
+    void filterMusic();
+    void loadMusicList(QList<QString> *aPathStack, QString typeFilter, bool forceTypeFilter, bool reloadPaletteSlots, bool suppressSelectionChange = false);
     QString FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags, QString titleColor = "");
-    void darkChangeTagOnPathToMP3(QString pathToMP3, QString tag, bool add);  // add/remove tag on specific song
-    void darkChangeTagOnCurrentSongSelection(QString tag, bool add);
+    void changeTagOnPathToMP3(QString pathToMP3, QString tag, bool add);  // add/remove tag on specific song
+    void changeTagOnCurrentSongSelection(QString tag, bool add);
     void removeAllTagsFromSong();
     void removeAllTagsFromSongRow(int row);
     void loadChoreographyList();
@@ -1292,7 +1292,6 @@ private:
     QTimer *fileWatcherTimer;
     QTimer *fileWatcherDisabledTimer;
     QTimer *playlistSlotWatcherTimer;
-    LevelMeter *vuMeter;
 
     // ============================================================================
     // PATH MANAGEMENT & SONG TYPES
@@ -1416,12 +1415,12 @@ private:
     void restoreCheckBoxState(const char *key_string, QCheckBox *checkBox, bool checkedDefault);
     QString removePrefix(QString prefix, QString s);
     void updateSongTableColumnView();
-    void handleNewColumnWidths(const QString &widthString);   // persists darkSongTable's widths
+    void handleNewColumnWidths(const QString &widthString);   // persists songTable's widths
 
-    int darkPreviousVisibleSongRow();
-    int darkNextVisibleSongRow();
-    int darkGetSelectionRowForFilename(const QString &filePath);
-    int darkSelectedSongRow();
+    int previousVisibleSongRow();
+    int nextVisibleSongRow();
+    int getSelectionRowForFilename(const QString &filePath);
+    int selectedSongRow();
 
 private: // SD Engine Implementation
     // ============================================================================
@@ -1512,9 +1511,9 @@ private: // SD Engine Implementation
     // UI THEME & APPEARANCE
     // ============================================================================
     bool lastFlashcall;
-    QIcon *darkStopIcon;
-    QIcon *darkPlayIcon;
-    QIcon *darkPauseIcon;
+    QIcon *stopIcon;
+    QIcon *playIcon;
+    QIcon *pauseIcon;
     float *waveform;
     QList<int> currentSplitterSizes;
     MyTableWidget *sourceForLoadedSong;
