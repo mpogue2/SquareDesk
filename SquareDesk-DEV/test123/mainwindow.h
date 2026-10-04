@@ -450,7 +450,6 @@ public:
                        const QHash<QString, SongSetting> *settingsCache = nullptr);
     bool isPlaylistMarker(const QString &filename);
     bool shouldIndentPlaylistRow(QTableWidget *table, int rowNum);
-    void titleLabelDoubleClicked(QMouseEvent * /* event */);
     void darkTitleLabelDoubleClicked(QMouseEvent * /* event */);
 #ifndef NO_TIMING_INFO
     void sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */);
@@ -732,9 +731,7 @@ private slots:
 
     // Song table operations
     void darkEditTags();
-    void revealInFinder();
     void revealLyricsFileInFinder();
-    void revealAttachedLyricsFileInFinder();
     void copyIt();
     void pasteIt();
     void smartPasteIt();
@@ -1259,12 +1256,9 @@ private:
     void addFilesToPathStacks(const QStringList &copiedFilePaths); // incremental import, no full rescan needed (Issue #1664)
     void importFilesFromFinder(const QStringList &droppedPaths);   // deferred from dropEvent so the Finder drag session can finish first (Issue #1664)
     void updateTreeWidget();
-    void filterMusic();
-    void loadMusicList();
     void darkFilterMusic();
     void darkLoadMusicList(QList<QString> *aPathStack, QString typeFilter, bool forceTypeFilter, bool reloadPaletteSlots, bool suppressSelectionChange = false);
     QString FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags, QString titleColor = "");
-    void changeTagOnCurrentSongSelection(QString tag, bool add);
     void darkChangeTagOnPathToMP3(QString pathToMP3, QString tag, bool add);  // add/remove tag on specific song
     void darkChangeTagOnCurrentSongSelection(QString tag, bool add);
     void removeAllTagsFromSong();
@@ -1424,12 +1418,8 @@ private:
     void updateSongTableColumnView();
     void handleNewColumnWidths(const QString &widthString);   // persists darkSongTable's widths
 
-    int selectedSongRow();
-    int previousVisibleSongRow();
-    int nextVisibleSongRow();
     int darkPreviousVisibleSongRow();
     int darkNextVisibleSongRow();
-    int getSelectionRowForFilename(const QString &filePath);
     int darkGetSelectionRowForFilename(const QString &filePath);
     int darkSelectedSongRow();
 

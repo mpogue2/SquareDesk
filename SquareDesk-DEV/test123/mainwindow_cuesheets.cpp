@@ -2220,27 +2220,6 @@ void MainWindow::revealLyricsFileInFinder() {
     showInFinderOrExplorer(loadedCuesheetNameWithPath);
 }
 
-// --------------
-// invoked from context menu on songTable entry
-void MainWindow::revealAttachedLyricsFileInFinder() {
-
-    // int selectedRow = selectedSongRow();  // get current row or -1
-    // if (selectedRow == -1) {
-    //     qDebug() << "Tried to revealAttachedLyricsFile, but no selected row."; // if nothing selected, give up
-    //     return;
-    // }
-
-    // QString currentMP3filenameWithPath = ui->songTable->item(selectedRow, kPathCol)->data(Qt::UserRole).toString();
-
-    // SongSetting settings1;
-    // if (songSettings.loadSettings(currentMP3filenameWithPath, settings1)) {
-    //     QString cuesheetPath = settings1.getCuesheetName();
-    //     showInFinderOrExplorer(cuesheetPath);
-    // } else {
-    //     qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
-    // }
-}
-
 // ------------------------------------------------
 void MainWindow::on_actionSave_Cuesheet_triggered()
 {

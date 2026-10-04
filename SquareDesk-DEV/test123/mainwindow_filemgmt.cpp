@@ -384,9 +384,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     fileModified = false;
 
-    // ui->playButton->setEnabled(true);
-    // ui->stopButton->setEnabled(true);
-
     ui->darkPlayButton->setEnabled(true);
     ui->darkStopButton->setEnabled(true);
     ui->actionPlay->setEnabled(true);
@@ -394,11 +391,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->actionSkip_Forward->setEnabled(true);
     ui->actionSkip_Backward->setEnabled(true);
 
-    // ui->seekBar->setEnabled(true);
     ui->seekBarCuesheet->setEnabled(true);
 
-    // emit ui->pitchSlider->valueChanged(ui->pitchSlider->value());    // force pitch change, if pitch slider preset before load
-    // emit ui->volumeSlider->valueChanged(ui->volumeSlider->value());  // force vol change, if vol slider preset before load
     // emit ui->mixSlider->valueChanged(ui->mixSlider->value());        // force mix change, if mix slider preset before load
 
     ui->actionMute->setEnabled(true);
@@ -413,11 +407,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->actionForce_Mono_Aahz_mode->setEnabled(true);
     ui->actionPitch_Down->setEnabled(true);
     ui->actionPitch_Up->setEnabled(true);
-
-    // emit ui->bassSlider->valueChanged(ui->bassSlider->value()); // force bass change, if bass slider preset before load
-    // emit ui->midrangeSlider->valueChanged(
-    //     ui->midrangeSlider->value()); // force midrange change, if midrange slider preset before load
-    // emit ui->trebleSlider->valueChanged(ui->trebleSlider->value()); // force treble change, if treble slider preset before load
 
     cBass->Stop();
 
@@ -1267,11 +1256,6 @@ void MainWindow::addFilesToPathStacks(const QStringList &copiedFilePaths)
     ui->statusBar->showMessage(QString("Songs found: %1").arg(QString::number(pathStack->size())));
 }
 
-void MainWindow::filterMusic()
-{
-    // OBSOLETE
-}
-
 bool filterContains(QString str, const QStringList &list)
 {
     if (list.isEmpty())
@@ -1428,15 +1412,6 @@ void MainWindow::darkFilterMusic()
     ui->darkSearch->setFocus();  // restore focus after selectRow
 
     t.stop(__LINE__);
-
-//    ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
-}
-
-// --------------------------------------------------------------------------------
-
-void MainWindow::loadMusicList()
-{
-    // OBSOLETE
 }
 
 // --------------------------------------------------------------------------------
@@ -1786,25 +1761,6 @@ void MainWindow::darkLoadMusicList(QList<QString> *aPathStack, QString typeFilte
     ui->darkSongTable->hide();
     ui->darkSongTable->setSortingEnabled(false);
     ui->darkSongTable->blockSignals(true);  // block signals, so changes are not recursive
-
-    // PLAYLIST HANDLING -----
-    // Need to remember the PL# mapping here, and reapply it after the filter
-    // left = path, right = number string
-    // QMap<QString, QString> path2playlistNum;
-
-    // // SONGTABLEREFACTOR
-    // // Iterate over the songTable, saving the mapping in "path2playlistNum"
-    // // TODO: optimization: save this once, rather than recreating each time.
-    // for (int i=0; i<ui->songTable->rowCount(); i++) {
-    //     QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
-    //     QString playlistIndex = theItem->text();  // this is the playlist #
-    //     QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();  // this is the full pathname
-    //     if (playlistIndex != " " && playlistIndex != "") {
-    //         // item HAS an index (that is, it is on the list, and has a place in the ordering)
-    //         // TODO: reconcile int here with double elsewhere on insertion
-    //         path2playlistNum[pathToMP3] = playlistIndex;
-    //     }
-    // }
 
     // clear out the table
     ui->darkSongTable->setRowCount(0);

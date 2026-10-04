@@ -32,12 +32,6 @@
 #include "songlistmodel.h"
 #include "dragicon.h"
 
-void SongTitleLabel::mouseDoubleClickEvent(QMouseEvent *e)
-{
-    mw->titleLabelDoubleClicked(e);
-}
-
-// ===============================================================
 static QRegularExpression title_tags_remover3("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
 static QRegularExpression spanPrefixRemover3("<span style=\"color:.*\">(.*)</span>", QRegularExpression::InvertedGreedinessOption);
 

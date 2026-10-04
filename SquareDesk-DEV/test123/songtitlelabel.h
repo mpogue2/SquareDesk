@@ -37,16 +37,6 @@
 
 //class MainWindow;
 
-class SongTitleLabel : public QLabel {
-private:
-    MainWindow *mw;
-public:
-    SongTitleLabel(MainWindow *mw) : QLabel(), mw(mw) {}
-    void mouseDoubleClickEvent(QMouseEvent *) override;
-    QString textColor;  // saved so that we can restore it when not selected
-};
-
-// ================================================================
 class darkSongTitleLabel : public QLabel {
 private:
     MainWindow *mw;
