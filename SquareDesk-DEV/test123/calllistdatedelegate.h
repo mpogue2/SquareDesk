@@ -57,6 +57,15 @@ public:
         return editor;
     }
 
+    // The column is sized to fit the date text, which is narrower than a QDateEdit with its
+    //   popup button, so let the editor extend to the right while it's open.
+    void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &) const override
+    {
+        QRect r = option.rect;
+        r.setWidth(qMax(r.width(), editor->sizeHint().width()));
+        editor->setGeometry(r);
+    }
+
     void setEditorData(QWidget *editor, const QModelIndex &index) const override
     {
         static_cast<QDateEdit *>(editor)->setDate(QDate::fromString(index.data().toString(), kDateFormat));

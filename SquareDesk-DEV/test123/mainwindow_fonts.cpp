@@ -421,11 +421,10 @@ void MainWindow::adjustFontSizes()
 
     ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,static_cast<int>(36*(currentMacPointSize/13.0)));
     ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, static_cast<int>(24*(currentMacPointSize/13.0)));
-    ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, static_cast<int>(75*(currentMacPointSize/13.0)));
     ui->tableWidgetCallList->setColumnWidth(kCallListTimingCol, static_cast<int>(200*(currentMacPointSize/13.0)));
 
     ui->tableWidgetCallList->horizontalHeader()->setSectionResizeMode(kCallListNameCol,        QHeaderView::Interactive);
-    ui->tableWidgetCallList->horizontalHeader()->setSectionResizeMode(kCallListWhenCheckedCol, QHeaderView::Interactive);
+    ui->tableWidgetCallList->horizontalHeader()->setSectionResizeMode(kCallListWhenCheckedCol, QHeaderView::ResizeToContents); // fit the dates at any font size (#1766)
     ui->tableWidgetCallList->horizontalHeader()->setSectionResizeMode(kCallListTimingCol,      QHeaderView::Interactive);
 
     // these are special -- don't want them to get too big, even if user requests huge fonts

@@ -1554,12 +1554,10 @@ void MainWindow::initializeMusicSongTable() {
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
         ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,67);
         ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, 34);
-        ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, 100);
         ui->tableWidgetCallList->setColumnWidth(kCallListTimingCol, 200);
 #elif defined(Q_OS_LINUX)
         ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,40);
         ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, 24);
-        ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, 100);
         ui->tableWidgetCallList->setColumnWidth(kCallListTimingCol, 200);
 #endif
         ui->tableWidgetCallList->verticalHeader()->setVisible(false);  // turn off row numbers (we already have the Teach order, which is #'s)
@@ -1569,7 +1567,7 @@ void MainWindow::initializeMusicSongTable() {
         headerView->setSectionResizeMode(kCallListOrderCol, QHeaderView::Fixed);
         headerView->setSectionResizeMode(kCallListCheckedCol, QHeaderView::Fixed);
         headerView->setSectionResizeMode(kCallListNameCol, QHeaderView::Stretch);
-        headerView->setSectionResizeMode(kCallListWhenCheckedCol, QHeaderView::Fixed);
+        headerView->setSectionResizeMode(kCallListWhenCheckedCol, QHeaderView::ResizeToContents); // fit the dates (#1766)
         headerView->setSectionResizeMode(kCallListTimingCol, QHeaderView::Stretch);
         headerView->setStretchLastSection(true);
 
@@ -1585,7 +1583,6 @@ void MainWindow::initializeMusicSongTable() {
         QString lastDanceProgram(prefsManager.MySettings.value("lastCallListDanceProgram").toString());
         loadDanceProgramList(lastDanceProgram);
 
-        ui->tableWidgetCallList->resizeColumnToContents(kCallListWhenCheckedCol);  // and force resizing of column width to match date
         ui->tableWidgetCallList->resizeColumnToContents(kCallListNameCol);  // and force resizing of column width to match names
     }
 
