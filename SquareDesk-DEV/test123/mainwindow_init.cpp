@@ -68,6 +68,7 @@
 #include "exportdialog.h"
 #include "songhistoryexportdialog.h"
 #include "calllistcheckbox.h"
+#include "calllistdatedelegate.h"
 #include "sessioninfo.h"
 #include "startupwizard.h"
 #include "makeflashdrivewizard.h"
@@ -1571,6 +1572,16 @@ void MainWindow::initializeMusicSongTable() {
         headerView->setSectionResizeMode(kCallListWhenCheckedCol, QHeaderView::Fixed);
         headerView->setSectionResizeMode(kCallListTimingCol, QHeaderView::Stretch);
         headerView->setStretchLastSection(true);
+
+        // double-click a Completed date to change it, e.g. when calls are checked off after the fact (#1766)
+        ui->tableWidgetCallList->setItemDelegateForColumn(kCallListWhenCheckedCol,
+            new CallListDateDelegate(kCallListNameCol,
+                                     [this](const QString &callName, const QDate &date) { return tableWidgetCallList_dateEdited(callName, date); },
+                                     ui->tableWidgetCallList));
+        if (QTableWidgetItem *completedHeader = ui->tableWidgetCallList->horizontalHeaderItem(kCallListWhenCheckedCol)) {
+            completedHeader->setToolTip("Double-click a date to change it");
+        }
+
         QString lastDanceProgram(prefsManager.MySettings.value("lastCallListDanceProgram").toString());
         loadDanceProgramList(lastDanceProgram);
 
@@ -2247,6 +2258,10 @@ void MainWindow::initializeSessions() {
     }
 
     populateMenuSessionOptions();  // update the Session menu
+
+    // The call list was loaded by initializeMusicSongTable() before the session was known, so
+    //   it showed no taught calls. Reload it now that current_session_id is set (#1766).
+    on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());
 }
 
 void MainWindow::initializeAudioEngine() {

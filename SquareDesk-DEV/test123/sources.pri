@@ -168,6 +168,7 @@ HEADERS  += mainwindow.h \
     songsettings.h \
     keybindings.h \
     calllistcheckbox.h \
+    calllistdatedelegate.h \
     sdlineedit.h \
     downloadmanager.h \
     sdinterface.h \

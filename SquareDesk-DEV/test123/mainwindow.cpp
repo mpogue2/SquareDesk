@@ -953,8 +953,23 @@ void MainWindow::tableWidgetCallList_checkboxStateChanged(int clickRow, int stat
     }
 
     QTableWidgetItem *dateItem(new QTableWidgetItem(songSettings.getCallTaughtOn(danceProgram, callName)));
+    dateItem->setFlags(dateItem->flags() | Qt::ItemIsEditable);
     dateItem->setTextAlignment(Qt::AlignCenter);
     ui->tableWidgetCallList->setItem(row, kCallListWhenCheckedCol, dateItem);
+}
+
+// Called by CallListDateDelegate when the user picks a new taught-on date (#1766).
+//   Saves it, and returns the date as the DB now reports it, for display.
+QString MainWindow::tableWidgetCallList_dateEdited(const QString &callName, const QDate &date)
+{
+    int currentIndex = ui->comboBoxCallListProgram->currentIndex();
+    QString programFilename(ui->comboBoxCallListProgram->itemData(currentIndex).toString());
+    QString displayName;
+    QString danceProgram;
+    breakDanceProgramIntoParts(programFilename, displayName, danceProgram);
+
+    songSettings.setCallTaughtOn(danceProgram, callName, date);
+    return songSettings.getCallTaughtOn(danceProgram, callName);
 }
 
 void MainWindow::on_comboBoxCallListProgram_currentIndexChanged(int currentIndex)

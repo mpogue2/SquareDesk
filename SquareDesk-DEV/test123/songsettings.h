@@ -139,6 +139,7 @@ public:
 
     QString getCallTaughtOn(const QString &program, const QString &call_name);
     void setCallTaught(const QString &program, const QString &call_name);
+    void setCallTaughtOn(const QString &program, const QString &call_name, const QDate &date);
     void deleteCallTaught(const QString &program, const QString &call_name);
     void clearTaughtCalls(const QString &program);
     int currentSessionIDByTime();

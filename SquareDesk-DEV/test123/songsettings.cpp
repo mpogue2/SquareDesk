@@ -980,6 +980,20 @@ void SongSettings::setCallTaught(const QString &program, const QString &call_nam
     q.bindValue(":call_name", call_name);
     exec("setCallTaught", q);
 }
+// Change the date a call was taught, e.g. when it's checked off after the fact (#1766).
+//   taught_on is stored in UTC and shown as date(taught_on, 'localtime'), so store local
+//   noon converted to UTC, which displays back as exactly this date in any time zone.
+//   Updates every matching row, since older databases can have duplicates.
+void SongSettings::setCallTaughtOn(const QString &program, const QString &call_name, const QDate &date)
+{
+    QSqlQuery q(m_db);
+    q.prepare("UPDATE call_taught_on SET taught_on = datetime(:taught_date || ' 12:00:00', 'utc') WHERE dance_program = :dance_program AND call_name = :call_name AND session_rowid = :session_rowid");
+    q.bindValue(":taught_date", date.toString("yyyy-MM-dd"));
+    q.bindValue(":session_rowid", current_session_id);
+    q.bindValue(":dance_program", program);
+    q.bindValue(":call_name", call_name);
+    exec("setCallTaughtOn", q);
+}
 void SongSettings::deleteCallTaught(const QString &program, const QString &call_name)
 {
     QSqlQuery q(m_db);

@@ -435,6 +435,7 @@ public:
     QStringList callListOriginalOrder;
     void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename);
     void tableWidgetCallList_checkboxStateChanged(int row, int state);
+    QString tableWidgetCallList_dateEdited(const QString &callName, const QDate &date);
 
     // UI helper functions
     void paletteTitleLabelDoubleClicked(QMouseEvent *e);
