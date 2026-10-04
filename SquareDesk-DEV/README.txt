@@ -16,7 +16,10 @@ REQUIREMENTS
 	* XCode (generally the latest version, from the Apple App Store)
 	* macOS Tahoe or later
 	* ARM64-based Mac (M4 compilation of everything is about a minute!)
-	* If it complains about juce include file(s) missing, run script juce-install
+	* JUCE: run script juce-install (zsh juce-install) before the first build, AND again after
+		any pull that changes the JUCE version.  It installs the right JUCE into /Applications/JUCE
+		(moving an older one aside to e.g. /Applications/JUCE-8.0.6) and rebuilds
+		~/JUCEProjects/libJUCEstatic.  Then remove your build directories and rebuild everything.
 
 OPTIONAL TOOLS
 
@@ -51,9 +54,14 @@ COMPILING AND BUILDING SQUAREDESK
 	* Figure out which SDK version you have, using:
 		ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs
 		For example, this might return: "MacOSX.sdk MacOSX26.0.sdk MacOSX26.sdk"
-	* Edit the test123/test123.pro file to change this line:
-		QMAKE_MAC_SDK = macosx26.0
-		to match the XCode SDK version that you'd like to use.
+	* If that SDK is not the default in test123/test123.pro (look for MAC_SDK there), do NOT edit
+		test123.pro.  Instead, in QtCreator go to Projects > Build & Run > Build > qmake step >
+		"Additional arguments" and add, for example:
+			MAC_SDK=macosx26.0
+		The value must be all lower case and fully spelled out ("macosx26.0", not "macosx26").
+		After changing it, delete the stale .qmake.stash file at the top of the build directory.
+		Other machine-specific paths (JUCE_ROOT, JUCE_MODULES, CODESIGN_ID, ...) can be
+		overridden the same way; see the top of test123/test123.pro.
 	* In QtCreator, choose the version to build (Debug vs Release) -- lower left corner of QtCreator.
 	* Remove any existing build directories, corresponding to the build version you chose
 	* Press Cmd-B to build everything, or Cmd-R to both build and run.

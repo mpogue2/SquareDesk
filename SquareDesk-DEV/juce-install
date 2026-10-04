@@ -37,8 +37,30 @@ JUCER_SRC=$HERE/third_party/libJUCEstatic/libJUCEstatic.jucer
 # JUCE ---------------------------------------------------------------------------------
 #   The osx zip from the GitHub release unpacks to a single JUCE/ directory that already
 #   contains a built Projucer.app, which is the layout JUCE_PREFIX wants.
+#
+#   An existing install is only kept if it is the version we want.  Otherwise (e.g. the
+#   8.0.6 left behind by the old version of this script) it is moved aside, not deleted,
+#   and the right version is installed in its place.  Issue #1768: skipping on mere
+#   existence left 8.0.6 in place, so SquareDesk compiled against the wrong headers and
+#   the old Projucer could not find juce_audio_processors_headless.
+JUCE_CORE_H="$JUCE_PREFIX/modules/juce_core/juce_core.h"
 if [ -d "$JUCE_PREFIX" ]; then
-    echo >&2 "$JUCE_PREFIX already exists"
+    # (the JUCE headers have CRLF line endings, hence the \r strip)
+    INSTALLED_VERSION=$(awk '/^ *version:/ { sub(/\r$/, "", $2); print $2; exit }' "$JUCE_CORE_H" 2>/dev/null || true)
+    if [ "$INSTALLED_VERSION" != "$JUCE_VERSION" ]; then
+        OLD="$JUCE_PREFIX-${INSTALLED_VERSION:-unknown}"
+        if [ -e "$OLD" ]; then
+            echo >&2 "$JUCE_PREFIX is JUCE ${INSTALLED_VERSION:-(unknown version)}, not $JUCE_VERSION,"
+            echo >&2 "  and $OLD is already taken.  Move or delete one of them and re-run."
+            exit 1
+        fi
+        echo >&2 "$JUCE_PREFIX is JUCE ${INSTALLED_VERSION:-(unknown version)}, moving it to $OLD"
+        mv "$JUCE_PREFIX" "$OLD"
+    fi
+fi
+
+if [ -d "$JUCE_PREFIX" ]; then
+    echo >&2 "$JUCE_PREFIX is already JUCE $JUCE_VERSION"
 else
     echo >&2 "Downloading JUCE $JUCE_VERSION (about 55MB)..."
     TEMP=$(mktemp -d)
@@ -61,7 +83,10 @@ PROJUCER="$JUCE_PREFIX/Projucer.app/Contents/MacOS/Projucer"
 
 # libJUCEstatic ------------------------------------------------------------------------
 #   Source/ is empty and Builds/ + JuceLibraryCode/ are Projucer output, so the .jucer is
-#   the only thing worth keeping; copy it out and regenerate the rest.
+#   the only thing worth keeping; copy it out and regenerate the rest.  The old generated
+#   output is removed first so that nothing built against a previous JUCE survives into an
+#   incremental build.
+rm -rf "$JUCE_PROJECT/Builds" "$JUCE_PROJECT/JuceLibraryCode"
 mkdir -p "$JUCE_PROJECT/Source"
 cp "$JUCER_SRC" "$JUCE_PROJECT/libJUCEstatic.jucer"
 
