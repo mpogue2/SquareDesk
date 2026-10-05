@@ -121,6 +121,22 @@ public:
     QString columnWidthsToString() const;
     void setColumnWidthsFromString(const QString &widthString);
 
+    // Bulk loading: while on, per-cell dataChanged() notifications are ignored, and turning it
+    //   off sends ONE for the whole table.  Wrap any loop that fills a hidden table with it.
+    //
+    // Why: every setItem()/setCellWidget() ends up in QAbstractItemView::dataChanged(), and when
+    //   macOS accessibility is active (any accessibility client attached -- it switches on by
+    //   itself), Qt's Cocoa plugin rebuilds an element for EVERY ROW of the table on each one.
+    //   That is rows x cells-written, i.e. quadratic: ~1.8s for 1,850 songs vs ~0.35s with this
+    //   (issue #1770).
+    void setBulkLoading(bool on);
+
+    // Skipped while bulk loading, see above.  Nothing is lost: the table is hidden while it is
+    //   filled (no repaint needed), cell widgets are static editors (no editor data to update),
+    //   and itemChanged() comes from a separate connection.
+    void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
+                     const QList<int> &roles = QList<int>()) override;
+
 protected:
     void paintEvent(QPaintEvent *event) override;
     void dragLeaveEvent(QDragLeaveEvent *event) override;
@@ -160,6 +176,7 @@ private:
     int slackColumn = -1;           // -1 == no slack column, i.e. feature off
     int slackColumnMinimumWidth = 150;
     bool inSlackColumnResize = false;
+    bool bulkLoading = false;       // see setBulkLoading()
 };
 
 #endif // MYTABLEWIDGET_H

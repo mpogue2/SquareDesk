@@ -1860,6 +1860,11 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
     // qDebug() << "justMusic.size() = " << justMusic.size();
 
     ui->songTable->setRowCount(justMusic.length()); // make all the rows at once for speed
+
+    // From here until the rows are filled in, don't let each cell we write notify the view --
+    //   with macOS accessibility active, every one of those rebuilt the table's whole row list,
+    //   which made Tracks take seconds (issue #1770).  Turned off again after the loop.
+    ui->songTable->setBulkLoading(true);
     t.elapsed(__LINE__);
 
     // DURATION for songs in the Music Directory (issue #1753) -----
@@ -2397,6 +2402,7 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
     //   user chose -- switching playlists used to silently re-auto-size five columns (#1744).
     ui->songTable->setColumnWidthsFromString(prefsManager.GetsongTableColumnWidths());
 
+    ui->songTable->setBulkLoading(false); // one dataChanged() for the whole table (issue #1770)
     ui->songTable->blockSignals(false);  // unblock signals
     ui->songTable->setSortingEnabled(true);
 

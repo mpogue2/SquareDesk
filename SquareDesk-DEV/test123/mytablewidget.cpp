@@ -1324,6 +1324,32 @@ void MyTableWidget::initializeSortOrder() {
 }
 
 // ------------------------------------------------------------------
+// Bulk loading (issue #1770), see mytablewidget.h
+void MyTableWidget::setBulkLoading(bool on)
+{
+    if (bulkLoading == on) {
+        return;
+    }
+    bulkLoading = on;
+
+    // Leaving bulk mode: the per-cell notifications were dropped, so send one that covers
+    //   everything -- one accessibility rebuild instead of one per cell.
+    if (!on && rowCount() > 0 && columnCount() > 0) {
+        QTableWidget::dataChanged(model()->index(0, 0),
+                                  model()->index(rowCount() - 1, columnCount() - 1));
+    }
+}
+
+void MyTableWidget::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
+                                const QList<int> &roles)
+{
+    if (bulkLoading) {
+        return;
+    }
+    QTableWidget::dataChanged(topLeft, bottomRight, roles);
+}
+
+// ------------------------------------------------------------------
 void MyTableWidget::setColumnNotSortable(int column)
 {
     notSortableColumns.insert(column);
