@@ -1241,6 +1241,18 @@ private:
     SongMatchInfo makeSongMatchInfo(const QString &origPath);
     bool cuesheetMatchesSong(const SongMatchInfo &song, const LeveledCuesheet &cuesheet);
 
+    // ?call cuesheet search (Issue #1598)
+    QString cuesheetSearchCacheFilename();
+    QString cuesheetSearchLabelsFingerprint();
+    void clearCuesheetSearchIndex();
+    bool loadCuesheetSearchCache();
+    void saveCuesheetSearchCache();
+    bool updateCuesheetSearchIndex();
+    bool loadCuesheetSearchText();
+    void updateCuesheetSearchForOneCuesheet(const QString &absoluteFilePath);
+    QSet<QString> songsWithCuesheetsContaining(const QString &phrase);
+    void updateSearchTooltip();
+
     // Music library management
     void initializeMusicRootWatcher();
     bool findMusic(QString mainRootDir, bool refreshDatabase, bool forceRescan = false); // returns true iff a full scan ran (false = pathStack cache hit, nothing changed on disk)
@@ -1301,6 +1313,17 @@ private:
     QList<QString> *pathStackCuesheets;
     QHash<QString, QString> songLevelsByPath; // origPath -> up to 4-char "Levels" string (M/P/A/C), computed by computeSongLevels()
     bool songLevelsComputed = false; // true once computeSongLevels() has run this session; avoids recomputing every time Levels is toggled on
+    // ?call cuesheet search (Issue #1598) -- see "?CALL CUESHEET SEARCH" in mainwindow_cuesheets.cpp
+    QHash<QString, QStringList> cuesheetSearchLinks;   // cuesheet path -> songs (origPaths) it fuzzy-matches; cached on disk
+    QHash<QString, bool> cuesheetSearchKnownSongs;     // songs the links were computed against -> isPatter
+    QHash<QString, QString> cuesheetSearchText;        // cuesheet path -> normalized plain text (memory only, read lazily)
+    bool cuesheetSearchIndexLoaded = false;            // true once the cache file has been read this session
+    QString cuesheetSearchIndexRoot;                   //   ...for this music directory
+    bool cuesheetSearchTextComplete = false;           // true when every linked cuesheet's text is in cuesheetSearchText
+    bool cuesheetSearchIndexBusy = false;              // guards updateCuesheetSearchIndex() against re-entry from its progress loop
+    bool cuesheetSearchIndexRerun = false;             //   ...and remembers that a re-entrant call wanted another pass
+    bool cuesheetSearchMode = false;                   // true while the search field holds a ?call search
+    QString cuesheetSearchPhrase;                      //   ...and this is what follows the '?', normalized like the text
     QList<QString> *pathStackPlaylists;
     QList<QString> *pathStackNewApplePlaylists;
     QList<QString> *pathStackApplePlaylists;

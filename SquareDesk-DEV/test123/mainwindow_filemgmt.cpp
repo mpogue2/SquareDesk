@@ -1121,6 +1121,11 @@ bool MainWindow::findMusic(QString mainRootDir, bool refreshDatabase, bool force
     }
     scanProgress(); // "...." -- Levels column computed (or skipped, if it's not in use)
 
+    // Bring the ?call cuesheet search index up to date (Issue #1598). Must happen BEFORE the
+    //   Apple Music songs are appended below. A no-op if ?call searches aren't turned on, and
+    //   only incremental (milliseconds) once the index has been built.
+    updateCuesheetSearchIndex();
+
     t.elapsed(__LINE__);
 
     // APPLE MUSIC ------------
@@ -1249,6 +1254,7 @@ void MainWindow::addFilesToPathStacks(const QStringList &copiedFilePaths)
         computeSongLevels();
         songLevelsComputed = true;
     }
+    updateCuesheetSearchIndex(); // match just the new files, for ?call searches (Issue #1598)
 
     loadMusicList(nullptr, currentTypeFilter, true, true); // refresh whichever pathStack is showing
     filterMusic();                                         // and re-apply the current search filter
@@ -1344,10 +1350,30 @@ void MainWindow::filterMusic()
         }
     }
 
+    // ?call search (Issue #1598): the songs with a cuesheet containing the phrase are worked
+    //   out once here (from the in-memory indexes, no disk or fuzzy matching), not per row.
+    //   A bare "?" shows everything, just like an empty search field.
+    QSet<QString> cuesheetSearchSongs;
+    bool filterByCuesheets = cuesheetSearchMode && !cuesheetSearchPhrase.isEmpty();
+    if (filterByCuesheets) {
+        cuesheetSearchSongs = songsWithCuesheetsContaining(cuesheetSearchPhrase);
+    }
+
     int initialRowCount = ui->songTable->rowCount();
     int rowsVisible = initialRowCount;
     int firstVisibleRow = -1;
     for (int i=0; i<ui->songTable->rowCount(); i++) {
+        if (cuesheetSearchMode) {
+            bool show = !filterByCuesheets ||
+                        cuesheetSearchSongs.contains(ui->songTable->item(i, kPathCol)->data(Qt::UserRole).toString());
+            ui->songTable->setRowHidden(i, !show);
+            rowsVisible -= (show ? 0 : 1);
+            if (show && firstVisibleRow == -1) {
+                firstVisibleRow = i;
+            }
+            continue;
+        }
+
 //        QString songTitle = getTitleColText(ui->songTable, i);
         QString songTitle = dynamic_cast<QLabel*>(ui->songTable->cellWidget(i, kTitleCol))->text();
 

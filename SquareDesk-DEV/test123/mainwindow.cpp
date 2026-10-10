@@ -4645,6 +4645,16 @@ void MainWindow::on_actionPreferences_triggered()
         bool musicDirChanged = findMusic(musicRootPath, true);
         applyProgress(); // "..." -- music directory and Apple Music re-read
 
+        // ?call cuesheet search (Issue #1598): findMusic() just built the index (with a progress
+        //   dialog) if the checkbox was just turned on, or freed it if it was just turned off.
+        //   Read the cuesheet text now too, while a wait is expected, rather than making the
+        //   first ?call keystroke pay for it.
+        if (prefsManager.GetenableCuesheetSearch()) {
+            loadCuesheetSearchText();
+        }
+        updateSearchTooltip();
+        on_search_textChanged(ui->search->text()); // a "?..." already in the search field changes meaning
+
         switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
         updateAppleMusicMenuItems(); // the "Resync with Apple Music" item follows the Apple Music pref
 
@@ -7530,6 +7540,16 @@ void MainWindow::on_bassKnob_valueChanged(int value)
 
 void MainWindow::on_search_textChanged(const QString &s)
 {
+    // ?call search (Issue #1598): "?recycle" shows only songs that have a cuesheet containing
+    //   "recycle". Checked BEFORE the ':' split below, so that "?l:ssd" works too. Only when
+    //   it's turned on in Preferences; otherwise a leading '?' is just ordinary search text.
+    cuesheetSearchMode = prefsManager.GetenableCuesheetSearch() && s.startsWith(u'?');
+    if (cuesheetSearchMode) {
+        cuesheetSearchPhrase = s.mid(1).toLower().simplified(); // normalized the same way as the cuesheet text
+        filterMusic();
+        return;
+    }
+
     QStringList pieces = s.split(u':'); // use ":" to delimit type:label:title search fields
     int count = pieces.length();
 

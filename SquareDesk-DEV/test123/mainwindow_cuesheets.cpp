@@ -43,9 +43,15 @@
 #include <QInputDialog>
 #include <QLineEdit>
 #include <QSaveFile>
+#include <QGuiApplication>
+#include <QThread>
 #include <QClipboard>
 #include <QtSvg/QSvgGenerator>
 #include <algorithm>  // for random_shuffle
+#include <atomic>
+#include <functional>
+#include <thread>
+#include <vector>
 #include <utility>
 
 #include <taglib/toolkit/tlist.h>
@@ -374,7 +380,14 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
         debugOut->append("");
         debugOut->append("--- Starting MP3 vs Cuesheet scoring analysis ---");
     }
-    
+
+    // Every QRegularExpression in this function is static const: this is called millions of
+    //   times (once per song x cuesheet pair) when building the Levels column and the ?call
+    //   search index, and rebuilding 7 regexes per call made it 2.7x slower, with identical
+    //   results (Issue #1598). Static locals are initialized thread-safely, and const matching
+    //   is safe to do from several threads at once, which buildCuesheetSearchIndex() relies on.
+    static const QRegularExpression wsRegex("\\s+");
+
     // Helper function to calculate Levenshtein distance
     auto levenshteinDistance = [](const QString &s1, const QString &s2) -> int {
         const int len1 = s1.size();
@@ -480,7 +493,7 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
     // Step 1: Preprocess both filenames
     // Remove text in parentheses
     auto removeParentheses = [](QString str) {
-        QRegularExpression regex("\\([^()]*\\)");
+        static const QRegularExpression regex("\\([^()]*\\)");
         QRegularExpressionMatch match;
         while ((match = regex.match(str)).hasMatch()) {
             str.remove(match.capturedStart(), match.capturedLength());
@@ -511,7 +524,7 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
     // Step 1c. I like to use cuesheet filenames like "Blue.2.html"
     //   this removes the .2 part, for matching purposes
     QString beforeDotRemoval = cuesheetName;
-    QRegularExpression dotNumAtEnd("\\.[0-9]?$");
+    static const QRegularExpression dotNumAtEnd("\\.[0-9]?$");
     cuesheetName.replace(dotNumAtEnd, ""); // THIS IS NOT WORKING HERE
     
     if (debugOut != nullptr && beforeDotRemoval != cuesheetName) {
@@ -521,7 +534,7 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
     // Step 1d. Special processing for New Beat's use of double dashes.
     //   e.g. "Only You - NB-303"
     QString beforeNewBeatProcessing = cuesheetName;
-    QRegularExpression NewBeatAndNumber("NB-([0-9]?)");
+    static const QRegularExpression NewBeatAndNumber("NB-([0-9]?)");
 
     // do cuesheet
     cuesheetName.replace(NewBeatAndNumber, "NB \\1");
@@ -563,8 +576,8 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
     }
     
     // Step 3: Split filenames into words for comparison and filter short words
-    QStringList mp3AllWords = mp3Name.split(QRegularExpression("\\s+"));
-    QStringList cuesheetAllWords = cuesheetName.split(QRegularExpression("\\s+"));
+    QStringList mp3AllWords = mp3Name.split(wsRegex);
+    QStringList cuesheetAllWords = cuesheetName.split(wsRegex);
     
     QStringList mp3Words = filterShortWords(mp3AllWords);
     QStringList cuesheetWords = filterShortWords(cuesheetAllWords);
@@ -669,11 +682,11 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
         ParsedName result;
 
         // Try standard format: LABEL NUM[EXTRA] - TITLE
-        QRegularExpression stdFormat("^([A-Za-z ]{1,20})\\s*([0-9]{1,5})([A-Za-z]{0,4})?\\s*-\\s*(.+)$",
+        static const QRegularExpression stdFormat("^([A-Za-z ]{1,20})\\s*([0-9]{1,5})([A-Za-z]{0,4})?\\s*-\\s*(.+)$",
                                     QRegularExpression::CaseInsensitiveOption);
         
         // Try reversed format: TITLE - LABEL NUM[EXTRA]
-        QRegularExpression revFormat("^(.+)\\s*-\\s*([A-Za-z ]{1,20})\\s*([0-9]{1,5})([A-Za-z]{0,4})?$",
+        static const QRegularExpression revFormat("^(.+)\\s*-\\s*([A-Za-z ]{1,20})\\s*([0-9]{1,5})([A-Za-z]{0,4})?$",
                                     QRegularExpression::CaseInsensitiveOption);
         
         QRegularExpressionMatch match = stdFormat.match(name);
@@ -793,8 +806,8 @@ int MainWindow::MP3FilenameVsCuesheetnameScore(QString fn, QString cn, QTextEdit
     }
     
     // Step 7: Calculate longest common sequence of words in title
-    QStringList mp3TitleAllWords = mp3Parsed.title.split(QRegularExpression("\\s+"));
-    QStringList cuesheetTitleAllWords = cuesheetParsed.title.split(QRegularExpression("\\s+"));
+    QStringList mp3TitleAllWords = mp3Parsed.title.split(wsRegex);
+    QStringList cuesheetTitleAllWords = cuesheetParsed.title.split(wsRegex);
     
     // Filter short words
     QStringList mp3TitleWords = filterShortWords(mp3TitleAllWords);
@@ -1318,6 +1331,493 @@ void MainWindow::updateSongLevelsForOneCuesheet(const QString &absoluteFilePath,
     if (anyChanged) {
         refreshLevelsColumnDisplay(); // updates songTable and all 3 palette slot tables (cheap: no I/O, no scoring)
     }
+}
+
+// ============================================================================
+// ?CALL CUESHEET SEARCH (Issue #1598)
+//
+// Typing "?recycle" in the search field shows only the songs that have a cuesheet
+// whose TEXT contains "recycle". Two indexes make that instant:
+//
+//   cuesheetSearchText   cuesheet path -> its plain text (HTML stripped, lowercased,
+//                        whitespace collapsed). In memory only, read lazily on the first
+//                        ?call search of a session, and only for cuesheets that match at
+//                        least one song (~2s single-threaded for all 10k cuesheets; a small
+//                        fraction of that for just the matching ones, across all cores).
+//   cuesheetSearchLinks  cuesheet path -> the songs it fuzzy-matches, via the same
+//                        cuesheetMatchesSong() the Levels column uses. Persisted in
+//                        <musicDir>/.squaredesk/cache/cuesheetSongs.cache.
+//
+// The links are the expensive part: every song x every cuesheet (18M pairs, ~12s across
+// 10 cores, on a 1843-song/9986-cuesheet library). So the full build happens only once,
+// when the user turns on the Preferences checkbox, and after that the cache is updated
+// INCREMENTALLY: it records which songs and cuesheets it was built against, so a new song
+// is matched against all cuesheets (~20ms), a new cuesheet against all songs (~3ms), and
+// deleted files are dropped. Editing a cuesheet's text never changes its links, since
+// matching uses filenames only.
+//
+// The whole feature is off unless the "Allow ?call searches" Preferences checkbox is on;
+// with it off, a leading '?' is just ordinary search text, exactly as before.
+
+static const char *kCuesheetSearchCacheVersion = "1"; // bump if the cache format or the song/cuesheet matching algorithm
+                                                     //   changes, to force a full rebuild on upgrade
+
+QString MainWindow::cuesheetSearchCacheFilename() {
+    return musicRootPath + "/.squaredesk/cache/cuesheetSongs.cache";
+}
+
+// The matcher's results also depend on the label nickname table (labelWordEqual() uses it),
+// so a new squareDanceLabelIDs.csv in a new release must force a full rebuild.
+QString MainWindow::cuesheetSearchLabelsFingerprint() {
+    QCryptographicHash hash(QCryptographicHash::Sha1);
+    for (auto it = labelName2labelID.constBegin(); it != labelName2labelID.constEnd(); ++it) {
+        hash.addData(it.key().toUtf8());
+        hash.addData(QByteArrayView("\t"));
+        hash.addData(it.value().toUtf8());
+        hash.addData(QByteArrayView("\n"));
+    }
+    return QString(hash.result().toHex());
+}
+
+// Plain text of one cuesheet, normalized for searching: HTML tags and entities removed (so
+// that "?rec" doesn't match markup like <rect>, and a phrase split across tags or lines still
+// matches), lowercased, curly quotes made straight, and whitespace collapsed to single spaces.
+// Called from worker threads, so it must touch nothing but its argument.
+static QString cuesheetSearchPlainText(const QString &absoluteFilePath) {
+    QFile file(absoluteFilePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        return QString();
+    }
+    QString s = QString::fromUtf8(file.readAll());
+
+    if (absoluteFilePath.endsWith(".htm", Qt::CaseInsensitive) || absoluteFilePath.endsWith(".html", Qt::CaseInsensitive)) {
+        static const QRegularExpression styleOrScriptRegex("<(style|script)\\b[^>]*>.*?</\\1\\s*>",
+            QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption);
+        static const QRegularExpression tagRegex("<[^>]*>");
+        static const QRegularExpression numericEntityRegex("&#(x?)([0-9a-fA-F]+);");
+        s.remove(styleOrScriptRegex);
+        s.replace(tagRegex, " ");
+
+        QString decoded;
+        decoded.reserve(s.size());
+        qsizetype last = 0;
+        QRegularExpressionMatchIterator it = numericEntityRegex.globalMatch(s);
+        while (it.hasNext()) {
+            QRegularExpressionMatch m = it.next();
+            bool ok = false;
+            char32_t codePoint = m.captured(2).toUInt(&ok, m.captured(1).isEmpty() ? 10 : 16);
+            decoded += QStringView(s).mid(last, m.capturedStart() - last);
+            if (ok && codePoint > 0 && codePoint <= 0x10FFFF) {
+                decoded += QString::fromUcs4(&codePoint, 1);
+            } else {
+                decoded += m.captured(0);
+            }
+            last = m.capturedEnd();
+        }
+        decoded += QStringView(s).mid(last);
+        s = decoded;
+
+        s.replace("&nbsp;", " ").replace("&quot;", "\"").replace("&apos;", "'")
+         .replace("&lt;", "<").replace("&gt;", ">").replace("&rsquo;", "'").replace("&lsquo;", "'")
+         .replace("&rdquo;", "\"").replace("&ldquo;", "\"").replace("&amp;", "&");
+    }
+
+    s.replace(QChar(0x2019), '\'').replace(QChar(0x2018), '\'').replace(QChar(0x201C), '"').replace(QChar(0x201D), '"');
+    return s.toLower().simplified();
+}
+
+// Runs work(i) for every i in [0, count) on all cores, while the calling (GUI) thread keeps
+// the progress dialog painted. The dialog only actually appears if the work takes longer than
+// its minimumDuration, so quick incremental updates never flash one. Returns false iff the
+// user pressed Cancel; in that case some work(i) calls were never made.
+// work() runs on worker threads: it must only read data that nothing else changes meanwhile,
+// and write only to its own slot i.
+static bool cuesheetSearchParallelFor(int count, const std::function<void(int)> &work, QProgressDialog *progress) {
+    std::atomic<int> next{0};
+    std::atomic<int> done{0};
+    std::atomic<bool> cancelled{false};
+
+    int threadCount = qBound(1, QThread::idealThreadCount(), count);
+    std::vector<std::thread> threads;
+    threads.reserve(threadCount);
+    for (int t = 0; t < threadCount; t++) {
+        threads.emplace_back([&]() {
+            while (!cancelled) {
+                int i = next++;
+                if (i >= count) {
+                    return;
+                }
+                work(i);
+                done++;
+            }
+        });
+    }
+
+    while (done < count && !cancelled) {
+        progress->setValue(done);
+        // Keep the dialog painted and its Cancel button clickable. The dialog is WindowModal,
+        //   so this can't deliver a click to the main window; a timer-driven rescan that calls
+        //   back into updateCuesheetSearchIndex() meanwhile is deferred by its busy flag.
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 30);
+        if (progress->wasCanceled()) {
+            cancelled = true;
+        }
+        QThread::msleep(20);
+    }
+
+    for (auto &t : threads) {
+        t.join();
+    }
+    progress->setValue(count);
+    return !cancelled;
+}
+
+// Forgets everything (in memory only -- the cache file is left alone, so turning the feature
+// back on later is just an incremental update rather than another full build).
+void MainWindow::clearCuesheetSearchIndex() {
+    cuesheetSearchLinks.clear();
+    cuesheetSearchKnownSongs.clear();
+    cuesheetSearchText.clear();
+    cuesheetSearchIndexLoaded = false;
+    cuesheetSearchTextComplete = false;
+}
+
+// Loads the links (and the songs they were computed against) from the cache file. Returns
+// false, leaving both empty, if there is no cache or it can't be used (old version, or a
+// different label table), which makes the caller do a full build.
+bool MainWindow::loadCuesheetSearchCache() {
+    cuesheetSearchLinks.clear();
+    cuesheetSearchKnownSongs.clear();
+
+    QFile file(cuesheetSearchCacheFilename());
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return false; // no cache yet (first use, or a different music directory)
+    }
+
+    QTextStream in(&file);
+    if (in.readLine() != QString("version=") + kCuesheetSearchCacheVersion ||
+        in.readLine() != QString("labels=") + cuesheetSearchLabelsFingerprint()) {
+        return false;
+    }
+
+    // "S\t<0|1 isPatter>\t<song>"
+    // "C\t<cuesheet>[\t<song>]..."   -- paths are relative to the music directory
+    while (!in.atEnd()) {
+        QStringList fields = in.readLine().split('\t');
+        if (fields.size() == 3 && fields[0] == "S") {
+            cuesheetSearchKnownSongs.insert(musicRootPath + fields[2], fields[1] == "1");
+        } else if (fields.size() >= 2 && fields[0] == "C") {
+            QStringList songs;
+            for (int i = 2; i < fields.size(); i++) {
+                songs.append(musicRootPath + fields[i]);
+            }
+            cuesheetSearchLinks.insert(musicRootPath + fields[1], songs);
+        }
+    }
+    return true;
+}
+
+void MainWindow::saveCuesheetSearchCache() {
+    QDir().mkpath(musicRootPath + "/.squaredesk/cache");
+
+    // QSaveFile: a crash part way through can never leave a half-written cache behind (see #1685)
+    QSaveFile file(cuesheetSearchCacheFilename());
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        return; // not writable -- no harm, the next startup just does a full build again
+    }
+
+    // Paths are stored relative to the music directory, so the cache survives the music
+    //   directory being moved/renamed. A path containing a tab or newline can't be stored in
+    //   this format, so it is left out -- worst case, that one file is re-matched next time.
+    auto storable = [this](const QString &path) {
+        return path.startsWith(musicRootPath + "/") && !path.contains('\t') && !path.contains('\n');
+    };
+
+    QTextStream out(&file);
+    out << "version=" << kCuesheetSearchCacheVersion << "\n";
+    out << "labels=" << cuesheetSearchLabelsFingerprint() << "\n";
+    for (auto it = cuesheetSearchKnownSongs.constBegin(); it != cuesheetSearchKnownSongs.constEnd(); ++it) {
+        if (storable(it.key())) {
+            out << "S\t" << (it.value() ? "1" : "0") << "\t" << QStringView(it.key()).mid(musicRootPath.length()) << "\n";
+        }
+    }
+    for (auto it = cuesheetSearchLinks.constBegin(); it != cuesheetSearchLinks.constEnd(); ++it) {
+        if (!storable(it.key())) {
+            continue;
+        }
+        out << "C\t" << QStringView(it.key()).mid(musicRootPath.length());
+        for (const QString &song : it.value()) {
+            if (storable(song)) {
+                out << "\t" << QStringView(song).mid(musicRootPath.length());
+            }
+        }
+        out << "\n";
+    }
+
+    out.flush();
+    file.commit();
+}
+
+// Brings cuesheetSearchLinks up to date with the current pathStack/pathStackCuesheets, doing
+// only the matching that the differences require (all of it, the first time). Called after
+// every music scan, and when the Preferences checkbox is turned on. Does nothing (and frees
+// the indexes) if the feature is off. Returns false iff the user cancelled a slow build, in
+// which case the feature is turned back off, since a partial index would silently miss songs.
+bool MainWindow::updateCuesheetSearchIndex() {
+    if (!prefsManager.GetenableCuesheetSearch()) {
+        clearCuesheetSearchIndex();
+        return true;
+    }
+
+    // The progress loop below runs the event loop, so a FileWatcher rescan could try to call
+    //   back in here while the worker threads are still reading our lists. Don't let it: just
+    //   remember to go around again once this pass is done.
+    if (cuesheetSearchIndexBusy) {
+        cuesheetSearchIndexRerun = true;
+        return true;
+    }
+    cuesheetSearchIndexBusy = true;
+
+    bool completed = true;
+    do {
+        cuesheetSearchIndexRerun = false;
+
+        if (cuesheetSearchIndexLoaded && cuesheetSearchIndexRoot != musicRootPath) {
+            clearCuesheetSearchIndex(); // the music directory was changed in Preferences: that one has its own cache
+        }
+        if (!cuesheetSearchIndexLoaded) {
+            loadCuesheetSearchCache(); // if unusable, both maps are left empty, so everything below is "new"
+            cuesheetSearchIndexLoaded = true;
+            cuesheetSearchIndexRoot = musicRootPath;
+        }
+
+        // Only songs and cuesheets inside the music directory take part (not Apple Music songs,
+        //   which findMusic() appends to the pathStack later on, and which the cache couldn't
+        //   store relative to the music directory anyway).
+        QString rootPrefix = musicRootPath + "/";
+
+        QList<SongMatchInfo> songs;
+        QHash<QString, bool> currentSongs; // path -> isPatter
+        for (const QString &s : std::as_const(*pathStack)) {
+            QStringList parts = s.split("#!#");
+            if (parts.size() < 2 || !parts[1].startsWith(rootPrefix) || currentSongs.contains(parts[1])) {
+                continue;
+            }
+            songs.append(makeSongMatchInfo(parts[1]));
+            currentSongs.insert(parts[1], songs.last().isPatter);
+        }
+
+        QList<LeveledCuesheet> cuesheets;
+        QSet<QString> currentCuesheets;
+        for (const QString &s : std::as_const(*pathStackCuesheets)) {
+            QStringList parts = s.split("#!#");
+            if (parts.size() < 2 || !parts[1].startsWith(rootPrefix) || currentCuesheets.contains(parts[1])) {
+                continue;
+            }
+            cuesheets.append(makeLeveledCuesheet(parts[0], parts[1], QChar()));
+            currentCuesheets.insert(parts[1]);
+        }
+
+        // A song is "new" if we've never matched it, or if its patter-ness changed (the user
+        //   edited the music type names), since patter songs never match lyrics/ cuesheets.
+        //   Changed songs are dropped and re-added, just like deleted + new ones.
+        QSet<QString> droppedSongs;
+        for (auto it = cuesheetSearchKnownSongs.constBegin(); it != cuesheetSearchKnownSongs.constEnd(); ++it) {
+            if (!currentSongs.contains(it.key()) || currentSongs.value(it.key()) != it.value()) {
+                droppedSongs.insert(it.key());
+            }
+        }
+        std::vector<int> newSongIndexes;
+        for (int i = 0; i < songs.size(); i++) {
+            if (!cuesheetSearchKnownSongs.contains(songs[i].origPath) || droppedSongs.contains(songs[i].origPath)) {
+                newSongIndexes.push_back(i);
+            }
+        }
+
+        bool changed = !droppedSongs.isEmpty() || !newSongIndexes.empty();
+
+        // drop deleted cuesheets, and links to dropped songs
+        for (auto it = cuesheetSearchLinks.begin(); it != cuesheetSearchLinks.end(); ) {
+            if (!currentCuesheets.contains(it.key())) {
+                cuesheetSearchText.remove(it.key());
+                it = cuesheetSearchLinks.erase(it);
+                changed = true;
+                continue;
+            }
+            if (!droppedSongs.isEmpty()) {
+                it.value().removeIf([&droppedSongs](const QString &song) { return droppedSongs.contains(song); });
+            }
+            ++it;
+        }
+
+        // The work: each NEW cuesheet against every song, and each known cuesheet against just
+        //   the new songs. Slot i of results belongs to cuesheets[i], so the worker threads
+        //   never share anything they write. (std::vector rather than QList for everything the
+        //   workers touch, so that no implicit-sharing detach check is ever involved.)
+        std::vector<bool> isNewCuesheet(cuesheets.size());
+        std::vector<int> workCuesheetIndexes;
+        for (int i = 0; i < cuesheets.size(); i++) {
+            isNewCuesheet[i] = !cuesheetSearchLinks.contains(cuesheets[i].absoluteFilePath);
+            if (isNewCuesheet[i] || !newSongIndexes.empty()) {
+                workCuesheetIndexes.push_back(i);
+            }
+        }
+
+        if (!workCuesheetIndexes.empty()) {
+            changed = true;
+            std::vector<QStringList> results(cuesheets.size());
+
+            // Warm up the matcher on this thread first, so that all of its static regexes are
+            //   constructed before the worker threads start calling it.
+            MP3FilenameVsCuesheetnameScore("ABC 123 - Foo Bar (Patter)", "XYZ 456 - Baz Qux.1");
+
+            QProgressDialog progress("Building the ?call cuesheet search index...\n(this happens only once)",
+                                     "Cancel", 0, int(workCuesheetIndexes.size()), this);
+            progress.setWindowTitle("Cuesheet Search");
+            progress.setWindowModality(Qt::WindowModal);
+            progress.setMinimumDuration(1000); // incremental updates are far quicker than this, so they never show it
+            progress.setAutoClose(false);
+            progress.setAutoReset(false);
+
+            const QList<SongMatchInfo> &songsRef = songs;
+            const QList<LeveledCuesheet> &cuesheetsRef = cuesheets;
+            completed = cuesheetSearchParallelFor(int(workCuesheetIndexes.size()), [&](int w) {
+                int c = workCuesheetIndexes[w];
+                QStringList matches;
+                if (isNewCuesheet[c]) {
+                    for (const SongMatchInfo &song : songsRef) {
+                        if (cuesheetMatchesSong(song, cuesheetsRef[c])) {
+                            matches.append(song.origPath);
+                        }
+                    }
+                } else {
+                    for (int s : newSongIndexes) {
+                        if (cuesheetMatchesSong(songsRef[s], cuesheetsRef[c])) {
+                            matches.append(songsRef[s].origPath);
+                        }
+                    }
+                }
+                results[c] = matches;
+            }, &progress);
+
+            if (!completed) {
+                break; // cancelled: handled below
+            }
+
+            for (int c : workCuesheetIndexes) {
+                if (isNewCuesheet[c]) {
+                    cuesheetSearchLinks.insert(cuesheets[c].absoluteFilePath, results[c]);
+                } else {
+                    cuesheetSearchLinks[cuesheets[c].absoluteFilePath].append(results[c]);
+                }
+                if (!results[c].isEmpty()) {
+                    cuesheetSearchTextComplete = false; // this cuesheet now matters to searches, and its text may not have been read
+                }
+            }
+        }
+
+        cuesheetSearchKnownSongs = currentSongs;
+        if (changed) {
+            saveCuesheetSearchCache();
+        }
+    } while (cuesheetSearchIndexRerun);
+
+    cuesheetSearchIndexBusy = false;
+
+    if (!completed) {
+        // A partial index would silently leave songs out of every search, so don't keep one.
+        prefsManager.SetenableCuesheetSearch(false);
+        clearCuesheetSearchIndex();
+        updateSearchTooltip();
+        QMessageBox::information(this, "Cuesheet Search",
+                                 "The cuesheet search index was not finished, so ?call searches have been turned off.\n\n"
+                                 "To turn them back on, check \"Allow ?call searches\" in Preferences > Music.");
+        return false;
+    }
+    return true;
+}
+
+// Reads the plain text of every cuesheet that matches at least one song, whose text isn't in
+// memory yet (all of them, the first time this is called in a session). Cuesheets that match
+// no song can never contribute to a search result, so their text is never read: that is most
+// of them in a typical library (7800 of 10000). Returns false if the user cancelled.
+bool MainWindow::loadCuesheetSearchText() {
+    if (cuesheetSearchTextComplete) {
+        return true;
+    }
+
+    QStringList toRead;
+    for (auto it = cuesheetSearchLinks.constBegin(); it != cuesheetSearchLinks.constEnd(); ++it) {
+        if (!it.value().isEmpty() && !cuesheetSearchText.contains(it.key())) {
+            toRead.append(it.key());
+        }
+    }
+
+    if (!toRead.isEmpty()) {
+        std::vector<QString> texts(toRead.size());
+        const QStringList &toReadRef = toRead;
+        QProgressDialog progress("Reading cuesheets for ?call search...", "Cancel", 0, toRead.size(), this);
+        progress.setWindowTitle("Cuesheet Search");
+        progress.setWindowModality(Qt::WindowModal);
+        progress.setMinimumDuration(1000);
+        progress.setAutoClose(false);
+        progress.setAutoReset(false);
+
+        QGuiApplication::setOverrideCursor(Qt::WaitCursor);
+        bool completed = cuesheetSearchParallelFor(toRead.size(), [&](int i) {
+            texts[i] = cuesheetSearchPlainText(toReadRef[i]);
+        }, &progress);
+        QGuiApplication::restoreOverrideCursor();
+
+        if (!completed) {
+            return false; // keep nothing partial: the next ?call search will try again
+        }
+        for (int i = 0; i < toRead.size(); i++) {
+            cuesheetSearchText.insert(toRead[i], texts[i]);
+        }
+    }
+
+    cuesheetSearchTextComplete = true;
+    return true;
+}
+
+// A cuesheet was just saved (edited, Save As, or New from Template): refresh its text, and if
+// it's a brand new file, match it against every song (~3ms) and re-save the cache.
+void MainWindow::updateCuesheetSearchForOneCuesheet(const QString &absoluteFilePath) {
+    if (!prefsManager.GetenableCuesheetSearch() || !cuesheetSearchIndexLoaded) {
+        return;
+    }
+    if (!cuesheetSearchLinks.contains(absoluteFilePath)) {
+        updateCuesheetSearchIndex(); // it's already in pathStackCuesheets, so this matches just the new file
+    }
+    if (cuesheetSearchText.contains(absoluteFilePath)) {
+        cuesheetSearchText.insert(absoluteFilePath, cuesheetSearchPlainText(absoluteFilePath)); // (if it wasn't read yet, the next search reads it)
+    }
+}
+
+// The songs (origPaths) that have at least one cuesheet containing phrase, which must
+// already be normalized like the text (lowercased, whitespace collapsed).
+QSet<QString> MainWindow::songsWithCuesheetsContaining(const QString &phrase) {
+    QSet<QString> songs;
+    if (!loadCuesheetSearchText()) {
+        return songs;
+    }
+    for (auto it = cuesheetSearchLinks.constBegin(); it != cuesheetSearchLinks.constEnd(); ++it) {
+        if (!it.value().isEmpty() && cuesheetSearchText.value(it.key()).contains(phrase)) {
+            for (const QString &song : it.value()) {
+                songs.insert(song);
+            }
+        }
+    }
+    return songs;
+}
+
+void MainWindow::updateSearchTooltip() {
+    QString tip = "Search\nFilter songs by specifying Type:Label:Title.\n\nExamples:\nlove = any song where type or label or title contains 'love'\nsing::heart = singing calls where title contains 'heart'\np:riv = patter from Riverboat";
+    if (prefsManager.GetenableCuesheetSearch()) {
+        tip += "\n?recycle = songs that have a cuesheet containing 'recycle'\n?swing thru = songs that have a cuesheet containing 'swing thru'";
+    }
+    ui->search->setToolTip(tip + "\netc.");
 }
 
 void MainWindow::betterFindPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets) {

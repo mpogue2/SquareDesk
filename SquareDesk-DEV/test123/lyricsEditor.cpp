@@ -600,6 +600,7 @@ void MainWindow::writeCuesheet(QString filename)
         cursor.movePosition(QTextCursor::Start);  // move cursor to the start of the file after a save
 
         updateCuesheetLevelInPathStack(filename); // (re-)detect this cuesheet's level, update/add its pathStackCuesheets entry, and refresh the Levels column if it's in use
+        updateCuesheetSearchForOneCuesheet(filename); // refresh its text for ?call searches (and index it, if it's new) (Issue #1598)
     }
 #else
                 qDebug() << "************** SAVE FILE ***************";

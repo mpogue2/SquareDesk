@@ -1415,7 +1415,7 @@ void MainWindow::initializeMusicSearch() {
     });
 
     // SEARCH BOX:
-    ui->search->setToolTip("Search\nFilter songs by specifying Type:Label:Title.\n\nExamples:\nlove = any song where type or label or title contains 'love'\nsing::heart = singing calls where title contains 'heart'\np:riv = patter from Riverboat\netc.");
+    updateSearchTooltip(); // includes the ?call examples iff that's turned on in Preferences (Issue #1598)
 
     // SEARCH -----------
     typeSearch = labelSearch = titleSearch = ""; // no filters at startup

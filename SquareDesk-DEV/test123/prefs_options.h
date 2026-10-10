@@ -152,6 +152,7 @@ CONFIG_ATTRIBUTE_STRING_NO_PREFS(default_playlist_dir, QDir::homePath())
 
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(enablevoiceinput, false);
 CONFIG_ATTRIBUTE_BOOLEAN(enableAutoScrollCuesheetsCheckbox, enableautoscrolllyrics, true);  // #1724: the DEFAULT; each cuesheet can override it
+CONFIG_ATTRIBUTE_BOOLEAN(enableCuesheetSearchCheckbox, enableCuesheetSearch, false);  // #1598: "?recycle" in the search field searches cuesheet text
 
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(enablegroupstation, true);  // defaults to show group/station
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(enableordersequence, true); // defaults to show order/sequence

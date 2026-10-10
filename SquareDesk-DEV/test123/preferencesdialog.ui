@@ -488,7 +488,18 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
           </widget>
          </item>
-         <item row="17" column="2">
+         <item row="17" column="2" colspan="3">
+          <widget class="QCheckBox" name="enableCuesheetSearchCheckbox">
+           <property name="toolTip">
+            <string>When checked, a search that starts with ? searches the text of your cuesheets, e.g. ?recycle shows only the songs that have a cuesheet containing 'recycle'.
+Turning this on builds a search index once, which can take a little while on a large music library.</string>
+           </property>
+           <property name="text">
+            <string>Allow ?call searches of cuesheet text in the search box</string>
+           </property>
+          </widget>
+         </item>
+         <item row="18" column="2">
           <spacer name="verticalSpacer_2">
            <property name="orientation">
             <enum>Qt::Orientation::Vertical</enum>
