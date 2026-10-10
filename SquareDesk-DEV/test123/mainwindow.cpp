@@ -5261,7 +5261,12 @@ void MainWindow::saveCurrentSongSettings()
         setting.setOutroPos(ui->seekBarCuesheet->GetOutro());
 //        qDebug() << "saveCurrentSongSettings: " << ui->seekBarCuesheet->GetIntro() << ui->seekBarCuesheet->GetOutro();
         setting.setIntroOutroIsTimeBased(false);
-        if (!lyricsForDifferentSong) {
+        // A cuesheet that a ?call search picked automatically is NOT the user's choice, so it must
+        //   not replace the song's preferred cuesheet: leave that DB field untouched (Issue #1598).
+        //   Picking it from the dropdown by hand clears cuesheetSearchAutoSelectedCuesheet.
+        bool autoSelectedBySearch = !cuesheetSearchAutoSelectedCuesheet.isEmpty() &&
+                                    cuesheetFilename == cuesheetSearchAutoSelectedCuesheet;
+        if (!lyricsForDifferentSong && !autoSelectedBySearch) {
             setting.setCuesheetName(cuesheetFilename);
         }
         setting.setSongLength(static_cast<double>(ui->seekBarCuesheet->maximum()));

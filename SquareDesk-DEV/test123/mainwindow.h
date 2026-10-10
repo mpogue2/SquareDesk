@@ -1251,6 +1251,7 @@ private:
     bool loadCuesheetSearchText();
     void updateCuesheetSearchForOneCuesheet(const QString &absoluteFilePath);
     QSet<QString> songsWithCuesheetsContaining(const QString &phrase);
+    bool cuesheetMatchesCuesheetSearch(const QString &absoluteFilePath);
     void updateSearchTooltip();
 
     // Music library management
@@ -1324,6 +1325,7 @@ private:
     bool cuesheetSearchIndexRerun = false;             //   ...and remembers that a re-entrant call wanted another pass
     bool cuesheetSearchMode = false;                   // true while the search field holds a ?call search
     QString cuesheetSearchPhrase;                      //   ...and this is what follows the '?', normalized like the text
+    QString cuesheetSearchAutoSelectedCuesheet;        // cuesheet that a ?call search auto-selected on load (never saved as preferred)
     QList<QString> *pathStackPlaylists;
     QList<QString> *pathStackNewApplePlaylists;
     QList<QString> *pathStackApplePlaylists;

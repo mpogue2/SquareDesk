@@ -1812,6 +1812,21 @@ QSet<QString> MainWindow::songsWithCuesheetsContaining(const QString &phrase) {
     return songs;
 }
 
+// True iff a ?call search is active and this cuesheet's text contains its phrase. Used to mark
+// and pre-select the matching cuesheets in the Cuesheet tab's dropdown. The dropdown's list
+// comes from betterFindPossibleCuesheets(), which can include a cuesheet whose text was never
+// read (one that matches no song in the index), so that one file is read here and remembered.
+bool MainWindow::cuesheetMatchesCuesheetSearch(const QString &absoluteFilePath) {
+    if (!cuesheetSearchMode || cuesheetSearchPhrase.isEmpty() || !prefsManager.GetenableCuesheetSearch()) {
+        return false;
+    }
+    auto it = cuesheetSearchText.constFind(absoluteFilePath);
+    if (it == cuesheetSearchText.constEnd()) {
+        it = cuesheetSearchText.insert(absoluteFilePath, cuesheetSearchPlainText(absoluteFilePath));
+    }
+    return it.value().contains(cuesheetSearchPhrase);
+}
+
 void MainWindow::updateSearchTooltip() {
     QString tip = "Search\nFilter songs by specifying Type:Label:Title.\n\nExamples:\nlove = any song where type or label or title contains 'love'\nsing::heart = singing calls where title contains 'heart'\np:riv = patter from Riverboat";
     if (prefsManager.GetenableCuesheetSearch()) {
@@ -2145,6 +2160,7 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
         }
         
         int defaultCuesheetIndex = 0;
+        int firstCuesheetSearchMatchIndex = -1; // first cuesheet containing the ?call search phrase (Issue #1598)
         loadedCuesheetNameWithPath = ""; // nothing loaded yet
 
 //    QString firstCuesheet(preferredCuesheet);
@@ -2176,8 +2192,33 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
                 if (maybeLevelString != "") {
                     displayName += " [L: " + maybeLevelString + "]";
                 }
+
+                // During a ?call search, mark each cuesheet that contains the phrase with a leading
+                //   "*" (Issue #1598). A PREFIX, because the code that reads currentText() back only
+                //   looks for the " [L: ...]" SUFFIX.
+                if (cuesheetMatchesCuesheetSearch(cuesheet)) {
+                    if (firstCuesheetSearchMatchIndex == -1) {
+                        firstCuesheetSearchMatchIndex = ui->comboBoxCuesheetSelector->count();
+                    }
+                    displayName = "* " + displayName;
+                }
+
                 ui->comboBoxCuesheetSelector->addItem(displayName,
                                                       cuesheet);
+        }
+
+        // ...and open the first matching cuesheet, since that's the one being looked for. This
+        //   deliberately overrides the song's preferred cuesheet, but only while a ?call search
+        //   is active. (Issue #1598)
+        // Not for the patter "peek" (attempt 1), nor while override_filename is set: selecting a
+        //   cuesheet in either of those cases SAVES it as some song's cuesheet (see
+        //   on_comboBoxCuesheetSelector_currentIndexChanged()), and an automatic choice must never
+        //   do that. For the same reason, remember what was auto-selected, so that
+        //   saveCurrentSongSettings() doesn't store it as this song's preferred cuesheet either.
+        cuesheetSearchAutoSelectedCuesheet.clear();
+        if (firstCuesheetSearchMatchIndex != -1 && !lyricsForDifferentSong && override_filename.isEmpty()) {
+            defaultCuesheetIndex = firstCuesheetSearchMatchIndex;
+            cuesheetSearchAutoSelectedCuesheet = ui->comboBoxCuesheetSelector->itemData(defaultCuesheetIndex).toString();
         }
 
         bool hasCuesheets = ui->comboBoxCuesheetSelector->count() > 0;

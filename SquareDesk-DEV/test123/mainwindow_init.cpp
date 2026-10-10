@@ -1719,6 +1719,12 @@ void MainWindow::initializeCuesheetTab() {
     connect(ui->toolButtonCuesheetAutoScroll, &QToolButton::clicked,
             this, [this]() { cycleCuesheetAutoScroll(); });
 
+    // activated() is emitted only when the USER picks a cuesheet (never for setCurrentIndex()),
+    //   which makes that cuesheet a real choice again, to be saved as the song's preferred
+    //   cuesheet even if a ?call search had auto-selected it (Issue #1598).
+    connect(ui->comboBoxCuesheetSelector, &QComboBox::activated,
+            this, [this](int) { cuesheetSearchAutoSelectedCuesheet.clear(); });
+
     updateAutoScrollButton();
 
     connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
