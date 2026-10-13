@@ -1342,9 +1342,12 @@ void MainWindow::filterMusic()
     //   actually SHOWING (issue #1740, item 4).  Searching a hidden column would produce matches
     //   with no visible explanation -- "why is this row here?" -- and it makes View > Columns do
     //   useful double duty: turning a column on is also how you start searching it.
+    // Artist joined the list in issue #1793; it arrived with #1744 after this list was written.
+    //   Rating (stars) and Date Added (a locale date) are left out on purpose: typed text can't
+    //   match stars, and digits in a date would match label-number searches all over the place.
     // Worked out once here rather than per row.
     QList<int> searchableMetaCols;
-    for (int col : { kAlbumCol, kAlbumArtistCol, kComposerCol, kCommentsCol, kYearCol, kDurationCol }) {
+    for (int col : { kAlbumCol, kAlbumArtistCol, kArtistCol, kComposerCol, kCommentsCol, kYearCol, kDurationCol }) {
         if (!ui->songTable->isColumnHidden(col)) {
             searchableMetaCols.append(col);
         }
