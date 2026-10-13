@@ -2290,7 +2290,13 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
                 QTableWidgetItem *item = nullptr;
                 switch (metaCell.kind) {
                     case Numeric: item = new TableNumberItem(metaCell.text);  break;
+                    // An unrated track is not a missing value, it is a rating below one star
+                    //   (ITLibrary reports it as 0, one star as 20), so it sorts as the lowest
+                    //   rating in either direction.  Treating it as valueless put it at the TOP
+                    //   of a descending sort, because Qt sorts descending by swapping the
+                    //   arguments to operator< (issue #1775).
                     case SortKey: item = new TableSortKeyItem(metaCell.text, metaCell.sortKey,
+                                                              metaCell.col == kRatingCol ||
                                                               !metaCell.text.isEmpty());  break;
                     default:      item = new QTableWidgetItem(metaCell.text); break;
                 }
