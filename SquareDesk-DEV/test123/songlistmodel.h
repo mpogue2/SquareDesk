@@ -70,7 +70,13 @@
 #define kRatingCol      16
 #define kDateAddedCol   17
 
-#define kNumSongTableCols 18
+// Issue #1783.  Unlike the columns above, this one is filled in for EVERY song: it is the latest
+//   play in song_plays, which holds SquareDesk's own plays and, since #1745, Apple Music's
+//   lastPlayedDate too.  Appended for the reason given above, then moved visually to sit just
+//   right of Date Added (see MainWindow's constructor).
+#define kDateLastPlayedCol 18
+
+#define kNumSongTableCols 19
 
 class SongRow : public SongSetting
 {

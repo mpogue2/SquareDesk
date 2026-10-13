@@ -28,6 +28,7 @@
 #include <QVariant>
 #include <QDebug>
 #include <QDateTime>
+#include <QTimeZone>
 #include <QFileInfo>
 #include <vector>
 #include <map>
@@ -1075,9 +1076,14 @@ void SongSettings::getSongPlayHistory(SongPlayEvent &event,
     }
 }
 
-void SongSettings::getSongAges(QHash<QString,QString> &ages, bool show_all_sessions)
+// lastPlayed (issue #1783) comes from the same max(played_on) as the age, so the Age and Date Last
+//   Played columns can never disagree.  played_on is UTC for every origin -- CURRENT_TIMESTAMP for
+//   SquareDesk's own plays, and importExternalPlays() normalizes Apple Music's to the same spelling
+//   -- so it is an absolute instant, and is converted to whatever time zone the computer is in now.
+void SongSettings::getSongAges(QHash<QString,QString> &ages, bool show_all_sessions,
+                               QHash<QString,QDateTime> *lastPlayed)
 {
-    QString sql("SELECT filename, julianday('now') - julianday(max(played_on)) FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid");
+    QString sql("SELECT filename, julianday('now') - julianday(max(played_on)), max(played_on) FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid");
     if (!show_all_sessions)
         sql += " WHERE session_rowid = :session_rowid";
     sql += " GROUP BY songs.rowid";
@@ -1092,6 +1098,16 @@ void SongSettings::getSongAges(QHash<QString,QString> &ages, bool show_all_sessi
 //        QString str(QString("%1").arg(age, 3));
         QString str = q.value(1).toString();  // leave it as a float string
         ages[q.value(0).toString()] = str;
+
+        if (lastPlayed != nullptr)
+        {
+            QDateTime when = QDateTime::fromString(q.value(2).toString(), "yyyy-MM-dd HH:mm:ss");
+            if (when.isValid())
+            {
+                when.setTimeZone(QTimeZone::UTC);
+                lastPlayed->insert(q.value(0).toString(), when.toLocalTime());
+            }
+        }
     }
 }
 

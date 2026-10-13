@@ -105,7 +105,9 @@ public:
 
     void setCurrentSession(int id) { current_session_id = id; }
     int getCurrentSession() { return current_session_id; }
-    void getSongAges(QHash<QString,QString> &ages, bool show_all_sessions);
+    // lastPlayed, if given, also gets the instant behind each age, in local time (issue #1783).
+    void getSongAges(QHash<QString,QString> &ages, bool show_all_sessions,
+                     QHash<QString,QDateTime> *lastPlayed = nullptr);
     QString getSongAge(const QString &filename, const QString &filenameWithPath, bool show_all_sessions);
     void markSongPlayed(const QString &filename, const QString &filenameWithPath);
 

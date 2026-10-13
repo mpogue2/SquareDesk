@@ -1477,6 +1477,14 @@ void MainWindow::initializeMusicSongTable() {
     ui->songTable->setColumnWidth(kArtistCol, 140);
     ui->songTable->setColumnWidth(kRatingCol, 80);     // 5 stars
     ui->songTable->setColumnWidth(kDateAddedCol, 130); // e.g. "3/3/18, 1:39 PM"
+    ui->songTable->setColumnWidth(kDateLastPlayedCol, 90);  // date only, e.g. "10/13/26"
+
+    // kDateLastPlayedCol had to be appended (see songlistmodel.h), but it belongs beside Date
+    //   Added.  Only the VISUAL order changes here; every kXxxCol stays a logical index, which is
+    //   what the code and the saved sort order use (issue #1783).
+    ui->songTable->horizontalHeader()->moveSection(
+        ui->songTable->horizontalHeader()->visualIndex(kDateLastPlayedCol),
+        ui->songTable->horizontalHeader()->visualIndex(kDateAddedCol) + 1);
 
     ui->songTable->setColumnHidden(kLevelsCol, true); // levels column starts out hidden, same as the playlist Levels column
 
@@ -1535,6 +1543,7 @@ void MainWindow::initializeMusicSongTable() {
     on_actionArtist_toggled(prefsManager.GetshowArtistColumn());
     on_actionRating_toggled(prefsManager.GetshowRatingColumn());
     on_actionDateAdded_toggled(prefsManager.GetshowDateAddedColumn());
+    on_actionDateLastPlayed_toggled(prefsManager.GetshowDateLastPlayedColumn());
 
     {
         // Now that the current_session_id is setup, we can load the call lists,

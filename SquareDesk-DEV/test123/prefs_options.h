@@ -177,6 +177,7 @@ CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showDurationColumn, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showArtistColumn, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showRatingColumn, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showDateAddedColumn, false);
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showDateLastPlayedColumn, false);   // issue #1783
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showRecentColumn, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showAgeColumn, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showPitchColumn, true);

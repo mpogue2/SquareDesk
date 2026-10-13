@@ -4758,6 +4758,7 @@
      <addaction name="actionArtist"/>
      <addaction name="actionRating"/>
      <addaction name="actionDateAdded"/>
+     <addaction name="actionDateLastPlayed"/>
      <addaction name="separator"/>
      <addaction name="actionResetColumnVisibility"/>
     </widget>
@@ -5500,6 +5501,17 @@
    </property>
    <property name="toolTip">
     <string>When the track was added to Apple Music</string>
+   </property>
+  </action>
+  <action name="actionDateLastPlayed">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Date Last Played</string>
+   </property>
+   <property name="toolTip">
+    <string>When the song was last played, in SquareDesk or in Apple Music</string>
    </property>
   </action>
   <action name="actionAlbumArtist">

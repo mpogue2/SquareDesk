@@ -646,7 +646,8 @@ void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent colu
     t.start(__LINE__);
 
     QHash<QString,QString> ages;
-    songSettings.getSongAges(ages, show_all_ages);
+    QHash<QString,QDateTime> lastPlayed;   // issue #1783
+    songSettings.getSongAges(ages, show_all_ages, &lastPlayed);
 
     // qDebug() << "***** ages *****";
     // for (auto [key, value] : ages.asKeyValueRange()) {
@@ -674,6 +675,8 @@ void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent colu
 
         ui->songTable->item(i,kRecentCol)->setText(theRecentString);
         ui->songTable->item(i,kRecentCol)->setTextAlignment(Qt::AlignCenter);
+
+        setDateLastPlayedCell(i, lastPlayed.value(path), ui->songTable->item(i,kAgeCol)->foreground());
 
         // ((SongTitleLabel *)(ui->songTable->cellWidget(i, kTitleCol)))->setSongUsed(theRecentString != ""); // rewrite the song's title to be strikethrough and/or green background
         QString thePath = ui->songTable->item(i, kPathCol)->data(Qt::UserRole).toString();
@@ -1327,6 +1330,7 @@ void MainWindow::updateSongTableColumnView()
     headerView->setSectionResizeMode(kArtistCol, QHeaderView::Interactive);
     headerView->setSectionResizeMode(kRatingCol, QHeaderView::Interactive);
     headerView->setSectionResizeMode(kDateAddedCol, QHeaderView::Interactive);
+    headerView->setSectionResizeMode(kDateLastPlayedCol, QHeaderView::Interactive);
 
     // Title used to be the Stretch section, sitting in the MIDDLE of the header, which is what
     //   made most of the dividers misbehave: Stretch absorbs every width change, so dragging a
@@ -1373,6 +1377,7 @@ void MainWindow::updateSongTableColumnView()
     ui->songTable->setColumnHidden(kArtistCol,      !prefsManager.GetshowArtistColumn());
     ui->songTable->setColumnHidden(kRatingCol,      !prefsManager.GetshowRatingColumn());
     ui->songTable->setColumnHidden(kDateAddedCol,   !prefsManager.GetshowDateAddedColumn());
+    ui->songTable->setColumnHidden(kDateLastPlayedCol, !prefsManager.GetshowDateLastPlayedColumn());
     ui->playlist1Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn()); // as the View > Columns > Tempo changes
     ui->playlist2Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn()); //   so does visibility of the tempo column in the playlists
     ui->playlist3Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn());
@@ -2540,6 +2545,10 @@ void MainWindow::on_UIUpdateTimerTick(void)
 
                 pathsOfCalledSongs.insert(ui->songTable->item(row, kPathCol)->data(Qt::UserRole).toString());
                 // ((SongTitleLabel *)(ui->songTable->cellWidget(row,kTitleCol)))->setSongUsed(true);
+
+                // Last, because with sorting on this can move the row, and row is not used again.
+                setDateLastPlayedCell(row, QDateTime::currentDateTime(),
+                                      ui->songTable->item(row, kAgeCol)->foreground());  // issue #1783
             }
         }
     }
@@ -6577,6 +6586,16 @@ void MainWindow::on_actionDateAdded_toggled(bool checked)
     updateSongTableColumnView();
 }
 
+void MainWindow::on_actionDateLastPlayed_toggled(bool checked)
+{
+    ui->actionDateLastPlayed->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showDateLastPlayedColumn setting is persistent across restarts of the application
+    prefsManager.SetshowDateLastPlayedColumn(checked);
+
+    updateSongTableColumnView();
+}
+
 // Turns off every column below the FIRST separator in the Columns menu, i.e. the whole optional
 //   metadata block, leaving the usual Label/Levels/Recent/Age/Pitch/Tempo group alone.
 //
@@ -7469,6 +7488,9 @@ void MainWindow::on_playButton_clicked()
 
                         ui->songTable->item(row, kRecentCol)->setText(ageToRecent("0"));
                         ui->songTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
+
+                        setDateLastPlayedCell(row, QDateTime::currentDateTime(),
+                                              ui->songTable->item(row, kAgeCol)->foreground());  // issue #1783
                 }
 
                 ui->songTable->setSortingEnabled(true);

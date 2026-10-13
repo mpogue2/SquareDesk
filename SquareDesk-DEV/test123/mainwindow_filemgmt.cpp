@@ -1343,8 +1343,9 @@ void MainWindow::filterMusic()
     //   with no visible explanation -- "why is this row here?" -- and it makes View > Columns do
     //   useful double duty: turning a column on is also how you start searching it.
     // Artist joined the list in issue #1793; it arrived with #1744 after this list was written.
-    //   Rating (stars) and Date Added (a locale date) are left out on purpose: typed text can't
-    //   match stars, and digits in a date would match label-number searches all over the place.
+    //   Rating (stars), Date Added and Date Last Played (locale dates) are left out on purpose:
+    //   typed text can't match stars, and digits in a date would match label-number searches all
+    //   over the place.
     // Worked out once here rather than per row.
     QList<int> searchableMetaCols;
     for (int col : { kAlbumCol, kAlbumArtistCol, kArtistCol, kComposerCol, kCommentsCol, kYearCol, kDurationCol }) {
@@ -1563,6 +1564,35 @@ static QString appleMusicDateText(const QDateTime &when)
         return QString();
     }
     return QLocale().toString(when, QLocale::ShortFormat);
+}
+
+// --------------------------------------------------------------------------------
+// The Date Last Played cell (issue #1783).  Shown like Date Added, and for the same reason it is
+//   a TableSortKeyItem: the text is in the user's own date format, so it sorts on the instant
+//   instead.  A song that has never been played (in the sessions being shown) has no value, and
+//   sorts to the end in both directions.
+//
+//   Always a fresh item rather than a setText(), because the sort key can't be changed on an
+//   existing TableSortKeyItem.  Called when the list is loaded, when the ages are reloaded, and
+//   when the current song is marked played.
+//
+//   The cell shows the DATE only, in the system's short date format -- QLocale::system() is the
+//   one that follows the user's macOS date format preference (e.g. 2026/10/13 vs 10/13/26).  The
+//   time is still there, in the tooltip, for anyone who wants it.
+void MainWindow::setDateLastPlayedCell(int row, const QDateTime &lastPlayed, const QBrush &textBrush)
+{
+    const QLocale systemLocale = QLocale::system();
+    const QString text = lastPlayed.isValid() ? systemLocale.toString(lastPlayed.date(), QLocale::ShortFormat)
+                                              : QString();
+    QTableWidgetItem *item = new TableSortKeyItem(text,
+                                                  lastPlayed.isValid() ? static_cast<double>(lastPlayed.toMSecsSinceEpoch()) : 0.0,
+                                                  lastPlayed.isValid());
+    item->setForeground(textBrush);
+    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+    if (lastPlayed.isValid()) {
+        item->setToolTip(systemLocale.toString(lastPlayed, QLocale::ShortFormat));  // date AND time
+    }
+    ui->songTable->setItem(row, kDateLastPlayedCol, item);
 }
 
 // --------------------------------------------------------------------------------
@@ -1811,7 +1841,7 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
     QStringList m_TableHeader;
     m_TableHeader << "" << "Type" << "Label" << "Title" << "Levels" << "Recent" << "Age" << "Pitch" << "Tempo"
                   << "Album" << "Album Artist" << "Composer" << "Comments" << "Year" << "Duration"
-                  << "Artist" << "Rating" << "Date Added";
+                  << "Artist" << "Rating" << "Date Added" << "Date Last Played";
     ui->songTable->setHorizontalHeaderLabels(m_TableHeader);
     // AlignLeft on its own says nothing about the vertical, which then defaults to the TOP.  The
     //   older columns don't show it because updateSongTableColumnView() sets an explicit
@@ -1940,7 +1970,8 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
     songSettings.loadSettingsForAllSongs(settingsByFilename);
 
     QHash<QString, QString> agesByFilename;
-    songSettings.getSongAges(agesByFilename, show_all_ages);
+    QHash<QString, QDateTime> lastPlayedByFilename;   // same query, issue #1783
+    songSettings.getSongAges(agesByFilename, show_all_ages, &lastPlayedByFilename);
 
     t.elapsed(__LINE__);
 
@@ -2372,6 +2403,7 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
 
         // AGE FIELD -----
         QString ageString = agesByFilename.value(normalizedPath); // batch-fetched above
+        QDateTime lastPlayed = lastPlayedByFilename.value(normalizedPath);
         if (ageString.isEmpty() && !appleMusicPersistentIDByPath.contains(origPath)) {
             // fallback for legacy DB rows keyed by base filename instead of relative path
             // (same fallback order as getSongAge())
@@ -2381,6 +2413,7 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
             //   age.  An Apple Music track is found by its persistentID or not at all, which is
             //   the same rule getSongIDFromFilename() follows (issue #1747).
             ageString = agesByFilename.value(fi.completeBaseName());
+            lastPlayed = lastPlayedByFilename.value(fi.completeBaseName());
         }
         QString ageAsIntString = ageToIntString(ageString);
         QTableWidgetItem *twi4 = new TableNumberItem(ageAsIntString); // TableNumberItem so it's numerically sortable
@@ -2397,6 +2430,9 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
         twi4b->setTextAlignment(Qt::AlignCenter);
         twi4b->setFlags(twi4b->flags() & ~Qt::ItemIsEditable);      // not editable
         ui->songTable->setItem(i, kRecentCol, twi4b);
+
+        // DATE LAST PLAYED FIELD (issue #1783) -----
+        setDateLastPlayedCell(i, lastPlayed, textBrush);
 
         // ((SongTitleLabel *)(ui->songTable->cellWidget(i, kTitleCol)))->setSongUsed(true || recentString != ""); // rewrite the song's title to be strikethrough and/or green background
 
