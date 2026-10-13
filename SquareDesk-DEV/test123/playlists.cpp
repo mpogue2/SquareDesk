@@ -443,7 +443,10 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
     // figure out colors
     SongSetting settings;
     // QString origPath = musicRootPath + relativePath;
-    QString origPath = musicRootPath + theRealPath;
+    // theRealPath is already absolute for Apple Music items, which live outside musicRootPath
+    //   (same rule as realPath below).  Prepending musicRootPath to those made songKeyFor() miss
+    //   the persistentID lookup, so their tags never showed up in palette slots (issue #1782).
+    QString origPath = theRealPath.startsWith("/Users/") ? theRealPath : musicRootPath + theRealPath;
     if (settingsCache != nullptr) {
         // Bulk caller already SELECTed every song's settings in one query, so skip the per-row
         //   one.  A miss leaves 'settings' default-constructed, exactly as loadSettings() does
@@ -459,7 +462,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
 
     // format the title string -----
     QString appleSymbol = QChar(APPLE_SYMBOL_UNICODE);
-    if (isAppleMusicFile && !isSongTable) {
+    if (isAppleMusicFile && !isSongTable && !shortTitle.startsWith(appleSymbol)) {  // an Apple Music slot already added it
         shortTitle = appleSymbol + " " + shortTitle; // add Apple space as prefix to actual short title
     }
 
@@ -750,7 +753,6 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
 
                 } else {
                     // MULTIPLE ROWS SELECTED
-#if defined(Q_OS_MAC)
                     // Extract all selected file paths
                     QStringList selectedPaths;
                     QItemSelectionModel *selectionModel = whichTable->selectionModel();
@@ -762,6 +764,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
                         selectedPaths.append(path);
                     }
 
+#if defined(Q_OS_MAC)
                     // SECTIONS STUFF (multiple rows) ============
                     plMenu->addSeparator();
                     plMenu->addAction("Calculate Section Info for these " + QString::number(rowCount) + " songs...",
@@ -773,6 +776,9 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
                                           RemoveSectionsForThesePaths(selectedPaths);
                                       });
 #endif
+
+                    // TAGS STUFF (multiple rows, all platforms) ============
+                    addMultiSongTagActions(plMenu, selectedPaths);  // #1782
                 } // if there's just one row in the selection
 
                 plMenu->popup(QCursor::pos());
@@ -1067,7 +1073,7 @@ void MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString 
                 shouldIndent = currentlyUnderMarker;  // Indent if we're under a marker
             }
 
-            setTitleField(theTableWidget, songCount-1, "/xtras/" + shortTitle, false, sl[1], "", shouldIndent, &settingsCache); // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
+            setTitleField(theTableWidget, songCount-1, "/xtras/" + shortTitle, false, sl[1], sl[2], shouldIndent, &settingsCache); // sl[2] = real path, so tags can be found (issue #1782) // whichTable, whichRow, relativePath or pre-colored title, bool isPlaylist, PlaylistFilename (for errors and for filters it's colored)
 
             // LEVELS column
             QTableWidgetItem *lev = new QTableWidgetItem(songLevelsByPath.value(sl[2], ""));
@@ -2050,10 +2056,10 @@ void MainWindow::refreshAllPlaylists() {
         updatePlaylistTipNumbers(playlistTables[i]);
 
         // Apple Music slots store absolute paths outside musicRootPath; re-deriving titles from
-        // filenames would overwrite the Apple Music titles (with track numbers, no colons). Skip them.
-        if (relPathInSlot[i].startsWith(APPLE_MUSIC_PATH_PREFIX)) {
-            continue;
-        }
+        // filenames would overwrite the Apple Music titles (with track numbers, no colons), so
+        // their rows are rebuilt from the Apple Music title instead.  They used to be skipped
+        // entirely, which left their tags stale after a tag change (issue #1782).
+        bool isAppleMusicSlot = relPathInSlot[i].startsWith(APPLE_MUSIC_PATH_PREFIX);
 
         QTableWidget *theTable = playlistTables[i];
 
@@ -2077,19 +2083,28 @@ void MainWindow::refreshAllPlaylists() {
                 // Determine if this row should be indented (issue #1547)
                 bool shouldIndent = shouldIndentPlaylistRow(theTable, j);
 
-                // this is what we want: "/patter/RIV 1180 - Sea Chanty.mp3" "/Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/playlists/Jokers/2024/Jokers_2024.06.05.csv"
-                QString theCanonicalRelativePath = makeCanonicalRelativePath(relativePath); // display as "LABEL NUM - Title", even if filename is reversed (issue #1665)
+                if (isAppleMusicSlot) {
+                    // same arguments loadAppleMusicPlaylistToSlot() uses (setTitleField() adds the Apple symbol)
+                    QString appleRelativePath = appleMusicTitleAsRelativePath(absPath);
+                    if (appleRelativePath.isEmpty()) {
+                        continue;  // don't know its Apple Music title any more, so leave the row alone
+                    }
+                    setTitleField(theTable, j, appleRelativePath, false, relPathInSlot[i], absPath, shouldIndent, &settingsCache);
+                } else {
+                    // this is what we want: "/patter/RIV 1180 - Sea Chanty.mp3" "/Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/playlists/Jokers/2024/Jokers_2024.06.05.csv"
+                    QString theCanonicalRelativePath = makeCanonicalRelativePath(relativePath); // display as "LABEL NUM - Title", even if filename is reversed (issue #1665)
 
-                // A single Apple Music song can be dragged into any slot, not just a slot holding a
-                //   whole Apple Music playlist, so the Apple Music title has to be recovered per ROW.
-                //   Without this, the title set by addPlaylistItemAt() was immediately rebuilt
-                //   from the filename here, e.g. "10 Five Foot Two Eyes of Blue" (issue #1740).
-                QString appleRelativePath = appleMusicTitleAsRelativePath(absPath);
-                if (!appleRelativePath.isEmpty()) {
-                    theCanonicalRelativePath = appleRelativePath;
+                    // A single Apple Music song can be dragged into any slot, not just a slot holding a
+                    //   whole Apple Music playlist, so the Apple Music title has to be recovered per ROW.
+                    //   Without this, the title set by addPlaylistItemAt() was immediately rebuilt
+                    //   from the filename here, e.g. "10 Five Foot Two Eyes of Blue" (issue #1740).
+                    QString appleRelativePath = appleMusicTitleAsRelativePath(absPath);
+                    if (!appleRelativePath.isEmpty()) {
+                        theCanonicalRelativePath = appleRelativePath;
+                    }
+
+                    setTitleField(theTable, j, theCanonicalRelativePath, true, PlaylistFileName, relativePath, shouldIndent, &settingsCache);
                 }
-
-                setTitleField(theTable, j, theCanonicalRelativePath, true, PlaylistFileName, relativePath, shouldIndent, &settingsCache);
 
                 // Re-apply loaded-song highlighting (bold+italic) if setTitleField() just replaced it (issue #1601)
                 if (theTable->item(j, COLUMN_LOADED) && theTable->item(j, COLUMN_LOADED)->text() == "1") {

@@ -5250,6 +5250,150 @@ void MainWindow::removeAllTagsForPath(QString pathToMP3) {
     updateSongTableRowForPath(pathToMP3);
 }
 
+// #1782: add one tag to, remove one tag from, or remove all tags from many songs at once.
+//   Unlike calling changeTagForPath() in a loop, this saves everything in one transaction and
+//   refreshes the palette slots and the songTable only once, so it stays fast on big selections.
+void MainWindow::changeTagsForPaths(const QStringList &paths, BulkTagOp op, const QString &tag) {
+    QSet<QString> changedPaths;
+
+    songSettings.beginBulkUpdate();
+    for (const auto &pathToMP3 : paths) {
+        SongSetting settings;
+        songSettings.loadSettings(pathToMP3, settings);
+
+        QString oldTags;
+        if (settings.isSetTags()) {
+            oldTags = settings.getTags();
+        }
+        QStringList tags = oldTags.split(" ", Qt::SkipEmptyParts);
+
+        switch (op) {
+        case BulkTagOp::AddTag:
+            if (tags.contains(tag)) continue;  // already has it, leave the song alone
+            tags.append(tag);
+            break;
+        case BulkTagOp::RemoveTag:
+            if (!tags.contains(tag)) continue;
+            tags.removeAll(tag);
+            break;
+        case BulkTagOp::RemoveAllTags:
+            if (tags.isEmpty()) continue;
+            tags.clear();
+            break;
+        }
+
+        QString newTags = tags.join(" ");
+        songSettings.removeTags(oldTags);  // keep the tag counts (which feed the Tags menus) in step
+        settings.setTags(newTags);
+        songSettings.saveSettings(pathToMP3, settings);
+        if (!newTags.isEmpty()) {
+            songSettings.addTags(newTags);
+        }
+        changedPaths.insert(pathToMP3);
+    }
+    songSettings.endBulkUpdate();
+
+    if (changedPaths.isEmpty()) {
+        return;
+    }
+
+    refreshAllPlaylists();
+
+    // update the title (with its tags) of every changed song that is visible in the songTable
+    static QRegularExpression re("^<span style=[\"]color: (.*?);");
+    for (int row = 0; row < ui->songTable->rowCount(); row++) {
+        QString rowPath = ui->songTable->item(row, kPathCol)->data(Qt::UserRole).toString();
+        if (!changedPaths.contains(rowPath)) {
+            continue;
+        }
+        SongSetting settings;
+        songSettings.loadSettings(rowPath, settings);
+
+        QRegularExpressionMatch match = re.match(getTitleColText(ui->songTable, row));
+        QString theOriginalColor = match.hasMatch() ? match.captured(1) : "";
+
+        QString title = getTitleColTitle(ui->songTable, row);
+        QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), theOriginalColor));
+        dynamic_cast<QLabel*>(ui->songTable->cellWidget(row, kTitleCol))->setText(titlePlusTags);
+    }
+}
+
+// #1782: the tag items for a context menu with 2+ songs selected (songTable or a palette slot)
+void MainWindow::addMultiSongTagActions(QMenu *menu, const QStringList &paths) {
+    QString these = "these " + QString::number(paths.count()) + " songs";
+
+    // which tags are on at least one of the selected songs?
+    QSet<QString> tagsInSelection;
+    for (const auto &pathToMP3 : paths) {
+        SongSetting settings;
+        songSettings.loadSettings(pathToMP3, settings);
+        if (settings.isSetTags()) {
+            const QStringList songTags = settings.getTags().split(" ", Qt::SkipEmptyParts);
+            for (const auto &t : songTags) {
+                tagsInSelection.insert(t);
+            }
+        }
+    }
+
+    menu->addSeparator();
+
+    // ADD TAG ----------
+    QMenu *addMenu = menu->addMenu("Add Tag to " + these);
+    addMenu->setProperty("theme", currentThemeString);
+
+    QStringList allTags(songSettings.getTagColors().keys());
+    allTags.sort(Qt::CaseInsensitive);
+    for (const auto &tagUntrimmed : allTags) {
+        QString tag(tagUntrimmed.trimmed());
+        if (tag.isEmpty()) continue;
+        addMenu->addAction(tag, this, [this, paths, tag]() {
+            changeTagsForPaths(paths, BulkTagOp::AddTag, tag);
+        });
+    }
+    addMenu->addSeparator();
+    addMenu->addAction("New Tag...", this, [this, paths, these]() {
+        QInputDialog dialog;
+        setDynamicPropertyRecursive(&dialog, "theme", currentThemeString);
+        dialog.setWindowTitle("Add New Tag to " + these);
+        dialog.setInputMode(QInputDialog::TextInput);
+        dialog.setLabelText("Tag name (no spaces):\n");
+        dialog.resize(500, 200);
+        if (dialog.exec() != QDialog::Accepted) {
+            return;
+        }
+        QString tag = dialog.textValue().trimmed();
+        if (tag.isEmpty()) {
+            return;
+        }
+        if (tag.contains(QRegularExpression("\\s"))) {
+            // tags are stored space-separated, so "Christmas Songs" would silently become two tags
+            QMessageBox::warning(this, "Add New Tag",
+                                 "Tag names cannot contain spaces.\n\nTry e.g. \"" +
+                                 tag.simplified().replace(" ", "_") + "\" instead.");
+            return;
+        }
+        changeTagsForPaths(paths, BulkTagOp::AddTag, tag);
+    });
+
+    // REMOVE TAG / REMOVE ALL TAGS ----------
+    if (!tagsInSelection.isEmpty()) {
+        QMenu *removeMenu = menu->addMenu("Remove Tag from " + these);
+        removeMenu->setProperty("theme", currentThemeString);
+
+        QStringList selectionTags(tagsInSelection.values());
+        selectionTags.sort(Qt::CaseInsensitive);
+        for (const auto &tag : selectionTags) {
+            removeMenu->addAction(tag, this, [this, paths, tag]() {
+                changeTagsForPaths(paths, BulkTagOp::RemoveTag, tag);
+            });
+        }
+
+        menu->addAction("Remove all Tags from " + these, this, [this, paths]() {
+            changeTagsForPaths(paths, BulkTagOp::RemoveAllTags);
+        });
+    }
+}
+
 void MainWindow::columnHeaderSorted(int logicalIndex, Qt::SortOrder order)
 {
     Q_UNUSED(logicalIndex)
@@ -8742,57 +8886,12 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
         }
         menu.addMenu(tagsMenu);
     } else if (rowCount > 1) {
-        // more than one row in songTable has been selected...
-        //   check to see if one or more songs have tags
-        bool someSongHasTags = false;
-
+        // more than one row in songTable has been selected -- bulk tag operations (#1782)
+        QStringList selectedPaths;
         for (int i = 0; i < rowCount; i++) {
-            QString pathToMP3 = ui->songTable->item(selectedRows[i], kPathCol)->data(Qt::UserRole).toString();
-            SongSetting settings;
-            songSettings.loadSettings(pathToMP3, settings);
-            if (settings.isSetTags())
-            {
-                QString curTagString = settings.getTags();
-                // currentTags = settings.getTags().split(" ");
-                currentTags = curTagString.split(" ");
-
-                // if the song has some tags, offer to Remove them
-                if (currentTags.count() > 1 || currentTags[0] != "") {
-                    someSongHasTags = true;
-                    break; // and break out of the for loop
-                }
-            }
+            selectedPaths.append(ui->songTable->item(selectedRows[i], kPathCol)->data(Qt::UserRole).toString());
         }
-
-        //   if so, show "Remove all tags from these N songs" context menu item
-        if (someSongHasTags) {
-            menu.addSeparator(); // -------------------
-            menu.addAction( "Remove all Tags from these " + QString::number(rowCount) + " songs",
-                            this, [this, rowCount, selectedRows, currentTags] {
-                            for (int i = 0; i < rowCount; i++) {
-                                QString pathToMP3 = ui->songTable->item(selectedRows[i], kPathCol)->data(Qt::UserRole).toString();
-                                SongSetting settings;
-                                songSettings.loadSettings(pathToMP3, settings);
-                                if (settings.isSetTags())
-                                {
-                                    QString curTagString = settings.getTags();
-                                    // currentTags = settings.getTags().split(" ");
-                                    QStringList currentTags = curTagString.split(" ");
-
-                                    // if the song has some tags, offer to Remove them
-                                    if (currentTags.count() > 1 || currentTags[0] != "") {
-                                        // for some reason, count == 1 is one tag that is an empty string, means there are zero tags
-                                        // but sometimes, like when we manually do Edit Tags, there's no empty string.
-                                        // thus the need for that counterintuitive if clause above.
-                                        // qDebug() << "removing tags from row: " << selectedRows[i];
-                                        removeAllTagsFromSongRow(selectedRows[i]);
-                                    }
-                                }
-                            }
-                            refreshAllPlaylists();
-            });
-        }
-
+        addMultiSongTagActions(&menu, selectedPaths);
     }
 
     // DO IT ==========

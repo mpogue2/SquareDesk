@@ -377,6 +377,9 @@ public:
     void changeTagForPath(QString pathToMP3, QString tag, bool add);  // Path-based wrapper for playlists
     void removeAllTagsForPath(QString pathToMP3);               // Path-based wrapper for playlists
     void updateSongTableRowForPath(QString pathToMP3);      // Helper to refresh songTable
+    enum class BulkTagOp { AddTag, RemoveTag, RemoveAllTags };  // #1782: tag ops on many songs at once
+    void changeTagsForPaths(const QStringList &paths, BulkTagOp op, const QString &tag = QString());
+    void addMultiSongTagActions(QMenu *menu, const QStringList &paths);  // shared by songTable and palette slot menus
     int MP3FileSampleRate(QString pathToMP3);
     QString getSongFileIdentifier(QString pathToSong);
 

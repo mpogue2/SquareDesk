@@ -154,6 +154,8 @@ public:
     QPair<QString,QString> getColorForTag(const QString &tag);
     void addTags(const QString &str);
     void removeTags(const QString &str);
+    void beginBulkUpdate();   // #1782: wrap many saveSettings() calls in one transaction
+    void endBulkUpdate();
     void setDefaultTagColors( const QString &background, const QString & foreground);
 
     void getSongPlayHistory(SongPlayEvent &event,

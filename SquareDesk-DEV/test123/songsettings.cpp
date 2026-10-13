@@ -602,6 +602,21 @@ void SongSettings::removeTags(const QString &str)
 }
 
 
+// #1782: bulk tag edits save one song at a time, and SQLite commits each loose UPDATE on its
+//   own.  Bracketing them in one transaction takes 500 songs from ~100 ms to ~1 ms locally,
+//   and matters more when the database lives in a cloud-synced music folder.
+void SongSettings::beginBulkUpdate()
+{
+    if (databaseOpened)
+        m_db.transaction();
+}
+
+void SongSettings::endBulkUpdate()
+{
+    if (databaseOpened)
+        m_db.commit();
+}
+
 QPair<QString,QString> SongSettings::getColorForTag(const QString &tag)
 {
     if (!tagColorCacheSet)
