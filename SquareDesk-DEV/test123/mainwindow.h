@@ -504,6 +504,8 @@ public slots:
     void PlaylistItemsMoveUp();
     void PlaylistItemsMoveDown();
     void PlaylistItemsRemove();
+    bool removeFromFocusedPlaylist();  // #1792: DELETE in a palette table
+    void addPlaylistEditActions(QMenu *menu, const QString &plural);  // #1792: Move/Remove context menu items
     void addPlaylistItemsToBottom(int slot);
     void addPlaylistItemToBottom(int whichSlot, QString title, QString thePitch, QString theTempo, QString theFullPath, QString isLoaded);
     void addPlaylistItemAt(int whichSlot, const QString &trackName, const QString &pitch, const QString &tempo, const QString &path, const QString &extra, int insertRow);

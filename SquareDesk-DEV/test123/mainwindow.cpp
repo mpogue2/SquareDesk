@@ -3080,6 +3080,13 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             //   handleKeypress() path below, which would otherwise swallow it.
             return true;
         }
+        else if ((theKey == Qt::Key_Backspace || theKey == Qt::Key_Delete) &&
+                 (KeyEvent->modifiers() & ~Qt::KeypadModifier) == Qt::NoModifier &&
+                 maybeMainWindow->removeFromFocusedPlaylist()) {
+            // #1792: DELETE removes the selected items from the focused palette table.  Must come before
+            //   the handleKeypress() path below, which would otherwise swallow it.
+            return true;
+        }
         else if ( !(
                ui->search->hasFocus() ||
                (ui->textBrowserCueSheet->hasFocus() && ui->pushButtonEditLyrics->isChecked()) ||

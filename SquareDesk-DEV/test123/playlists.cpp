@@ -229,6 +229,49 @@ void MainWindow::PlaylistItemsRemove() {
     movePlaylistItems([](MyTableWidget* table) { return table->removeSelectedItems(); });
 }
 
+// --------------------------------------------------------------------
+// #1792: DELETE in a palette table removes its selected items from the playlist.
+//   Unlike PlaylistItemsRemove(), this only touches the FOCUSED table, so a stale selection
+//   in some other palette can't be removed by a stray DELETE.
+//   Returns false if no palette table has focus, so the key is processed normally.
+bool MainWindow::removeFromFocusedPlaylist() {
+    MyTableWidget* tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+
+    for (int i = 0; i < MAX_PLAYLIST_SLOTS; ++i) {
+        if (tables[i]->hasFocus()) {
+            if (darkmode && !relPathInSlot[i].startsWith(TRACKS_PATH_PREFIX)) {  // tracks can't be edited
+                bool modified = tables[i]->removeSelectedItems();
+                slotModified[i] = modified || slotModified[i];
+                if (slotModified[i]) {
+                    saveSlotNow(i);
+                    refreshAllPlaylists();  // refresh indentation (issue #1547)
+                }
+            }
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// --------------------------------------------------------------------
+// #1792: the Move/Remove items of a palette slot's context menu, with their keyboard shortcuts
+//   shown so they are discoverable.  The keys themselves are handled in GlobalEventFilter.
+void MainWindow::addPlaylistEditActions(QMenu *menu, const QString &plural) {
+    auto addWithShortcut = [menu](const QString &text, const QKeySequence &shortcut, std::function<void()> action) {
+        QAction *a = menu->addAction(text, action);
+        a->setShortcut(shortcut);
+        a->setShortcutVisibleInContextMenu(true);  // macOS hides context menu shortcuts by default
+    };
+
+    addWithShortcut("Move " + plural + " to TOP of playlist",    QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Left),  [this]() { this->PlaylistItemsToTop();    } );
+    addWithShortcut("Move " + plural + " UP in playlist",        QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Up),    [this]() { this->PlaylistItemsMoveUp();   } );
+    addWithShortcut("Move " + plural + " DOWN in playlist",      QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Down),  [this]() { this->PlaylistItemsMoveDown(); } );
+    addWithShortcut("Move " + plural + " to BOTTOM of playlist", QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Right), [this]() { this->PlaylistItemsToBottom(); } );
+    menu->addSeparator();
+    addWithShortcut("Remove " + plural + " from playlist",       QKeySequence(Qt::Key_Backspace),                    [this]() { this->PlaylistItemsRemove(); } );
+}
+
 // ============================================================================================================
 // Detect if a filename is a playlist marker/separator (issue #1547)
 // Returns true if filename contains 3+ consecutive separator chars (=, -, _, or +)
@@ -522,12 +565,7 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
 
                 // Move up/down/top/bottom in playlist
                 if (isPlaylist) {
-                    plMenu->addAction(QString("Move " + plural + " to TOP of playlist"),    [this]() { this->PlaylistItemsToTop();    } );
-                    plMenu->addAction(QString("Move " + plural + " UP in playlist"),        [this]() { this->PlaylistItemsMoveUp();   } );
-                    plMenu->addAction(QString("Move " + plural + " DOWN in playlist"),      [this]() { this->PlaylistItemsMoveDown(); } );
-                    plMenu->addAction(QString("Move " + plural + " to BOTTOM of playlist"), [this]() { this->PlaylistItemsToBottom(); } );
-                    plMenu->addSeparator();
-                    plMenu->addAction(QString("Remove " + plural + " from playlist"),       [this]() { this->PlaylistItemsRemove(); } );
+                    addPlaylistEditActions(plMenu, plural);  // #1792: Move/Remove items, with their shortcuts
                 }
 
                 if (rowCount == 1) {

@@ -982,12 +982,7 @@ void MainWindow::initializeMusicPlaylists() {
 
                 // Move up/down/top/bottom in playlist
                 if (!relPathInSlot[0].contains("/tracks/")) {
-                    plMenu->addAction(QString("Move " + plural + " to TOP of playlist"),    [this]() { this->PlaylistItemsToTop();    } );
-                    plMenu->addAction(QString("Move " + plural + " UP in playlist"),        [this]() { this->PlaylistItemsMoveUp();   } );
-                    plMenu->addAction(QString("Move " + plural + " DOWN in playlist"),      [this]() { this->PlaylistItemsMoveDown(); } );
-                    plMenu->addAction(QString("Move " + plural + " to BOTTOM of playlist"), [this]() { this->PlaylistItemsToBottom(); } );
-                    plMenu->addSeparator();
-                    plMenu->addAction(QString("Remove " + plural + " from playlist"),       [this]() { this->PlaylistItemsRemove(); } );
+                    addPlaylistEditActions(plMenu, plural);  // #1792: Move/Remove items, with their shortcuts
                 }
 
                 if (rowCount == 1) {
@@ -1127,12 +1122,7 @@ void MainWindow::initializeMusicPlaylists() {
 
                 // Move up/down/top/bottom in playlist
                 if (!relPathInSlot[1].contains("/tracks/")) {
-                    plMenu->addAction(QString("Move " + plural + " to TOP of playlist"),    [this]() { this->PlaylistItemsToTop();    } );
-                    plMenu->addAction(QString("Move " + plural + " UP in playlist"),        [this]() { this->PlaylistItemsMoveUp();   } );
-                    plMenu->addAction(QString("Move " + plural + " DOWN in playlist"),      [this]() { this->PlaylistItemsMoveDown(); } );
-                    plMenu->addAction(QString("Move " + plural + " to BOTTOM of playlist"), [this]() { this->PlaylistItemsToBottom(); } );
-                    plMenu->addSeparator();
-                    plMenu->addAction(QString("Remove " + plural + " from playlist"),       [this]() { this->PlaylistItemsRemove(); } );
+                    addPlaylistEditActions(plMenu, plural);  // #1792: Move/Remove items, with their shortcuts
                 }
 
                 if (rowCount == 1) {
@@ -1272,12 +1262,7 @@ void MainWindow::initializeMusicPlaylists() {
 
                 // Move up/down/top/bottom in playlist
                 if (!relPathInSlot[2].contains("/tracks/")) {
-                    plMenu->addAction(QString("Move " + plural + " to TOP of playlist"),    [this]() { this->PlaylistItemsToTop();    } );
-                    plMenu->addAction(QString("Move " + plural + " UP in playlist"),        [this]() { this->PlaylistItemsMoveUp();   } );
-                    plMenu->addAction(QString("Move " + plural + " DOWN in playlist"),      [this]() { this->PlaylistItemsMoveDown(); } );
-                    plMenu->addAction(QString("Move " + plural + " to BOTTOM of playlist"), [this]() { this->PlaylistItemsToBottom(); } );
-                    plMenu->addSeparator();
-                    plMenu->addAction(QString("Remove " + plural + " from playlist"),       [this]() { this->PlaylistItemsRemove(); } );
+                    addPlaylistEditActions(plMenu, plural);  // #1792: Move/Remove items, with their shortcuts
                 }
 
                 if (rowCount == 1) {
