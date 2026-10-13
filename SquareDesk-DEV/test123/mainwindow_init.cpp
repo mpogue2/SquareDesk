@@ -960,10 +960,9 @@ void MainWindow::initializeMusicPlaylists() {
     // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST1 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
     ui->playlist1Table->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist1Table, &QTableWidget::customContextMenuRequested,
-            this, [this](QPoint q) {
+            this, [this](QPoint) {
 
                 // qDebug() << "***** PLAYLIST 1 CONTEXT MENU REQUESTED";
-                // if (this->ui->playlist1Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
 
                 int rowCount = this->ui->playlist1Table->selectionModel()->selectedRows().count();
                 if (rowCount < 1) {
@@ -993,8 +992,10 @@ void MainWindow::initializeMusicPlaylists() {
 
                 if (rowCount == 1) {
                     // Reveal Audio File and Cuesheet in Finder
+                    // #1797: use the selected row, NOT itemAt(q), which is nullptr when right-clicking an empty area
+                    int theRow = this->ui->playlist1Table->selectionModel()->selectedRows().at(0).row();
                     plMenu->addSeparator();
-                    QString fullPath = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), COLUMN_PATH)->text();
+                    QString fullPath = this->ui->playlist1Table->item(theRow, COLUMN_PATH)->text();
                     QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
                     //                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
 
@@ -1038,7 +1039,7 @@ void MainWindow::initializeMusicPlaylists() {
                                       });
 
                     // if the current song has a cuesheet, offer to show it to the user -----
-                    QString fullMP3Path = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), COLUMN_PATH)->text();
+                    QString fullMP3Path = this->ui->playlist1Table->item(theRow, COLUMN_PATH)->text();
                     QString cuesheetPath;
 
                     SongSetting settings1;
@@ -1106,10 +1107,9 @@ void MainWindow::initializeMusicPlaylists() {
     // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST2 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
     ui->playlist2Table->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist2Table, &QTableWidget::customContextMenuRequested,
-            this, [this](QPoint q) {
+            this, [this](QPoint) {
 
                 // qDebug() << "***** PLAYLIST 2 CONTEXT MENU REQUESTED";
-                // if (this->ui->playlist2Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
 
                 int rowCount = this->ui->playlist2Table->selectionModel()->selectedRows().count();
                 if (rowCount < 1) {
@@ -1137,8 +1137,10 @@ void MainWindow::initializeMusicPlaylists() {
 
                 if (rowCount == 1) {
                     // Reveal Audio File and Cuesheet in Finder
+                    // #1797: use the selected row, NOT itemAt(q), which is nullptr when right-clicking an empty area
+                    int theRow = this->ui->playlist2Table->selectionModel()->selectedRows().at(0).row();
                     plMenu->addSeparator();
-                    QString fullPath = this->ui->playlist2Table->item(this->ui->playlist2Table->itemAt(q)->row(), COLUMN_PATH)->text();
+                    QString fullPath = this->ui->playlist2Table->item(theRow, COLUMN_PATH)->text();
                     QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
                     //                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
 
@@ -1182,7 +1184,7 @@ void MainWindow::initializeMusicPlaylists() {
                                       });
 
                     // if the current song has a cuesheet, offer to show it to the user -----
-                    QString fullMP3Path = this->ui->playlist2Table->item(this->ui->playlist2Table->itemAt(q)->row(), COLUMN_PATH)->text();
+                    QString fullMP3Path = this->ui->playlist2Table->item(theRow, COLUMN_PATH)->text();
                     QString cuesheetPath;
 
                     SongSetting settings1;
@@ -1250,10 +1252,9 @@ void MainWindow::initializeMusicPlaylists() {
     // THIS IS THE CONTEXT MENU FOR THE WHOLE PLAYLIST3 TABLE (NOT INCLUDING THE TITLE FIELD) -------------
     ui->playlist3Table->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist3Table, &QTableWidget::customContextMenuRequested,
-            this, [this](QPoint q) {
+            this, [this](QPoint) {
 
                 // qDebug() << "***** PLAYLIST 3 CONTEXT MENU REQUESTED";
-                // if (this->ui->playlist3Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
 
                 int rowCount = this->ui->playlist3Table->selectionModel()->selectedRows().count();
                 if (rowCount < 1) {
@@ -1281,8 +1282,10 @@ void MainWindow::initializeMusicPlaylists() {
 
                 if (rowCount == 1) {
                     // Reveal Audio File and Cuesheet in Finder
+                    // #1797: use the selected row, NOT itemAt(q), which is nullptr when right-clicking an empty area
+                    int theRow = this->ui->playlist3Table->selectionModel()->selectedRows().at(0).row();
                     plMenu->addSeparator();
-                    QString fullPath = this->ui->playlist3Table->item(this->ui->playlist3Table->itemAt(q)->row(), COLUMN_PATH)->text();
+                    QString fullPath = this->ui->playlist3Table->item(theRow, COLUMN_PATH)->text();
                     QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
                     //                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
 
@@ -1325,7 +1328,7 @@ void MainWindow::initializeMusicPlaylists() {
 
                                       });
             // if the current song has a cuesheet, offer to show it to the user -----
-            QString fullMP3Path = this->ui->playlist3Table->item(this->ui->playlist3Table->itemAt(q)->row(), COLUMN_PATH)->text();
+            QString fullMP3Path = this->ui->playlist3Table->item(theRow, COLUMN_PATH)->text();
             QString cuesheetPath;
 
             SongSetting settings1;
