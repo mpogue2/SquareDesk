@@ -1434,7 +1434,20 @@ void MainWindow::filterMusic()
 
     // qDebug() << "filterMusic::firstVisibleRow: " << firstVisibleRow;
 
-    if (rowsVisible > 0) {
+    // When nothing is filtered out (e.g. the search field was just cleared with its "X"), keep the
+    //   song that was already highlighted, and scroll back to it, instead of jumping to row 0
+    //   (issue #1787).  That's the "search to find it, clear to see it in context" case.  While a
+    //   search is actually narrowing the list, the first match is highlighted as before, so that
+    //   Enter/UP/DOWN work straight from the search field.
+    QModelIndexList selectedRows = ui->songTable->selectionModel()->selectedRows();
+    if (rowsVisible == initialRowCount && !selectedRows.isEmpty()) {
+        // The rows were only just un-hidden, and the table would normally lay itself out (and
+        //   resize its scrollbar) later; until then the scrollbar still has the old, filtered-down
+        //   range, so a scrollTo() gets clamped to the top.  Deferring with QTimer::singleShot(0)
+        //   is NOT enough (it runs before the table's own delayed layout), so force the layout now.
+        ui->songTable->doItemsLayout();
+        ui->songTable->scrollTo(selectedRows.first(), QAbstractItemView::PositionAtCenter);
+    } else if (rowsVisible > 0) {
         // qDebug() << "good select row!" << firstVisibleRow;
         ui->songTable->selectRow(firstVisibleRow);
     }
