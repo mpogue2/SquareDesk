@@ -192,6 +192,7 @@ public:
 
     // Key handling and focus management
     bool handleKeypress(int key, QString text);
+    bool selectAllInFocusedTable();  // #1795: Cmd-A in songTable or a palette table
     bool handleSDFunctionKey(QKeyCombination key, QString text);
     bool someWebViewHasFocus();
     bool optionCurrentlyPressed;

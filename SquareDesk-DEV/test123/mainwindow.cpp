@@ -3075,6 +3075,11 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             ui->search->setFocus();
             ui->search->setSelection(0, ui->search->text().length());  // select the whole thing when CMD-F is pressed
         }
+        else if (KeyEvent->matches(QKeySequence::SelectAll) && maybeMainWindow->selectAllInFocusedTable()) {
+            // #1795: CMD-A selects all rows of the focused song/palette table.  Must come before the
+            //   handleKeypress() path below, which would otherwise swallow it.
+            return true;
+        }
         else if ( !(
                ui->search->hasFocus() ||
                (ui->textBrowserCueSheet->hasFocus() && ui->pushButtonEditLyrics->isChecked()) ||
@@ -3279,6 +3284,42 @@ void MainWindow::actionToggleCuesheetAutoscroll()
 
 
 // ----------------------------------------------------------------------
+// #1795: CMD-A in the songTable or a palette table selects all of its rows.
+//   Returns false if none of those tables has focus, so the key is processed normally.
+bool MainWindow::selectAllInFocusedTable()
+{
+    if (ui->songTable->hasFocus()) {
+        // Don't use QTableWidget::selectAll(), which also selects rows hidden by the search filter.
+        //   Build the selection from runs of visible rows instead, and apply it in one call so
+        //   there is only one selectionChanged signal, even for a large library.
+        QItemSelection visibleRows;
+        int rows = ui->songTable->rowCount();
+        int lastCol = ui->songTable->columnCount() - 1;
+        int runStart = -1;
+        for (int row = 0; row <= rows; row++) {
+            bool visible = (row < rows) && !ui->songTable->isRowHidden(row);
+            if (visible && runStart < 0) {
+                runStart = row;
+            } else if (!visible && runStart >= 0) {
+                visibleRows.select(ui->songTable->model()->index(runStart, 0),
+                                   ui->songTable->model()->index(row - 1, lastCol));
+                runStart = -1;
+            }
+        }
+        ui->songTable->selectionModel()->select(visibleRows, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+        return true;
+    }
+
+    for (MyTableWidget *table : {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table}) {
+        if (table->hasFocus()) {
+            table->selectAll();  // palette tables never hide rows
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool MainWindow::handleKeypress(int key, QString text)
 {
     Q_UNUSED(text)
