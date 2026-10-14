@@ -14,8 +14,18 @@
 
 QT       += core gui sql network printsupport svg svgwidgets
 unix {
-    QT += webenginewidgets
     PRE_TARGETDEPS += $$OUT_PWD/../third_party/sdlib/libsdlib.a
+}
+
+# Web views (Reference tab, Taminations), issue #1791:
+#   macOS uses the system WKWebView by default (see sdwebview.h), which keeps the ~300 MB
+#   Qt WebEngine (Chromium) out of the bundle.  Linux, or a macOS build with CONFIG+=webengine,
+#   uses Qt WebEngine instead.
+macx:!webengine {
+    LIBS += -framework WebKit
+} else:unix {
+    QT += webenginewidgets
+    DEFINES += USE_QWEBENGINE
 }
 macx {
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 13.0

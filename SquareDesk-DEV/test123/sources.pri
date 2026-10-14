@@ -94,7 +94,8 @@ SOURCES += main.cpp\
     mydatetimeedit.cpp \
     tablelabelitem.cpp
 
-unix {
+# pdf.js's bridge to Qt WebEngine; the WKWebView build displays PDFs natively (#1791)
+contains(DEFINES, USE_QWEBENGINE) {
 SOURCES += ../third_party/qpdfjs/src/communicator.cpp
 }
 
@@ -193,7 +194,9 @@ HEADERS  += mainwindow.h \
     selectionretainer.h \
     xxhash64.h
 
-unix {
+HEADERS += sdwebview.h
+
+contains(DEFINES, USE_QWEBENGINE) {
 HEADERS += ../third_party/qpdfjs/src/communicator.h
 INCLUDEPATH += $$PWD/../third_party/qpdfjs
 }
@@ -214,6 +217,10 @@ RESOURCES += startupwizard.qrc
 OBJECTIVE_SOURCES += \
     macUtils.mm \
     mainwindow_applemusic.mm
+
+!contains(DEFINES, USE_QWEBENGINE) {
+OBJECTIVE_SOURCES += sdwebview.mm
+}
 
 DISTFILES += \
     SquareDesk.entitlements \

@@ -31,17 +31,12 @@
 
 #include "embeddedserver.h"
 #include "ui_mainwindow.h"
-#include <QWebEngineView>
+#include "sdwebview.h"
 #include <QVBoxLayout>
 #include <QTimer>
 
 void MainWindow::startTaminationsServer() {
     // qDebug() << "startTaminationsServer";
-
-    QWebEngineProfile* profile = new QWebEngineProfile();
-    // profile->setPersistentStoragePath(musicRootPath + "/taminationsData"); // Or other path
-    profile->setPersistentStoragePath(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
-    // qDebug() << "writableLocation:" << QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
 
     // ...
     // Debug: Print all tabs in the tabWidget
@@ -91,10 +86,13 @@ void MainWindow::startTaminationsServer() {
                 // qDebug() << "Loading URL:" << url;
                 
                 // Create and set up the webview for the TaminationsTab
-                QWebEngineView *taminationsWebView = new QWebEngineView();
+                SDWebView *taminationsWebView = new SDWebView();
 
+#if defined(USE_QWEBENGINE)
                 QWebEngineSettings* settings = taminationsWebView->page()->settings();
                 settings->setAttribute(QWebEngineSettings::LocalStorageEnabled, true);
+#endif
+                // (WKWebView: localStorage is always on, and persists in the app's default data store.)
 
                 // Find the TaminationsTab widget (should exist now)
                 QWidget *taminationsTab = nullptr;

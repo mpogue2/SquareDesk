@@ -55,7 +55,8 @@ bundle_sliders.files = $$files($$PWD/graphics/sliders/*.svg)
 bundle_soundfx.path  = Contents/soundfx
 bundle_soundfx.files = $$files($$PWD/soundfx/*.mp3)
 
-# PDF viewer (qpdfjs): its "build" and "web" trees
+# PDF viewer (qpdfjs): its "build" and "web" trees.  Only the Qt WebEngine build needs it;
+#   the WKWebView build displays PDFs natively (#1791).
 bundle_pdfjs.path    = Contents/Resources/minified
 bundle_pdfjs.files   = $$PWD/../third_party/qpdfjs/minified/build $$PWD/../third_party/qpdfjs/minified/web
 
@@ -68,7 +69,8 @@ bundle_vamp.path     = Contents/MacOS
 bundle_vamp.files    = $$files($$VAMP_DIR/*.dylib) $$VAMP_DIR/vamp-simple-host
 
 QMAKE_BUNDLE_DATA += bundle_resources bundle_knobs bundle_sliders bundle_soundfx \
-                     bundle_pdfjs bundle_vamp
+                     bundle_vamp
+contains(DEFINES, USE_QWEBENGINE): QMAKE_BUNDLE_DATA += bundle_pdfjs
 
 # ----------------------------------------------------------------------------------------
 # For the Mac OS X DMG installer build, we need these files stuck into the results directory

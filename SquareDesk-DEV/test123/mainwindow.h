@@ -75,7 +75,11 @@
 #include <QVariant>
 #include <QVector>
 #include <QShortcut>
-#include <QtWebEngineWidgets/QtWebEngineWidgets>
+// #1791: these three used to arrive transitively through <QtWebEngineWidgets>, which is now
+//   included only in the Qt WebEngine build (via sdwebview.h).
+#include <QtWidgets/QtWidgets>
+#include <QtPrintSupport/QtPrintSupport>
+#include <QtNetwork/QtNetwork>
 #include <QWheelEvent>
 #include <QWidget>
 #include <QFileSystemWatcher>
@@ -109,6 +113,7 @@ struct SongMatchInfo;
 
 #if defined(Q_OS_MAC)
 #include "macUtils.h"
+#include "sdwebview.h"
 #include <stdio.h>
 // #include <errno.h>
 #endif
@@ -328,7 +333,7 @@ public:
     void readFlashCallsList();
 
     // Reference documentation
-    QList<QWebEngineView*> webViews;
+    QList<SDWebView*> webViews;
     QTabWidget *documentsTab;
     // QStringList patterTemplateCuesheets;
     QStringList lyricsTemplateCuesheets;

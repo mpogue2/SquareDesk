@@ -89,7 +89,9 @@
 #include "svgWaveformSlider.h"
 // #include "auditionbutton.h"
 
+#if defined(USE_QWEBENGINE)
 #include "src/communicator.h"
+#endif
 
 
 // extern bool comparePlaylistExportRecord(const PlaylistExportRecord &a, const PlaylistExportRecord &b);
@@ -2797,7 +2799,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
         prefsManager.MySettings.setValue("windowState", saveState());
 
         // Tear the web views down HERE, by hand, while the event loop is still running and the
-        //   QtWebEngine render/GPU processes are all still alive.
+        //   QtWebEngine render/GPU processes are all still alive. (In the WKWebView build there
+        //   are no such processes, but deleting the views here is harmless and keeps one path.)
         //
         // If they are left to the widget tree instead, ~QWebEngineView runs from
         //   QObjectPrivate::deleteChildren() inside ~MainWindow, long after the event loop has
@@ -2809,7 +2812,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         //
         // deleteLater() would be wrong here: it would just defer the same destructor back out to
         //   the very shutdown phase we are trying to get away from. These have to go now.
-        for (QWebEngineView *view : std::as_const(webViews)) {
+        for (SDWebView *view : std::as_const(webViews)) {
             delete view;  // removes itself from its parent tab/layout on the way out
         }
         webViews.clear();
@@ -2850,7 +2853,7 @@ void MainWindow::aboutBox()
 
 bool MainWindow::someWebViewHasFocus() {
     bool hasFocus = false;
-    QListIterator<QWebEngineView*> i(webViews);
+    QListIterator<SDWebView*> i(webViews);
     while (!hasFocus && i.hasNext()) {
         hasFocus = hasFocus || (i.next()->hasFocus());
     }
@@ -6132,13 +6135,15 @@ void MainWindow::initReftab() {
                 }
             }
             if (HTMLfolderExists) {
-                QWebEngineView *newView = new QWebEngineView();
+                SDWebView *newView = new SDWebView();
                 webViews.append(newView);
 
                 QString indexFileURL = "file://" + filename + whichHTM;   // UNIX-like OS's only need one slash.
 
                 newView->setUrl(QUrl(indexFileURL));
+#if defined(USE_QWEBENGINE)
                 newView->page()->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);  // allow index.html to access 3P remote website
+#endif
                 documentsTab->addTab(newView, tabname);
             }
 
@@ -6155,7 +6160,7 @@ void MainWindow::initReftab() {
 
                 // qDebug() << "    txt/htm/html tabname:" << tabname;
 
-                QWebEngineView *newView = new QWebEngineView();
+                SDWebView *newView = new SDWebView();
                 webViews.append(newView);
 
                 QString indexFileURL = "file://" + filename;   // UNIX-like OS's only need one slash.
@@ -6168,7 +6173,7 @@ void MainWindow::initReftab() {
                 static QRegularExpression re4(".[Mm][Dd]$");
                 tabname = filename.split("/").last().remove(re4);
 
-                QWebEngineView *newView = new QWebEngineView();
+                SDWebView *newView = new SDWebView();
                 webViews.append(newView);
 
                 QFile f1(filename);
@@ -6185,6 +6190,10 @@ void MainWindow::initReftab() {
         } else if (filename.endsWith(".pdf")) {
 //                qDebug() << "PDF FILE DETECTED:" << filename;
 
+                SDWebView *newView = new SDWebView();
+                webViews.append(newView);
+
+#if defined(USE_QWEBENGINE)
                 QString app_path = qApp->applicationDirPath();
                 auto url = QUrl::fromLocalFile(app_path+"/../Resources/minified/web/viewer.html");  // point at the viewer
 //                qDebug() << "    Viewer URL:" << url;
@@ -6196,14 +6205,15 @@ void MainWindow::initReftab() {
                 Communicator *m_communicator = new Communicator(this);
                 m_communicator->setUrl(pdf_path);
 
-                QWebEngineView *newView = new QWebEngineView();
-                webViews.append(newView);
-
                 QWebChannel * channel = new QWebChannel(this);
                 channel->registerObject(QStringLiteral("communicator"), m_communicator);
 
                 newView->page()->setWebChannel(channel);
                 newView->load(url);
+#else
+                // WKWebView displays PDFs natively; no pdf.js viewer needed (#1791)
+                newView->load(QUrl::fromLocalFile(filename));
+#endif
 
 //                QString indexFileURL = "file://" + filename;
 //                qDebug() << "    indexFileURL:" << indexFileURL;
