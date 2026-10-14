@@ -4742,6 +4742,7 @@
      <property name="title">
       <string>Columns</string>
      </property>
+     <addaction name="actionType"/>
      <addaction name="actionLabel"/>
      <addaction name="actionLevels"/>
      <addaction name="actionRecent"/>
@@ -6522,6 +6523,14 @@
   <action name="actionReset_Patter_Timer">
    <property name="text">
     <string>Reset Patter Timer</string>
+   </property>
+  </action>
+  <action name="actionType">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Type</string>
    </property>
   </action>
   <action name="actionLabel">

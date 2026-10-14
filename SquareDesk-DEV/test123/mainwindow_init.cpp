@@ -199,7 +199,9 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
         }
 
         ui->songTable->selectRow(0);
-        ui->songTable->scrollToItem(ui->songTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
+        ui->songTable->scrollToItem(ui->songTable->item(0, kTitleCol)); // EnsureVisible row 0 (which is highlighted)
+        // Title, not Type: QTableView::scrollTo() does nothing at all for a cell in a hidden column, and
+        //   Type can be hidden now; Title never can be (issue #1776).
     });
 
     // NOTE: Splitter restoration moved to showEvent() to fix Issue #1558
@@ -1533,6 +1535,7 @@ void MainWindow::initializeMusicSongTable() {
 
     updateSongTableColumnView(); // update the actual view of Age/Pitch/Tempo in the songTable view
 
+    on_actionType_toggled(prefsManager.GetshowTypeColumn());
     on_actionLabel_toggled(prefsManager.GetshowLabelColumn());
     on_actionLevels_toggled(prefsManager.GetshowLevelsColumn());
     on_actionRecent_toggled(prefsManager.GetshowRecentColumn());

@@ -780,6 +780,7 @@ private slots:
     // VIEW & UI CONTROL SLOTS
     // ============================================================================
     void on_actionViewTags_toggled(bool);
+    void on_actionType_toggled(bool arg1);
     void on_actionLabel_toggled(bool arg1);
     void on_actionLevels_toggled(bool arg1);
     void on_actionRecent_toggled(bool arg1);

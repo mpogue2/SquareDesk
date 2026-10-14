@@ -2517,7 +2517,9 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
 
     if (!suppressSelectionChange) {
         ui->songTable->selectRow(0); // DEBUG
-        ui->songTable->scrollToItem(ui->songTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
+        ui->songTable->scrollToItem(ui->songTable->item(0, kTitleCol)); // EnsureVisible row 0 (which is highlighted)
+        // Title, not Type: QTableView::scrollTo() does nothing at all for a cell in a hidden column, and
+        //   Type can be hidden now; Title never can be (issue #1776).
 
     // // PERFORMANCE TESTING --------
     // QFile file("/Users/mpogue/pathStack.txt");

@@ -1351,6 +1351,7 @@ void MainWindow::updateSongTableColumnView()
     ui->songTable->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 
     // ---- only now is it safe to hide anything ----
+    ui->songTable->setColumnHidden(kTypeCol,  !prefsManager.GetshowTypeColumn());   // issue #1776
     ui->songTable->setColumnHidden(kLabelCol, !prefsManager.GetshowLabelColumn());
     ui->songTable->setColumnHidden(kLevelsCol,!prefsManager.GetshowLevelsColumn());
     ui->playlist1Table->horizontalHeader()->setSectionHidden(COLUMN_LEVELS, !prefsManager.GetshowLevelsColumn()); // as the View > Columns > Levels changes
@@ -6694,6 +6695,18 @@ void MainWindow::on_actionViewTags_toggled(bool checked)
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+// Issue #1776.  Hiding Type only hides the column: its items are still there, so the type
+//   filters and the Type sort, which read item(row, kTypeCol), work exactly as before.
+void MainWindow::on_actionType_toggled(bool checked)
+{
+    ui->actionType->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showTypeColumn setting is persistent across restarts of the application
+    prefsManager.SetshowTypeColumn(checked);
+
+    updateSongTableColumnView();
+}
+
 void MainWindow::on_actionLabel_toggled(bool checked)
 {
     ui->actionLabel->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark

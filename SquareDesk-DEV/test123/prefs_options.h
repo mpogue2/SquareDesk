@@ -167,6 +167,7 @@ CONFIG_ATTRIBUTE_BOOLEAN(enableAutoAirplaneModeCheckbox, enableAutoAirplaneMode,
 CONFIG_ATTRIBUTE_BOOLEAN(enableFileWatcherCheckBox, enableNewFileWatcher, false);
 
 //CONFIG_ATTRIBUTE_BOOLEAN(enableAutoMicsOffCheckbox, enableAutoMicsOff, false)
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showTypeColumn, true);    // issue #1776
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showLabelColumn, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showLevelsColumn, false);
 
