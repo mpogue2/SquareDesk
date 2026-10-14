@@ -129,6 +129,52 @@ ls -l "${STAGING_DIR}/${APP_NAME}_${VERSION}.app/Contents/PlugIns/sqldrivers/"
 echo
 
 # ----------------
+# #1791: Remove other Qt plugins SquareDesk never uses. Like the SQL drivers above, this has to happen
+#   AFTER macdeployqt, which re-copies them on every run.
+#     platforminputcontexts/libqtvirtualkeyboardplugin  an on-screen keyboard. It is the only thing that
+#                                                       pulls in QtVirtualKeyboard, QtQuick, QtQml and QtOpenGL.
+#     imageformats/libqpdf                              reads a PDF as an image, which SquareDesk never does.
+#                                                       It is the only thing that pulls in QtPdf.
+#     tls/libqopensslbackend, tls/libqcertonlybackend   HTTPS uses tls/libqsecuretransportbackend. (The
+#                                                       OpenSSL backend can't work anyway: no libssl is bundled.)
+#   The other imageformats stay: cuesheets embed JPEG and GIF images, the icons are SVG, and the rest are tiny.
+STAGED_APP="${STAGING_DIR}/${APP_NAME}_${VERSION}.app"
+echo "***** REMOVING UNUSED Qt PLUGINS..."
+for p in platforminputcontexts/libqtvirtualkeyboardplugin.dylib imageformats/libqpdf.dylib \
+         tls/libqopensslbackend.dylib tls/libqcertonlybackend.dylib; do
+    rm -f "${STAGED_APP}/Contents/PlugIns/$p"
+done
+rmdir "${STAGED_APP}/Contents/PlugIns/platforminputcontexts" 2>/dev/null
+
+# #1791: Then remove every framework that no remaining binary links to, since it can never be loaded.
+#   Repeat until nothing changes, because removing one framework can orphan the ones only it linked to.
+#   Nothing is hard-coded: in a CONFIG+=webengine build, QtWebEngineCore still links QtQuick and QtQml,
+#   so those correctly stay.
+echo "***** REMOVING FRAMEWORKS THAT NOTHING LINKS TO ANYMORE..."
+while true; do
+    REFERENCED=$(mktemp)
+    find "${STAGED_APP}/Contents/MacOS" "${STAGED_APP}/Contents/Frameworks" "${STAGED_APP}/Contents/PlugIns" -type f |
+    while IFS= read -r f; do
+        file -b "$f" | grep -q "Mach-O" || continue
+        OWNER=$(echo "$f" | sed -n 's|.*/Contents/Frameworks/\([^/]*\)\.framework/.*|\1|p')   # a framework doesn't count as linking to itself
+        otool -L "$f" | tail -n +2 | sed -n 's|.*/\([^/]*\)\.framework/.*|\1|p' | grep -vx "${OWNER:-NOT_A_FRAMEWORK}"
+    done | sort -u > "$REFERENCED"
+
+    REMOVED_FRAMEWORKS=0
+    for fw in "${STAGED_APP}"/Contents/Frameworks/*.framework; do
+        NAME=$(basename "$fw" .framework)
+        if ! grep -qx "$NAME" "$REFERENCED"; then
+            echo "  removing ${NAME}.framework (nothing links to it)"
+            rm -rf "$fw"
+            REMOVED_FRAMEWORKS=$((REMOVED_FRAMEWORKS + 1))
+        fi
+    done
+    rm -f "$REFERENCED"
+    [ "$REMOVED_FRAMEWORKS" -eq 0 ] && break
+done
+echo
+
+# ----------------
 # remove any SD cache files that were left over from testing...
 echo "***** REMOVING SD CACHE FILES from: "
 echo "     ${STAGING_DIR}/${APP_NAME}_${VERSION}.app/Contents/MacOS/sd_calls.*cache"

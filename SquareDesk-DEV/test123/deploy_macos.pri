@@ -105,7 +105,10 @@ macx {
     # Taminations: unzip web.zip into Resources/Taminations ("unzip -d" creates the folder).
     taminations.target   = taminations
     taminations.depends  = stripPDFJS
-    taminations.commands = unzip -o -q $$PWD/../third_party/Taminations/web.zip -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations
+    #   Then delete the *.js.symbols files: debug symbols for Flutter stack traces, ~8 MB that is
+    #   never loaded at runtime. (#1791)
+    taminations.commands = unzip -o -q $$PWD/../third_party/Taminations/web.zip -d $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations $$escape_expand(\n\t) \
+                           find $$OUT_PWD/SquareDesk.app/Contents/Resources/Taminations -name \"*.js.symbols\" -type f -delete
 
     # Strip AppleDouble files and build cruft, which otherwise break signing and notarizing.
     bundleCleanup.target   = bundleCleanup
