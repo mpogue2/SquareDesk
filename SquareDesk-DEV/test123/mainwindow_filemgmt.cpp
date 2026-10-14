@@ -116,10 +116,8 @@
 #include <algorithm>
 #include <string>
 
-#ifndef Q_OS_WIN
 #include <dirent.h>     // directoryFingerprint() reads directories with readdir() directly:
 #include <sys/stat.h>   //   see the measurements in its comment (Issue #1703)
-#endif
 
 // #include "typetracker.h"
 using namespace TagLib;
@@ -664,8 +662,8 @@ static bool isScannedFileName(const QString &name) {
 // roughly double the file. SHA-1 makes a false "unchanged" verdict (which would silently
 // hide a newly added song) not a realistic concern.
 //
-// PERFORMANCE (Issue #1703). This is the hot loop of the entire FileWatcher path, so on
-// POSIX it calls readdir() directly instead of using QDirIterator / QDir::entryList.
+// PERFORMANCE (Issue #1703). This is the hot loop of the entire FileWatcher path, so
+// it calls readdir() directly instead of using QDirIterator / QDir::entryList.
 // That is not a micro-optimization: measured over one real 69-directory, 11832-entry
 // music library, doing identical work in every case --
 //     readdir() + d_type + extension filter + sort + SHA-1      6.8 ms
@@ -682,29 +680,6 @@ static bool isScannedFileName(const QString &name) {
 static QString directoryFingerprint(const QString &dirPath, int *entryCount) {
     QStringList names;
 
-#ifdef Q_OS_WIN
-    // Qt fallback: correct, just slower. Windows has no dirent.h, and hand-rolling
-    // FindFirstFileW here would add a platform path that cannot be tested from the
-    // machines this was profiled on.
-    QDir d(dirPath);
-    if (!d.exists()) {
-        return QString();
-    }
-    QDirIterator subdirIt(dirPath, QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks,
-                          QDirIterator::NoIteratorFlags);
-    while (subdirIt.hasNext()) {
-        subdirIt.next();
-        names.append(subdirIt.fileName());
-    }
-    QDirIterator fileIt(dirPath, QDir::Files | QDir::NoSymLinks, QDirIterator::NoIteratorFlags);
-    while (fileIt.hasNext()) {
-        fileIt.next();
-        QString name = fileIt.fileName();
-        if (isScannedFileName(name)) {
-            names.append(name);
-        }
-    }
-#else
     DIR *dir = opendir(QFile::encodeName(dirPath).constData());
     if (dir == nullptr) {
         return QString(); // deleted, or unreadable -> treat as changed
@@ -745,7 +720,6 @@ static QString directoryFingerprint(const QString &dirPath, int *entryCount) {
     //   where this sees them. The disagreement is harmless and in the safe direction: the
     //   fingerprint would notice a file the scan ignores, costing one redundant rescan
     //   that finds nothing -- never a stale cache.
-#endif
 
     if (entryCount != nullptr) {
         *entryCount += names.size();

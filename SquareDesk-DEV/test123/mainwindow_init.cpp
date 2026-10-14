@@ -98,7 +98,6 @@
 // #include <iomanip>
 using namespace std;
 
-// TAGLIB stuff is MAC OS X and WIN32 only for now...
 #include <taglib/toolkit/tlist.h>
 #include <taglib/fileref.h>
 #include <taglib/toolkit/tfile.h>
@@ -141,8 +140,6 @@ MainWindow::MainWindow(SplashScreen *splash, bool dark, QWidget *parent) :
 
 #if defined(Q_OS_LINUX)
 #define OS_FALLTHROUGH [[fallthrough]]
-#elif defined(Q_OS_WIN)
-#define OS_FALLTHROUGH
 #else
     // already defined on Mac OS X
 #endif
@@ -301,39 +298,10 @@ void MainWindow::initializeUI() {
 
     ui->menuFile->addSeparator();
 
-    // NOTE: MAC OS X & Linux ONLY
-#if !defined(Q_OS_WIN)
     QAction *aboutAct = new QAction(QIcon(), tr("&About SquareDesk..."), this);
     aboutAct->setStatusTip(tr("SquareDesk Information"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(aboutBox()));
     ui->menuFile->addAction(aboutAct);
-#endif
-
-    // HELP MENU IS WINDOWS ONLY
-#if defined(Q_OS_WIN)
-    QMenu *helpMenu = new QMenu("&Help");
-
-    // ------------
-    QAction *aboutAct2 = new QAction(QIcon(), tr("About &SquareDesk..."), this);
-    aboutAct2->setStatusTip(tr("SquareDesk Information"));
-    connect(aboutAct2, SIGNAL(triggered()), this, SLOT(aboutBox()));
-    helpMenu->addAction(aboutAct2);
-    menuBar()->addAction(helpMenu->menuAction());
-#endif
-
-#if defined(Q_OS_WIN)
-    delete ui->mainToolBar; // remove toolbar on WINDOWS (toolbar is not present on Mac)
-#endif
-
-    // ------------
-#if defined(Q_OS_WIN)
-    // NOTE: WINDOWS ONLY
-    closeAct = new QAction(QIcon(), tr("&Exit"), this);
-    closeAct->setShortcuts(QKeySequence::Close);
-    closeAct->setStatusTip(tr("Exit the program"));
-    connect(closeAct, SIGNAL(triggered()), this, SLOT(close()));
-    ui->menuFile->addAction(closeAct);
-#endif
 
     keybindingActionToMenuAction[keyActionName_StopSong] = ui->actionStop;
     //   keybindingActionToMenuAction[keyActionName_RestartSong] = ;
@@ -1558,7 +1526,7 @@ void MainWindow::initializeMusicSongTable() {
     {
         // Now that the current_session_id is setup, we can load the call lists,
         //  and they will reflect the current session ID
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
+#if defined(Q_OS_MAC)
         ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,67);
         ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, 34);
         ui->tableWidgetCallList->setColumnWidth(kCallListTimingCol, 200);

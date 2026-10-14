@@ -2726,7 +2726,7 @@ void MainWindow::on_actionDownload_Cuesheets_triggered()
 }
 
 void MainWindow::makeProgress() {
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
+#if defined(Q_OS_MAC)
     if (progressTotal < 70) {
         progressTotal += 7.0;
     } else if (progressTotal < 90) {
@@ -2742,7 +2742,7 @@ void MainWindow::makeProgress() {
 }
 
 void MainWindow::cancelProgress() {
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
+#if defined(Q_OS_MAC)
 //    qDebug() << "cancelling progress...";
     progressTimer->stop();
     progressTotal = 0;

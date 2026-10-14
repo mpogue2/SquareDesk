@@ -492,8 +492,6 @@ static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
 {
 #if defined(Q_OS_MAC)
     dancerLabelFont = QFont("Arial", 12);
-#elif defined(Q_OS_WIN)
-    dancerLabelFont = QFont("Arial",8);
 #else
     dancerLabelFont = QFont("Arial",8);
 #endif

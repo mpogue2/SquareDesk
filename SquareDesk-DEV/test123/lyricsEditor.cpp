@@ -71,21 +71,6 @@ QString MainWindow::getResourceFile(QString s) {
     //     resourcePath = userTemplateOverridePath;  // use user-specified template instead of default
     // }
 
-#elif defined(Q_OS_WIN32)
-    QString appPath = QApplication::applicationFilePath();
-    QString resourcePath = appPath + "/" + s;
-    resourcePath.replace("SquareDesk.exe/","");
-
-    // path of the optional user-specified template, which overrides the default template --------
-    // s is of the form "<type>.template.html", so first we split it into its component parts
-    QStringList parts = s.split(".");
-    QString userTemplateOverridePath = musicRootPath + "/" + parts[0] + "/" + s;
-
-    QFileInfo checkFile(userTemplateOverridePath);
-    if (checkFile.exists()) {
-        resourcePath = userTemplateOverridePath;  // use user-specified template instead of default
-    }
-
 #else
     QString resourcePath = s;
 
@@ -2061,10 +2046,6 @@ void MainWindow::customLyricsMenuRequested(QPoint pos) {
 
 #if defined(Q_OS_MAC)
         menu->addAction( "Reveal in Finder" , this , SLOT (revealLyricsFileInFinder()) );
-#endif
-
-#if defined(Q_OS_WIN)
-        menu->addAction( "Show in Explorer" , this , SLOT (revealLyricsFileInFinder()) );
 #endif
 
 #if defined(Q_OS_LINUX)

@@ -238,11 +238,6 @@ void MainWindow::readFlashCallsList() {
     QString appPath = QApplication::applicationFilePath();
     QString allcallsPath = appPath + "/Contents/Resources/allcalls.csv";
     allcallsPath.replace("Contents/MacOS/SquareDesk/","");
-#elif defined(Q_OS_WIN32)
-    // TODO: There has to be a better way to do this.
-    QString appPath = QApplication::applicationFilePath();
-    QString allcallsPath = appPath + "/allcalls.csv";
-    allcallsPath.replace("SquareDesk.exe/","");
 #else
     QString allcallsPath = "allcalls.csv";
     // Linux

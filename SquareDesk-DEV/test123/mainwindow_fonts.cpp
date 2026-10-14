@@ -106,13 +106,7 @@ int MainWindow::pointSizeToIndex(int pointSize) {
 }
 
 int MainWindow::indexToPointSize(int index) {
-#if defined(Q_OS_MAC)
     return (2*index + 11);
-#elif defined(Q_OS_WIN)
-    return static_cast<int>((8.0/13.0)*(static_cast<double>(2*index + 11)));
-#elif defined(Q_OS_LINUX)
-    return (2*index + 11);
-#endif
 }
 
 void MainWindow::setFontSizes()
@@ -124,11 +118,6 @@ void MainWindow::setFontSizes()
     preferredSmallFontSize = 13;
     preferredWarningLabelFontSize = 20;
     preferredNowPlayingFontSize = 27;
-#elif defined(Q_OS_WIN32)
-    preferredVerySmallFontSize = 8;
-    preferredSmallFontSize = 8;
-    preferredWarningLabelFontSize = 12;
-    preferredNowPlayingFontSize = 16;
 #elif defined(Q_OS_LINUX)
     preferredVerySmallFontSize = 8;
     preferredSmallFontSize = 13;
@@ -234,42 +223,6 @@ void MainWindow::adjustFontSizes()
     // double nowPlayingHeightFactor = 1.5;
     // double buttonSizeH = 1.875;
     // double buttonSizeV = 1.125;
-#elif defined(Q_OS_WIN32)
-    double extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
-
-    double numberBase = 1.5;
-    double recentBase = 7.5;
-    double ageBase = 5.5;
-    double pitchBase = 6.0;
-    double tempoBase = 7.5;
-
-    double numberFactor = 0.0;
-    double recentFactor = 0.0;
-    double ageFactor = 0.0;
-    double pitchFactor = 0.0;
-    double tempoFactor = 0.0;
-
-    int searchBoxesHeight[8] = {22, 26, 30, 34,  38, 42, 46, 50};
-    int cuesheetButtonHeight[8] = {32, 34, 36, 40,  44, 50, 54, 60};  // Heights for In/Out/Test Loop buttons (min 32 for padding)
-    double scaleWidth1 = 12.75;
-    double scaleWidth2 = 5.25;
-    double scaleWidth3 = 10.5;
-
-    // lyrics buttons
-    unsigned int TitleButtonWidth[8] = {55,60,65,70, 80,90,95,105};
-
-    double maxEQsize = 16.0;
-    double scaleIcons = (1.5*24.0/13.0);
-    int warningLabelSize[8] = {9,12,14,16, 18,20,22,24};  // basically 20/13 * pointSize
-    int warningLabelWidth[8] = {84,100,115,130, 146, 161, 176, 192};  // basically 20/13 * pointSize * 5
-
-//    unsigned int nowPlayingSize[8] = {22,27,31,35, 39,43,47,51};  // basically 27/13 * pointSize
-    int nowPlayingSize[8] = {16,20,23,26, 29,32,35,38};  // basically 27/13 * pointSize
-
-    double nowPlayingHeightFactor = 1.5;
-
-    double buttonSizeH = 1.5*1.875;
-    double buttonSizeV = 1.5*1.125;
 #elif defined(Q_OS_LINUX)
     double extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
 

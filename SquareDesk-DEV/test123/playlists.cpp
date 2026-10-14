@@ -51,8 +51,6 @@
 
 #if defined(Q_OS_LINUX)
 #define OS_FALLTHROUGH [[fallthrough]]
-#elif defined(Q_OS_WIN)
-#define OS_FALLTHROUGH
 #else
     // already defined on Mac OS X
 #endif

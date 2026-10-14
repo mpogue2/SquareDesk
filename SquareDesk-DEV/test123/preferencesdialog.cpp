@@ -262,8 +262,6 @@ void PreferencesDialog::setFontSizes()
     int preferredSmallFontSize;
 #if defined(Q_OS_MAC)
     preferredSmallFontSize = 11;
-#elif defined(Q_OS_WIN32)
-    preferredSmallFontSize = 8;
 #elif defined(Q_OS_LINUX)
     preferredSmallFontSize = 9;
 #endif

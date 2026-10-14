@@ -58,7 +58,6 @@
 
 #include "xxhash64.h"
 
-// TAGLIB stuff is MAC OS X and WIN32 only for now...
 #include <taglib/toolkit/tlist.h>
 #include <taglib/fileref.h>
 #include <taglib/toolkit/tfile.h>

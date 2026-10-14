@@ -978,7 +978,6 @@ private:
     bool inPreferencesDialog;
     enum SongFilenameMatchingType songFilenameFormat;
     bool closeEventHappened;
-    QAction *closeAct;
     QWidget *oldFocusWidget;
     bool lastWidgetBeforePlaybackWasSongTable;
     bool loopingWasEnabledBeforeHover;

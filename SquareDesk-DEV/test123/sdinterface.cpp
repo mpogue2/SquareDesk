@@ -1264,7 +1264,7 @@ void SDThread::run()
     QString executableDir = QCoreApplication::applicationDirPath(); // this is where the executable is (not necessarily the current working directory)
     QString sdCallsFilename = executableDir + "/../Resources/sd_calls.dat"; // NEW: Moved to the Resources folder
 
-#if !(defined(Q_OS_MAC) || defined(Q_OS_WIN))
+#if !defined(Q_OS_MAC)
     // if it's Linux, look in /usr/share/SquareDesk
     {
       QFileInfo check_file(sdCallsFilename);

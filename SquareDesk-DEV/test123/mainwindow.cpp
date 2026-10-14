@@ -110,7 +110,6 @@
 // #include <iomanip>
 using namespace std;
 
-// TAGLIB stuff is MAC OS X and WIN32 only for now...
 #include <taglib/toolkit/tlist.h>
 #include <taglib/fileref.h>
 #include <taglib/toolkit/tfile.h>
@@ -4970,12 +4969,6 @@ void MainWindow::showInFinderOrExplorer(QString filePath)
     process.startDetached(&pid);
 #endif
 
-#if defined(Q_OS_WIN)
-    QStringList args;
-    args << "/select," << QDir::toNativeSeparators(filePath);
-    QProcess::startDetached("explorer", args);
-#endif
-
 #ifdef Q_OS_LINUX
     QStringList args;
     args << QFileInfo(filePath).absoluteDir().canonicalPath();
@@ -6142,11 +6135,7 @@ void MainWindow::initReftab() {
                 QWebEngineView *newView = new QWebEngineView();
                 webViews.append(newView);
 
-#if defined(Q_OS_WIN32)
-                QString indexFileURL = "file:///" + filename + whichHTM;  // Yes, Windows is special
-#else
                 QString indexFileURL = "file://" + filename + whichHTM;   // UNIX-like OS's only need one slash.
-#endif
 
                 newView->setUrl(QUrl(indexFileURL));
                 newView->page()->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);  // allow index.html to access 3P remote website
@@ -6169,11 +6158,7 @@ void MainWindow::initReftab() {
                 QWebEngineView *newView = new QWebEngineView();
                 webViews.append(newView);
 
-#if defined(Q_OS_WIN32)
-                QString indexFileURL = "file:///" + filename;  // Yes, Windows is special: file:///Y:/Dropbox/__squareDanceMusic/reference/100.Broken Hearts.txt
-#else
                 QString indexFileURL = "file://" + filename;   // UNIX-like OS's only need one slash.
-#endif
 //                qDebug() << "    indexFileURL:" << indexFileURL;
 
                 newView->setUrl(QUrl(indexFileURL));
@@ -6588,9 +6573,6 @@ void MainWindow::maybeInstallSoundFX() {
 
 #if defined(Q_OS_MAC)
     QString pathFromAppDirPathToStarterSet = "/../soundfx";
-#elif defined(Q_OS_WIN32)
-    // WARNING: untested
-    QString pathFromAppDirPathToStarterSet = "/soundfx";
 #elif defined(Q_OS_LINUX)
     // WARNING: untested
     QString pathFromAppDirPathToStarterSet = "/soundfx";
@@ -8925,10 +8907,6 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
         menu.addAction("Remove Section info for these " + QString::number(rowCount) + " songs....",
                        this, [this, selectedRows]{ RemoveSectionsForTheseSongs(selectedRows);   });
     }
-#endif
-
-#if defined(Q_OS_WIN)
-            menu.addAction ( "Show in Explorer" , this , SLOT (revealInFinder()) );
 #endif
 
 #if defined(Q_OS_LINUX)

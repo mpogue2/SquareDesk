@@ -152,11 +152,7 @@ void ConclusionMakeFlashDrivePage::initializePage()
 
     confirmText += "NOTE: To save time, only those files which do not already exist on the destination drive will be copied.<BR><BR>";
 
-#if defined(Q_OS_MAC) | defined(Q_OS_LINUX)
     confirmText += "Make sure there is enough space on the flash drive, and then click Done to start copying.";
-#elif defined(Q_OS_WIN)
-    confirmText += "Make sure there is enough space on the flash drive, and then click Finish to do the actions above.";
-#endif
 
     label->setText(confirmText);
 }
