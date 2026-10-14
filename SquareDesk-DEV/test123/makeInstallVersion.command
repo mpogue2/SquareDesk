@@ -4,13 +4,18 @@
 #   it to the Install directory, which is a staging folder.
 #   It does liposuction of any X86 portions of code that it finds.
 #
-# The result is a version of SquareDesk that you should be able to double-click (on this system).
 # This is the first step in the Release process.
-# 
-# After this is done, run 
-#   signSquareDesk,
+#
+# NOTE: the resulting Install/SquareDesk_<version>.app will NOT run yet. Stripping the executable
+#   (strip -u -r, below) invalidates its code signature, and macOS kills an app with an invalid
+#   signature at launch ("Code Signature Invalid"). To run or test it, first run
+#   fixAndSignSquareDesk.command, which re-signs everything.
+#
+# After this is done, run
+#   fixAndSignSquareDesk (after which the staged .app can be double-clicked on this system),
 #   notarizeSquareDesk (requires the app-specific password!), and
 #   makeDMG (which will also sign the DMG file).
+# releaseSquareDesk.command runs all of these steps in order.
 #
 # Then the resulting DMG file can be redistributed.
 
