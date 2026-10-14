@@ -1248,6 +1248,14 @@ bool filterContains(QString str, const QStringList &list)
     int title_end = str.indexOf(title_tags_remover); // locate tags
     str.replace(title_tags_remover, " ");
 
+    // A '/' in an Apple Music playlist name or title is shown as APPLE_MUSIC_SLASH_UNICODE, but
+    //   the user will type a plain '/', so treat the two as the same character.  Folding toward
+    //   '/' (on both sides) leaves the metadata columns, which keep their real '/', still
+    //   matching too.  It swaps one QChar for one QChar, so title_end and index stay valid
+    //   (issue #1778).
+    const QChar appleMusicSlash(APPLE_MUSIC_SLASH_UNICODE);
+    str.replace(appleMusicSlash, '/');
+
     int index = 0;
 
     if (title_end < 0) title_end = str.length();
@@ -1255,6 +1263,7 @@ bool filterContains(QString str, const QStringList &list)
     for (const auto &t : list)
     {
         QString filterWord(t);
+        filterWord.replace(appleMusicSlash, '/'); // in case it was pasted in from a title
         bool tagsOnly(false);
         bool exclude(false);
 
