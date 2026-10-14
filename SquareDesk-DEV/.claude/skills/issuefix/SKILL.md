@@ -9,4 +9,4 @@ Given issue number $ARGUMENTS:
 4. Wait for my approval, then implement.
 5. After I confirm the build works: commit, push.
 6. Comment the verification result on the issue (with attribution header).
-7. `gh issue edit $ARGUMENTS --add-label "Ready for final check"`
+7. `gh issue edit $ARGUMENTS --add-label "Ready for final check" --remove-label "Up next"` (drop `--remove-label` if the issue has no "Up next" label)
