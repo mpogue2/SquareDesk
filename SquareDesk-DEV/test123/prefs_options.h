@@ -63,6 +63,10 @@ CONFIG_ATTRIBUTE_STRING(musicPath, musicPath, QDir::homePath() + "/squareDeskMus
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(darkMode, true);
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(activeTheme, "Light"); // currently 2 values: {Light, Dark}
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(cuesheetColumnMode, "1"); // cuesheet viewer columns: {1, 2}, set via toolbuttons above the cuesheet
+// treeWidget items the user left expanded, as newline-separated paths like "Apple Music/Flor" (issue #1774).
+//   Always stored with a trailing newline, so "everything collapsed" is not an empty (= unset) value.
+//   The default is the layout a first-time user gets: Tracks and Playlists open, Apple Music closed.
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(treeWidgetExpandedPaths, "Tracks\nPlaylists\n");
 
 // These are the new GUI colors for themes OTHER THAN the Light Theme.
 // Format example: "Dark:#123456;Mike:#765432"

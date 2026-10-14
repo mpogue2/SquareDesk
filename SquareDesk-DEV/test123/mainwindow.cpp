@@ -49,6 +49,7 @@
 #include <QTextDocument>
 #include <QTextDocumentFragment>
 #include <QThread>
+#include <QTreeWidgetItemIterator>  // updateTreeWidget() walks the tree to save/restore its state (issue #1774)
 #include <QStandardItemModel>
 #include <utility>
 #include <QStandardItem>
@@ -3931,7 +3932,63 @@ static QTreeWidgetItem *addPlaylistToTree(QTreeWidgetItem *rootItem, const QStri
     return leafItem;
 }
 
+// The slash-separated path of a treeWidget item, e.g. "Apple Music/Flor/Christmas", used to
+//   find the same item again after updateTreeWidget() rebuilds the tree (issue #1774).
+static QString treeItemPath(const QTreeWidgetItem *item)
+{
+    QString path = item->text(0);
+    for (const QTreeWidgetItem *parent = item->parent(); parent != nullptr; parent = parent->parent()) {
+        path = parent->text(0) + "/" + path;
+    }
+    return path;
+}
+
+// Remember which treeWidget items are expanded, in treeWidgetExpandedPaths and in the prefs, so
+//   that updateTreeWidget() can put them back after a rebuild, and so they survive a restart
+//   (issue #1774).  Called whenever the user expands or collapses an item.
+void MainWindow::saveTreeWidgetExpandedPaths() {
+    if (rebuildingTreeWidget) {
+        return; // updateTreeWidget() is expanding/collapsing items itself, from treeWidgetExpandedPaths
+    }
+
+    // Keep what we know about any top-level section that isn't in the tree right now (e.g. Apple
+    //   Music while it's turned off), so that it comes back the way the user left it.
+    QSet<QString> topLevelTexts;
+    for (int i = 0; i < ui->treeWidget->topLevelItemCount(); ++i) {
+        topLevelTexts.insert(ui->treeWidget->topLevelItem(i)->text(0));
+    }
+    QSet<QString> expandedPaths;
+    for (const QString &path : std::as_const(treeWidgetExpandedPaths)) {
+        if (!topLevelTexts.contains(path.section("/", 0, 0))) {
+            expandedPaths.insert(path);
+        }
+    }
+
+    for (QTreeWidgetItemIterator it(ui->treeWidget); *it; ++it) {
+        if ((*it)->isExpanded()) {
+            expandedPaths.insert(treeItemPath(*it));
+        }
+    }
+
+    treeWidgetExpandedPaths = expandedPaths;
+
+    QStringList sortedPaths(expandedPaths.begin(), expandedPaths.end());
+    sortedPaths.sort();
+    prefsManager.SettreeWidgetExpandedPaths(sortedPaths.join("\n") + "\n"); // trailing newline: "all collapsed" must not look unset
+}
+
 void MainWindow::updateTreeWidget() {
+
+    // updateTreeWidget() throws the whole tree away and rebuilds it, so the items the user had
+    //   expanded (treeWidgetExpandedPaths) and the one that was highlighted are put back at the
+    //   bottom.  Without this, every rebuild (Prefs OK, a FileWatcher rescan, saving or deleting a
+    //   playlist, Resync with Apple Music) collapsed the Apple Music section and every playlist
+    //   folder, and lost the highlight (issue #1774).
+    rebuildingTreeWidget = true;
+    QString previousCurrentPath;
+    if (ui->treeWidget->currentItem() != nullptr) {
+        previousCurrentPath = treeItemPath(ui->treeWidget->currentItem());
+    }
 
     // updateTreeWidget always rescans for playlists, so we need to clear pathStackPlaylists here.
     pathStackPlaylists->clear();
@@ -3975,7 +4032,6 @@ void MainWindow::updateTreeWidget() {
 
     ui->treeWidget->clear();
     ui->treeWidget->insertTopLevelItem(0, tracksItem);
-    tracksItem->setExpanded(true);
 
     // --------------------------------------------------------------------
     // GET LIST OF LOCAL PLAYLISTS AND POPULATE TREEWIDGET > PLAYLISTS ----------
@@ -4010,7 +4066,6 @@ void MainWindow::updateTreeWidget() {
 //    playlistsItem->setIcon(0, QIcon(":/graphics/darkPlaylists.png"));
     playlistsItem->setIcon(0, QIcon(":/graphics/icons8-menu-64.png"));
     ui->treeWidget->addTopLevelItem(playlistsItem);  // add this one to the tree
-    playlistsItem->setExpanded(true);
 
     // insert filenames
     for (const auto &fileName : std::as_const(playlists))
@@ -4099,7 +4154,6 @@ void MainWindow::updateTreeWidget() {
             appleMusicItem->setText(0, kCharStarStringAppleMusic);
             appleMusicItem->setIcon(0, QIcon(":/graphics/icons8-apple-48.png"));
             ui->treeWidget->addTopLevelItem(appleMusicItem);
-            appleMusicItem->setExpanded(false);
 
             for (const auto &hierName : std::as_const(appleMusicPlaylists)) {
                 QTreeWidgetItem *leafItem = addPlaylistToTree(appleMusicItem, hierName);
@@ -4113,6 +4167,33 @@ void MainWindow::updateTreeWidget() {
             }
         }
     }
+
+    // --------------------------------------------------------------------
+    // PUT BACK THE USER'S EXPANDED ITEMS AND HIGHLIGHT (issue #1774) ----------
+    // Items the user has never expanded (e.g. a new playlist folder) come out collapsed.  A
+    //   first-time user gets Tracks and Playlists expanded, from the pref's default value.
+    QTreeWidgetItem *previousCurrentItem = nullptr;
+    for (QTreeWidgetItemIterator it(ui->treeWidget); *it; ++it) {
+        QString path = treeItemPath(*it);
+        if (path == previousCurrentPath) {
+            previousCurrentItem = *it;
+        }
+        if ((*it)->childCount() > 0) {
+            (*it)->setExpanded(treeWidgetExpandedPaths.contains(path));
+        }
+    }
+
+    // Re-highlighting the item must not go through on_treeWidget_itemSelectionChanged(), which
+    //   would clear the search field and reload the songTable -- the songTable is still showing
+    //   what this item selected, so there is nothing to reload.
+    // If the item is gone (e.g. the playlist was just deleted), nothing is highlighted, which is
+    //   what clear() left us with anyway.
+    if (previousCurrentItem != nullptr) {
+        const QSignalBlocker blocker(ui->treeWidget);
+        ui->treeWidget->setCurrentItem(previousCurrentItem);
+    }
+
+    rebuildingTreeWidget = false;
 }
 
 void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
@@ -4573,6 +4654,11 @@ void MainWindow::on_actionPreferences_triggered()
 
     QString oldMusicRootPath = prefsManager.GetmusicPath();
 
+    // the other prefs that change what findMusic() produces (see below, issue #1774)
+    bool oldEnableAppleMusic      = prefsManager.GetenableAppleMusic();
+    bool oldEnableCuesheetSearch  = prefsManager.GetenableCuesheetSearch();
+    bool oldEnableNewFileWatcher  = prefsManager.GetenableNewFileWatcher();
+
     // act on dialog return code
     if(dialogCode == QDialog::Accepted) {
         // OK clicked
@@ -4694,13 +4780,29 @@ void MainWindow::on_actionPreferences_triggered()
         }
         populateMenuSessionOptions();
 
-        // always refresh the songTable after the Prefs dialog returns with OK.  musicDirChanged is
-        //   true iff a full scan actually ran, i.e. something changed on disk while the dialog was
-        //   open (or since the last scan) -- the songTable must be reloaded in that case, or the
-        //   new songs sit in the pathStack unseen (Issue #1719).
-        applyProgress(); // ".." -- about to re-scan (findMusic shows its own message if it really scans)
-        bool musicDirChanged = findMusic(musicRootPath, true);
-        applyProgress(); // "..." -- music directory and Apple Music re-read
+        // musicDirChanged is true iff a full scan actually ran, i.e. something changed on disk
+        //   since the last scan -- the songTable must be reloaded in that case, or the new songs
+        //   sit in the pathStack unseen (Issue #1719).
+        // Only call findMusic() if a pref that changes what it produces actually changed (issue #1774).
+        //   Every other pref just changes how the songTable is drawn, and songTableReloadNeeded
+        //   covers those.  Calling it unconditionally reopened the database, re-read the whole
+        //   Apple Music library, and rebuilt the treeWidget (collapsing its Apple Music section)
+        //   on every OK.
+        //   - the music directory: everything must be rescanned (and the database reopened)
+        //   - Apple Music on/off: adds or removes the Apple Music tracks and playlists
+        //   - ?call search on/off: findMusic() builds or frees the cuesheet search index
+        //   - FileWatcher turned ON: pick up songs added while it was off (Issue #1719)
+        bool rescanNeeded = (oldMusicRootPath != newMusicRootPath)
+                            || (oldEnableAppleMusic != prefsManager.GetenableAppleMusic())
+                            || (oldEnableCuesheetSearch != prefsManager.GetenableCuesheetSearch())
+                            || (!oldEnableNewFileWatcher && prefsManager.GetenableNewFileWatcher());
+
+        bool musicDirChanged = false;
+        if (rescanNeeded) {
+            applyProgress(); // ".." -- about to re-scan (findMusic shows its own message if it really scans)
+            musicDirChanged = findMusic(musicRootPath, true);
+            applyProgress(); // "..." -- music directory and Apple Music re-read
+        }
 
         // ?call cuesheet search (Issue #1598): findMusic() just built the index (with a progress
         //   dialog) if the checkbox was just turned on, or freed it if it was just turned off.

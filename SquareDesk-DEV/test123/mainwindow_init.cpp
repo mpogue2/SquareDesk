@@ -1391,6 +1391,13 @@ void MainWindow::initializeMusicSearch() {
     trackItem[0]->setSelected(true); // entire Tracks was already loaded by actionTags
     doNotCallLoadMusicList = false;
 
+    // remember which treeWidget items the user expands/collapses, across rebuilds of the tree and
+    //   across restarts (issue #1774).  updateTreeWidget() puts them back.
+    const QStringList savedExpandedPaths = prefsManager.GettreeWidgetExpandedPaths().split("\n", Qt::SkipEmptyParts);
+    treeWidgetExpandedPaths = QSet<QString>(savedExpandedPaths.begin(), savedExpandedPaths.end());
+    connect(ui->treeWidget, &QTreeWidget::itemExpanded,  this, [this](QTreeWidgetItem *) { saveTreeWidgetExpandedPaths(); });
+    connect(ui->treeWidget, &QTreeWidget::itemCollapsed, this, [this](QTreeWidgetItem *) { saveTreeWidgetExpandedPaths(); });
+
     // enable context menus for TreeWidget
     ui->treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customTreeWidgetMenuRequested(QPoint)));

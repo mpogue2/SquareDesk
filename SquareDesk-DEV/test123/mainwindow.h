@@ -968,6 +968,9 @@ private:
     bool splittersRestored; // Issue #1558: track if splitters have been restored after window shown
     int lastSongTableRowSelected;
     bool doNotCallLoadMusicList;
+    QSet<QString> treeWidgetExpandedPaths;  // e.g. "Apple Music/Flor"; persisted in the treeWidgetExpandedPaths pref (issue #1774)
+    bool rebuildingTreeWidget = false;       // updateTreeWidget() is rebuilding, so expand/collapse signals are not the user's
+    void saveTreeWidgetExpandedPaths();
     unsigned int screensaverSeconds;
     QLabel *micStatusLabel;
     bool justWentActive;
