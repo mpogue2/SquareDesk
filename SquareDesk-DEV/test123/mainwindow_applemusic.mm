@@ -52,15 +52,26 @@ std::vector<PlaylistTrack> readAllPlaylists(std::string &errorOut)
         for (ITLibPlaylist *pl in library.allPlaylists)
             byID[pl.persistentID] = pl;
 
+        // A '/' inside a playlist or folder name (e.g. "Mike's playlist/fun") would be taken for a
+        //   folder separator by everything downstream -- the treeWidget, tree selection, the Type
+        //   column, palette slots -- all of which split the hierarchical name on '/'.  So swap it
+        //   for U+29F8 BIG SOLIDUS, which looks like a slash on screen but splits on nothing.
+        //   (U+2215 DIVISION SLASH and U+2044 FRACTION SLASH were tried first, but the system font
+        //   kerns the next letter in under them, so "playlist/fun" came out jammed together.)
+        //   Music never sees the result, because ITLibrary is read-only (issue #1778).
+        auto component = [](NSString *name) -> NSString * {
+            return name ? [name stringByReplacingOccurrencesOfString:@"/" withString:@"\u29F8"] : @"";
+        };
+
         // Walk from playlist up through parent folders, building "folder/subfolder/name"
         auto fullPath = [&](ITLibPlaylist *pl) -> std::string {
             NSMutableArray<NSString *> *parts = [NSMutableArray array];
-            [parts insertObject:pl.name atIndex:0];
+            [parts insertObject:component(pl.name) atIndex:0];
             NSNumber *pid = pl.parentID;
             while (pid) {
                 ITLibPlaylist *parent = byID[pid];
                 if (!parent) break;
-                [parts insertObject:parent.name atIndex:0];
+                [parts insertObject:component(parent.name) atIndex:0];
                 pid = parent.parentID;
             }
             return [parts componentsJoinedByString:@"/"].UTF8String;
