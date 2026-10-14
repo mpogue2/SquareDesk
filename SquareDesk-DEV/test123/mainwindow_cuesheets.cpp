@@ -2986,7 +2986,9 @@ QString MainWindow::loadLyrics(QString MP3FileName)
 //            qDebug() << "LOAD LYRICS -- found a USLT frame!";
 
             ID3v2::UnsynchronizedLyricsFrame* usltFrame = dynamic_cast<ID3v2::UnsynchronizedLyricsFrame*>(*it);
-            USLTlyrics = usltFrame->text().toCString();
+            // UTF-8, not the Latin-1 default: Latin-1 keeps only the low byte of each character,
+            //   so a curly apostrophe U+2019 became control char 0x19 and showed as a box (#1777).
+            USLTlyrics = QString::fromUtf8(usltFrame->text().toCString(true)); // true == UTF-8
         }
     }
 //    qDebug() << "Got lyrics:" << USLTlyrics;
