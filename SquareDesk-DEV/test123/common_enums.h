@@ -102,6 +102,12 @@ constexpr int SLOT_3 = 2;
 constexpr int MAX_RECENT_PLAYLISTS = 5;
 constexpr int APPLE_SYMBOL_UNICODE = 0xF8FF;
 
+// Stands in for a '/' inside an Apple Music playlist name or track title, which would otherwise be
+//   taken for a path separator.  U+29F8 BIG SOLIDUS looks like a slash but nothing splits on it;
+//   U+2215 and U+2044 were tried first, but the system font kerns the next letter in under them
+//   (issue #1778).  readAllPlaylists() in mainwindow_applemusic.mm uses the same character.
+constexpr int APPLE_MUSIC_SLASH_UNICODE = 0x29F8;
+
 // Playlist marker indentation (issue #1547)
 // Number of non-breaking spaces to indent items following a marker row
 constexpr int PLAYLIST_INDENT_SPACES = 4;

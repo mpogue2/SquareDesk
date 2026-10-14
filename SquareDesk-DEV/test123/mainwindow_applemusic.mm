@@ -59,6 +59,7 @@ std::vector<PlaylistTrack> readAllPlaylists(std::string &errorOut)
         //   (U+2215 DIVISION SLASH and U+2044 FRACTION SLASH were tried first, but the system font
         //   kerns the next letter in under them, so "playlist/fun" came out jammed together.)
         //   Music never sees the result, because ITLibrary is read-only (issue #1778).
+        //   Keep in sync with APPLE_MUSIC_SLASH_UNICODE in common_enums.h, which titles use.
         auto component = [](NSString *name) -> NSString * {
             return name ? [name stringByReplacingOccurrencesOfString:@"/" withString:@"\u29F8"] : @"";
         };

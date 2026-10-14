@@ -2074,7 +2074,7 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
                 auto appleTitle = appleMusicTitleByPath.constFind(origPath);
                 if (appleTitle != appleMusicTitleByPath.constEnd()) {
                     title = appleTitle.value();
-                    title.replace("/", "_"); // '/' not valid in filenames; use '_' for consistency with palette slot
+                    title.replace("/", QChar(APPLE_MUSIC_SLASH_UNICODE)); // same character the palette slots use, so the title matches there (issue #1778)
                     shortTitle = title;
                 }
 
