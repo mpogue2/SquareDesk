@@ -47,6 +47,7 @@ public:
     void mouseDoubleClickEvent(QMouseEvent *) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    bool event(QEvent *e) override;  // full-title tooltip when clipped (issue #1796)
     void setSongUsed(bool b);  // true = song was used recently (Recent == "*")
     QString textColor;  // saved so that we can restore it when not selected
 };
@@ -63,6 +64,7 @@ public:
     void mouseDoubleClickEvent(QMouseEvent *) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    bool event(QEvent *e) override;  // full-title tooltip when clipped (issue #1796)
     void setSongUsed(bool b);  // true = song was used recently (Recent == "*")
     QString textColor;  // saved so that we can restore it when not selected
 };

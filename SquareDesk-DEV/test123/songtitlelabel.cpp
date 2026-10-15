@@ -32,8 +32,35 @@
 #include "songlistmodel.h"
 #include "dragicon.h"
 
+#include <QTextDocumentFragment>
+#include <QToolTip>
+
 static QRegularExpression title_tags_remover3("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
 static QRegularExpression spanPrefixRemover3("<span style=\"color:.*\">(.*)</span>", QRegularExpression::InvertedGreedinessOption);
+
+// Show the label's full text as a tooltip, but only when the column is too narrow for it
+//   (issue #1796).  Built at hover time, so nothing extra is stored per row, and it's always
+//   right after a column resize or a tag edit.
+static bool showTitleToolTipIfClipped(QLabel *label, QEvent *e)
+{
+    if (e->type() != QEvent::ToolTip) {
+        return false;
+    }
+    if (label->sizeHint().width() > label->width()) {
+        // rich text -> plain: drops the color/tag spans, decodes &amp; etc., collapses &nbsp; indents
+        QString fullText = QTextDocumentFragment::fromHtml(label->text()).toPlainText();
+        fullText.replace(QChar(0x00A0), ' ');
+        QToolTip::showText(static_cast<QHelpEvent *>(e)->globalPos(), fullText.simplified(), label);
+    } else {
+        QToolTip::hideText();
+    }
+    return true;
+}
+
+bool SongTitleLabel::event(QEvent *e)
+{
+    return showTitleToolTipIfClipped(this, e) || QLabel::event(e);
+}
 
 void SongTitleLabel::mouseDoubleClickEvent(QMouseEvent *e)
 {
@@ -129,6 +156,11 @@ void SongTitleLabel::mouseMoveEvent(QMouseEvent *event)
 
 
 // ===============================================================
+bool PaletteSongTitleLabel::event(QEvent *e)
+{
+    return showTitleToolTipIfClipped(this, e) || QLabel::event(e);
+}
+
 void PaletteSongTitleLabel::mouseDoubleClickEvent(QMouseEvent *e)
 {
     // tell the tableWidget that this item was double-clicked (it should be selected)
