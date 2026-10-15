@@ -194,18 +194,17 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     // QStringList pathParts = MP3FileName.split("/");
     // songType = pathParts[pathParts.size()-2]; // second-to-last path part is the assumed type
 
-    // ***** ***** OK, itemDoubleClicked is passing in the wrong type, so we're going to override
-    //  that here.  The songType passed in HERE is the songType in the songTable, but there's one use case
-    //  where that string is NOT the actual song type, and that's when the songTable is showing a playlist.
-    //  In that case, it will start with a greek letter, in which case we KNOW it's from a playlist.
+    // The songType passed in HERE is often the Type column's text.  A playlist row's Type used to
+    //  be "<GREEK XI> PlaylistName 003" rather than a real type, and was replaced here by the first
+    //  folder of the path.  It is the real type now, for SquareDesk and Apple Music playlist rows
+    //  alike, so that override is gone (issue #1799).
     //  Apple Music tracks used to be forced to "EXTRAS" here; they now carry whatever Type the
     //  metadata mapping in Preferences > Apple Music gave them, handled first below.
 
     // qDebug() << "loadMP3File::songType: " << songType << songType[0];
 
     // An Apple Music track lives in the iTunes media folder, not the Music Directory, so there is
-    //   no type folder in its path to recover a Type from, and the Type column may now carry the
-    //   mapped Type as a prefix rather than being the Type outright.  Preferences > Apple Music
+    //   no type folder in its path to recover a Type from.  Preferences > Apple Music
     //   already worked the Type out from the track's metadata at import time, so use that.  This
     //   is what makes an Apple Music patter actually BEHAVE like patter -- looping, clock
     //   coloring, tip timers -- instead of falling through to "extras" (issue #1740, item 6).
@@ -226,16 +225,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         } else {
             songType = songTypeNamesForExtras.value(0, "extras");
         }
-    } else if (!songType.isEmpty()
-               && (songType[0] == QChar(0x039E) || songType[0] == QChar(0x03BE))) {
-        // we're loading a file from the songTable that came from a playlist.
-        // ignore the songType and replace it with the real songType.
-        // NOTE: Maybe we should just ALWAYS override the songType and use the type extracted from the path here?
-
-        QString thePath = MP3FileName;
-        thePath.replace(musicRootPath + "/", "");
-        songType = thePath.split("/")[0];
-        // qDebug() << "loadMP3File: " << thePath << "new songType" << songType;
     }
 
     setCurrentSongMetadata(songType); // set current* based on the type extracted from the pathname, for later use all over the place
@@ -1329,9 +1318,10 @@ void MainWindow::filterMusic()
     //   Rating (stars), Date Added and Date Last Played (locale dates) are left out on purpose:
     //   typed text can't match stars, and digits in a date would match label-number searches all
     //   over the place.
-    // Playlist joined in issue #1799, when a SquareDesk playlist row's Type stopped carrying the
-    //   playlist's name; turning the column on is how a playlist name stays searchable.  # is left
-    //   out for the same reason as the dates: its digits would match label numbers.
+    // Playlist joined in issue #1799, when a playlist row's Type (SquareDesk or Apple Music) stopped
+    //   carrying the playlist's name; turning the column on is how a playlist name stays
+    //   searchable.  # is left out for the same reason as the dates: its digits would match label
+    //   numbers.
     // Worked out once here rather than per row.
     QList<int> searchableMetaCols;
     for (int col : { kAlbumCol, kAlbumArtistCol, kArtistCol, kComposerCol, kCommentsCol, kYearCol, kDurationCol,
@@ -1450,35 +1440,6 @@ void MainWindow::filterMusic()
 //   pathStack, pathStackPlaylists: use one of these
 //
 // Note: if aPathStack == currentShowingPathStack, then don't do anything
-
-// The Type column has three jobs for an Apple Music track already: say where it came from (the
-//   APPLE symbol), group it by playlist, and preserve Apple's order (the item number).  The Type
-//   worked out from the track's metadata is a fourth job, and it can't just displace the other
-//   three, so where it goes is the user's call (Preferences > Apple Music, issue #1740 item 6).
-static QString applyAppleMusicTypeColumnFormat(const QString &playlistPart,
-                                               const QString &appleMusicType,
-                                               int format)
-{
-    if (appleMusicType.isEmpty()) {
-        return playlistPart;  // no Type field chosen, so there is nothing to add
-    }
-
-    switch (format) {
-        case AppleMusicTypeOnly:
-            return appleMusicType;
-
-        case AppleMusicPlaylistOnly:
-            return playlistPart;
-
-        case AppleMusicTypeThenPlaylist:
-        default:
-            // Type first, so that sorting the column groups all the patter together, and so that
-            //   typing "patter" in the search box finds local and Apple Music tracks alike.  The
-            //   APPLE symbol still sorts Apple tracks below local ones within a Type, and the
-            //   item number still keeps a playlist in Apple's order within that.
-            return appleMusicType + " " + playlistPart;
-    }
-}
 
 // Where an Apple Music track's Label comes from (issue #1747).
 //
@@ -1690,8 +1651,8 @@ static bool playlistEntryParts(const QString &entry, QString &playlistNameOut, Q
 //   (case-insensitively), then the lowest item number within that playlist.  A deterministic
 //   winner matters because entries arrive in Apple's allPlaylists order, which is not ours and
 //   can change between resyncs -- "keep whichever came first" would have shuffled the surviving
-//   row's Type column from launch to launch.
-// playlistsByPathOut collects every playlist each surviving path is on, for the Type cell's
+//   row's Playlist and # columns from launch to launch.
+// playlistsByPathOut collects every playlist each surviving path is on, for the Playlist cell's
 //   tooltip, so collapsing the rows doesn't silently throw that away.
 // Entries with no playlist name (plain tracks) are passed through untouched and unsorted.
 static QStringList dedupePlaylistEntriesByPath(const QStringList &entries,
@@ -1979,9 +1940,6 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
     // once per DIRECTORY (many songs share a directory), cached here (Issue #1669)
     QHash<QString, bool> dirIsMusicRoot; // fi.path() -> (canonicalPath of that dir == musicRootPath)
 
-    // read once, not once per row
-    const int appleMusicTypeColumnFormat = prefsManager.GetappleMusicTypeColumnFormat();
-
     int i = 0;
     for (const auto &s : justMusic) {
         // qDebug() << "s:" << s;
@@ -2043,16 +2001,12 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
             // This is Apple Music, so we're going to override everything that breakFilenameIntoParts did (or tried to do)
             // e.g. "ApplePlaylistName$!$lineNumber$!$Short Title from Apple Music#!#FullPathname"
             QStringList sl10 = type.split("$!$");
-            QString ApplePlaylistName = sl10[0];
-            QString AppleLineNumber = sl10[1];
             title = sl10[2];
             shortTitle = title;
 
-            QString appleSymbol = QChar(0xF8FF);  // use APPLE symbol for Apple Music (sorts at the bottom)
-            // QString appleSymbol = QChar(0x039E);  // use GREEK XI for Local Playlists (sorts almost at the bottom, and looks like a playlist!)
-            type = appleSymbol + " " + sl10[0] + " " + AppleLineNumber; // this is tricky.  Leading Apple will force sort to bottom for "<APPLESYMBOL> Apple Playlist Name".
+            // The Type its metadata says it is, or blank -- see the playlist branch below (issue #1799).
             appleMusicType = appleMusicTypeByPath.value(origPath);
-            type = applyAppleMusicTypeColumnFormat(type, appleMusicType, appleMusicTypeColumnFormat);
+            type = appleMusicType;
 
             // The Label used to be forced to the literal "Apple Music" here, with the number
             //   blanked -- which collapsed every Apple Music track into one bucket, so the Label
@@ -2065,13 +2019,10 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
             // This is a SquareDesk Playlist, so we're going to override everything that breakFilenameIntoParts did (or tried to do)
             // e.g. "SquareDeskPlaylistName%!%pitch,tempo#!#FullPathname"
             QStringList sl11 = type.split("%!%");
-            QStringList sl11a = sl11[0].split("/");
             QString pitchTempo = sl11[1];
             QStringList sl12 = pitchTempo.split(",");
             QString pitchOverride = sl12[0]; // TODO: implement this!
             QString tempoOverride = sl12[1]; // not "" if there is an override because playlist
-            QString lineNumber = sl12[2];
-            type = sl11a[sl11a.size()-1] + " " + lineNumber;  // take only the last part of the hierarchical playlist name, tack on a line number for sorting
             // label = "Playlist";
             // title = lineNumber + " - " + title; // use the default SquareDesk name (from the FullPathname), but prepend the line number and a dash
             shortTitle = title;
@@ -2092,18 +2043,14 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
                     shortTitle = title;
                 }
 
-                // The Apple symbol in the Type column is what tells an Apple Music row from a
-                //   local playlist row at a glance, so it goes on here, now that the playlist
-                //   name it used to ride in on no longer carries one.
-                type = QString(QChar(APPLE_SYMBOL_UNICODE)) + " " + type;
-
-                QString GreekXi = QChar(0x039E);  // use GREEK XI for Local Playlists (sorts almost at the bottom, and looks like a playlist!)
-                type = GreekXi + " " + type; // this is tricky.  Leading GREEK XI will force sort to almost bottom for "<GREEKXI> SquareDesk Playlist Name".
-
-                // An Apple Music track gets the Type its metadata says it is, per Preferences >
-                //   Apple Music (issue #1740, item 6).
+                // An Apple Music track's Type is the Type its metadata says it is, per Preferences >
+                //   Apple Music (issue #1740, item 6), and blank when no Type field has been chosen.
+                //   It used to be "<GREEK XI> <APPLE> PlaylistName 003", with the Type put in front
+                //   or not as a Preferences setting chose; the playlist name and number were only
+                //   there to keep the rows in playlist order, which the Playlist and # columns do
+                //   now, so that setting is gone too (issue #1799).
                 appleMusicType = appleMusicTypeByPath.value(origPath);
-                type = applyAppleMusicTypeColumnFormat(type, appleMusicType, appleMusicTypeColumnFormat);
+                type = appleMusicType;
             } else {
                 // A SquareDesk playlist row's Type is the song's own Type, the same word the
                 //   Tracks view shows for it: the first folder under the Music Directory (see
@@ -2261,16 +2208,6 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
             //   no way to see WHY a track came out the Type it did (issue #1740).
             typeTooltipLines << appleMusicTypeReasonByPath.value(origPath);
         }
-        {
-            // The Type column can only name ONE playlist, but in an aggregate view this row may
-            //   be standing in for the song's membership in several (issue #1750).  Say so here,
-            //   since collapsing the rows is otherwise a silent loss of information.
-            const QStringList onPlaylists = playlistsByPath.value(origPath);
-            if (onPlaylists.size() > 1) {
-                typeTooltipLines << "On " + QString::number(onPlaylists.size())
-                                        + " playlists: " + onPlaylists.join(", ");
-            }
-        }
         if (!typeTooltipLines.isEmpty()) {
             twi1->setToolTip(typeTooltipLines.join("\n"));
         }
@@ -2278,9 +2215,8 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
 
         // PLAYLIST and # FIELDS (issue #1799) -----
         // The playlist this row came from, and its position in it, straight out of the pathStack
-        //   entry -- the same place the Type column's "... 003" suffix comes from.  Both blank for
-        //   a plain track.  An Apple Music smart playlist is numbered too, in the order Music
-        //   hands its tracks back, which is its Playlist Order.
+        //   entry.  Both blank for a plain track.  An Apple Music smart playlist is numbered too, in
+        //   the order Music hands its tracks back, which is its Playlist Order.
         // # is a TableSortKeyItem keyed 0 when blank, so a blank sorts before 1 (as an unrated
         //   song does in the Rating column), and 10 sorts after 9.
         {
@@ -2299,7 +2235,19 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
             playlistItem->setForeground(textBrush);
             playlistItem->setFlags(playlistItem->flags() & ~Qt::ItemIsEditable);      // not editable
             if (!playlistName.isEmpty()) {
-                playlistItem->setToolTip(playlistName);   // hierarchical names get long, and this column elides
+                QStringList playlistTooltipLines;
+                playlistTooltipLines << playlistName;   // hierarchical names get long, and this column elides
+
+                // The Playlist column can only name ONE playlist, but in an aggregate view this row
+                //   may be standing in for the song's membership in several (issue #1750).  Say so
+                //   here, since collapsing the rows is otherwise a silent loss of information.
+                //   This was on the Type cell, back when the Type named the playlist (issue #1799).
+                const QStringList onPlaylists = playlistsByPath.value(origPath);
+                if (onPlaylists.size() > 1) {
+                    playlistTooltipLines << "On " + QString::number(onPlaylists.size())
+                                                + " playlists: " + onPlaylists.join(", ");
+                }
+                playlistItem->setToolTip(playlistTooltipLines.join("\n"));
             }
             ui->songTable->setItem(i, kPlaylistNameCol, playlistItem);
 

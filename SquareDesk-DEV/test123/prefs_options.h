@@ -134,7 +134,6 @@ CONFIG_ATTRIBUTE_STRING(lineEditAppleMusicTypeExtras,  appleMusicTypeExtras,  ""
 CONFIG_ATTRIBUTE_COMBO(appleMusicTypeDefaultCombo, appleMusicTypeDefault, 3)  // 0=patter 1=singing 2=called 3=extras 4=don't import
 
 // How the Type column in songTable renders an Apple Music track.
-CONFIG_ATTRIBUTE_COMBO(appleMusicTypeColumnFormatCombo, appleMusicTypeColumnFormat, 0)  // 0=type+playlist 1=playlist only 2=type only
 
 // Which metadata field holds the record label, for someone who keeps "HH-1234" in Album rather
 //   than in the filename (issue #1747).  0 = read it from the filename, like a Music Directory

@@ -1193,7 +1193,6 @@ void PreferencesDialog::setupAppleMusicTab()
     SetPulldownValuesToItemNumberPlusN(ui->appleMusicFilterMatchCombo, 0);
     SetPulldownValuesToItemNumberPlusN(ui->appleMusicTypeFieldCombo, 0);
     SetPulldownValuesToItemNumberPlusN(ui->appleMusicTypeDefaultCombo, 0);
-    SetPulldownValuesToItemNumberPlusN(ui->appleMusicTypeColumnFormatCombo, 0);
     SetPulldownValuesToItemNumberPlusN(ui->appleMusicLabelFieldCombo, 0);
 
     // Recounting walks the whole library, so coalesce the keystrokes of someone typing a value.
@@ -1207,7 +1206,6 @@ void PreferencesDialog::setupAppleMusicTab()
     connect(ui->appleMusicFilterInPlaylistsCheckbox, &QCheckBox::toggled,     this, [this]{ appleMusicSettingsChanged(); });
     connect(ui->appleMusicFilterMatchCombo,          &QComboBox::currentIndexChanged, this, [this]{ appleMusicSettingsChanged(); });
     connect(ui->appleMusicTypeDefaultCombo,          &QComboBox::currentIndexChanged, this, [this]{ appleMusicSettingsChanged(); });
-    connect(ui->appleMusicTypeColumnFormatCombo,     &QComboBox::currentIndexChanged, this, [this]{ appleMusicSettingsChanged(); });
     connect(ui->appleMusicLabelFieldCombo,           &QComboBox::currentIndexChanged, this, [this]{ appleMusicSettingsChanged(); });
 
     connect(ui->appleMusicTypeFieldCombo, &QComboBox::currentIndexChanged, this, [this]{
@@ -1446,7 +1444,6 @@ AppleMusicFilter PreferencesDialog::appleMusicFilterFromWidgets() const
     filter.typeCalled       = ui->lineEditAppleMusicTypeCalled->text();
     filter.typeExtras       = ui->lineEditAppleMusicTypeExtras->text();
     filter.typeDefault      = ui->appleMusicTypeDefaultCombo->currentIndex();
-    filter.typeColumnFormat = ui->appleMusicTypeColumnFormatCombo->currentIndex();
 
     // 0 is "The filename -- parse it as usual"; 1..N index appleMusicFields (issue #1747)
     const int labelFieldIndex = ui->appleMusicLabelFieldCombo->currentIndex();
@@ -1645,8 +1642,6 @@ void PreferencesDialog::updateAppleMusicEnabledStates()
     const bool syncOn = ui->enableAppleMusicCheckbox->isChecked();
     ui->appleMusicFilterSection->setEnabled(syncOn);
     ui->appleMusicTypeSection->setEnabled(syncOn);
-    ui->appleMusicTypeColumnLabel->setEnabled(syncOn);
-    ui->appleMusicTypeColumnFormatCombo->setEnabled(syncOn);
     ui->appleMusicLabelSection->setEnabled(syncOn);
 
     const bool filterOn = ui->appleMusicFilterEnabledRadio->isChecked();

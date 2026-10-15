@@ -182,7 +182,6 @@ void AppleMusicFilter::loadFrom(PreferencesManager &prefs)
     typeCalled       = prefs.GetappleMusicTypeCalled();
     typeExtras       = prefs.GetappleMusicTypeExtras();
     typeDefault      = prefs.GetappleMusicTypeDefault();
-    typeColumnFormat = prefs.GetappleMusicTypeColumnFormat();
 
     // 0 is "The filename"; 1..N index appleMusicFields (issue #1747)
     const int labelFieldIndex = prefs.GetappleMusicLabelField();

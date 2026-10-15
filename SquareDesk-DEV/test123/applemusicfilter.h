@@ -70,13 +70,6 @@ AppleMusicTrackMeta appleMusicMetaOf(const PlaylistTrack &track);
 //   about this, or the preview promises songs that never arrive (issue #1740).
 bool appleMusicIsPlayableFormat(const QString &absolutePath);
 
-// appleMusicTypeColumnFormat
-enum AppleMusicTypeColumnFormat {
-    AppleMusicTypeThenPlaylist = 0,   // "patter <APPLE> Sunday Night 014"
-    AppleMusicPlaylistOnly     = 1,   // "<APPLE> Sunday Night 014"
-    AppleMusicTypeOnly         = 2,   // "patter"
-};
-
 // appleMusicTypeDefault
 enum AppleMusicDefaultType {
     AppleMusicDefaultPatter  = 0,
@@ -139,7 +132,6 @@ public:
     QString typeCalled;
     QString typeExtras;
     int typeDefault = AppleMusicDefaultExtras;
-    int typeColumnFormat = AppleMusicTypeThenPlaylist;
 
     // which metadata field holds the record label, e.g. "album" for someone who keeps "HH-1234"
     //   in the Album field.  "" = read the label out of the filename instead (issue #1747).

@@ -2238,7 +2238,7 @@ void MainWindow::getAppleMusicInfo() {
         // Is this square dance music at all, and if so what Type is it?  Both questions are
         //   answered BEFORE the item number is handed out below, for the same reason the two
         //   checks above are: numbering first and filtering later leaves visible gaps in the
-        //   Type column, e.g. "Hello 001, 002, 003, 005" (issue #1740).
+        //   # column, e.g. 1, 2, 3, 5 (issue #1740, #1799).
         const AppleMusicTrackMeta meta = appleMusicMetaOf(t);
         if (applyFilter && !appleMusicFilter.passes(meta)) {
             continue; // not square dance music, by the user's own rules
@@ -2287,8 +2287,9 @@ void MainWindow::getAppleMusicInfo() {
             QString playlistName      = playlistParts.last();
 
             // Zero-pad to a fixed 3 digits, e.g. "001", "099", "100".  This is the same convention
-            //   that local SquareDesk playlists use (see updateTreeWidget()), and the Type string is
-            //   sorted lexically, so a fixed width is what keeps the items in playlist order.
+            //   that local SquareDesk playlists use (see updateTreeWidget()), and
+            //   dedupePlaylistEntriesByPath() compares these as strings, so a fixed width is what
+            //   keeps them in numeric order.  (The # column itself sorts on the number; issue #1799.)
             //   The old scheme padded to 2 digits and prefixed a '!' at 100+, which sorted the
             //   100+ items BEFORE the rest ('!' is 0x21, '0' is 0x30) and showed up in the Type
             //   column as "Hello !100" (issue #1740).
