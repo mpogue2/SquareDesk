@@ -984,6 +984,7 @@ void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativ
 
     theTableWidget->resizeColumnToContents(COLUMN_NUMBER);
     updatePlaylistTipNumbers(theTableWidget); // issue #1714
+    updatePlaylistCurrentLevels(theTableWidget, QString(), &settingsCache); // issue #1803
 
     // NOTE: sorting stays OFF on palette slot tables (issue #1701).  It used to be turned back ON
     //   here, but nothing ever turned it off again, so a slot that had once held a Track Filter kept
@@ -1101,6 +1102,7 @@ void MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString 
 
     theTableWidget->resizeColumnToContents(COLUMN_NUMBER);
     updatePlaylistTipNumbers(theTableWidget); // issue #1714
+    updatePlaylistCurrentLevels(theTableWidget, QString(), &settingsCache); // issue #1803
 
     QString theRelativePath = relativePath.replace(APPLE_MUSIC_PATH_PREFIX,"").replace(CSV_FILE_EXTENSION,"");
     theLabel->setText(QString("<img src=\":/graphics/icons8-apple-48.png\" width=\"%1\" height=\"%2\">").arg(APPLE_MUSIC_ICON_WIDTH).arg(APPLE_MUSIC_ICON_HEIGHT) + theRelativePath);
@@ -1267,6 +1269,7 @@ void MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString rel
 
         theTableWidget->resizeColumnToContents(COLUMN_NUMBER);
         updatePlaylistTipNumbers(theTableWidget); // issue #1714
+        updatePlaylistCurrentLevels(theTableWidget, QString(), &settingsCache); // issue #1803
 
         QString theRelativePath = relativePath.replace(PLAYLISTS_PATH_PREFIX,"").replace(CSV_FILE_EXTENSION,"");
         theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"%1\" height=\"%2\">").arg(PLAYLIST_ICON_WIDTH).arg(PLAYLIST_ICON_HEIGHT) + theRelativePath);
@@ -2701,6 +2704,7 @@ void MainWindow::addPlaylistItemAt(int whichSlot, const QString &trackName, cons
 
     destTableWidget->resizeColumnToContents(COLUMN_NUMBER); // FIX: perhaps only if this is the first row?
     updatePlaylistTipNumbers(destTableWidget); // issue #1714
+    updatePlaylistCurrentLevels(destTableWidget, absPath); // just the inserted song's rows (issue #1803)
     //    theTableWidget->resizeColumnToContents(COLUMN_PITCH);
     //    theTableWidget->resizeColumnToContents(COLUMN_TEMPO);
 

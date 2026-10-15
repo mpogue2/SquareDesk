@@ -32,6 +32,7 @@
 #include "mainwindow.h"
 #include "labelparser.h"
 #include "cuesheetmatchingdebugdialog.h"
+#include "playlistlevelsdelegate.h"
 #pragma clang diagnostic pop
 
 #include "ui_mainwindow.h"
@@ -983,7 +984,8 @@ SongMatchInfo MainWindow::makeSongMatchInfo(const QString &origPath) {
 // skipped. Sharing a word is enough to fall through to the full scorer, so this
 // can't drop any real match (the scorer's title-containment path itself requires
 // the names to share words).
-bool MainWindow::cuesheetMatchesSong(const SongMatchInfo &song, const LeveledCuesheet &cuesheet) {
+// The cheap part of that predicate: false means the full scorer can't possibly return a score > 0.
+static bool cuesheetCouldMatchSong(const SongMatchInfo &song, const LeveledCuesheet &cuesheet) {
     if (song.isPatter && cuesheet.type == "lyrics") {
         // if it's a patter MP3, don't match it against anything in the lyrics folder
         return false;
@@ -992,7 +994,12 @@ bool MainWindow::cuesheetMatchesSong(const SongMatchInfo &song, const LeveledCue
         !song.words.intersects(cuesheet.words)) {
         return false; // cheap pre-filter: numbers differ and no shared words, so the full scorer can't succeed
     }
-    return MP3FilenameVsCuesheetnameScore(song.completeBaseName, cuesheet.completeBaseName) > 0;
+    return true;
+}
+
+bool MainWindow::cuesheetMatchesSong(const SongMatchInfo &song, const LeveledCuesheet &cuesheet) {
+    return cuesheetCouldMatchSong(song, cuesheet) &&
+           MP3FilenameVsCuesheetnameScore(song.completeBaseName, cuesheet.completeBaseName) > 0;
 }
 
 // Returns the categories present in levelsFound, in the canonical "SMPAC" order.
@@ -1197,7 +1204,137 @@ void MainWindow::refreshLevelsColumnDisplay() {
                 levelsItem->setText(songLevelsByPath.value(pathItem->text(), ""));
             }
         }
+        updatePlaylistCurrentLevels(table); // the Levels strings may have changed, so the highlighted letter might have, too (issue #1803)
     }
+}
+
+// ============================================================================
+// CURRENT CUESHEET LEVEL in the palette slots (Issue #1803)
+//
+// A palette slot's Levels cell says which levels have a cuesheet for that song ("SMP"), but not
+// which one will load when the song is double-clicked.  These functions work that out, the same
+// way loadCuesheets() + loadSettingsForSong() do, and stash its level letter in the Levels item
+// for PlaylistLevelsDelegate to paint in the singing call color:
+//   1. the song's preferred cuesheet, if it is one of the song's matching cuesheets, else
+//   2. the song's best-scoring matching cuesheet (ties broken by name, as CompareCuesheetWithRanking does).
+// If the cuesheet that will load has no recognized level, no letter is highlighted.
+
+// The song's preferred cuesheet, or "" if there is none.  For the song that is loaded right now,
+//   that's whatever the cuesheet dropdown has selected, because that's what saveCurrentSongSettings()
+//   will store before anything else is loaded -- so picking a different cuesheet updates the
+//   highlight right away.  It mirrors saveCurrentSongSettings(): a cuesheet peeked from the next
+//   song, or one picked automatically by a ?call search, is not this song's preference.
+QString MainWindow::preferredCuesheetForSong(const QString &songPath, const QHash<QString, SongSetting> *settingsCache) {
+    if (!currentMP3filenameWithPath.isEmpty() && !lyricsForDifferentSong && !cuesheetIsPeekedFromNextSong &&
+        songSettings.songKeyFor(songPath) == songSettings.songKeyFor(currentMP3filenameWithPath)) {
+        int index = ui->comboBoxCuesheetSelector->currentIndex();
+        QString selected = (index >= 0) ? ui->comboBoxCuesheetSelector->itemData(index).toString() : QString();
+        if (!selected.isEmpty() && selected != cuesheetSearchAutoSelectedCuesheet) {
+            return selected;
+        }
+    }
+
+    SongSetting settings;
+    if (settingsCache != nullptr) {
+        settings = settingsCache->value(songSettings.songKeyFor(songPath));
+    } else if (!songSettings.loadSettings(songPath, settings)) {
+        return QString();
+    }
+    return settings.isSetCuesheetName() ? settings.getCuesheetName() : QString();
+}
+
+// Level category ('S', 'M', 'P', 'A' or 'C') of the cuesheet that will load for this song, or a
+//   null QChar if none will, or if it has no recognized level.  allCuesheets is every cuesheet
+//   (leveled or not -- an unleveled one can still be the one that loads), from pathStackCuesheets.
+QChar MainWindow::currentCuesheetCategoryForSong(const QString &songPath, const QList<LeveledCuesheet> &allCuesheets,
+                                                 const QHash<QString, SongSetting> *settingsCache) {
+    SongMatchInfo song = makeSongMatchInfo(songPath);
+    QString preferred = preferredCuesheetForSong(songPath, settingsCache);
+
+    if (!preferred.isEmpty() && compareCuesheetPathNamesRelative(preferred, songPath)) {
+        return QChar(); // the preference is the lyrics embedded in the song file itself, which have no level
+    }
+
+    const LeveledCuesheet *best = nullptr;
+    int bestScore = 0;
+    for (const auto &cuesheet : allCuesheets) {
+        if (!cuesheetCouldMatchSong(song, cuesheet)) {
+            continue;
+        }
+        int score = MP3FilenameVsCuesheetnameScore(song.completeBaseName, cuesheet.completeBaseName);
+        if (score <= 0) {
+            continue;
+        }
+        if (!preferred.isEmpty() && compareCuesheetPathNamesRelative(cuesheet.absoluteFilePath, preferred)) {
+            return cuesheet.category; // the preferred cuesheet is a match, so it's the one that loads
+        }
+        if (best == nullptr || score > bestScore ||
+            (score == bestScore && cuesheet.completeBaseName < best->completeBaseName)) {
+            best = &cuesheet;
+            bestScore = score;
+        }
+    }
+    return (best != nullptr) ? best->category : QChar();
+}
+
+// Sets (or clears) the highlighted letter in the Levels column of every row of a palette slot, or
+//   of just the rows for onlySongPath, if that's given.  Rows with an empty Levels string cost
+//   nothing, so when the Levels column has never been turned on this session, this is free.
+void MainWindow::updatePlaylistCurrentLevels(QTableWidget *table, const QString &onlySongPath,
+                                             const QHash<QString, SongSetting> *settingsCache) {
+    if (table == nullptr) {
+        return;
+    }
+
+    QString onlySongKey = onlySongPath.isEmpty() ? QString() : songSettings.songKeyFor(onlySongPath);
+    QColor highlightColor(singingColorString);
+
+    QList<LeveledCuesheet> allCuesheets; // built on first use, at most once per call
+    bool allCuesheetsBuilt = false;
+
+    for (int row = 0; row < table->rowCount(); row++) {
+        QTableWidgetItem *pathItem = table->item(row, COLUMN_PATH);
+        QTableWidgetItem *levelsItem = table->item(row, COLUMN_LEVELS);
+        if (pathItem == nullptr || levelsItem == nullptr) {
+            continue;
+        }
+        QString songPath = pathItem->text();
+        if (!onlySongKey.isEmpty() && songSettings.songKeyFor(songPath) != onlySongKey) {
+            continue;
+        }
+
+        QChar current;
+        if (!levelsItem->text().isEmpty() && !isPlaylistMarker(songPath)) {
+            if (!allCuesheetsBuilt) {
+                allCuesheets.reserve(pathStackCuesheets->size());
+                for (const QString &s : *pathStackCuesheets) {
+                    QStringList parts = s.split("#!#");
+                    if (parts.size() < 2) {
+                        continue;
+                    }
+                    QChar category = (parts.size() >= 3) ? levelNameToCategory(parts[2]) : QChar();
+                    allCuesheets.append(makeLeveledCuesheet(parts[0], parts[1], category));
+                }
+                allCuesheetsBuilt = true;
+            }
+            current = currentCuesheetCategoryForSong(songPath, allCuesheets, settingsCache);
+        }
+
+        if (current.isNull() || !levelsItem->text().contains(current)) {
+            levelsItem->setData(PLAYLIST_CURRENTLEVEL_ROLE, QVariant());
+            levelsItem->setData(PLAYLIST_CURRENTLEVEL_COLOR_ROLE, QVariant());
+        } else {
+            levelsItem->setData(PLAYLIST_CURRENTLEVEL_ROLE, QString(current));
+            levelsItem->setData(PLAYLIST_CURRENTLEVEL_COLOR_ROLE, highlightColor);
+        }
+    }
+}
+
+// All 3 palette slots, for the rows of just one song if onlySongPath is given (issue #1803)
+void MainWindow::updateAllPlaylistCurrentLevels(const QString &onlySongPath) {
+    updatePlaylistCurrentLevels(ui->playlist1Table, onlySongPath);
+    updatePlaylistCurrentLevels(ui->playlist2Table, onlySongPath);
+    updatePlaylistCurrentLevels(ui->playlist3Table, onlySongPath);
 }
 
 // Re-detects the level for a single cuesheet that was just saved (new or edited), and
@@ -1224,6 +1361,9 @@ void MainWindow::updateCuesheetLevelInPathStack(const QString &absoluteFilePath)
                 if (songLevelsComputed) {
                     saveSongLevelsCache(); // pathStackCuesheets entry changed, so re-save under the new fingerprint
                 }
+                // The Levels strings can stay the same (e.g. "SM") while the level of the cuesheet
+                //   that loads changes, so the highlighted letter needs its own refresh (issue #1803)
+                updateAllPlaylistCurrentLevels();
             }
             return;
         }
@@ -1245,6 +1385,8 @@ void MainWindow::updateCuesheetLevelInPathStack(const QString &absoluteFilePath)
     if (songLevelsComputed) {
         saveSongLevelsCache(); // pathStackCuesheets gained an entry, so re-save under the new fingerprint
     }
+
+    updateAllPlaylistCurrentLevels(); // a brand new cuesheet may now be the best match for some song (issue #1803)
 }
 
 // Incrementally updates songLevelsByPath (and the visible Levels columns) after a
@@ -1329,7 +1471,7 @@ void MainWindow::updateSongLevelsForOneCuesheet(const QString &absoluteFilePath,
     }
 
     if (anyChanged) {
-        refreshLevelsColumnDisplay(); // updates songTable and all 3 palette slot tables (cheap: no I/O, no scoring)
+        refreshLevelsColumnDisplay(); // updates songTable and all 3 palette slot tables (no I/O; scoring only for leveled palette rows)
     }
 }
 

@@ -75,6 +75,7 @@
 #include "songlistmodel.h"
 #include "mytablewidget.h"
 #include "playlistnumberdelegate.h"
+#include "playlistlevelsdelegate.h"
 
 #include "svgWaveformSlider.h"
 
@@ -905,6 +906,7 @@ void MainWindow::initializeMusicPlaylists() {
 
     ui->playlist1Table->setMainWindow(this);
     ui->playlist1Table->setItemDelegateForColumn(COLUMN_NUMBER, new PlaylistNumberDelegate(this)); // tip numbers (issue #1714)
+    ui->playlist1Table->setItemDelegateForColumn(COLUMN_LEVELS, new PlaylistLevelsDelegate(this)); // current cuesheet level (issue #1803)
     ui->playlist1Table->resizeColumnToContents(COLUMN_NUMBER); // number
     ui->playlist1Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
     setPaletteLevelsColumnWidth(ui->playlist1Table, ui->playlist1Table->font()); // levels (Issue #1674)
@@ -1047,6 +1049,7 @@ void MainWindow::initializeMusicPlaylists() {
 
     ui->playlist2Table->setMainWindow(this);
     ui->playlist2Table->setItemDelegateForColumn(COLUMN_NUMBER, new PlaylistNumberDelegate(this)); // tip numbers (issue #1714)
+    ui->playlist2Table->setItemDelegateForColumn(COLUMN_LEVELS, new PlaylistLevelsDelegate(this)); // current cuesheet level (issue #1803)
     ui->playlist2Table->resizeColumnToContents(COLUMN_NUMBER); // number
     ui->playlist2Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
     setPaletteLevelsColumnWidth(ui->playlist2Table, ui->playlist2Table->font()); // levels (Issue #1674)
@@ -1180,6 +1183,7 @@ void MainWindow::initializeMusicPlaylists() {
     // -----
     ui->playlist3Table->setMainWindow(this);
     ui->playlist3Table->setItemDelegateForColumn(COLUMN_NUMBER, new PlaylistNumberDelegate(this)); // tip numbers (issue #1714)
+    ui->playlist3Table->setItemDelegateForColumn(COLUMN_LEVELS, new PlaylistLevelsDelegate(this)); // current cuesheet level (issue #1803)
 #ifndef DEBUG_LIGHT_MODE
     ui->playlist3Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
 #endif

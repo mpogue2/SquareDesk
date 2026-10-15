@@ -1256,6 +1256,14 @@ private:
     SongMatchInfo makeSongMatchInfo(const QString &origPath);
     bool cuesheetMatchesSong(const SongMatchInfo &song, const LeveledCuesheet &cuesheet);
 
+    // highlight the level of the cuesheet that will load, in the palette slots' Levels column (Issue #1803)
+    QString preferredCuesheetForSong(const QString &songPath, const QHash<QString, SongSetting> *settingsCache);
+    QChar currentCuesheetCategoryForSong(const QString &songPath, const QList<LeveledCuesheet> &allCuesheets,
+                                         const QHash<QString, SongSetting> *settingsCache);
+    void updatePlaylistCurrentLevels(QTableWidget *table, const QString &onlySongPath = QString(),
+                                     const QHash<QString, SongSetting> *settingsCache = nullptr);
+    void updateAllPlaylistCurrentLevels(const QString &onlySongPath = QString());
+
     // ?call cuesheet search (Issue #1598)
     QString cuesheetSearchCacheFilename();
     QString cuesheetSearchLabelsFingerprint();

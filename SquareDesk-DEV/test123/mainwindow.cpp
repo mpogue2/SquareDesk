@@ -1019,6 +1019,17 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
         }
         loadCuesheet(cuesheetFilename);
 
+        // A different cuesheet may now load for that song, so its highlighted letter in the palette
+        //   slots' Levels column may have changed.  While a song is loading, the dropdown just reflects
+        //   the song's existing preference, so there is nothing new to show. (issue #1803)
+        if (!loadingSong) {
+            QString songWhoseCuesheetChanged = !override_filename.isEmpty() ? override_filename :
+                                               lyricsForDifferentSong ? mp3ForDifferentCuesheet : currentMP3filenameWithPath;
+            if (!songWhoseCuesheetChanged.isEmpty()) {
+                updateAllPlaylistCurrentLevels(songWhoseCuesheetChanged);
+            }
+        }
+
         // Lyrics embedded in the song file itself cannot be edited: they live inside the audio
         //   file, and SquareDesk has nowhere to save an edit back to.  Disable the Unlock button
         //   rather than letting the user type into something that will silently discard their
@@ -9085,6 +9096,7 @@ void MainWindow::addPlaylistItemsToBottom(int whichSlot) { // slot is 0 - 2
     }
 
     updatePlaylistTipNumbers(theTableWidget); // issue #1714
+    updatePlaylistCurrentLevels(theTableWidget); // issue #1803
 
     QTimer::singleShot(250, [theTableWidget]{
         // NOTE: We have to do it this way with a single-shot timer, because you can't scroll immediately to a new item, until it's been processed
@@ -9160,6 +9172,7 @@ void MainWindow::addPlaylistItemToBottom(int whichSlot, QString title, QString t
 
     theTableWidget->resizeColumnToContents(COLUMN_NUMBER); // FIX: perhaps only if this is the first row?
     updatePlaylistTipNumbers(theTableWidget); // issue #1714
+    updatePlaylistCurrentLevels(theTableWidget, absPath); // just the added song's rows (issue #1803)
 //    theTableWidget->resizeColumnToContents(COLUMN_PITCH);
 //    theTableWidget->resizeColumnToContents(COLUMN_TEMPO);
 

@@ -63,6 +63,7 @@ SOURCES += main.cpp\
     svgWaveformSlider.cpp \
     tablenumberitem.cpp \
     playlistnumberdelegate.cpp \
+    playlistlevelsdelegate.cpp \
     playlistprinter.cpp \
     myslider.cpp \
     third_party/levelmeter.cpp \
@@ -153,6 +154,7 @@ HEADERS  += mainwindow.h \
     songdraginfo.h \
     tablenumberitem.h \
     playlistnumberdelegate.h \
+    playlistlevelsdelegate.h \
     playlistprinter.h \
     third_party/levelmeter.h \
     common_enums.h \
