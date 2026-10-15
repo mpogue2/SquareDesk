@@ -4681,6 +4681,7 @@ void MainWindow::on_actionPreferences_triggered()
     bool oldEnableAppleMusic      = prefsManager.GetenableAppleMusic();
     bool oldEnableCuesheetSearch  = prefsManager.GetenableCuesheetSearch();
     bool oldEnableNewFileWatcher  = prefsManager.GetenableNewFileWatcher();
+    QString oldAppleMusicSettings = AppleMusicFilter::settingsSignature(prefsManager);  // issue #1805
 
     // act on dialog return code
     if(dialogCode == QDialog::Accepted) {
@@ -4815,7 +4816,15 @@ void MainWindow::on_actionPreferences_triggered()
         //   - Apple Music on/off: adds or removes the Apple Music tracks and playlists
         //   - ?call search on/off: findMusic() builds or frees the cuesheet search index
         //   - FileWatcher turned ON: pick up songs added while it was off (Issue #1719)
+        //   - any Apple Music import setting (filter, Type mapping, Label field): each track's Type,
+        //     Label and playlist membership are worked out once, at import, so a change there does
+        //     nothing until Apple Music is re-imported.  Without this, the table kept showing Types
+        //     from the old mapping, even though the Preferences preview showed the new one
+        //     (issue #1805).
+        const bool appleMusicSettingsChanged = prefsManager.GetenableAppleMusic()
+            && (oldAppleMusicSettings != AppleMusicFilter::settingsSignature(prefsManager));
         bool rescanNeeded = (oldMusicRootPath != newMusicRootPath)
+                            || appleMusicSettingsChanged
                             || (oldEnableAppleMusic != prefsManager.GetenableAppleMusic())
                             || (oldEnableCuesheetSearch != prefsManager.GetenableCuesheetSearch())
                             || (!oldEnableNewFileWatcher && prefsManager.GetenableNewFileWatcher());
@@ -4919,7 +4928,9 @@ void MainWindow::on_actionPreferences_triggered()
         }
         songFilenameFormat = static_cast<enum SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
-        if (prefDialog->songTableReloadNeeded || musicDirChanged) {
+        // appleMusicSettingsChanged: findMusic() re-imported Apple Music above, but reports that
+        //   nothing on disk changed, so the table and slots need telling separately (issue #1805).
+        if (prefDialog->songTableReloadNeeded || musicDirChanged || appleMusicSettingsChanged) {
 //            qDebug() << "LOAD MUSIC LIST TRIGGERED FROM PREFERENCES TRIGGERED";
 
             loadMusicList(nullptr, currentTypeFilter, true, true); // just refresh whatever is there

@@ -100,6 +100,10 @@ class AppleMusicFilter
 public:
     void loadFrom(PreferencesManager &prefs);
 
+    // Every pref loadFrom() reads, as one string, so a caller can tell whether any of them changed
+    //   -- and so whether what was imported from Apple Music is now out of date (issue #1805).
+    static QString settingsSignature(PreferencesManager &prefs);
+
     // Is this track square dance music at all?
     bool passes(const AppleMusicTrackMeta &track) const;
 

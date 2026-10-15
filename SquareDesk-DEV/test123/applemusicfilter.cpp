@@ -190,6 +190,26 @@ void AppleMusicFilter::loadFrom(PreferencesManager &prefs)
                         : QString();
 }
 
+// KEEP IN SYNC WITH loadFrom() above: a pref read there but missing here is one whose change
+//   won't trigger a re-import when Preferences is closed with OK (issue #1805).
+QString AppleMusicFilter::settingsSignature(PreferencesManager &prefs)
+{
+    const QStringList parts = {
+        QString::number(prefs.GetappleMusicFilterEnabled()),
+        QString::number(prefs.GetappleMusicFilterMatch()),
+        QString::number(prefs.GetappleMusicFilterAppliesInsidePlaylists()),
+        prefs.GetappleMusicFilterRules(),
+        QString::number(prefs.GetappleMusicTypeField()),
+        prefs.GetappleMusicTypePatter(),
+        prefs.GetappleMusicTypeSinging(),
+        prefs.GetappleMusicTypeCalled(),
+        prefs.GetappleMusicTypeExtras(),
+        QString::number(prefs.GetappleMusicTypeDefault()),
+        QString::number(prefs.GetappleMusicLabelField()),
+    };
+    return parts.join(QChar(0x1F));   // unit separator: can't appear in any of these values
+}
+
 bool AppleMusicFilter::passes(const AppleMusicTrackMeta &track) const
 {
     if (!filterEnabled) {
