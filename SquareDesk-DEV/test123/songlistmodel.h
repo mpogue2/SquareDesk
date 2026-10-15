@@ -76,7 +76,14 @@
 //   right of Date Added (see MainWindow's constructor).
 #define kDateLastPlayedCol 18
 
-#define kNumSongTableCols 19
+// Issue #1799.  The playlist a row came from, and its position in that playlist, so a playlist
+//   can be shown in its own order.  Both are blank for Tracks.  Appended for the reason given
+//   above, then moved visually to sit just right of the Audition column (see MainWindow's
+//   constructor).
+#define kPlaylistNameCol 19
+#define kItemNumberCol   20
+
+#define kNumSongTableCols 21
 
 class SongRow : public SongSetting
 {

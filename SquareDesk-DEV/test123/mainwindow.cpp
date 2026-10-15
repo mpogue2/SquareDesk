@@ -1349,6 +1349,8 @@ void MainWindow::updateSongTableColumnView()
     headerView->setSectionResizeMode(kRatingCol, QHeaderView::Interactive);
     headerView->setSectionResizeMode(kDateAddedCol, QHeaderView::Interactive);
     headerView->setSectionResizeMode(kDateLastPlayedCol, QHeaderView::Interactive);
+    headerView->setSectionResizeMode(kPlaylistNameCol, QHeaderView::Interactive);  // issue #1799
+    headerView->setSectionResizeMode(kItemNumberCol, QHeaderView::Interactive);
 
     // Title used to be the Stretch section, sitting in the MIDDLE of the header, which is what
     //   made most of the dividers misbehave: Stretch absorbs every width change, so dragging a
@@ -1397,6 +1399,8 @@ void MainWindow::updateSongTableColumnView()
     ui->songTable->setColumnHidden(kRatingCol,      !prefsManager.GetshowRatingColumn());
     ui->songTable->setColumnHidden(kDateAddedCol,   !prefsManager.GetshowDateAddedColumn());
     ui->songTable->setColumnHidden(kDateLastPlayedCol, !prefsManager.GetshowDateLastPlayedColumn());
+    ui->songTable->setColumnHidden(kPlaylistNameCol, !prefsManager.GetshowPlaylistNameColumn());  // issue #1799
+    ui->songTable->setColumnHidden(kItemNumberCol,   !prefsManager.GetshowItemNumberColumn());
     ui->playlist1Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn()); // as the View > Columns > Tempo changes
     ui->playlist2Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn()); //   so does visibility of the tempo column in the playlists
     ui->playlist3Table->horizontalHeader()->setSectionHidden(COLUMN_TEMPO, !prefsManager.GetshowTempoColumn());
@@ -6296,12 +6300,58 @@ void MainWindow::on_actionStartup_Wizard_triggered()
 void MainWindow::sortByDefaultSortOrder()
 {
     // these must be in "backwards" order to get the right order, which
-    //   is that Type is primary, Title is secondary, Label is tertiary
+    //   is that Playlist is primary, then # (the position in that playlist), then Type, Title
+    //   and Label.  Playlist and # are blank for Tracks, so Tracks sorts exactly as it did
+    //   before they existed, while a playlist comes out in its own order (issue #1799).
     ui->songTable->initializeSortOrder(); // clear out the queue and start over
 
     ui->songTable->sortItems(kLabelCol);  // sort last by label/label #
-    ui->songTable->sortItems(kTitleCol);  // sort second by title in alphabetical order
-    ui->songTable->sortItems(kTypeCol);   // sort first by type (singing vs patter)
+    ui->songTable->sortItems(kTitleCol);  // sort by title in alphabetical order
+    ui->songTable->sortItems(kTypeCol);   // sort by type (singing vs patter)
+    ui->songTable->sortItems(kItemNumberCol);    // sort by position within the playlist
+    ui->songTable->sortItems(kPlaylistNameCol);  // sort first by playlist
+}
+
+// Issue #1799.  The default sort above only applies when no sort order has been saved yet, or
+//   after Reset Sort Order, so everyone who already had a saved order would never see a playlist
+//   in its own order.  Once, and only once, put # and Playlist on the end of the saved order --
+//   the end is the PRIMARY key in this stable-sort queue -- the same as the default does.  The
+//   one-shot flag is what lets a user who later sorts those two away keep that choice.
+// Must run before the first loadMusicList(), which is what applies the saved order.
+void MainWindow::migrateSortOrderForPlaylistColumns()
+{
+    if (prefsManager.GetsortOrderHasPlaylistColumns()) {
+        return; // already done
+    }
+
+    const QString saved = prefsManager.GetcurrentSortOrder();
+    if (!saved.isEmpty()) {
+        // e.g. "c:2,so:0;c:3,so:0;c:1,so:0" -- see sortOperation in mytablewidget.h
+        QStringList ops;
+        for (const QString &op : saved.split(";", Qt::SkipEmptyParts)) {
+            static const QRegularExpression wellFormed("^c:\\d+,so:\\d+$");
+            if (!wellFormed.match(op).hasMatch()) {
+                continue; // malformed, and sortOperation(QString) would index past the end
+            }
+            const int col = sortOperation(op).column;
+            if (col != kItemNumberCol && col != kPlaylistNameCol) {
+                ops.append(op);
+            }
+        }
+        ops.append(sortOperation(kItemNumberCol, Qt::AscendingOrder).toString());
+        ops.append(sortOperation(kPlaylistNameCol, Qt::AscendingOrder).toString());
+
+        // The queue holds at most 7 (MyTableWidget::maxSortOperations), so drop the oldest, i.e.
+        //   least significant, sorts if adding these two went over.
+        while (ops.size() > 7) {
+            ops.removeFirst();
+        }
+        prefsManager.SetcurrentSortOrder(ops.join(";"));
+    }
+    // An empty saved order needs nothing: loadMusicList() will use the default sort, which
+    //   already includes them.
+
+    prefsManager.SetsortOrderHasPlaylistColumns(true);
 }
 
 void MainWindow::sdActionTriggered(QAction * action) {
@@ -6863,6 +6913,26 @@ void MainWindow::on_actionDateLastPlayed_toggled(bool checked)
     updateSongTableColumnView();
 }
 
+void MainWindow::on_actionPlaylistName_toggled(bool checked)
+{
+    ui->actionPlaylistName->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showPlaylistNameColumn setting is persistent across restarts of the application
+    prefsManager.SetshowPlaylistNameColumn(checked);
+
+    updateSongTableColumnView();
+}
+
+void MainWindow::on_actionItemNumber_toggled(bool checked)
+{
+    ui->actionItemNumber->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showItemNumberColumn setting is persistent across restarts of the application
+    prefsManager.SetshowItemNumberColumn(checked);
+
+    updateSongTableColumnView();
+}
+
 // Turns off every column below the FIRST separator in the Columns menu, i.e. the whole optional
 //   metadata block, leaving the usual Label/Levels/Recent/Age/Pitch/Tempo group alone.
 //
@@ -6884,6 +6954,12 @@ void MainWindow::on_actionResetColumnVisibility_triggered()
             action->setChecked(false);   // no-op, and no signal, if it is already off
         }
     }
+
+    // Playlist and # sit at the TOP of the menu, above that separator, because that is where
+    //   they are in the table -- but they are off by default too, since most people don't use
+    //   Apple Music, so Reset turns them off as well (issue #1799).
+    ui->actionPlaylistName->setChecked(false);
+    ui->actionItemNumber->setChecked(false);
 }
 
 void MainWindow::on_actionAge_toggled(bool checked)

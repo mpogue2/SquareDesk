@@ -804,6 +804,8 @@ private slots:
     void on_actionRating_toggled(bool arg1);
     void on_actionDateAdded_toggled(bool arg1);
     void on_actionDateLastPlayed_toggled(bool arg1);
+    void on_actionPlaylistName_toggled(bool arg1);   // issue #1799
+    void on_actionItemNumber_toggled(bool arg1);     // issue #1799
     void on_actionResetColumnVisibility_triggered();
 
     void on_actionShow_All_Ages_triggered(bool checked);
@@ -1443,6 +1445,7 @@ private:
     QDateTime recentFenceDateTime;
     void reloadSongAges(bool show_all_sessions);
     void setDateLastPlayedCell(int row, const QDateTime &lastPlayed, const QBrush &textBrush);  // issue #1783
+    void migrateSortOrderForPlaylistColumns();  // issue #1799, one-shot
     bool autoScrollCuesheetsByDefault;  // #1724: global default from Preferences; each cuesheet may override
     void loadDanceProgramList(QString lastDanceProgram);
     Qt::ApplicationState currentApplicationState;

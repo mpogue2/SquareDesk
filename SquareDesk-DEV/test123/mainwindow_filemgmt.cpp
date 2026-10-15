@@ -1824,7 +1824,8 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
     QStringList m_TableHeader;
     m_TableHeader << "" << "Type" << "Label" << "Title" << "Levels" << "Recent" << "Age" << "Pitch" << "Tempo"
                   << "Album" << "Album Artist" << "Composer" << "Comments" << "Year" << "Duration"
-                  << "Artist" << "Rating" << "Date Added" << "Date Last Played";
+                  << "Artist" << "Rating" << "Date Added" << "Date Last Played"
+                  << "Playlist" << "#";
     ui->songTable->setHorizontalHeaderLabels(m_TableHeader);
     // AlignLeft on its own says nothing about the vertical, which then defaults to the TOP.  The
     //   older columns don't show it because updateSongTableColumnView() sets an explicit
@@ -2258,6 +2259,41 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
             twi1->setToolTip(typeTooltipLines.join("\n"));
         }
         ui->songTable->setItem(i, kTypeCol, twi1);
+
+        // PLAYLIST and # FIELDS (issue #1799) -----
+        // The playlist this row came from, and its position in it, straight out of the pathStack
+        //   entry -- the same place the Type column's "... 003" suffix comes from.  Both blank for
+        //   a plain track.  An Apple Music smart playlist is numbered too, in the order Music
+        //   hands its tracks back, which is its Playlist Order.
+        // # is a TableSortKeyItem keyed 0 when blank, so a blank sorts before 1 (as an unrated
+        //   song does in the Rating column), and 10 sorts after 9.
+        {
+            QString playlistName;
+            QString itemNumberString;
+            int itemNumber = 0;
+            if (playlistEntryParts(s, playlistName, itemNumberString)) {
+                static const QRegularExpression nonDigits("[^0-9]");
+                itemNumberString.remove(nonDigits); // the old "$!$" entries spell 100+ as "!100"
+                itemNumber = itemNumberString.toInt();
+            } else {
+                playlistName.clear();
+            }
+
+            QTableWidgetItem *playlistItem = new QTableWidgetItem(playlistName);
+            playlistItem->setForeground(textBrush);
+            playlistItem->setFlags(playlistItem->flags() & ~Qt::ItemIsEditable);      // not editable
+            if (!playlistName.isEmpty()) {
+                playlistItem->setToolTip(playlistName);   // hierarchical names get long, and this column elides
+            }
+            ui->songTable->setItem(i, kPlaylistNameCol, playlistItem);
+
+            QTableWidgetItem *itemNumberItem = new TableSortKeyItem(itemNumber > 0 ? QString::number(itemNumber) : QString(),
+                                                                    static_cast<double>(itemNumber));
+            itemNumberItem->setForeground(textBrush);
+            itemNumberItem->setTextAlignment(Qt::AlignCenter);
+            itemNumberItem->setFlags(itemNumberItem->flags() & ~Qt::ItemIsEditable);  // not editable
+            ui->songTable->setItem(i, kItemNumberCol, itemNumberItem);
+        }
 
         // LABEL + LABELNUM FIELD -----
         QTableWidgetItem *twi2 = new QTableWidgetItem((label + " " + labelnum).simplified());

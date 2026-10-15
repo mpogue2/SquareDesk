@@ -183,6 +183,8 @@ CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showArtistColumn, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showRatingColumn, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showDateAddedColumn, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showDateLastPlayedColumn, false);   // issue #1783
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showPlaylistNameColumn, false);     // issue #1799
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showItemNumberColumn, false);       // issue #1799
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showRecentColumn, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showAgeColumn, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showPitchColumn, true);
@@ -267,6 +269,7 @@ CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastNPlaylistsLoaded, "")  // comma separated l
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastDance,  "")
 
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(currentSortOrder, "")
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(sortOrderHasPlaylistColumns, false)  // one-shot migration of currentSortOrder, issue #1799
 
 // songTable's per-column widths, as "col:width,col:width,..." (issue #1744).  Empty means
 //   "never been set", in which case the built-in defaults and resizeColumnToContents() decide.

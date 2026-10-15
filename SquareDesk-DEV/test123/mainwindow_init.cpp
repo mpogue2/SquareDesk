@@ -1395,6 +1395,9 @@ void MainWindow::initializeMusicSearch() {
 // ====================================================
 void MainWindow::initializeMusicSongTable() {
     doNotCallLoadMusicList = false;
+
+    migrateSortOrderForPlaylistColumns();  // before the first loadMusicList() applies the saved order (issue #1799)
+
     longSongTableOperationCount = 0;  // initialize counter to zero (unblocked)
     startLongSongTableOperation("MainWindow");
 
@@ -1467,6 +1470,17 @@ void MainWindow::initializeMusicSongTable() {
         ui->songTable->horizontalHeader()->visualIndex(kDateLastPlayedCol),
         ui->songTable->horizontalHeader()->visualIndex(kDateAddedCol) + 1);
 
+    // Same again for Playlist and #, which belong just right of the Audition column, in that
+    //   order (issue #1799).
+    ui->songTable->setColumnWidth(kPlaylistNameCol, 160);
+    ui->songTable->setColumnWidth(kItemNumberCol, 40);
+    ui->songTable->horizontalHeader()->moveSection(
+        ui->songTable->horizontalHeader()->visualIndex(kPlaylistNameCol),
+        ui->songTable->horizontalHeader()->visualIndex(kNumberCol) + 1);
+    ui->songTable->horizontalHeader()->moveSection(
+        ui->songTable->horizontalHeader()->visualIndex(kItemNumberCol),
+        ui->songTable->horizontalHeader()->visualIndex(kPlaylistNameCol) + 1);
+
     ui->songTable->setColumnHidden(kLevelsCol, true); // levels column starts out hidden, same as the playlist Levels column
 
     // The Audition column's header is a blank square in the top left corner.  It was sortable,
@@ -1526,6 +1540,8 @@ void MainWindow::initializeMusicSongTable() {
     on_actionRating_toggled(prefsManager.GetshowRatingColumn());
     on_actionDateAdded_toggled(prefsManager.GetshowDateAddedColumn());
     on_actionDateLastPlayed_toggled(prefsManager.GetshowDateLastPlayedColumn());
+    on_actionPlaylistName_toggled(prefsManager.GetshowPlaylistNameColumn());   // issue #1799
+    on_actionItemNumber_toggled(prefsManager.GetshowItemNumberColumn());
 
     {
         // Now that the current_session_id is setup, we can load the call lists,

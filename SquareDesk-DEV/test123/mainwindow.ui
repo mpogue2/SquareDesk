@@ -4742,6 +4742,8 @@
      <property name="title">
       <string>Columns</string>
      </property>
+     <addaction name="actionPlaylistName"/>
+     <addaction name="actionItemNumber"/>
      <addaction name="actionType"/>
      <addaction name="actionLabel"/>
      <addaction name="actionLevels"/>
@@ -5502,6 +5504,28 @@
    </property>
    <property name="toolTip">
     <string>When the track was added to Apple Music</string>
+   </property>
+  </action>
+  <action name="actionPlaylistName">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Playlist</string>
+   </property>
+   <property name="toolTip">
+    <string>The playlist the song is on, for SquareDesk and Apple Music playlists</string>
+   </property>
+  </action>
+  <action name="actionItemNumber">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>#</string>
+   </property>
+   <property name="toolTip">
+    <string>The song's position in its playlist</string>
    </property>
   </action>
   <action name="actionDateLastPlayed">
