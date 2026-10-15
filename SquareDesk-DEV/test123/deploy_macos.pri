@@ -57,7 +57,11 @@ bundle_soundfx.files = $$files($$PWD/soundfx/*.mp3)
 
 # PDF viewer (qpdfjs): its "build" and "web" trees.  Only the Qt WebEngine build needs it;
 #   the WKWebView build displays PDFs natively (#1791).
-bundle_pdfjs.path    = Contents/Resources/minified
+#   NOTE: these are whole DIRECTORIES, so make only re-copies them when an entry is added to or
+#   removed from build/ or web/ -- editing a file inside them in place does NOT trigger a copy,
+#   and the bundle quietly keeps the old version.  After an in-place edit, touch the directory
+#   (e.g. touch ../third_party/qpdfjs/minified/web) or delete its copy in the bundle (#1732).
+bundle_pdfjs.path   = Contents/Resources/minified
 bundle_pdfjs.files   = $$PWD/../third_party/qpdfjs/minified/build $$PWD/../third_party/qpdfjs/minified/web
 
 # VAMP, for beat/measure detection and segmentation.
