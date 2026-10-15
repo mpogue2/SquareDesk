@@ -521,6 +521,7 @@ public slots:
     void revealInFinder();
     void refreshAllPlaylists();  // Issue #1547: refresh indentation after moves
     void updatePlaylistTipNumbers(QTableWidget *theTable);  // Issue #1714: tip numbers in the # column
+    void updatePlaylistDuplicateWarnings(QTableWidget *theTable);  // Issue #1794: warn about songs that are in a playlist more than once
 
     // ============================================================================
     // LYRICS & CUESHEET SLOTS

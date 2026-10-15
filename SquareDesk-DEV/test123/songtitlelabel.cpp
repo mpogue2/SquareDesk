@@ -33,6 +33,7 @@
 #include "dragicon.h"
 
 #include <QTextDocumentFragment>
+#include <QPainter>
 #include <QToolTip>
 
 static QRegularExpression title_tags_remover3("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
@@ -156,9 +157,90 @@ void SongTitleLabel::mouseMoveEvent(QMouseEvent *event)
 
 
 // ===============================================================
+// Duplicate song warning (issue #1794)
+//
+// The triangle is painted at the left edge of the label, rather than added to the label's text,
+//   because several places parse that text back into a song title (drag and drop, printing, the
+//   loaded-song highlighting), and an extra character would leak into all of them.
+static int duplicateWarningTriangleSize(const QLabel *label)
+{
+    return qRound(label->fontMetrics().height() * 0.8);
+}
+
+static bool isOverDuplicateWarningTriangle(const QLabel *label, int x)
+{
+    return x < duplicateWarningTriangleSize(label) + 2;
+}
+
 bool PaletteSongTitleLabel::event(QEvent *e)
 {
+    // hovering over the duplicate warning triangle explains it (issue #1794)
+    if (e->type() == QEvent::ToolTip && !duplicateWarning.isEmpty() &&
+        isOverDuplicateWarningTriangle(this, static_cast<QHelpEvent *>(e)->pos().x())) {
+        QToolTip::showText(static_cast<QHelpEvent *>(e)->globalPos(), duplicateWarning, this);
+        return true;
+    }
+    if (e->type() == QEvent::FontChange && !duplicateWarning.isEmpty()) {
+        setContentsMargins(duplicateWarningWidth(), 0, 0, 0);  // the triangle scales with the font
+    }
     return showTitleToolTipIfClipped(this, e) || QLabel::event(e);
+}
+
+// How much the title has to move right to make room for the triangle (plus a 2px gap).  A song
+//   under a marker is already indented with leading &nbsp;'s (issue #1547), and the triangle is
+//   drawn inside that blank space, so the title moves only by however much the indent is short,
+//   which is usually nothing at all.
+int PaletteSongTitleLabel::duplicateWarningWidth() const
+{
+    if (duplicateWarning.isEmpty()) {
+        return 0;
+    }
+
+    // leading &nbsp;'s, possibly inside the <b><i> that marks the loaded song (issue #1601)
+    static QRegularExpression leadingIndent("^(?:<[^>]*>)*((?:&nbsp;)+)");
+    QRegularExpressionMatch m = leadingIndent.match(text());
+    int indentWidth = m.hasMatch() ? fontMetrics().horizontalAdvance(QChar(0x00A0)) * int(m.captured(1).length() / 6) : 0;
+
+    int needed = duplicateWarningTriangleSize(this) + 2;
+    return qMax(0, needed - indentWidth);
+}
+
+void PaletteSongTitleLabel::setDuplicateWarning(const QString &tip)
+{
+    if (tip == duplicateWarning) {
+        return;
+    }
+    duplicateWarning = tip;
+    setContentsMargins(duplicateWarningWidth(), 0, 0, 0);  // shifts the title right, if the indent isn't room enough
+    update();
+}
+
+void PaletteSongTitleLabel::paintEvent(QPaintEvent *e)
+{
+    QLabel::paintEvent(e);
+    if (duplicateWarning.isEmpty()) {
+        return;
+    }
+
+    // a yellow triangle with a black "!" in it, drawn rather than taken from a font, so it
+    //   looks the same everywhere
+    QPainter p(this);
+    p.setRenderHint(QPainter::Antialiasing);
+    qreal s = duplicateWarningTriangleSize(this);
+    qreal x = 0;
+    qreal y = (height() - s) / 2.0;
+    QPolygonF triangle;
+    triangle << QPointF(x + s / 2.0, y) << QPointF(x + s, y + s) << QPointF(x, y + s);
+    p.setPen(QPen(QColor("#806000"), 1));
+    p.setBrush(QColor("#FFCC00"));
+    p.drawPolygon(triangle);
+
+    QFont f = font();
+    f.setBold(true);
+    f.setPixelSize(qMax(1, int(s * 0.7)));
+    p.setFont(f);
+    p.setPen(Qt::black);
+    p.drawText(QRectF(x, y + s * 0.22, s, s * 0.78), Qt::AlignCenter, "!");
 }
 
 void PaletteSongTitleLabel::mouseDoubleClickEvent(QMouseEvent *e)

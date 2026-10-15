@@ -317,6 +317,55 @@ bool MainWindow::shouldIndentPlaylistRow(QTableWidget *table, int rowNum) {
 }
 
 // ============================================================================================================
+// Duplicate song warnings in a playlist slot (issue #1794)
+//
+// When the pref is ON, every row whose song is in the slot more than once gets a warning triangle
+//   at the left of its title.  Markers are skipped, because they're repeated on purpose.  This
+//   looks at the whole slot each time, so removing one copy clears the warning on the other, and a
+//   saved playlist that already has duplicates shows them when it's loaded.
+void MainWindow::updatePlaylistDuplicateWarnings(QTableWidget *theTable) {
+    if (theTable == nullptr) {
+        return;
+    }
+
+    bool warn = prefsManager.GetwarnDuplicateSongs();
+
+    // row numbers (1-based, as shown) of each song, keyed by its absolute path
+    QHash<QString, QList<int>> rowsByPath;
+    if (warn) {
+        for (int i = 0; i < theTable->rowCount(); i++) {
+            QTableWidgetItem *pathItem = theTable->item(i, COLUMN_PATH);
+            if (pathItem != nullptr && !isPlaylistMarker(pathItem->text())) {
+                rowsByPath[pathItem->text()].append(i + 1);
+            }
+        }
+    }
+
+    for (int i = 0; i < theTable->rowCount(); i++) {
+        PaletteSongTitleLabel *titleLabel = dynamic_cast<PaletteSongTitleLabel*>(theTable->cellWidget(i, COLUMN_TITLE));
+        if (titleLabel == nullptr) {
+            continue;
+        }
+
+        QString tip;
+        QTableWidgetItem *pathItem = theTable->item(i, COLUMN_PATH);
+        if (warn && pathItem != nullptr) {
+            const QList<int> rows = rowsByPath.value(pathItem->text());
+            if (rows.size() > 1) {
+                QStringList rowNumbers;
+                for (int row : rows) {
+                    rowNumbers.append(QString::number(row));
+                }
+                QString lastRow = rowNumbers.takeLast();
+                tip = QString("This song is in this playlist %1 times (rows %2 and %3)")
+                          .arg(rows.size()).arg(rowNumbers.join(", "), lastRow);
+            }
+        }
+        titleLabel->setDuplicateWarning(tip);
+    }
+}
+
+// ============================================================================================================
 // Tip numbers in the # column of a playlist slot (issue #1714)
 //
 // The # item's text stays the true sequential line number, because MyTableWidget's move/reorder
@@ -984,6 +1033,7 @@ void MainWindow::loadTrackFilterToSlot(QString PlaylistFileName, QString relativ
 
     theTableWidget->resizeColumnToContents(COLUMN_NUMBER);
     updatePlaylistTipNumbers(theTableWidget); // issue #1714
+    updatePlaylistDuplicateWarnings(theTableWidget); // issue #1794
     updatePlaylistCurrentLevels(theTableWidget, QString(), &settingsCache); // issue #1803
 
     // NOTE: sorting stays OFF on palette slot tables (issue #1701).  It used to be turned back ON
@@ -1102,6 +1152,7 @@ void MainWindow::loadAppleMusicPlaylistToSlot(QString PlaylistFileName, QString 
 
     theTableWidget->resizeColumnToContents(COLUMN_NUMBER);
     updatePlaylistTipNumbers(theTableWidget); // issue #1714
+    updatePlaylistDuplicateWarnings(theTableWidget); // issue #1794
     updatePlaylistCurrentLevels(theTableWidget, QString(), &settingsCache); // issue #1803
 
     QString theRelativePath = relativePath.replace(APPLE_MUSIC_PATH_PREFIX,"").replace(CSV_FILE_EXTENSION,"");
@@ -1269,6 +1320,7 @@ void MainWindow::loadRegularPlaylistToSlot(QString PlaylistFileName, QString rel
 
         theTableWidget->resizeColumnToContents(COLUMN_NUMBER);
         updatePlaylistTipNumbers(theTableWidget); // issue #1714
+        updatePlaylistDuplicateWarnings(theTableWidget); // issue #1794
         updatePlaylistCurrentLevels(theTableWidget, QString(), &settingsCache); // issue #1803
 
         QString theRelativePath = relativePath.replace(PLAYLISTS_PATH_PREFIX,"").replace(CSV_FILE_EXTENSION,"");
@@ -2147,6 +2199,8 @@ void MainWindow::refreshAllPlaylists() {
 
         }
 
+        // after the titles, because setTitleField() just replaced every title label (issue #1794)
+        updatePlaylistDuplicateWarnings(theTable);
     }
 
     // setTitleField() replaces each title label with a new default-font one, so
@@ -2705,6 +2759,7 @@ void MainWindow::addPlaylistItemAt(int whichSlot, const QString &trackName, cons
 
     destTableWidget->resizeColumnToContents(COLUMN_NUMBER); // FIX: perhaps only if this is the first row?
     updatePlaylistTipNumbers(destTableWidget); // issue #1714
+    updatePlaylistDuplicateWarnings(destTableWidget); // issue #1794
     updatePlaylistCurrentLevels(destTableWidget, absPath); // just the inserted song's rows (issue #1803)
     //    theTableWidget->resizeColumnToContents(COLUMN_PITCH);
     //    theTableWidget->resizeColumnToContents(COLUMN_TEMPO);

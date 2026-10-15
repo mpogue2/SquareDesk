@@ -141,6 +141,7 @@ CONFIG_ATTRIBUTE_COMBO(appleMusicTypeDefaultCombo, appleMusicTypeDefault, 3)  //
 CONFIG_ATTRIBUTE_COMBO(appleMusicLabelFieldCombo, appleMusicLabelField, 0)
 
 CONFIG_ATTRIBUTE_BOOLEAN(useTipNumbersCheckbox,useTipNumbers, false) // issue #1714
+CONFIG_ATTRIBUTE_BOOLEAN(warnDuplicateSongsCheckbox,warnDuplicateSongs, false) // issue #1794: OFF, because markers repeat
 
 //CONFIG_ATTRIBUTE_BOOLEAN(enableFlashCallsCheckbox,enableFlashCalls, false)
 

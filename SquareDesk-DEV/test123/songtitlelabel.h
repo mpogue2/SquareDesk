@@ -59,13 +59,17 @@ private:
     MainWindow *mw;
     QPoint dragStartPosition;
     bool songUsed;
+    QString duplicateWarning;  // non-empty = draw a warning triangle at the left, with this as its tooltip (issue #1794)
+    int duplicateWarningWidth() const;
 public:
     PaletteSongTitleLabel(MainWindow *mw) : QLabel(), mw(mw), songUsed(false) {}
     void mouseDoubleClickEvent(QMouseEvent *) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     bool event(QEvent *e) override;  // full-title tooltip when clipped (issue #1796)
+    void paintEvent(QPaintEvent *e) override;  // draws the duplicate warning triangle (issue #1794)
     void setSongUsed(bool b);  // true = song was used recently (Recent == "*")
+    void setDuplicateWarning(const QString &tip);  // "" = no warning (issue #1794)
     QString textColor;  // saved so that we can restore it when not selected
 };
 

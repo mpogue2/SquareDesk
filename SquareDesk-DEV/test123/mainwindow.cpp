@@ -9188,6 +9188,7 @@ void MainWindow::addPlaylistItemsToBottom(int whichSlot) { // slot is 0 - 2
     }
 
     updatePlaylistTipNumbers(theTableWidget); // issue #1714
+    updatePlaylistDuplicateWarnings(theTableWidget); // issue #1794
     updatePlaylistCurrentLevels(theTableWidget); // issue #1803
 
     QTimer::singleShot(250, [theTableWidget]{
@@ -9264,6 +9265,7 @@ void MainWindow::addPlaylistItemToBottom(int whichSlot, QString title, QString t
 
     theTableWidget->resizeColumnToContents(COLUMN_NUMBER); // FIX: perhaps only if this is the first row?
     updatePlaylistTipNumbers(theTableWidget); // issue #1714
+    updatePlaylistDuplicateWarnings(theTableWidget); // issue #1794
     updatePlaylistCurrentLevels(theTableWidget, absPath); // just the added song's rows (issue #1803)
 //    theTableWidget->resizeColumnToContents(COLUMN_PITCH);
 //    theTableWidget->resizeColumnToContents(COLUMN_TEMPO);
