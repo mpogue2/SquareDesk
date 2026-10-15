@@ -614,11 +614,16 @@ void MainWindow::setCurrentSessionId(int id)
     songSettings.setCurrentSession(id);
 }
 
-QString MainWindow::ageToIntString(QString ageString) {
+// Age is in local calendar days (issue #1802): something played last night is Age 1 this
+//   morning, even though less than 24 hours have elapsed.  The age rolls over at local midnight.
+//   ageString (fractional elapsed days) is only the fallback when lastPlayed isn't known.
+QString MainWindow::ageToIntString(QString ageString, const QDateTime &lastPlayed) {
     if (ageString == "") {
         return(QString(""));
     }
-    int ageAsInt = static_cast<int>(ageString.toFloat());
+    int ageAsInt = (lastPlayed.isValid() ?
+                        static_cast<int>(qMax(qint64(0), lastPlayed.toLocalTime().date().daysTo(QDate::currentDate()))) :
+                        static_cast<int>(ageString.toFloat()));
     QString ageAsIntString(QString("%1").arg(ageAsInt, 3).trimmed());
 //    qDebug() << "ageString: " << ageString << ", ageAsInt: " << ageAsInt << ", ageAsIntString: " << ageAsIntString;
     return(ageAsIntString);
@@ -669,7 +674,7 @@ void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent colu
         QString path = songSettings.songKeyFor(origPath);   // songs.filename key (issue #1747)
         QHash<QString,QString>::const_iterator age = ages.constFind(path);
 
-        QString theAgeString    = (age == ages.constEnd() ? "" : ageToIntString(age.value()));
+        QString theAgeString    = (age == ages.constEnd() ? "" : ageToIntString(age.value(), lastPlayed.value(path)));
         QString theRecentString = (age == ages.constEnd() ? "" : ageToRecent(age.value()));
 
         ui->songTable->item(i,kAgeCol)->setText(theAgeString);

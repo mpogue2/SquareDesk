@@ -1439,7 +1439,7 @@ private:
     void setCurrentSessionIdReloadSongAgesCheckMenu(int id);
     void setNowPlayingLabelWithColor(QString s, bool flashcall = false);
     QString ageToRecent(QString age);
-    QString ageToIntString(QString ageString);
+    QString ageToIntString(QString ageString, const QDateTime &lastPlayed = QDateTime());
     QDateTime recentFenceDateTime;
     void reloadSongAges(bool show_all_sessions);
     void setDateLastPlayedCell(int row, const QDateTime &lastPlayed, const QBrush &textBrush);  // issue #1783

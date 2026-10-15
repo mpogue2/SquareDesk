@@ -2398,7 +2398,7 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
             ageString = agesByFilename.value(fi.completeBaseName());
             lastPlayed = lastPlayedByFilename.value(fi.completeBaseName());
         }
-        QString ageAsIntString = ageToIntString(ageString);
+        QString ageAsIntString = ageToIntString(ageString, lastPlayed);
         QTableWidgetItem *twi4 = new TableNumberItem(ageAsIntString); // TableNumberItem so it's numerically sortable
         twi4->setForeground(textBrush);
         twi4->setTextAlignment(Qt::AlignCenter);
