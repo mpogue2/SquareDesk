@@ -40,12 +40,15 @@
 #include "songtitlelabel.h"
 #include "playlist_constants.h"
 #include "playlistexport.h"
+#include "playlistprinter.h"
 #include "mytreewidget.h"
 #include "mainwindow_applemusic.h"
 #include "applemusicfilter.h"
 #include <algorithm>
 #include <functional>
 #include <utility>
+#include <QTextBlock>
+#include <QTextDocument>
 
 #include "palettetablebulkupdate.h"
 
@@ -1919,6 +1922,33 @@ void MainWindow::removeFromRecentPlaylistsList(const QString &playlistPath)
 }
 
 // ----------------------------
+// Reads a palette slot title label back into the title, its color, and its tags (issue #1804).
+//   The label's HTML is exactly what's on screen, so printing needs nothing extra stored in the
+//   table: the first run of text is the title, and every later run with a background is a tag.
+static void readTitleLabel(const QLabel *label, PlaylistPrintRow &row) {
+    QTextDocument doc;
+    doc.setHtml(label->text());
+    for (QTextBlock block = doc.begin(); block.isValid(); block = block.next()) {
+        for (auto it = block.begin(); !it.atEnd(); ++it) {
+            QTextFragment fragment = it.fragment();
+            QString text = fragment.text().replace(QChar::Nbsp, ' ').trimmed();
+            if (text.isEmpty()) {
+                continue;  // indentation, or the space between tags
+            }
+            QTextCharFormat format = fragment.charFormat();
+            if (row.title.isEmpty()) {
+                row.title = text;
+                row.titleColor = format.foreground().color();
+            } else if (format.background().style() != Qt::NoBrush) {
+                row.tags.append({ text, format.foreground().color(), format.background().color() });
+            } else {
+                row.title += " " + text;
+            }
+        }
+    }
+    row.missing = label->font().strikeOut();  // setTitleField() strikes out a file that isn't there
+}
+
 void MainWindow::printPlaylistFromSlot(int whichSlot)
 {
     // Playlist > Print Playlist...
@@ -1930,74 +1960,64 @@ void MainWindow::printPlaylistFromSlot(int whichSlot)
         return;
     }
 
-    // --------
-    QList<PlaylistExportRecord> exports;
-
-    // iterate over the playlist to get all the info
     MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
     MyTableWidget *table = tables[whichSlot];
 
+    PlaylistPrintJob job;
+
+    // e.g. "Jokers/2026/Jokers_2026.10.14", "/tracks/patter", "/Apple Music/Second Playlist"
+    QStringList parts = relPathInSlot[whichSlot].split('/', Qt::SkipEmptyParts);
+    job.name = parts.isEmpty() ? QString("Untitled Playlist") : parts.takeLast();
+    if (!parts.isEmpty() && parts.first() == "tracks") {
+        parts.first() = "Tracks";
+    } else if (!parts.isEmpty() && parts.first() == "Apple Music") {
+        // already reads well
+    } else if (!relPathInSlot[whichSlot].isEmpty()) {
+        parts.prepend("Playlists");
+    }
+    job.folders = parts;
+    job.dateLine = QDate::currentDate().toString("dddd, MMMM d, yyyy");
+
     for (int i = 0; i < table->rowCount(); i++) {
-        // qDebug() << "TABLE ITEM:" << table->item(i,0)->text() << table->item(i,1)->text()  << table->item(i,2)->text()  << table->item(i,3)->text()  << table->item(i,4)->text()  << table->item(i,5)->text();
-        // 0: i
-        // 1: title
-        // 2: pitch
-        // 3: tempo
-        // 4: fullPath
-        // 5: editingIndicator (1 = editing)
+        PlaylistPrintRow row;
 
-        PlaylistExportRecord rec;
-        rec.index = i+1;
-        rec.title = table->item(i, COLUMN_PATH)->text(); // fullPath
-        rec.pitch = table->item(i, COLUMN_PITCH)->text();
-        rec.tempo = table->item(i, COLUMN_TEMPO)->text();
+        QTableWidgetItem *pathItem = table->item(i, COLUMN_PATH);
+        QString path = (pathItem != nullptr) ? pathItem->text() : QString();
+        row.isMarker = isPlaylistMarker(path);
 
-        exports.append(rec);
-    }
-
-    QString shortPlaylistName = relPathInSlot[whichSlot];
-
-    QString toBePrinted = "<h2>PLAYLIST: " + shortPlaylistName + "</h2>\n"; // TITLE AT TOP OF PAGE
-
-    QTextDocument doc;
-    QSizeF paperSize;
-    paperSize.setWidth(printer.width());
-    paperSize.setHeight(printer.height());
-    doc.setPageSize(paperSize);
-
-    patterColorString = prefsManager.GetpatterColorString();
-    singingColorString = prefsManager.GetsingingColorString();
-    calledColorString = prefsManager.GetcalledColorString();
-    extrasColorString = prefsManager.GetextrasColorString();
-
-    char buf[256];
-    for (const auto& rec : exports)
-    {
-        QString baseName = rec.title;
-        baseName.replace(QRegularExpression("^" + musicRootPath),"");  // delete musicRootPath at beginning of string
-
-        snprintf(buf, sizeof(buf), "%02d: %s\n", rec.index, baseName.toLatin1().data());
-
-        QStringList parts = baseName.split("/");
-        QString folderTypename = parts[1].toLower(); // /patter/foo.mp3 --> "patter"
-
-        QString colorString("black");
-        if (songTypeNamesForPatter.contains(folderTypename)) {
-            colorString = patterColorString;
-        } else if (songTypeNamesForSinging.contains(folderTypename)) {
-            colorString = singingColorString;
-        } else if (songTypeNamesForCalled.contains(folderTypename)) {
-            colorString = calledColorString;
-        } else if (songTypeNamesForExtras.contains(folderTypename)) {
-            colorString = extrasColorString;
+        // the # column paints PLAYLIST_TIPNUMBER_ROLE when it's set, and the line number otherwise (issue #1714)
+        if (QTableWidgetItem *numItem = table->item(i, COLUMN_NUMBER)) {
+            QVariant tipNumber = numItem->data(PLAYLIST_TIPNUMBER_ROLE);
+            if (tipNumber.isValid()) {
+                job.tipNumbers = true;
+                row.number = tipNumber.toString();
+            } else {
+                row.number = numItem->text();
+            }
         }
-        toBePrinted += "<span style=\"color:" + colorString + "\">" + QString(buf) + "</span><BR>\n";
+
+        if (const QLabel *label = qobject_cast<const QLabel *>(table->cellWidget(i, COLUMN_TITLE))) {
+            readTitleLabel(label, row);
+        }
+        if (row.title.isEmpty()) {
+            static QRegularExpression dotMusicSuffix(SUPPORTED_AUDIO_EXTENSIONS_REGEX, QRegularExpression::CaseInsensitiveOption);
+            row.title = path.split('/').last().replace(dotMusicSuffix, "");
+        }
+
+        if (QTableWidgetItem *levelsItem = table->item(i, COLUMN_LEVELS)) {
+            row.levels = levelsItem->text();
+        }
+        if (QTableWidgetItem *pitchItem = table->item(i, COLUMN_PITCH)) {
+            row.pitch = pitchItem->text();
+        }
+        if (QTableWidgetItem *tempoItem = table->item(i, COLUMN_TEMPO)) {
+            row.tempo = tempoItem->text();
+        }
+
+        job.rows.append(row);
     }
 
-    //        qDebug() << "PRINT: " << toBePrinted;
-
-    doc.setHtml(toBePrinted);
-    doc.print(&printer);
+    printPlaylist(&printer, job);
 }
 
 // ----------------------------------------------
