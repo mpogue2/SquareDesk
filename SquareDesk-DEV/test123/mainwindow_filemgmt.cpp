@@ -1329,9 +1329,13 @@ void MainWindow::filterMusic()
     //   Rating (stars), Date Added and Date Last Played (locale dates) are left out on purpose:
     //   typed text can't match stars, and digits in a date would match label-number searches all
     //   over the place.
+    // Playlist joined in issue #1799, when a SquareDesk playlist row's Type stopped carrying the
+    //   playlist's name; turning the column on is how a playlist name stays searchable.  # is left
+    //   out for the same reason as the dates: its digits would match label numbers.
     // Worked out once here rather than per row.
     QList<int> searchableMetaCols;
-    for (int col : { kAlbumCol, kAlbumArtistCol, kArtistCol, kComposerCol, kCommentsCol, kYearCol, kDurationCol }) {
+    for (int col : { kAlbumCol, kAlbumArtistCol, kArtistCol, kComposerCol, kCommentsCol, kYearCol, kDurationCol,
+                     kPlaylistNameCol }) {
         if (!ui->songTable->isColumnHidden(col)) {
             searchableMetaCols.append(col);
         }
@@ -2092,16 +2096,28 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
                 //   local playlist row at a glance, so it goes on here, now that the playlist
                 //   name it used to ride in on no longer carries one.
                 type = QString(QChar(APPLE_SYMBOL_UNICODE)) + " " + type;
-            }
 
-            QString GreekXi = QChar(0x039E);  // use GREEK XI for Local Playlists (sorts almost at the bottom, and looks like a playlist!)
-            type = GreekXi + " " + type; // this is tricky.  Leading GREEK XI will force sort to almost bottom for "<GREEKXI> SquareDesk Playlist Name".
+                QString GreekXi = QChar(0x039E);  // use GREEK XI for Local Playlists (sorts almost at the bottom, and looks like a playlist!)
+                type = GreekXi + " " + type; // this is tricky.  Leading GREEK XI will force sort to almost bottom for "<GREEKXI> SquareDesk Playlist Name".
 
-            // An Apple Music track gets the Type its metadata says it is, per Preferences >
-            //   Apple Music (issue #1740, item 6).
-            if (showingAppleMusic) {
+                // An Apple Music track gets the Type its metadata says it is, per Preferences >
+                //   Apple Music (issue #1740, item 6).
                 appleMusicType = appleMusicTypeByPath.value(origPath);
                 type = applyAppleMusicTypeColumnFormat(type, appleMusicType, appleMusicTypeColumnFormat);
+            } else {
+                // A SquareDesk playlist row's Type is the song's own Type, the same word the
+                //   Tracks view shows for it: the first folder under the Music Directory (see
+                //   findFilesRecursively()), and blank for a song that sits in the Music Directory
+                //   itself.  It used to be "<GREEK XI> PlaylistName 003", which was only there to
+                //   keep the rows in playlist order; the Playlist and # columns do that now
+                //   (issue #1799).
+                type = "";
+                if (origPath.startsWith(musicRootPath + "/")) {
+                    const QString relPath = origPath.mid(musicRootPath.length() + 1);
+                    if (relPath.contains("/")) {
+                        type = relPath.section("/", 0, 0);
+                    }
+                }
             }
             // labelnum = "";
             // labelnum_extra = "";
