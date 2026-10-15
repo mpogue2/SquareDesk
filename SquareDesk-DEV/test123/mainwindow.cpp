@@ -565,6 +565,9 @@ void MainWindow::musicRootModified(QString s)
         // ui->statusBar->showMessage("Scanning Music Directory....");
         // QCoreApplication::processEvents(); // show the message
 
+        if (s == "MANUAL_RESCAN") {
+            invalidateAppleMusicImport(); // the user's "re-read everything" escape hatch covers Apple Music too (issue #1784)
+        }
         bool musicDirChanged = findMusic(musicRootPath, true, s == "MANUAL_RESCAN");  // get the filenames from the user's directories
                                                                // (a MANUAL_RESCAN bypasses the pathStack cache, so it's the
                                                                //  escape hatch if the cache ever goes stale -- Issue #1669)
@@ -4829,6 +4832,16 @@ void MainWindow::on_actionPreferences_triggered()
                             || (oldEnableCuesheetSearch != prefsManager.GetenableCuesheetSearch())
                             || (!oldEnableNewFileWatcher && prefsManager.GetenableNewFileWatcher());
 
+        // Of those, only these need Apple Music read again.  The ?call search and FileWatcher prefs
+        //   don't change anything Apple Music hands us, so findMusic() keeps what it has for those.
+        //   A new music root means a new database, which hasn't had its Apple Music rows re-keyed
+        //   or its Apple Music plays imported yet (issue #1784).
+        if ((oldMusicRootPath != newMusicRootPath)
+            || appleMusicSettingsChanged
+            || (oldEnableAppleMusic != prefsManager.GetenableAppleMusic())) {
+            invalidateAppleMusicImport();
+        }
+
         bool musicDirChanged = false;
         if (rescanNeeded) {
             applyProgress(); // ".." -- about to re-scan (findMusic shows its own message if it really scans)
@@ -6295,6 +6308,7 @@ void MainWindow::on_actionStartup_Wizard_triggered()
         songTypeToggleList = value.toLower().split(';', Qt::KeepEmptyParts);
         
         // used to store the file paths
+        invalidateAppleMusicImport(); // the wizard can change the music root, so the new database needs Apple Music keys and plays too (issue #1784)
         findMusic(musicRootPath, true);  // get the filenames from the user's directories
         filterMusic(); // and filter them into the songTable
 //        qDebug() << "LOAD MUSIC LIST FROM STARTUP WIZARD TRIGGERED";
@@ -9705,6 +9719,7 @@ void MainWindow::on_actionResync_to_Apple_Music_triggered()
 {
     ui->statusBar->showMessage("Getting playlist info from Apple Music...");
     qApp->processEvents();
+    invalidateAppleMusicImport(); // this is the one place the user asks for a fresh read, by name (issue #1784)
     findMusic(musicRootPath, true);
     loadMusicList(nullptr, currentTypeFilter, true, true);
     filterMusic();

@@ -27,6 +27,8 @@
 #import <iTunesLibrary/iTunesLibrary.h>
 
 #include <cstdio>   // snprintf, for formatting persistentID (issue #1747)
+#include <cstdint>  // SIZE_MAX
+#include <unordered_map>
 
 #include "mainwindow_applemusic.h"
 
@@ -80,6 +82,14 @@ std::vector<PlaylistTrack> readAllPlaylists(std::string &errorOut)
 
         NSISO8601DateFormatter *iso8601 = [[NSISO8601DateFormatter alloc] init];
 
+        // A song on several playlists comes back once per playlist, and its fields are the same
+        //   every time.  Reading item.location is nearly all of this function's cost (~0.1-0.3ms
+        //   per item, against a few microseconds for every other field put together), so convert
+        //   each song once, keyed on Music's persistentID, and copy it for its other playlists.
+        //   persistentID itself is free to read (issue #1784).
+        static const size_t kNoPath = SIZE_MAX;               // a song with no file: skip it every time
+        std::unordered_map<unsigned long long, size_t> firstIndexByID; // persistentID -> its first entry in result
+
         for (ITLibPlaylist *playlist in library.allPlaylists) {
             if (playlist.kind != ITLibPlaylistKindSmart &&
                 playlist.kind != ITLibPlaylistKindRegular) continue;
@@ -95,8 +105,26 @@ std::vector<PlaylistTrack> readAllPlaylists(std::string &errorOut)
             int itemNum = 1;
 
             for (ITLibMediaItem *item in playlist.items) {
+                const unsigned long long itemID = item.persistentID ? [item.persistentID unsignedLongLongValue] : 0;
+                if (itemID != 0) {
+                    auto seen = firstIndexByID.find(itemID);
+                    if (seen != firstIndexByID.end()) {
+                        if (seen->second == kNoPath) continue;
+                        PlaylistTrack copy = result[seen->second];   // a copy: push_back may reallocate
+                        copy.playlistType = type;
+                        copy.playlistName = name;
+                        copy.itemNumber   = itemNum++;
+                        result.push_back(std::move(copy));
+                        continue;
+                    }
+                }
+
                 NSString *path = item.location.path;
-                if (!path) continue;
+                if (!path) {
+                    if (itemID != 0) firstIndexByID[itemID] = kNoPath;
+                    continue;
+                }
+                if (itemID != 0) firstIndexByID[itemID] = result.size();   // the entry pushed below
 
                 auto str = [](NSString *s) -> std::string {
                     return s ? s.UTF8String : "";

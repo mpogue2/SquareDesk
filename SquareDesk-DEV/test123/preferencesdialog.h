@@ -191,6 +191,7 @@ private:
     void updateAppleMusicEnabledStates();
     void updateAppleMusicPreview();       // the match count, and the live preview table
     void loadAppleMusicLibraryIfNeeded();
+    void loadAppleMusicLibraryFromITLibrary();  // only when MainWindow has no current import (issue #1784)
     void refreshAppleMusicValuePicker(QComboBox *valueCombo, const QString &fieldKey);
     void showAppleMusicValueMenu(QLineEdit *target, QToolButton *button);
     QList<AppleMusicRule> appleMusicRulesFromWidgets() const;

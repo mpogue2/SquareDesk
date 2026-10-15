@@ -1484,6 +1484,40 @@ void PreferencesDialog::loadAppleMusicLibraryIfNeeded()
     }
     appleMusicLibraryLoaded = true;  // one attempt per visit to Preferences, success or not
 
+    if (mw->appleMusicImportCurrent) {
+        // MainWindow already read Apple Music, at startup or at the last resync, and kept every
+        //   song it could see before the filter, after the same drops that
+        //   loadAppleMusicLibraryFromITLibrary() makes.  Use that, rather than reading the whole
+        //   library again: on a large library that took several seconds, and it happened BEFORE
+        //   the dialog appeared whenever Preferences had last been left on this tab.  It is also
+        //   exactly what the next import of the same library will filter, so the preview can't
+        //   disagree with it (issue #1784).
+        appleMusicTracks = mw->appleMusicAllTracks;
+        appleMusicLibraryError = mw->appleMusicImportError;
+    } else {
+        // Apple Music sync is off, so MainWindow has nothing.  Read it here, so that someone
+        //   deciding whether to turn sync on can see what it would bring in.
+        loadAppleMusicLibraryFromITLibrary();
+    }
+
+    // now that we know what's in the library, the pulldowns can offer real values
+    for (int i = 0; i < appleMusicRuleRowCount(); ++i) {
+        QWidget *row = appleMusicRuleRowAt(i);
+        if (!row) {
+            continue;
+        }
+        QComboBox *fieldCombo = row->findChild<QComboBox*>("ruleField");
+        QComboBox *valueCombo = row->findChild<QComboBox*>("ruleValue");
+        if (fieldCombo && valueCombo) {
+            refreshAppleMusicValuePicker(valueCombo, fieldCombo->currentData().toString());
+        }
+    }
+}
+
+// Read Apple Music directly.  Only for when MainWindow has no current import to lend us, i.e.
+//   Apple Music sync is off (issue #1784).
+void PreferencesDialog::loadAppleMusicLibraryFromITLibrary()
+{
     // Read the PLAYLISTS, not the whole library.  SquareDesk only ever imports tracks that are
     //   in an Apple Music playlist, so a song that is merely in the library can't arrive however
     //   the rules are written, and counting it would overstate the match by a wide margin.  This
@@ -1525,19 +1559,6 @@ void PreferencesDialog::loadAppleMusicLibraryIfNeeded()
             continue;
         }
         appleMusicTracks.push_back(appleMusicMetaOf(track));
-    }
-
-    // now that we know what's in the library, the pulldowns can offer real values
-    for (int i = 0; i < appleMusicRuleRowCount(); ++i) {
-        QWidget *row = appleMusicRuleRowAt(i);
-        if (!row) {
-            continue;
-        }
-        QComboBox *fieldCombo = row->findChild<QComboBox*>("ruleField");
-        QComboBox *valueCombo = row->findChild<QComboBox*>("ruleValue");
-        if (fieldCombo && valueCombo) {
-            refreshAppleMusicValuePicker(valueCombo, fieldCombo->currentData().toString());
-        }
     }
 }
 

@@ -47,6 +47,7 @@
 #include <algorithm>
 #include <functional>
 #include <utility>
+#include <QElapsedTimer>
 #include <QTextBlock>
 #include <QTextDocument>
 
@@ -2213,12 +2214,17 @@ void MainWindow::getAppleMusicInfo() {
     // This is the new integration with Apple Music (much faster, more powerful)
     // qDebug() << "getAppleMusicInfo =============";
 
+    QElapsedTimer importTimer;   // for the one-line summary at the end (issue #1784)
+    importTimer.start();
+
     std::string error;
     const std::vector<PlaylistTrack> tracks = readAllPlaylists(error); // get all the info
+    const qint64 readMS = importTimer.elapsed();
 
     if (!error.empty()) {
         qDebug() << "Error in readAllPlaylists: " << error << "\n";
     }
+    appleMusicImportError = QString::fromStdString(error);
 
     // qDebug() << tracks.size() << " tracks found.";
 
@@ -2235,6 +2241,9 @@ void MainWindow::getAppleMusicInfo() {
     appleMusicLabelReasonByPath.clear();
     appleMusicPersistentIDByPath.clear();
     appleMusicMetaByPath.clear();
+    appleMusicAllTracks.clear();
+    appleMusicAllTracks.reserve(tracks.size());
+    QSet<QString> inAllTracks;          // absolute paths already in appleMusicAllTracks (issue #1784)
 
     // qDebug() << "type,name,itemnumber,title,artist,title,genre,BPM,rating,year,grouping,work,modifiedDate";
     // int trackCount = 0;
@@ -2294,6 +2303,15 @@ void MainWindow::getAppleMusicInfo() {
         //   checks above are: numbering first and filtering later leaves visible gaps in the
         //   # column, e.g. 1, 2, 3, 5 (issue #1740, #1799).
         const AppleMusicTrackMeta meta = appleMusicMetaOf(t);
+
+        // Every playable, present song, once, BEFORE the filter -- this is the list the
+        //   Preferences > Apple Music preview filters, so it doesn't have to read Apple Music
+        //   again itself (issue #1784).
+        if (!inAllTracks.contains(absolutePath)) {
+            inAllTracks.insert(absolutePath);
+            appleMusicAllTracks.push_back(meta);
+        }
+
         if (applyFilter && !appleMusicFilter.passes(meta)) {
             continue; // not square dance music, by the user's own rules
         }
@@ -2467,6 +2485,18 @@ void MainWindow::getAppleMusicInfo() {
 
     // qDebug() << "allAppleMusicPlaylistNames =========\n" << allAppleMusicPlaylistNames;
     // qDebug() << "allAppleMusicPlaylists =============\n" << allAppleMusicPlaylists;
+
+    appleMusicImportCurrent = true;   // findMusic() can keep this until something invalidates it (issue #1784)
+
+    // One line per import, so an "Apple Music is slow" report comes with numbers.  The read is
+    //   almost all ITLibrary resolving each song's file location, ~0.1-0.3ms apiece, and is paid
+    //   in full by every read, because nothing carries over from one ITLibrary to the next
+    //   (issue #1784).
+    qDebug().noquote() << QString("getAppleMusicInfo: %1 playlist memberships, %2 playable songs, %3 rows imported;"
+                                  " read %4 ms, total %5 ms")
+                              .arg(tracks.size()).arg(appleMusicAllTracks.size())
+                              .arg(pathStackNewApplePlaylists->size())
+                              .arg(readMS).arg(importTimer.elapsed());
 
     // ---- DIAGNOSTIC: say what was dropped from each playlist, and why (issue #1740).  Songs
     //   vanish silently otherwise, and "is that really all of them?" is not a question the UI can

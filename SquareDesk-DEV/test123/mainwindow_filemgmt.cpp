@@ -1092,13 +1092,27 @@ bool MainWindow::findMusic(QString mainRootDir, bool refreshDatabase, bool force
     t.elapsed(__LINE__);
 
     // APPLE MUSIC ------------
+    // Re-read only when what we have is stale.  This used to run on EVERY call, including the
+    //   ~50ms cache-hit path that every FileWatcher wakeup takes, and a large Apple Music library
+    //   costs seconds to read -- for a change in the Music Directory, which can't change anything
+    //   in Apple Music.  The callers that DO want a fresh read call invalidateAppleMusicImport()
+    //   first: startup, Resync to Apple Music, Manual Rescan, the startup wizard, and the Apple
+    //   Music, music root and Apple Music import settings in Preferences (issue #1784).
     if (prefsManager.GetenableAppleMusic()) {
 #ifdef OLDAPPLEMUSICPLAYLISTS
         getAppleMusicPlaylists(); // and add them to the pathStackPlaylists, with newType == "AppleMusicPlaylistName$!$AppleMusicTitle", and fullPath = path to MP3 file on disk
 #endif
 #ifdef NEWAPPLEMUSICINTEGRATION
-        getAppleMusicInfo(); // and add them to the pathStack and pathStackPlaylists, with newType == "AppleMusicPlaylistName$!$AppleMusicTitle", and fullPath = path to MP3 file on disk
+        if (!appleMusicImportCurrent) {
+            getAppleMusicInfo(); // fills pathStackApplePlaylists and pathStackNewApplePlaylists, and the appleMusic*ByPath hashes
+        }
 #endif
+    } else {
+        // Sync is off, so nobody reads these.  Let the memory go, and make sure turning sync back
+        //   on later reads Apple Music afresh rather than trusting a stale copy.
+        appleMusicAllTracks.clear();
+        appleMusicAllTracks.shrink_to_fit();
+        appleMusicImportCurrent = false;
     }
     scanProgress(); // "....." -- Apple Music read (or skipped, if it's not enabled)
 

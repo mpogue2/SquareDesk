@@ -195,6 +195,23 @@ public:
     QString currentThemeString;
     int longSongTableOperationCount;
 
+    // Every song the last Apple Music import could see, BEFORE the square dance filter: one entry
+    //   per path, playable formats only, files present on this Mac, in first-seen order.  The
+    //   Preferences > Apple Music preview runs its filter over this, instead of reading the whole
+    //   Apple Music library again every time the dialog opens on that tab -- which took several
+    //   seconds on a large library, because resolving each track's file location costs ITLibrary
+    //   ~0.25ms, and none of that survives from one ITLibrary instance to the next (issue #1784).
+    //   Only meaningful while appleMusicImportCurrent is true.
+    std::vector<AppleMusicTrackMeta> appleMusicAllTracks;
+    QString appleMusicImportError;          // ...and what readAllPlaylists() said went wrong, if anything
+
+    // True once getAppleMusicInfo() has run, so findMusic() can keep what it already has instead
+    //   of re-reading Apple Music on every rescan.  A Music Directory change can't change anything
+    //   in Apple Music.  Cleared by invalidateAppleMusicImport() wherever a fresh read IS wanted
+    //   (issue #1784).
+    bool appleMusicImportCurrent = false;
+    void invalidateAppleMusicImport() { appleMusicImportCurrent = false; }
+
     // Key handling and focus management
     bool handleKeypress(int key, QString text);
     bool selectAllInFocusedTable();  // #1795: Cmd-A in songTable or a palette table
