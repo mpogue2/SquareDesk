@@ -144,7 +144,7 @@ struct SongMatchInfo;
 //   remember to change the version in the .plist file (2 places)
 //   remember to change the VERSIONSTRING below
 // Also remember to change the "latest" file on GitHub!
-#define VERSIONSTRING "1.2.1"
+#define VERSIONSTRING "1.2.2"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
