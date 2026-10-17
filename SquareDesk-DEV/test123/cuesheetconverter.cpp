@@ -26,6 +26,7 @@
 #include "cuesheetconverter.h"
 
 #include <QColor>
+#include <QFileInfo>
 #include <QHash>
 #include <QRegularExpression>
 #include <QSet>
@@ -75,15 +76,21 @@ struct Seg {
     bool h = false;
     bool b = false;
     bool i = false;
+    QColor fg;          // text colour, if set
+    qreal size = 0;     // point size, if set
+    bool keepCase = false;   // a note whose case fixCase() leaves alone
 };
 
 struct Line {
     QList<Seg> s;
     QString txt;
     int headingLevel = 0;
+    int block = -1;           // which QTextBlock (paragraph) the line came from
+    int hdrLinesInBlock = 0;  // lines in that block marked as headings (class hdr, ...)
     bool isHdr = false;
     QString hdr;
     QList<Seg> rest;      // what follows the heading keyword on its line (may contain lyrics)
+    bool restIsNote = false;   // rest is a note like "(mainstream)" or "Basic", not a call
 };
 
 QString concatText(const QList<Seg> &s)
@@ -110,6 +117,23 @@ QList<Seg> segsFrom(const QList<Seg> &s, int off)
             r.append(y);
         }
         pos = end;
+    }
+    return r;
+}
+
+// The segments before character offset off.
+QList<Seg> segsBefore(const QList<Seg> &s, int off)
+{
+    QList<Seg> r;
+    int pos = 0;
+    for (const Seg &x : s) {
+        if (pos >= off) {
+            break;
+        }
+        Seg y = x;
+        y.t = x.t.left(off - pos);
+        r.append(y);
+        pos += x.t.length();
     }
     return r;
 }
@@ -203,8 +227,10 @@ QList<Line> rawLines(const QTextDocument &doc)
     }
     auto newLine = [&]() { out.append(cur); cur = Line(); };
 
-    for (QTextBlock blk = doc.begin(); blk.isValid(); blk = blk.next()) {
+    int blockNo = 0;
+    for (QTextBlock blk = doc.begin(); blk.isValid(); blk = blk.next(), blockNo++) {
         newLine();
+        cur.block = blockNo;
         const QTextBlockFormat bf = blk.blockFormat();
         QColor blockBg;
         if (bf.background().style() != Qt::NoBrush) {
@@ -228,7 +254,7 @@ QList<Line> rawLines(const QTextDocument &doc)
             } else if (marker.startsWith("lyrics")) {
                 proto.ly = marker;
             }
-            if (proto.ly.isEmpty()) {
+            if (proto.ly.isEmpty() && !proto.h) {     // a heading's background is decoration
                 QColor bg;
                 if (fmt.background().style() != Qt::NoBrush) {
                     bg = fmt.background().color();
@@ -241,6 +267,10 @@ QList<Line> rawLines(const QTextDocument &doc)
             }
             proto.b = fmt.fontWeight() >= 600;
             proto.i = fmt.fontItalic();
+            if (fmt.foreground().style() != Qt::NoBrush) {
+                proto.fg = fmt.foreground().color();
+            }
+            proto.size = fmt.fontPointSize();
             if (fmt.isAnchor() && !fmt.anchorHref().isEmpty()) {
                 proto.href = fmt.anchorHref();
             }
@@ -251,6 +281,7 @@ QList<Line> rawLines(const QTextDocument &doc)
             for (int p = 0; p < parts.size(); p++) {
                 if (p > 0) {
                     newLine();
+                    cur.block = blockNo;
                     cur.headingLevel = bf.headingLevel();
                 }
                 const QString t = collapseSpaces(parts[p]);
@@ -295,7 +326,32 @@ QList<Line> rawLines(const QTextDocument &doc)
             lines.append(l);
         }
     }
+    QHash<int, int> perBlock;
+    for (const Line &l : std::as_const(lines)) {
+        for (const Seg &x : l.s) {
+            if (x.h) {
+                perBlock[l.block]++;
+                break;
+            }
+        }
+    }
+    for (Line &l : lines) {
+        l.hdrLinesInBlock = perBlock.value(l.block);
+    }
     return lines;
+}
+
+// Words with at least one letter or digit ("OPENER - CLOSER" is 2 words).
+int wordCount(const QString &s)
+{
+    static const QRegularExpression word(QStringLiteral("[\\p{L}\\p{N}]+"));
+    int n = 0;
+    QRegularExpressionMatchIterator it = word.globalMatch(s);
+    while (it.hasNext()) {
+        it.next();
+        n++;
+    }
+    return n;
 }
 
 QString normalizeHeading(const QString &s)
@@ -303,10 +359,15 @@ QString normalizeHeading(const QString &s)
     static const QRegularExpression slash(QStringLiteral("\\s*/\\s*"));
     QString r = collapseSpaces(s).trimmed().toUpper();
     r.replace(slash, QStringLiteral("/"));
-    while (r.endsWith(':') || r.endsWith('.')) {
+    while (r.endsWith(':') || r.endsWith('.') || r.endsWith('-') || r.endsWith(QChar(0x2013)) || r.endsWith(' ')) {
         r.chop(1);
     }
-    return r.trimmed();
+    if (r.startsWith('(') && r.endsWith(')')) {     // "(OPENER)"
+        r = r.mid(1, r.length() - 2).trimmed();
+    } else if (r.startsWith('(') && !r.contains(')')) {
+        r = r.mid(1).trimmed();
+    }
+    return r;
 }
 
 // ---------- Case normalization ----------
@@ -469,12 +530,13 @@ void fixCase(QList<Seg> &segs, bool shouty)
     int i = 0;
     while (i < segs.size()) {
         const bool ly = !segs[i].ly.isEmpty();
+        const bool keep = segs[i].keepCase;
         int j = i;
         QString run;
-        while (j < segs.size() && (!segs[j].ly.isEmpty() == ly)) {
+        while (j < segs.size() && (!segs[j].ly.isEmpty() == ly) && segs[j].keepCase == keep) {
             run += segs[j++].t;
         }
-        QString fixed = ly ? lyricCase(run, shouty) : callCase(run);
+        QString fixed = keep ? run : ly ? lyricCase(run, shouty) : callCase(run);
         if (fixed.length() != run.length()) {
             fixed = run;    // a case mapping that changes length (rare): leave the run alone
         }
@@ -609,7 +671,7 @@ HeadingMatch matchHeading(const QString &lineText)
         "|(?:ALTERNATE|ALT|ADDITIONAL|EXTRA)\\s+LYRICS|LYRICS)").arg(figNums);
     static const QString sep = QStringLiteral("(?:\\s*(?:[/&,+]|[-\\x{2013}]|\\band\\b)\\s*|\\s+)");
     static const QRegularExpression kw(
-        QStringLiteral("^\\s*%1(?:%2%1)*(?![\\w])").arg(token, sep),
+        QStringLiteral("^\\s*\\(?\\s*%1(?:%2%1)*(?![\\w])(?:\\s*\\))?").arg(token, sep),   // "(Opener):" too
         QRegularExpression::CaseInsensitiveOption | QRegularExpression::UseUnicodePropertiesOption);
     static const QRegularExpression restEmpty(QStringLiteral("^\\s*[:.]?\\s*(\\(.*\\))?\\s*$"));
     static const QRegularExpression restCall(QStringLiteral("^\\s*:\\s*(\\S.*)$"));
@@ -637,6 +699,7 @@ HeadingMatch matchHeading(const QString &lineText)
     //   (A mixed-case "Tag the line" is a call, not a heading.)
     if (!r.hasMatch() && !m.captured(0).contains(hasLower)) {
         r = restAfterCaps.match(rest);
+        hm.callAfterCaps = r.hasMatch();
     }
     if (r.hasMatch()) {
         hm.matched = true;
@@ -662,7 +725,8 @@ QString dumpLines(const QString &sourceHtml)
     return r;
 }
 
-Result convert(const QString &sourceHtml, Mode mode, const QString &versionString, bool fixCaseOn)
+Result convert(const QString &sourceHtml, Mode mode, const QString &versionString, bool fixCaseOn,
+               const QString &fileName)
 {
     Result res;
 
@@ -681,25 +745,94 @@ Result convert(const QString &sourceHtml, Mode mode, const QString &versionStrin
     }
 
     // Section headings.  A line explicitly marked as a heading (class hdr, etc.)
-    //   is a heading as-is; otherwise it must pass the keyword detector and have no lyrics.
+    //   is a heading as-is if it has no lyrics, is short (8 words at most), and is the
+    //   only marked line in its paragraph.  (Some Word files mark a whole paragraph,
+    //   or every line, of calls and lyrics as "hdr".)  Otherwise it must pass the
+    //   keyword detector, and the keyword must not be lyrics.
     for (Line &l : L) {
-        bool anyH = false;
+        bool anyH = false, anyLy = false;
         for (const Seg &x : std::as_const(l.s)) {
             anyH = anyH || x.h;
-        }
-        if (anyH) {
-            l.isHdr = true;
-            l.hdr = normalizeHeading(l.txt);
-            continue;
+            anyLy = anyLy || !x.ly.isEmpty();
         }
         const QString text = concatText(l.s);
         const HeadingMatch hm = matchHeading(text);
-        // The keyword itself must not be sung text; what follows it may be.
-        if (hm.matched && !anyLyricBefore(l.s, hm.restStart < 0 ? text.length() : hm.restStart)) {
+        if (anyH && !anyLy && l.hdrLinesInBlock == 1 && wordCount(l.txt) <= 8) {
+            l.isHdr = true;
+            // The heading ends where the text stops looking like it: "OPENER - CLOSER"
+            //   in red, then "Basic" in small black text is a note, not heading.
+            int split = -1, pos = 0;
+            const Seg *firstSeg = nullptr;
+            for (const Seg &x : std::as_const(l.s)) {
+                if (!x.t.trimmed().isEmpty()) {
+                    if (!firstSeg) {
+                        firstSeg = &x;
+                    } else if (x.fg != firstSeg->fg || x.size != firstSeg->size) {
+                        split = pos;
+                        break;
+                    }
+                }
+                pos += x.t.length();
+            }
+            if (split > 0) {
+                l.hdr = normalizeHeading(concatText(segsBefore(l.s, split)));
+                l.rest = segsFrom(l.s, split);
+                // ... shown as "(Basic)", in its own case.
+                while (!l.rest.isEmpty() && l.rest.first().t.trimmed().isEmpty()) {
+                    l.rest.removeFirst();
+                }
+                while (!l.rest.isEmpty() && l.rest.last().t.trimmed().isEmpty()) {
+                    l.rest.removeLast();
+                }
+                if (!l.rest.isEmpty()) {
+                    l.rest.first().t = l.rest.first().t.trimmed();
+                    l.rest.last().t = l.rest.last().t.trimmed();
+                    if (!(concatText(l.rest).startsWith('(') && concatText(l.rest).endsWith(')'))) {
+                        l.rest.first().t.prepend('(');
+                        l.rest.last().t.append(')');
+                    }
+                }
+                for (Seg &x : l.rest) {
+                    x.h = false;
+                    x.keepCase = true;
+                }
+                l.restIsNote = true;
+            } else {
+                l.hdr = normalizeHeading(l.txt);
+            }
+            continue;
+        }
+        // The keyword itself must not be sung text; what follows it may be.  Some
+        //   cuesheets highlight their headings instead of their lyrics, so a highlighted
+        //   keyword is still a heading in the stricter forms ("Opener (Basic):",
+        //   "Opener: Circle Left").
+        const bool keywordLyric = hm.matched && anyLyricBefore(l.s, hm.restStart < 0 ? text.length() : hm.restStart);
+        if (keywordLyric && !hm.callAfterCaps) {
+            // Unhighlight the keyword, and a parenthetical after it, but not sung
+            //   text after a colon ("Intro: I'll play for you").
+            const bool parenOnly = hm.rest.isEmpty() || (hm.rest.startsWith('(') && hm.rest.endsWith(')'));
+            const int end = parenOnly ? text.length() : hm.restStart;
+            QList<Seg> head = segsBefore(l.s, end);
+            for (Seg &x : head) {
+                x.ly.clear();
+            }
+            l.s = head + segsFrom(l.s, end);
+        }
+        if (hm.matched && !(keywordLyric && hm.callAfterCaps)) {
             l.isHdr = true;
             l.hdr = hm.heading;
-            if (hm.restStart >= 0) {
+            if (anyH && hm.rest.startsWith('(') && hm.rest.endsWith(')')) {
+                l.hdr = normalizeHeading(l.txt);    // a marked "FIGURE (long note)" stays whole
+            } else if (hm.restStart >= 0) {
                 l.rest = segsFrom(l.s, hm.restStart);
+                l.restIsNote = hm.rest.startsWith('(') && hm.rest.endsWith(')');
+                // "FIGURE (mainstream)" is a note, kept in its own case; but
+                //   "OPENER (circle left)" is a call, so it is capitalized like one.
+                if (l.restIsNote && !isMergeableCall(hm.rest.mid(1, hm.rest.length() - 2))) {
+                    for (Seg &x : l.rest) {
+                        x.keepCase = true;
+                    }
+                }
             }
         }
     }
@@ -710,9 +843,9 @@ Result convert(const QString &sourceHtml, Mode mode, const QString &versionStrin
             break;
         }
     }
-    // After the first heading, any <H1>..<H6> line without lyrics is a heading too
-    //   (e.g. "French Lyrics") -- unless most lines are <H1>..<H6>, as in Word files
-    //   that style every paragraph as "Heading 1".
+    // After the first heading, any short <H1>..<H6> line without lyrics is a heading
+    //   too (e.g. "French Lyrics") -- unless most lines are <H1>..<H6>, as in Word
+    //   files that style every paragraph as "Heading 1".  Long ones are calls.
     int nHeadingTagged = 0;
     for (int n = qMax(first, 0); n < L.size(); n++) {
         if (L[n].headingLevel > 0) {
@@ -725,7 +858,7 @@ Result convert(const QString &sourceHtml, Mode mode, const QString &versionStrin
             for (const Seg &x : std::as_const(L[n].s)) {
                 anyLy = anyLy || !x.ly.isEmpty();
             }
-            if (!L[n].isHdr && L[n].headingLevel > 0 && !anyLy) {
+            if (!L[n].isHdr && L[n].headingLevel > 0 && !anyLy && wordCount(L[n].txt) <= 4) {
                 L[n].isHdr = true;
                 L[n].hdr = normalizeHeading(L[n].txt);
             }
@@ -800,6 +933,9 @@ Result convert(const QString &sourceHtml, Mode mode, const QString &versionStrin
             return r.join(sep);
         };
         title = joined("title", " ");
+        if (title.isEmpty() && !extraHeadLines.isEmpty()) {
+            title = extraHeadLines.takeFirst();     // an unclassed title beside a classed label/artist
+        }
         label = joined("label", " ");
         label.remove('(').remove(')');
         artist = joined("artist", ", ");
@@ -864,6 +1000,15 @@ Result convert(const QString &sourceHtml, Mode mode, const QString &versionStrin
     static const QRegularExpression letterDigit(QStringLiteral("^([A-Za-z]+)[ -]?(\\d)"));
     label = collapseSpaces(label).trimmed().toUpper().replace(letterDigit, QStringLiteral("\\1 \\2"));
     artist = collapseSpaces(artist).trimmed();
+    if (label.isEmpty() && !fileName.isEmpty()) {
+        // "EUR 1022 - We Could Be In Love.html", "RWH 1010.html"
+        static const QRegularExpression fileLabel(
+            QStringLiteral("^\\s*(\\d?[A-Za-z]{1,6})\\s*-?\\s*(\\d{1,5}[A-Za-z]?)(?![\\w])"));   // "4B 6085" too
+        const QRegularExpressionMatch fm = fileLabel.match(QFileInfo(fileName).completeBaseName());
+        if (fm.hasMatch()) {
+            label = fm.captured(1).toUpper() + ' ' + fm.captured(2).toUpper();
+        }
+    }
     if (title.isEmpty()) {
         res.warnings << QStringLiteral("No title found.");
     }
@@ -888,12 +1033,12 @@ Result convert(const QString &sourceHtml, Mode mode, const QString &versionStrin
     }
 
     // A short starting call on the line right after a heading moves up onto the
-    //   heading's line ("OPENER" + "Circle Left" -> "OPENER Circle Left"), unless
-    //   the heading already has text after it, e.g. "FIGURE (mainstream)".
+    //   heading's line ("OPENER" + "Circle Left" -> "OPENER Circle Left"), after any
+    //   note there ("OPENER - CLOSER Basic Circle Left"), but not after another call.
     for (int n = 0; n + 1 < body.size(); n++) {
         Line &l = body[n];
         const Line &next = body[n + 1];
-        if (!l.isHdr || !l.rest.isEmpty() || next.isHdr) {
+        if (!l.isHdr || (!l.rest.isEmpty() && !l.restIsNote) || next.isHdr) {
             continue;
         }
         bool nextHasLyrics = false;
@@ -901,7 +1046,13 @@ Result convert(const QString &sourceHtml, Mode mode, const QString &versionStrin
             nextHasLyrics = nextHasLyrics || !x.ly.isEmpty();
         }
         if (!nextHasLyrics && isMergeableCall(next.txt)) {
-            l.rest = next.s;
+            if (!l.rest.isEmpty()) {
+                Seg space = next.s.first();
+                space.t = QStringLiteral(" ");
+                space.keepCase = false;
+                l.rest.append(space);
+            }
+            l.rest += next.s;
             body.removeAt(n + 1);
         }
     }

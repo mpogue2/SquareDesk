@@ -62,7 +62,10 @@ QString decode(const QByteArray &bytes);
 //   - everything else (calls, notes): Every Word Capitalized, except the "who"
 //     words (HEADS, SIDES, BOYS, GIRLS, MEN, LADIES, ...), which are ALL CAPS.
 //   Headings, title, label and artist are not affected.
-Result convert(const QString &sourceHtml, Mode mode, const QString &versionString, bool fixCase = true);
+//   fileName, if given, supplies the label when the cuesheet itself has none
+//   ("EUR 1022 - We Could Be In Love.html" -> "EUR 1022").
+Result convert(const QString &sourceHtml, Mode mode, const QString &versionString, bool fixCase = true,
+               const QString &fileName = QString());
 
 // Debugging aid: the flattened lines and segments that convert() works from.
 QString dumpLines(const QString &sourceHtml);
@@ -77,6 +80,7 @@ struct HeadingMatch {
     QString heading;       // normalized: uppercase, single spaces, no spaces around "/"
     QString rest;          // a trailing parenthetical, or the call that follows
     int restStart = -1;    // where rest begins in lineText, or -1 if there is none
+    bool callAfterCaps = false;    // matched only by the looser "OPENER Circle Left" form
 };
 HeadingMatch matchHeading(const QString &lineText);
 

@@ -17,6 +17,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QRegularExpression>
 #include <QTextStream>
 
 static const char *kIndexTemplate = R"HTML(<!DOCTYPE html>
@@ -44,10 +45,11 @@ body { font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-
 #bar b { font-size: 14px; }
 #msg { color: var(--warn); }
 #msg.ok { color: var(--ok); }
-#bar label { margin-left: auto; color: var(--mut); }
 #panes { display: grid; grid-template-columns: 1fr 1fr; min-height: 0; }
 .pane { display: grid; grid-template-rows: auto 1fr; min-width: 0; min-height: 0; border-left: 1px solid var(--line); }
-.pane div { padding: 3px 8px; color: var(--mut); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+.pane .hd { padding: 3px 8px; color: var(--mut); font-size: 11px; display: flex; gap: 12px; align-items: baseline; }
+.pane .hd span { text-transform: uppercase; letter-spacing: .05em; }
+.pane .hd label { margin-left: auto; }
 iframe, textarea { width: 100%; height: 100%; border: 0; background: #fff; }
 textarea { font: 12px/1.4 ui-monospace, Menlo, monospace; background: var(--card); color: var(--fg); resize: none; padding: 8px; }
 </style>
@@ -55,10 +57,12 @@ textarea { font: 12px/1.4 ui-monospace, Menlo, monospace; background: var(--card
 <body>
 <div id="list"><h1>Cuesheet Converter Test<small>__SUMMARY__ &middot; &uarr;/&darr; or j/k</small></h1></div>
 <div id="main">
-  <div id="bar"><b id="name"></b><span id="msg"></span><label><input type="checkbox" id="raw"> show converted HTML source</label></div>
+  <div id="bar"><b id="name"></b><span id="msg"></span></div>
   <div id="panes">
-    <div class="pane"><div>Before (source)</div><iframe id="before"></iframe></div>
-    <div class="pane"><div>After (converted)</div><iframe id="after"></iframe><textarea id="src" readonly hidden></textarea></div>
+    <div class="pane"><div class="hd"><span>Before (source)</span><label><input type="checkbox" id="rawBefore"> show HTML source</label></div>
+      <iframe id="before"></iframe><textarea id="srcBefore" readonly hidden></textarea></div>
+    <div class="pane"><div class="hd"><span>After (converted)</span><label><input type="checkbox" id="raw"> show converted HTML source</label></div>
+      <iframe id="after"></iframe><textarea id="src" readonly hidden></textarea></div>
   </div>
 </div>
 <script>
@@ -91,8 +95,10 @@ function show(i) {
   $('before').src = enc(f.src);
   $('after').src = enc(f.out);
   $('src').value = f.html;
+  $('srcBefore').value = f.source;
 }
 $('raw').onchange = () => { $('src').hidden = !$('raw').checked; $('after').hidden = $('raw').checked; };
+$('rawBefore').onchange = () => { $('srcBefore').hidden = !$('rawBefore').checked; $('before').hidden = $('rawBefore').checked; };
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowDown' || e.key === 'j') { e.preventDefault(); show(Math.min(sel + 1, DATA.length - 1)); }
   if (e.key === 'ArrowUp' || e.key === 'k') { e.preventDefault(); show(Math.max(sel - 1, 0)); }
@@ -159,8 +165,8 @@ int main(int argc, char *argv[])
             QTextStream(stderr) << "cannot read " << rel << "\n";
             continue;
         }
-        const CuesheetConverter::Result r =
-            CuesheetConverter::convert(CuesheetConverter::decode(in.readAll()), mode, "1.2.2", fixCase);
+        const QString source = CuesheetConverter::decode(in.readAll());
+        const CuesheetConverter::Result r = CuesheetConverter::convert(source, mode, "1.2.2", fixCase, rel);
 
         const QString outRel = "out/" + rel;
         QDir().mkpath(QFileInfo(root.filePath(outRel)).path());
@@ -176,6 +182,11 @@ int main(int argc, char *argv[])
         o["info"] = r.info;
         o["warnings"] = QJsonArray::fromStringList(r.warnings);
         o["html"] = r.html;
+        // The source, for "show HTML source", with embedded images shortened.
+        static const QRegularExpression dataUri(QStringLiteral("data:[^\"')]{200,}"));
+        QString shortSource = source;
+        shortSource.replace(dataUri, QStringLiteral("data:...(embedded data omitted)"));
+        o["source"] = shortSource;
         data.append(o);
         if (!r.warnings.isEmpty()) {
             nWarned++;
