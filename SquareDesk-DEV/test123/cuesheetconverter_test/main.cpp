@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    const QDir root(testDir);
+    const QDir root(QFileInfo(testDir).absoluteFilePath());    // a relative "." breaks relativeFilePath() below
     const QDir sourceDir(root.filePath("source"));
     QStringList files;
     QStringList globs;
