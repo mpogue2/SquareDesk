@@ -1089,7 +1089,14 @@ void AudioDecoder::newSystemAudioOutputDevice() {
             myPlayer.detachAudioSinkAndAudioDevice();
             m_audioDevice = nullptr;
 
-            m_audioSink->stop();
+            // #1807: reset(), NOT stop().  Every write() from the PlayerThread posts a queued readyRead
+            //   call to the main thread, and those calls hold a raw pointer to Qt's internal sink stream.
+            //   stop() drains the ringbuffer, so the stream (and its QIODevice) stay alive with their parent
+            //   pointer nulled, and an already-posted readyRead is still delivered after we return to the
+            //   event loop: null deref in QPlatformAudioEndpointBase::updateStreamIdle().  reset() discards
+            //   the ringbuffer, so the stream and its QIODevice are destroyed right here, and Qt purges any
+            //   calls still queued to them.  We don't want the old device's buffered audio anyway.
+            m_audioSink->reset();
             QAudioSink *oldOne = m_audioSink;
 //            qDebug() << "     making a new one atomically...";
             m_audioSink = new QAudioSink(desiredAudioFormat);  // uses the current default audio device, ATOMIC
