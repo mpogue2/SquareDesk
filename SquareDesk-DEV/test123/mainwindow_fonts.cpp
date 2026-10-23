@@ -320,20 +320,12 @@ void MainWindow::adjustFontSizes()
     ui->tabWidget->setFont(currentFont);  // most everything inherits from this one
     ui->tabWidget->tabBar()->setFont(currentFont);  // explicitly set tab bar font for tab titles
 
-    ui->pushButtonCueSheetEditTitle->setFont(currentFont);
-    ui->pushButtonCueSheetEditLabel->setFont(currentFont);
-    ui->pushButtonCueSheetEditArtist->setFont(currentFont);
-    ui->pushButtonCueSheetEditHeader->setFont(currentFont);
-    ui->pushButtonCueSheetEditLyrics->setFont(currentFont);
-    ui->pushButtonCueSheetClearFormatting->setFont(currentFont);
+    // the cuesheet style buttons (Title...Clear Formatting) do NOT follow the zoom: their font sizes come from Themes.qss (#1789)
 
     ui->pushButtonEditLyrics->setFont(currentFont);
     ui->pushButtonCueSheetEditSave->setFont(currentFont);
     ui->pushButtonCueSheetEditSaveAs->setFont(currentFont);
     ui->pushButtonRevertEdits->setFont(currentFont);
-
-    ui->pushButtonCueSheetEditBold->setFont(currentFont);
-    ui->pushButtonCueSheetEditItalic->setFont(currentFont);
 
     ui->pushButtonClearTaughtCalls->setFont(currentFont);
 
@@ -346,15 +338,17 @@ void MainWindow::adjustFontSizes()
     unsigned int titleButtonW = (index != -1 ? TitleButtonWidth[index] : TitleButtonWidth[2]); // if error, use something in the middle
     ui->pushButtonClearTaughtCalls->setFixedWidth(static_cast<int>(titleButtonW * 1.5));
 
-    ui->pushButtonCueSheetEditTitle->setFixedWidth(static_cast<int>(titleButtonW));
-    ui->pushButtonCueSheetEditLabel->setFixedWidth(static_cast<int>(titleButtonW));
-    ui->pushButtonCueSheetEditArtist->setFixedWidth(static_cast<int>(titleButtonW));
-    ui->pushButtonCueSheetEditHeader->setFixedWidth(static_cast<int>(titleButtonW * 1.5));
-    ui->pushButtonCueSheetEditLyrics->setFixedWidth(static_cast<int>(titleButtonW));
-
-    ui->pushButtonCueSheetEditBold->setFixedWidth(static_cast<int>(titleButtonW/2));
-    ui->pushButtonCueSheetEditItalic->setFixedWidth(static_cast<int>(titleButtonW/2));
-    ui->pushButtonCueSheetClearFormatting->setFixedWidth(static_cast<int>(titleButtonW * 2));
+    // size the cuesheet style buttons to their own (Themes.qss) label font, so they don't grow with zoom (#1789)
+    for (QPushButton *b : {ui->pushButtonCueSheetEditTitle, ui->pushButtonCueSheetEditLabel,
+                           ui->pushButtonCueSheetEditArtist, ui->pushButtonCueSheetEditHeader,
+                           ui->pushButtonCueSheetEditLyrics, ui->pushButtonCueSheetEditBold,
+                           ui->pushButtonCueSheetEditItalic, ui->pushButtonCueSheetClearFormatting}) {
+        b->ensurePolished();  // so fontMetrics() reflects the Themes.qss font-size, not the widget font
+        b->setFixedWidth(b->fontMetrics().horizontalAdvance(b->text()) + 14);
+    }
+    // B and I are single letters, so keep them from getting too narrow to click
+    ui->pushButtonCueSheetEditBold->setFixedWidth(std::max(ui->pushButtonCueSheetEditBold->minimumWidth(), 30));
+    ui->pushButtonCueSheetEditItalic->setFixedWidth(std::max(ui->pushButtonCueSheetEditItalic->minimumWidth(), 30));
 
     ui->pushButtonEditLyrics->setFixedWidth(static_cast<int>(titleButtonW * 2));
     ui->pushButtonCueSheetEditSave->setFixedWidth(static_cast<int>(titleButtonW * 0.7));

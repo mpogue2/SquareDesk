@@ -329,7 +329,6 @@ QPushButton#pushButtonCueSheetEditLabel,
 QPushButton#pushButtonCueSheetEditArtist,
 QPushButton#pushButtonCueSheetEditBold,
 QPushButton#pushButtonCueSheetEditItalic,
-QPushButton#pushButtonCueSheetEditClearFormatting,
 QPushButton#pushButtonNewFromTemplate {
     height: 15;
 }
@@ -337,6 +336,7 @@ QPushButton#pushButtonNewFromTemplate {
 QPushButton#pushButtonCueSheetEditLyrics {
     background-color: #FFC0CB;
     color: #000000;
+    font-size: 12pt;
 }
 
 /* while OPTION is held, the Lyrics button previews the alternate highlight colors (issue #1660):
@@ -386,10 +386,16 @@ QPushButton#pushButtonCueSheetEditHeader {
 
 QPushButton#pushButtonCueSheetEditBold {
     font-weight: bold;
+    font-size: 16pt;
 }
 
 QPushButton#pushButtonCueSheetEditItalic {
     font: italic;
+    font-size: 16pt;
+}
+
+QPushButton#pushButtonCueSheetClearFormatting {
+    font-size: 16pt;
 }
 
 QPushButton#FXbutton {
