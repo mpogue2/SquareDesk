@@ -552,6 +552,16 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
     }
 #endif
 
+    // the Magic Clean button gets its height from the layout (same as Clear Formatting), so keep its
+    //   width and icon in the same 32x26 / 18px proportions as the other cuesheet tool buttons (#1789)
+    //   NOTE: changing the width can't change the height, so the resize that setFixedWidth() causes doesn't loop
+    if (watched == ui->pushButtonCueSheetMagicClean && event->type() == QEvent::Resize) {
+        int h = ui->pushButtonCueSheetMagicClean->height();
+        ui->pushButtonCueSheetMagicClean->setFixedWidth(qRound(h * 32.0 / 26.0));
+        int iconH = qRound(h * 18.0 / 26.0);
+        ui->pushButtonCueSheetMagicClean->setIconSize(QSize(iconH, iconH));
+    }
+
     // Handle hover events on endLoopButton to temporarily disable looping
     if (watched == ui->endLoopButton) {
         if (event->type() == QEvent::Enter) {

@@ -298,6 +298,14 @@ QToolButton#toolButtonCuesheetFontSmaller[theme="Light"] {
     qproperty-icon: url(:/graphics/font_decrease.svg);
 }
 
+/* Cuesheet Magic Clean & Save button (#1789) */
+QPushButton#pushButtonCueSheetMagicClean[theme="Dark"] {
+    qproperty-icon: url(:/graphics/magic_clean_white.svg);
+}
+QPushButton#pushButtonCueSheetMagicClean[theme="Light"] {
+    qproperty-icon: url(:/graphics/magic_clean.svg);
+}
+
 /* PUSH BUTTONS ===================== */
 QPushButton[theme="Dark"] {
     /* all types of push button */
