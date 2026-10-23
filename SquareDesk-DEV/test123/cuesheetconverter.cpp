@@ -814,7 +814,7 @@ HeadingMatch matchHeading(const QString &lineText)
     static const QString token = QStringLiteral(
         "(?:OPENER|OPENING|OPEN|INTRO(?:DUCTION)?|MIDDLE\\s+BREAK|MIDDLE|BREAKS?|CLOSER|CLOSING|CLOSE"
         "|ENDING|INSTRUMENTAL(?:\\s+TAG)?|TAG|BRIDGE|FIGURES?%1"
-        "|(?:ALTERNATE|ALT|ADDITIONAL|EXTRA)\\s+LYRICS|LYRICS)").arg(figNums);
+        "|(?:ALTERNATE|ALT|ADDITIONAL|EXTRA|ORIGINAL)\\s+LYRICS|LYRICS)").arg(figNums);
     static const QString sep = QStringLiteral("(?:\\s*(?:[/&,+]|[-\\x{2013}]|\\band\\b)\\s*|\\s+)");
     static const QRegularExpression kw(
         QStringLiteral("^\\s*\\(?\\s*%1(?:%2%1)*(?![\\w])(?:\\s*\\))?").arg(token, sep),   // "(Opener):" too
