@@ -411,6 +411,13 @@ QPushButton#pushButtonCueSheetEditSaveAs {
     font-size: 16pt;
 }
 
+/* New... pops up the template menu; its "..." already says so, and the tiny menu arrow
+   collides with the text now that the button is sized to fit it (#1789) */
+QPushButton#pushButtonNewFromTemplate::menu-indicator {
+    image: none;
+    width: 0px;
+}
+
 QPushButton#FXbutton {
     border-radius: 8px;
 }
