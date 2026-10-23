@@ -1077,6 +1077,7 @@ private:
     int lyricsTabNumber;
     bool hasLyrics;
     bool cuesheetIsPeekedFromNextSong; // true when the cuesheet shown belongs to the NEXT song, not this one
+    QStringList patterOwnCuesheets;    // the loaded patter's OWN dropdown entries, listed after the peeked ones (issue #1808)
     QString txtToHTMLlyrics(QString text, QString filePathname);
     QString markdownToHTMLlyrics(QString markdownText, QString filePathname);
     bool cuesheetIsUnlockedForEditing;

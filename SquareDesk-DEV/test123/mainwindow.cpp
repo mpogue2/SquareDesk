@@ -1021,7 +1021,9 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
         if (override_filename != "") {
             // qDebug() << "[load-cuesheets] Saving " << cuesheetFilename << " for " << override_filename;
             saveCuesheet(override_filename, cuesheetFilename);
-        } else if (lyricsForDifferentSong) {
+        } else if (lyricsForDifferentSong && !patterOwnCuesheets.contains(cuesheetFilename)) {
+            // ...but never save one of the loaded PATTER's own entries as the next singer's cuesheet:
+            //   they share the peek dropdown, and only the singer's own cuesheets belong to it (issue #1808)
             // qDebug() << "[different-song] Saving " << cuesheetFilename << " for " << mp3ForDifferentCuesheet;
             saveCuesheet(mp3ForDifferentCuesheet, cuesheetFilename);
         }
@@ -5610,7 +5612,8 @@ void MainWindow::saveCurrentSongSettings()
         //   Picking it from the dropdown by hand clears cuesheetSearchAutoSelectedCuesheet.
         bool autoSelectedBySearch = !cuesheetSearchAutoSelectedCuesheet.isEmpty() &&
                                     cuesheetFilename == cuesheetSearchAutoSelectedCuesheet;
-        if (!lyricsForDifferentSong && !autoSelectedBySearch) {
+        // Nor is a cuesheet peeked from the next song, which is not this (patter) song's at all (issue #1808).
+        if (!lyricsForDifferentSong && !cuesheetIsPeekedFromNextSong && !autoSelectedBySearch) {
             setting.setCuesheetName(cuesheetFilename);
         }
         setting.setSongLength(static_cast<double>(ui->seekBarCuesheet->maximum()));
@@ -5885,7 +5888,9 @@ void MainWindow::loadSettingsForSong(QString songTitle)
 #endif
 
        
-        if (lyricsForDifferentSong) {
+        if (lyricsForDifferentSong || cuesheetIsPeekedFromNextSong) {
+            // A peek defaults to the next singer's cuesheet, so the patter's saved preference (e.g. its own
+            //   Suno USLT text, saved back when that was the default) must not override it (issue #1808).
             // qDebug() << "loadSettingsForSong: ignoring cuesheet for " << songTitle << " because lyricsForDifferentSong";
         } else {
         
@@ -7876,7 +7881,11 @@ void MainWindow::on_playButton_clicked()
             //   tab holds the cuesheet of the singing call that comes NEXT in the playlist, which
             //   is not what the caller asked to play, so first play stays put.  Reading ahead to
             //   the next singer is a deliberate act: that is what CMD-N is for.
-            if (switchToLyricsOnPlay && hasLyrics && !cuesheetIsPeekedFromNextSong)
+            //
+            // ...and NEVER for patter, even one with entries of its own: patter has no cuesheets, and
+            //   its USLT "lyrics" frame can hold something else entirely, like the Suno AI prompt that
+            //   generated the track (issue #1808).  Those entries stay in the dropdown, after the peek.
+            if (switchToLyricsOnPlay && hasLyrics && !cuesheetIsPeekedFromNextSong && !currentSongIsPatter)
             {
                 ui->tabWidget->setCurrentIndex(lyricsTabNumber);
             }

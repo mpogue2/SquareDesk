@@ -534,7 +534,7 @@ Turning this on builds a search index once, which can take a little while on a l
          <item row="15" column="2" colspan="3">
           <widget class="QCheckBox" name="checkBoxSwitchToLyricsOnPlay">
            <property name="text">
-            <string>Switch to Cuesheet tab on first play (when a cuesheet is available)</string>
+            <string>Switch to Cuesheet tab on first play (when a cuesheet is available, except for patter)</string>
            </property>
           </widget>
          </item>

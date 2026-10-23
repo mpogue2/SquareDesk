@@ -2260,6 +2260,7 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
 
     hasLyrics = false;
     cuesheetIsPeekedFromNextSong = false;
+    patterOwnCuesheets.clear();
     bool isPatter;
 
     QString preferredCuesheet = prefCuesheet;
@@ -2280,6 +2281,23 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
         QStringList possibleCuesheets;
         // findPossibleCuesheets(filenameToCheck, possibleCuesheets);    // THE OLD ALGORITHM
         betterFindPossibleCuesheets(filenameToCheck, possibleCuesheets); // THE NEW ALGORITHM
+
+        // A patter can still turn up entries of its own, most often a USLT "lyrics" frame in the
+        //   MP3 that is not lyrics at all: Suno AI leaves its generation prompt there ("[Instrumental]",
+        //   "[Intro]", ...).  Those must not take the place of the peek, so the peek always runs for
+        //   patter, and the patter's own entries go at the END of the dropdown, after the next
+        //   singer's cuesheets: still there to pick, but never the default (issue #1808).
+        if (attempt == 0) {
+            if (currentSongIsPatter) {
+                patterOwnCuesheets = possibleCuesheets;
+            }
+        } else {
+            if (possibleCuesheets.isEmpty()) {
+                break;  // nothing to peek at, so keep what attempt 0 put in the dropdown
+            }
+            possibleCuesheets.append(patterOwnCuesheets);
+            possibleCuesheets.removeDuplicates();
+        }
 
         // qDebug() << "attempt:" << attempt;
         // qDebug() << "possibleCuesheets:" << possibleCuesheets;
@@ -2412,8 +2430,9 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
         // qDebug() << "loadCuesheets2: isPatter = " << isPatter;
 
         if (attempt == 0) {
-            // Checking the real file;  continue if have lyrics or not patter
-            if (hasLyrics || !isPatter) {
+            // Checking the real file;  continue only if patter, even when the patter has entries
+            //   of its own, since those don't replace the peek (issue #1808)
+            if (!isPatter) {
                 break;
             }
             if (nextFilename == "") {
