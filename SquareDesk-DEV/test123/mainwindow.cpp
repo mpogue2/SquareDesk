@@ -5638,7 +5638,10 @@ void MainWindow::saveCurrentSongSettings()
             setting.setVSTsettings(getCurrentLoudMaxSettings()); // get parameters from LoudMax plugin, and persist them
         }
 #endif
-        if (ui->actionLoop->isChecked()) {
+        // Hovering ']' turns looping off only temporarily (see eventFilter), and clicking ']'
+        //   saves from in here while that's happening, so the user's real choice is the
+        //   pre-hover one.  Saving the hover state stored loop=-1 for patter (#1809).
+        if (ui->actionLoop->isChecked() || loopingWasEnabledBeforeHover) {
             setting.setLoop( 1 );
         } else {
             setting.setLoop( -1 );

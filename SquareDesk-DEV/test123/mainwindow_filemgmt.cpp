@@ -173,6 +173,7 @@ void MainWindow::reloadCurrentMP3File() {
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType, QString songLabel, QString nextFilename)
 {
     Q_UNUSED(songLabel)
+    loopingWasEnabledBeforeHover = false; // a hover over ']' on the OLD song must not turn looping back on for this one when the mouse leaves (#1809)
     on_loopButton_toggled(false); // when we load a new file, make sure looping is turned OFF (turn it on when needed for patter)
 
     // loadTimer.start();
