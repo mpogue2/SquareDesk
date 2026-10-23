@@ -402,7 +402,12 @@ QPushButton#pushButtonCueSheetEditItalic {
     font-size: 16pt;
 }
 
-QPushButton#pushButtonCueSheetClearFormatting {
+QPushButton#pushButtonCueSheetClearFormatting,
+QPushButton#pushButtonNewFromTemplate,
+QPushButton#pushButtonEditLyrics,
+QPushButton#pushButtonRevertEdits,
+QPushButton#pushButtonCueSheetEditSave,
+QPushButton#pushButtonCueSheetEditSaveAs {
     font-size: 16pt;
 }
 

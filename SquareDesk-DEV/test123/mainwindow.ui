@@ -3316,17 +3316,11 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonNewFromTemplate">
-              <property name="minimumSize">
-               <size>
-                <width>70</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>70</width>
-                <height>32</height>
-               </size>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
               </property>
               <property name="text">
                <string>New...</string>
