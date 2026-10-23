@@ -550,24 +550,45 @@ void fixCase(QList<Seg> &segs, bool shouty)
     }
 }
 
-QString renderLine(const QList<Seg> &s, const QHash<QString, QString> &lyClass)
+QString renderLine(QList<Seg> s, const QHash<QString, QString> &lyClass)
 {
+    auto classOf = [&](const Seg &x) { return lyClass.value(x.ly, QStringLiteral("lyrics")); };
+    // Closing punctuation that starts a lyric in another colour belongs to the one
+    //   before it: "(When I Hear You Breathe" + ") When I hear you breathe" (RI 963).
+    static const QRegularExpression closing(QStringLiteral("^[)\\]\\x{201D}]+"));
+    for (int k = 1; k < s.size(); k++) {
+        if (!s[k].ly.isEmpty() && !s[k - 1].ly.isEmpty() && classOf(s[k]) != classOf(s[k - 1])) {
+            const QRegularExpressionMatch m = closing.match(s[k].t);
+            if (m.hasMatch() && m.capturedLength() < s[k].t.length()) {
+                s[k - 1].t += m.captured(0);
+                s[k].t.remove(0, m.capturedLength());
+            }
+        }
+    }
+
     QString h;
     int i = 0;
     while (i < s.size()) {
         if (!s[i].ly.isEmpty()) {
-            const QString cls = lyClass.value(s[i].ly, QStringLiteral("lyrics"));
+            // One span per run of the same lyric class (a line may mix singers).
+            const QString cls = classOf(s[i]);
             QList<Seg> g;
             int j = i;
-            while (j < s.size() && (!s[j].ly.isEmpty() || s[j].t.trimmed().isEmpty())) {
+            while (j < s.size() && ((!s[j].ly.isEmpty() && classOf(s[j]) == cls) ||
+                                    (s[j].ly.isEmpty() && s[j].t.trimmed().isEmpty()))) {
                 g.append(s[j++]);
             }
             while (!g.isEmpty() && g.last().ly.isEmpty()) {
                 g.removeLast();
                 j--;
             }
+            bool lead = false;
             while (g.first().t.startsWith(' ')) {
                 g.first().t.remove(0, 1);
+                lead = true;
+            }
+            if (lead && !h.isEmpty() && !h.endsWith(' ')) {
+                h += ' ';
             }
             bool tail = false;
             while (g.last().t.endsWith(' ')) {
@@ -845,7 +866,9 @@ Result convert(const QString &sourceHtml, Mode mode, const QString &versionStrin
     }
     // After the first heading, any short <H1>..<H6> line without lyrics is a heading
     //   too (e.g. "French Lyrics") -- unless most lines are <H1>..<H6>, as in Word
-    //   files that style every paragraph as "Heading 1".  Long ones are calls.
+    //   files that style every paragraph as "Heading 1".  Long ones are calls.  So is
+    //   one followed by another line of the same tag that isn't a heading, as in
+    //   files that style some paragraphs of a section as "Heading 1" (BS 2623).
     int nHeadingTagged = 0;
     for (int n = qMax(first, 0); n < L.size(); n++) {
         if (L[n].headingLevel > 0) {
@@ -853,12 +876,18 @@ Result convert(const QString &sourceHtml, Mode mode, const QString &versionStrin
         }
     }
     if (first >= 0 && nHeadingTagged * 2 <= L.size() - first) {
+        QList<bool> keywordHdr;
+        for (const Line &l : std::as_const(L)) {
+            keywordHdr.append(l.isHdr);
+        }
         for (int n = first + 1; n < L.size(); n++) {
             bool anyLy = false;
             for (const Seg &x : std::as_const(L[n].s)) {
                 anyLy = anyLy || !x.ly.isEmpty();
             }
-            if (!L[n].isHdr && L[n].headingLevel > 0 && !anyLy && wordCount(L[n].txt) <= 4) {
+            const bool nextSameTag = n + 1 < L.size() && L[n + 1].headingLevel == L[n].headingLevel &&
+                                     !keywordHdr[n + 1];
+            if (!L[n].isHdr && L[n].headingLevel > 0 && !anyLy && wordCount(L[n].txt) <= 4 && !nextSameTag) {
                 L[n].isHdr = true;
                 L[n].hdr = normalizeHeading(L[n].txt);
             }
@@ -868,8 +897,45 @@ Result convert(const QString &sourceHtml, Mode mode, const QString &versionStrin
     if (first < 0) {
         res.warnings << QStringLiteral("No section heading (Opener/Figure/...) found.");
     }
-    const QList<Line> head = first < 0 ? L.mid(0, 1) : L.mid(0, first);
+    QList<Line> head = first < 0 ? L.mid(0, 1) : L.mid(0, first);
     QList<Line> body = first < 0 ? L.mid(1) : L.mid(first);
+
+    // A colour legend under the title ("...... kiyomi" in pink, "..... both" in yellow,
+    //   ...): at least two short, wholly highlighted lines.  Kept as one line of lyric
+    //   spans, so it shows which singer each lyrics class is.
+    QList<Seg> legend;
+    QList<int> legendLines;
+    static const QRegularExpression legendTrim(QStringLiteral("^[^\\p{L}\\p{N}(]+|[^\\p{L}\\p{N})]+$"));
+    for (int n = 1; n < head.size(); n++) {
+        bool allLy = true;
+        QString colour;
+        for (const Seg &x : std::as_const(head[n].s)) {
+            allLy = allLy && (x.ly.startsWith('#') || x.t.trimmed().isEmpty());
+            if (colour.isEmpty()) {
+                colour = x.ly;
+            }
+        }
+        const QString name = QString(head[n].txt).remove(legendTrim);
+        if (allLy && !colour.isEmpty() && !name.isEmpty() && wordCount(name) <= 3 && !matchHeading(name).matched) {
+            if (!legend.isEmpty()) {
+                Seg space;
+                space.t = QStringLiteral(" ");
+                legend.append(space);
+            }
+            Seg x;
+            x.t = name;
+            x.ly = colour;
+            legend.append(x);
+            legendLines.append(n);
+        }
+    }
+    if (legendLines.size() < 2) {
+        legend.clear();
+    } else {
+        for (int k = legendLines.size() - 1; k >= 0; k--) {
+            head.removeAt(legendLines[k]);
+        }
+    }
 
     if (mode == Mode::NoBold) {
         for (Line &l : body) {
@@ -1022,7 +1088,10 @@ Result convert(const QString &sourceHtml, Mode mode, const QString &versionStrin
     lyClass.insert("lyrics2", "lyrics2");
     lyClass.insert("lyrics3", "lyrics3");
     int nColours = 0;
-    for (const Line &l : std::as_const(body)) {
+    QList<Line> coloured = body;
+    coloured.prepend(Line());
+    coloured.first().s = legend;      // the legend's order, if there is one
+    for (const Line &l : std::as_const(coloured)) {
         for (const Seg &x : l.s) {
             if (x.ly.startsWith('#') && !lyClass.contains(x.ly)) {
                 nColours++;
@@ -1090,6 +1159,9 @@ Result convert(const QString &sourceHtml, Mode mode, const QString &versionStrin
     out += QStringLiteral(" <BR>\n");
     for (const QString &x : std::as_const(extraHeadLines)) {
         out += QStringLiteral("    %1<BR>\n").arg(esc(x));
+    }
+    if (!legend.isEmpty()) {
+        out += QStringLiteral("    ") + renderLine(legend, lyClass) + QStringLiteral("<BR>\n");
     }
     out += QStringLiteral("    <BR>\n");
 
