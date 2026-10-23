@@ -654,6 +654,131 @@ bool isMergeableCall(const QString &text)
     return calls.match(t.trimmed()).hasMatch();
 }
 
+// "OPENER/BREAK/CLOSE" -> "OPENER - MIDDLE BREAK - CLOSER": section names in
+//   their standard form, joined with " - ".  Empty if any part isn't a section.
+QString canonicalSections(const QString &s)
+{
+    static const QRegularExpression sep(
+        QStringLiteral("\\s*(?:[/,&+]|\\bAND\\b|\\s[-\\x{2013}]+\\s|[-\\x{2013}]+)\\s*"));
+    static const QRegularExpression digits(QStringLiteral("^\\d+$"));
+    static const QHash<QString, QString> names = {
+        { "MIDDLE BREAK", "MIDDLE BREAK" }, { "MID BREAK", "MIDDLE BREAK" }, { "MIDDLE", "MIDDLE BREAK" },
+        { "BREAK", "MIDDLE BREAK" }, { "BREAKS", "MIDDLE BREAK" },
+        { "OPENER", "OPENER" }, { "OPENING", "OPENER" }, { "OPEN", "OPENER" },
+        { "CLOSER", "CLOSER" }, { "CLOSING", "CLOSER" }, { "CLOSE", "CLOSER" }, { "ENDING", "CLOSER" },
+        { "INSTRUMENTAL TAG", "INSTRUMENTAL TAG" }, { "INSTRUMENTAL", "INSTRUMENTAL" }, { "TAG", "TAG" },
+        { "INTRO", "INTRO" }, { "INTRODUCTION", "INTRO" }, { "BRIDGE", "BRIDGE" },
+        { "FIGURE", "FIGURE" }, { "FIGURES", "FIGURE" }
+    };
+    QStringList out;
+    for (const QString &part : s.toUpper().split(sep, Qt::SkipEmptyParts)) {
+        const QStringList w = part.split(' ', Qt::SkipEmptyParts);
+        for (int i = 0; i < w.size(); ) {
+            QString name;
+            if (i + 1 < w.size() && names.contains(w[i] + ' ' + w[i + 1])) {
+                name = names.value(w[i] + ' ' + w[i + 1]);
+                i += 2;
+            } else if (names.contains(w[i])) {
+                name = names.value(w[i]);
+                i++;
+                if (name == "FIGURE" && i < w.size() && digits.match(w[i]).hasMatch()) {
+                    name += ' ' + w[i++];
+                }
+            } else {
+                return QString();
+            }
+            if (!out.contains(name)) {
+                out << name;
+            }
+        }
+    }
+    return out.join(QStringLiteral(" - "));
+}
+
+// A heading in its standard form (#1789's header mapping), with any note or
+//   starting call split off: "FIGURE #1 (BASIC)" -> "FIGURE 1" + note "(BASIC)";
+//   "OPENER CIRCLE LEFT" -> "OPENER" + call "CIRCLE LEFT".  False if it isn't
+//   recognized ("FRENCH LYRICS", "SSD CHOREO"), which is then left alone.
+bool canonicalHeading(const QString &hdr, QString &canon, QString &note, QString &call)
+{
+    static const QRegularExpression noteRe(
+        QStringLiteral("^(.*?\\S)\\s*(?:[-\\x{2013}]+\\s*)?(\\(.*\\)|\\[.*\\])$"));
+    static const QRegularExpression numbers(QStringLiteral("^[\\d\\s,&+]+$"));
+    static const QRegularExpression figure(QStringLiteral("^FIGURES?(?![\\w])(.*)$"));
+    static const QRegularExpression figureWords(QStringLiteral("\\bFIGURES?\\b|\\bAND\\b"));
+    static const QRegularExpression figureRest(QStringLiteral("^[\\s#\\d,&+]*$"));
+    static const QRegularExpression number(QStringLiteral("\\d+"));
+    static const QRegularExpression altLyrics(
+        QStringLiteral("^(?:ALT|ALTERNATE|ALTERNATIVE)\\s+LYRICS(?:\\s+FOR\\s+(.+))?$"));
+    static const QRegularExpression moreLyrics(QStringLiteral("^(?:ADDITIONAL|MORE|EXTRA)\\s+LYRICS$"));
+    static const QRegularExpression lyrics(QStringLiteral("^(.*\\S)\\s+LYRICS?$"));
+
+    QString h = hdr.toUpper();
+    note.clear();
+    call.clear();
+    const QRegularExpressionMatch nm = noteRe.match(h);
+    if (nm.hasMatch()) {
+        h = nm.captured(1);
+        note = nm.captured(2);
+        const QString inner = note.mid(1, note.length() - 2).trimmed();
+        if (isMergeableCall(inner)) {               // "FIGURE 2 (CIRCLE LEFT)"
+            call = inner;
+            note.clear();
+        } else if (numbers.match(inner).hasMatch() && figure.match(h).hasMatch()) {    // "FIGURE (1,3)"
+            h += ' ' + inner;
+            note.clear();
+        }
+    }
+
+    QRegularExpressionMatch m;
+    if ((m = altLyrics.match(h)).hasMatch()) {
+        canon = QStringLiteral("ALTERNATE LYRICS");
+        if (!m.captured(1).isEmpty() && note.isEmpty()) {     // "ALT LYRICS FOR MID BREAK AND CLOSER"
+            const QString which = canonicalSections(m.captured(1));
+            note = QStringLiteral("(for %1)").arg(which.isEmpty() ? m.captured(1) : callCase(which.toLower()));
+        }
+    } else if (moreLyrics.match(h).hasMatch()) {
+        canon = QStringLiteral("ADDITIONAL LYRICS");
+    } else if ((m = lyrics.match(h)).hasMatch()) {
+        canon = canonicalSections(m.captured(1));
+        if (canon.isEmpty()) {
+            return false;
+        }
+        canon += QStringLiteral(" LYRICS");
+    } else if ((m = figure.match(h)).hasMatch() && figureRest.match(QString(m.captured(1)).remove(figureWords)).hasMatch()) {
+        // "FIGURE #4", "FIGURE 2 AND FIGURE 3", "FIGURE 1,3,4" -> "FIGURE 4", "FIGURE 2 & 3", "FIGURE 1, 3 & 4"
+        QStringList nums;
+        QRegularExpressionMatchIterator it = number.globalMatch(m.captured(1));
+        while (it.hasNext()) {
+            nums << it.next().captured(0);
+        }
+        canon = QStringLiteral("FIGURE");
+        if (!nums.isEmpty()) {
+            const QString last = nums.takeLast();
+            canon += ' ' + (nums.isEmpty() ? last : nums.join(QStringLiteral(", ")) + QStringLiteral(" & ") + last);
+        }
+    } else {
+        canon = canonicalSections(h);
+        if (canon.isEmpty() && call.isEmpty()) {
+            // "OPENER CIRCLE LEFT": sections, then a starting call.
+            const QStringList w = h.split(' ', Qt::SkipEmptyParts);
+            for (int k = w.size() - 1; k > 0 && canon.isEmpty(); k--) {
+                const QString rest = w.mid(k).join(' ');
+                if (isMergeableCall(rest)) {
+                    canon = canonicalSections(w.mid(0, k).join(' '));
+                    if (!canon.isEmpty()) {
+                        call = rest;
+                    }
+                }
+            }
+        }
+        if (canon.isEmpty()) {
+            return false;
+        }
+    }
+    return true;
+}
+
 } // namespace
 
 QString decode(const QByteArray &bytes)
@@ -892,6 +1017,44 @@ Result convert(const QString &sourceHtml, Mode mode, const QString &versionStrin
                 L[n].hdr = normalizeHeading(L[n].txt);
             }
         }
+    }
+
+    // Headings in their standard form ("OPENER/BREAK/CLOSE" -> "OPENER - MIDDLE BREAK
+    //   - CLOSER").  A note or starting call split off the heading goes first in what
+    //   follows it on the line, in its source case.
+    for (Line &l : L) {
+        QString canon, note, call;
+        if (!l.isHdr || !canonicalHeading(l.hdr, canon, note, call)) {
+            continue;
+        }
+        l.hdr = canon;
+        auto fromSource = [&](const QString &t) {
+            const int at = l.txt.indexOf(t, 0, Qt::CaseInsensitive);
+            return at < 0 ? t : l.txt.mid(at, t.length());
+        };
+        QList<Seg> add;
+        if (!note.isEmpty()) {
+            Seg x;
+            x.t = fromSource(note);
+            x.keepCase = true;
+            add.append(x);
+        }
+        if (!call.isEmpty()) {
+            Seg x;
+            x.t = (add.isEmpty() ? QString() : QStringLiteral(" ")) + fromSource(call);
+            add.append(x);
+        }
+        if (add.isEmpty()) {
+            continue;
+        }
+        const bool hadRest = !l.rest.isEmpty();
+        if (hadRest) {
+            Seg space;
+            space.t = QStringLiteral(" ");
+            add.append(space);
+        }
+        l.restIsNote = call.isEmpty() && (!hadRest || l.restIsNote);
+        l.rest = add + l.rest;
     }
 
     if (first < 0) {
