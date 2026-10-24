@@ -1213,6 +1213,7 @@ void MainWindow::loadCuesheet(const QString cuesheetFilename)
 {
     // qDebug() << "loadCuesheet: " << cuesheetFilename;
     //loadedCuesheetNameWithPath = ""; // nothing loaded yet
+    cuesheetIsMagicCleaned = false;  // only an HTML cuesheet with the mark (below) counts as cleaned (#1789)
 
     // QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));
     if (cuesheetFilename.endsWith(".txt", Qt::CaseInsensitive)) {
@@ -1268,6 +1269,10 @@ void MainWindow::loadCuesheet(const QString cuesheetFilename)
             maybeLoadCSSfileIntoTextBrowser(!containsMicrosoftHTML); // turn SquareDesk CSS OFF for MS WORD HTML files
 
             cuesheetSquareDeskVersion = match1.captured(1);
+
+            // made by Magic Clean & Save, and not edited by hand since (a hand-edited save rebuilds the file
+            //   from the QTextDocument, which drops all HTML comments, so this mark goes away) (#1789)
+            cuesheetIsMagicCleaned = cuesheet.contains("<!-- squaredesk:cleaned");
 //            qDebug() << "contains: " << containsSquareDeskVersion << match1.captured(1);
 
             // set the HTML for the cuesheet itself (must set CSS first)
@@ -2001,6 +2006,9 @@ void MainWindow::updateMagicCleanButton()
         whyNot = "this is a template";
     } else if (lyricsForDifferentSong || cuesheetIsPeekedFromNextSong) {
         whyNot = "this cuesheet belongs to a different song";
+    } else if (cuesheetIsMagicCleaned) {
+        whyNot = "this cuesheet was already made by Magic Clean & Save "
+                 "(edit and save it by hand to make Magic Clean available again)";
     }
 
     ui->pushButtonCueSheetMagicClean->setEnabled(whyNot.isEmpty());

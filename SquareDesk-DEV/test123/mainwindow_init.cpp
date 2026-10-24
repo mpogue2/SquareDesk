@@ -1629,6 +1629,7 @@ void MainWindow::initializeCuesheetTab() {
     lyricsForDifferentSong = false;
     cuesheetIsPeekedFromNextSong = false;
     cueSheetLoaded = false;
+    cuesheetIsMagicCleaned = false;
     override_filename = "";
     override_cuesheet = "";
 

@@ -1369,7 +1369,7 @@ Result convert(const QString &sourceHtml, Mode mode, const QString &versionStrin
 
     const QString titleTag = esc(title) + (label.isEmpty() ? QString() : QStringLiteral(" (%1)").arg(esc(label)));
     res.html = QStringLiteral(
-        "<!DOCTYPE html>\n\n<HTML>\n<HEAD> <!-- squaredesk:version = %1 -->\n"
+        "<!DOCTYPE html>\n\n<HTML>\n<HEAD> <!-- squaredesk:version = %1 --> <!-- squaredesk:cleaned = %1 -->\n"
         "    <META charset=\"UTF-8\">\n    <TITLE>%2</TITLE>\n"
         "    <STYLE>\n        %3\n    </STYLE>\n</HEAD>\n\n<BODY>\n%4</BODY>\n</HTML>\n")
         .arg(versionString, titleTag, QString::fromLatin1(kOutputStyle), out);

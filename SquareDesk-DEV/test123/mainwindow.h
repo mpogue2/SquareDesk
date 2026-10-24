@@ -1052,6 +1052,7 @@ private:
     int findCuesheetColumnSplitPosition(QTextDocument *doc);
 
     QString cuesheetSquareDeskVersion;
+    bool cuesheetIsMagicCleaned;  // the loaded cuesheet has the "squaredesk:cleaned" mark, i.e. Magic Clean & Save made it (#1789)
     enum charsType { TitleChars=1, LabelChars=96, ArtistChars=255, HeaderChars=2, LyricsChars=3, Lyrics2Chars=4, Lyrics3Chars=5, NoneChars=0};
     charsType FG_BG_to_type(QColor fg, QColor bg);
     QTextCharFormat lastKnownTextCharFormat;
