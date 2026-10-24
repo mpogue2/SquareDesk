@@ -32,6 +32,7 @@
 #include "ui_mainwindow.h"
 #include "utility.h"
 #include "selectionretainer.h"
+#include "cuesheetconverter.h"
 
 #include <QTextDocument>
 #include <QTextDocumentFragment>
@@ -156,6 +157,7 @@ void MainWindow::lockForEditing() {
     ui->comboBoxCuesheetSelector->setDisabled(false); // when we are locked (not editing), we CAN change the cuesheet!
 
     cuesheetIsUnlockedForEditing = false;
+    updateMagicCleanButton();
 }
 
 void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
@@ -228,6 +230,7 @@ void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
         applyCuesheetColumnModeToView();  // back to 2-column view (with any unsaved edits), if that mode is selected
     }
 
+    updateMagicCleanButton();
     setInOutButtonState();
 }
 
@@ -563,29 +566,15 @@ void MainWindow::writeCuesheet(QString filename)
 
 #define WRITETHEMODIFIEDLYRICSFILE
 #ifdef WRITETHEMODIFIEDLYRICSFILE
-    if ( file.open(QIODevice::WriteOnly) )
-    {
-        filewatcherShouldIgnoreOneFileSave = true;  // when we save it will trigger filewatcher, which
-        //  will reorder the songTable.  We are adding the file to the pathStack manually, so there
-        //  really is no need to trigger the filewatcher.
+    // if the 2-column view is displayed (e.g. Cuesheet > Save As while locked),
+    //   save the real 1-column HTML, not the 2-column table
+    QString editedCuesheet = cuesheetIsTwoColumnRendered ? cuesheetOneColumnHTML
+                                                         : ui->textBrowserCueSheet->toHtml();
+    QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(editedCuesheet);
 
-        // Make sure the destructor gets called before we try to load this file...
-        {
-            QTextStream stream( &file );
-            // if the 2-column view is displayed (e.g. Cuesheet > Save As while locked),
-            //   save the real 1-column HTML, not the 2-column table
-            QString editedCuesheet = cuesheetIsTwoColumnRendered ? cuesheetOneColumnHTML
-                                                                 : ui->textBrowserCueSheet->toHtml();
-            QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(editedCuesheet);
-            stream << postProcessedCuesheet;
-            stream.flush();
-        }
-
+    if (writeCuesheetHTML(filename, postProcessedCuesheet)) {
         QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
         cursor.movePosition(QTextCursor::Start);  // move cursor to the start of the file after a save
-
-        updateCuesheetLevelInPathStack(filename); // (re-)detect this cuesheet's level, update/add its pathStackCuesheets entry, and refresh the Levels column if it's in use
-        updateCuesheetSearchForOneCuesheet(filename); // refresh its text for ?call searches (and index it, if it's new) (Issue #1598)
     }
 #else
                 qDebug() << "************** SAVE FILE ***************";
@@ -597,6 +586,33 @@ void MainWindow::writeCuesheet(QString filename)
 //                QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(editedCuesheet);
 //                qDebug().noquote() << "***** I AM THINKING ABOUT WRITING TO FILE postProcessed:\n" << postProcessedCuesheet;
 #endif
+}
+
+// writes already-final cuesheet HTML to filename, and does the bookkeeping that every cuesheet save needs
+//   (used by writeCuesheet() for the editor's contents, and by Magic Clean & Save for the converter's output (#1789))
+//   returns false if the file could not be opened for writing
+bool MainWindow::writeCuesheetHTML(const QString &filename, const QString &html)
+{
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly)) {
+        return false;
+    }
+
+    filewatcherShouldIgnoreOneFileSave = true;  // when we save it will trigger filewatcher, which
+    //  will reorder the songTable.  We are adding the file to the pathStack manually, so there
+    //  really is no need to trigger the filewatcher.
+
+    // Make sure the destructor gets called before we try to load this file...
+    {
+        QTextStream stream( &file );
+        stream << html;
+        stream.flush();
+    }
+    file.close();
+
+    updateCuesheetLevelInPathStack(filename); // (re-)detect this cuesheet's level, update/add its pathStackCuesheets entry, and refresh the Levels column if it's in use
+    updateCuesheetSearchForOneCuesheet(filename); // refresh its text for ?call searches (and index it, if it's new) (Issue #1598)
+    return true;
 }
 
 void MainWindow::on_pushButtonCueSheetEditSave_clicked()
@@ -1274,6 +1290,7 @@ void MainWindow::loadCuesheet(const QString cuesheetFilename)
     loadCuesheetSettings(loadedCuesheetNameWithPath);  // this cuesheet's own font size offset and auto-scroll state, if it has them (#1682, #1724)
     cuesheetIsTwoColumnRendered = false;  // fresh 1-column content was just loaded
     applyCuesheetColumnModeToView();      // re-render as 2 columns, if that mode is selected
+    updateMagicCleanButton();
 
 //    qDebug() << "scrolling to top now...";
 //    int minScroll = ui->textBrowserCueSheet->verticalScrollBar()->minimum();
@@ -1863,12 +1880,6 @@ void MainWindow::saveLyricsAs()
     }
 
     loadedCuesheetNameWithPath = lastCuesheetSavePath + "/" + fi.baseName().replace(QRegularExpression("\\(.*\\)"),"").simplified() + ".html";
-    QString loadedCuesheetNameWithPathHTM = lastCuesheetSavePath + "/" + fi.baseName().replace(QRegularExpression("\\(.*\\)"),"").simplified() + ".htm";
-
-    QString maybeFilename = loadedCuesheetNameWithPath;  // prefer HTML extension rather than HTM
-    QFileInfo fi2(loadedCuesheetNameWithPath);
-
-    QFileInfo fi3(loadedCuesheetNameWithPathHTM);
 
     // qDebug() << "loadedCuesheetNameWithPath: " << loadedCuesheetNameWithPath;
 
@@ -1878,26 +1889,7 @@ void MainWindow::saveLyricsAs()
             .replace(QRegularExpression("\\(.*\\)"),"")        // remove parens, e.g. AAA 123 - Foo Bar (NM).mp3
             .simplified();                                     // trim and consolidate whitespace
 
-    // find the highest-numbered "<base>.<N>.htm[l]" file already on disk, regardless of whether
-    // the unnumbered "<base>.htm[l]" file exists (it might not, if only numbered versions remain)
-    QFileInfo baseFi(cuesheetBase);
-    QDir dir(baseFi.absolutePath());
-    QRegularExpression numberedRegExp("^" + QRegularExpression::escape(baseFi.fileName()) + "\\.([0-9]+)\\.html?$",
-                                       QRegularExpression::CaseInsensitiveOption);
-    int highestN = 0;
-    const QStringList existingFiles = dir.entryList(QDir::Files);
-    for (const QString &existingFile : existingFiles) {
-        QRegularExpressionMatch m = numberedRegExp.match(existingFile);
-        if (m.hasMatch()) {
-            highestN = qMax(highestN, m.captured(1).toInt());
-        }
-    }
-
-    if (highestN > 0) {
-        maybeFilename = cuesheetBase + "." + QString::number(highestN + 1) + ".html";
-    } else if (fi2.exists() || fi3.exists()) {
-        maybeFilename = cuesheetBase + ".2.html";
-    }
+    QString maybeFilename = nextNumberedCuesheetFilename(cuesheetBase);  // prefer HTML extension rather than HTM
 
     QString filename = QFileDialog::getSaveFileName(this,
                                                     tr("Save"), // TODO: this could say Lyrics or Patter
@@ -1914,6 +1906,106 @@ void MainWindow::saveLyricsAs()
         loadCuesheets(currentMP3filenameWithPath, filename); // ignoring return value
         saveCurrentSongSettings();
     }
+}
+
+// the next free name in a cuesheet's numbered series, given its base (full path, no extension):
+//   "<base>.html" if neither "<base>.htm[l]" nor any "<base>.<N>.htm[l]" exists yet,
+//   otherwise "<base>.<highest N + 1>.html" (an unnumbered "<base>.htm[l]" counts as N = 1)
+//   Used by Save As... (default name) and by Magic Clean & Save (#1789).
+QString MainWindow::nextNumberedCuesheetFilename(const QString &cuesheetBase)
+{
+    // find the highest-numbered "<base>.<N>.htm[l]" file already on disk, regardless of whether
+    // the unnumbered "<base>.htm[l]" file exists (it might not, if only numbered versions remain)
+    QFileInfo baseFi(cuesheetBase);
+    QDir dir(baseFi.absolutePath());
+    QRegularExpression numberedRegExp("^" + QRegularExpression::escape(baseFi.fileName()) + "\\.([0-9]+)\\.html?$",
+                                       QRegularExpression::CaseInsensitiveOption);
+    int highestN = 0;
+    const QStringList existingFiles = dir.entryList(QDir::Files);
+    for (const QString &existingFile : existingFiles) {
+        QRegularExpressionMatch m = numberedRegExp.match(existingFile);
+        if (m.hasMatch()) {
+            highestN = qMax(highestN, m.captured(1).toInt());
+        }
+    }
+
+    if (highestN > 0) {
+        return cuesheetBase + "." + QString::number(highestN + 1) + ".html";
+    } else if (QFileInfo::exists(cuesheetBase + ".html") || QFileInfo::exists(cuesheetBase + ".htm")) {
+        return cuesheetBase + ".2.html";
+    }
+    return cuesheetBase + ".html";
+}
+
+// MAGIC CLEAN & SAVE (#1789) ------------------------------
+// Converts the current cuesheet FILE (not the editor's copy, which QTextEdit has already flattened)
+//   into clean SquareDesk format, saves that as the next numbered cuesheet right next to the
+//   original (which is never touched), and makes it the current/preferred cuesheet for this song.
+void MainWindow::on_pushButtonCueSheetMagicClean_clicked()
+{
+    RecursionGuard dialog_guard(inPreferencesDialog);
+
+    QString sourceFilename = loadedCuesheetNameWithPath;
+
+    QFile in(sourceFilename);
+    if (!in.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, "Magic Clean & Save",
+                             QString("Could not read the cuesheet:\n%1").arg(sourceFilename));
+        return;
+    }
+    QString sourceHTML = CuesheetConverter::decode(in.readAll());
+    in.close();
+
+    QFileInfo sourceFi(sourceFilename);
+    CuesheetConverter::Result r = CuesheetConverter::convert(sourceHTML, CuesheetConverter::Mode::Auto,
+                                                             VERSIONSTRING, true, sourceFi.fileName());
+    for (const QString &w : std::as_const(r.warnings)) {
+        qDebug() << "Magic Clean & Save:" << sourceFi.fileName() << ":" << w;
+    }
+
+    // same folder and name as the original, minus any ".<N>", so "Foo.2.html" -> "Foo.3.html", not "Foo.2.2.html"
+    QString cuesheetBase = sourceFi.absolutePath() + "/" +
+                           sourceFi.completeBaseName().remove(QRegularExpression("\\.[0-9]+$"));
+    QString cleanFilename = nextNumberedCuesheetFilename(cuesheetBase);
+
+    if (!writeCuesheetHTML(cleanFilename, r.html)) {
+        QMessageBox::warning(this, "Magic Clean & Save",
+                             QString("Could not save the cleaned cuesheet:\n%1").arg(cleanFilename));
+        return;
+    }
+
+    loadCuesheets(currentMP3filenameWithPath, cleanFilename); // shows it, and adds it to the dropdown (ignoring return value)
+    saveCurrentSongSettings();                                // and it's now this song's preferred cuesheet
+
+    ui->statusBar->showMessage(QString("Magic Clean & Save: saved %1 (%2)").arg(QFileInfo(cleanFilename).fileName(), r.info));
+}
+
+// Magic Clean & Save is only possible for an HTML cuesheet file of THIS song, while locked (#1789)
+void MainWindow::updateMagicCleanButton()
+{
+    if (!ui || !ui->pushButtonCueSheetMagicClean) {
+        return;
+    }
+
+    static const QString kMagicCleanTip("Magic Clean & Save: convert this cuesheet to clean SquareDesk format, "
+                                        "and save it as a new cuesheet next to the original");
+    QString filename = loadedCuesheetNameWithPath;
+    QString whyNot;
+    if (filename.isEmpty() || !cueSheetLoaded || isEmbeddedLyricsCuesheet(filename) ||
+        !QRegularExpression("\\.html?$", QRegularExpression::CaseInsensitiveOption).match(filename).hasMatch() ||
+        !QFileInfo::exists(filename)) {
+        whyNot = "there is no HTML cuesheet file loaded";
+    } else if (cuesheetIsUnlockedForEditing) {
+        whyNot = "the cuesheet is unlocked for editing (save or revert first)";
+    } else if (filename.contains(".template.")) {
+        whyNot = "this is a template";
+    } else if (lyricsForDifferentSong || cuesheetIsPeekedFromNextSong) {
+        whyNot = "this cuesheet belongs to a different song";
+    }
+
+    ui->pushButtonCueSheetMagicClean->setEnabled(whyNot.isEmpty());
+    ui->pushButtonCueSheetMagicClean->setToolTip(whyNot.isEmpty() ? kMagicCleanTip
+                                                                  : kMagicCleanTip + "\n\nNot available, because " + whyNot + ".");
 }
 
 // // Automatically format a cuesheet:

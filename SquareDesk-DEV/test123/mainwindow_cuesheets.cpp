@@ -2517,6 +2517,7 @@ bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
         loadedCuesheetNameWithPath = "";
     }*/
 
+    updateMagicCleanButton();  // the cuesheet (and whether it's this song's own) may have changed (#1789)
     return true;  // ALL IS WELL
 }
 

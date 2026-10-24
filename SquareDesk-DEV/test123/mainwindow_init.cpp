@@ -1706,7 +1706,7 @@ void MainWindow::initializeCuesheetTab() {
 
     // Magic Clean & Save button (#1789) ---------
     //   (icons are set per-theme in Themes.qss, this is the fallback if no QSS is active)
-    //   NOTE: not connected to anything yet -- the clean-and-save function is step 3 of #1789
+    //   on_pushButtonCueSheetMagicClean_clicked() does the work; updateMagicCleanButton() enables it
     //   It's an icon-only QPushButton (not a QToolButton), so that the layout gives it exactly the
     //   same height as the Clear Formatting push button next to it; eventFilter() keeps its width
     //   (and icon) in proportion to that height.

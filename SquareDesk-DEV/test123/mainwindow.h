@@ -728,6 +728,7 @@ private slots:
     void on_pushButtonCueSheetEditSave_clicked();
     void on_pushButtonCueSheetEditSaveAs_clicked();
     void on_pushButtonCueSheetClearFormatting_clicked();
+    void on_pushButtonCueSheetMagicClean_clicked();
     void on_pushButtonEditLyrics_toggled(bool checked);
     void showHTML(QString fromWhere);
     void setCueSheetAdditionalControlsVisible(bool visible);
@@ -1066,6 +1067,8 @@ private:
     QString getResourceFile(QString s);
     void saveLyrics();
     void saveLyricsAs();
+    QString nextNumberedCuesheetFilename(const QString &cuesheetBase); // "<base>.html", or the next "<base>.<N>.html" (#1789)
+    void updateMagicCleanButton();  // enable/disable (and explain) the Magic Clean & Save button (#1789)
     void saveSequenceAs();
     void fetchListOfCuesheetsFromCloud();
     QList<QString> getListOfCuesheets();
@@ -1218,6 +1221,7 @@ private:
 
     // File operations
     void writeCuesheet(QString filename);
+    bool writeCuesheetHTML(const QString &filename, const QString &html);  // write already-final HTML (#1789)
     void saveCurrentSongSettings();
     void saveCuesheet(const QString songFilename, const QString cuesheetFilename);
     void loadSettingsForSong(QString songTitle);

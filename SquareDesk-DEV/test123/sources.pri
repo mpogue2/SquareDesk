@@ -11,6 +11,7 @@ SOURCES += main.cpp\
     flexible_audio.cpp \
     embeddedserver.cpp \
     lyricsEditor.cpp \
+    cuesheetconverter.cpp \
     lyricseditor_autoformat.cpp \
     mainwindow.cpp \
     mainwindow_audio.cpp \
@@ -102,6 +103,7 @@ SOURCES += ../third_party/qpdfjs/src/communicator.cpp
 }
 
 HEADERS  += mainwindow.h \
+    cuesheetconverter.h \
     addcommentdialog.h \
     audiodecoder.h \
     auditionbutton.h \
