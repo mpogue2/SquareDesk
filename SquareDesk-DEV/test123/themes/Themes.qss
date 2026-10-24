@@ -223,7 +223,7 @@ QToolButton:hover:!disabled[theme="Dark"]
     background-color: qlineargradient(x1:0 y1:1, x2:0 y2:0, stop:0 #3F3F3F, stop:1 #484848);
 }
 
-QToolButton:pressed[theme="Dark"]
+QToolButton:pressed:!disabled[theme="Dark"]
 {
     background-color: qlineargradient(x1:0 y1:1, x2:0 y2:0, stop:0 #262626, stop:1 #363636);
 }
@@ -241,7 +241,7 @@ QToolButton:hover:!disabled[theme="Light"]
     background-color: #ffffff;
 }
 
-QToolButton:pressed[theme="Light"]
+QToolButton:pressed:!disabled[theme="Light"]
 {
     background-color: #E0E0E0;
 }
@@ -332,6 +332,22 @@ QPushButton[theme="Light"] {
     border-radius: 3px;
 }
 
+/* hover and pressed looks for all push buttons, the same colors as the tool buttons, so that pointing
+   at a push button, and clicking it, visibly registers (the stylesheet replaces the native look, which
+   otherwise did this).  Buttons with their own background-color rule (e.g. Lyrics) keep that color. */
+QPushButton:hover:!disabled[theme="Dark"] {
+    background-color: qlineargradient(x1:0 y1:1, x2:0 y2:0, stop:0 #3F3F3F, stop:1 #484848);
+}
+QPushButton:pressed:!disabled[theme="Dark"] {
+    background-color: qlineargradient(x1:0 y1:1, x2:0 y2:0, stop:0 #262626, stop:1 #363636);
+}
+QPushButton:hover:!disabled[theme="Light"] {
+    background-color: #ffffff;
+}
+QPushButton:pressed:!disabled[theme="Light"] {
+    background-color: #E0E0E0;
+}
+
 QPushButton#pushButtonCueSheetEditTitle,
 QPushButton#pushButtonCueSheetEditLabel,
 QPushButton#pushButtonCueSheetEditArtist,
@@ -355,6 +371,28 @@ QPushButton#pushButtonCueSheetEditLyrics[altpreview="2"] {
 
 QPushButton#pushButtonCueSheetEditLyrics[altpreview="3"] {
     background-color: #C0FFD9;
+}
+
+/* the Lyrics button has its own background, so the general push button hover/pressed rules don't reach it:
+   lighter on hover, darker when pressed, for the normal pink and for each OPTION preview color.
+   (the [altpreview] versions are more specific, so a preview color still shows while pointing at the button) */
+QPushButton#pushButtonCueSheetEditLyrics:hover:!disabled {
+    background-color: #FFD6DE;
+}
+QPushButton#pushButtonCueSheetEditLyrics:pressed:!disabled {
+    background-color: #F0A8B6;
+}
+QPushButton#pushButtonCueSheetEditLyrics[altpreview="2"]:hover:!disabled {
+    background-color: #D6E6FF;
+}
+QPushButton#pushButtonCueSheetEditLyrics[altpreview="2"]:pressed:!disabled {
+    background-color: #A8C6F0;
+}
+QPushButton#pushButtonCueSheetEditLyrics[altpreview="3"]:hover:!disabled {
+    background-color: #D6FFE6;
+}
+QPushButton#pushButtonCueSheetEditLyrics[altpreview="3"]:pressed:!disabled {
+    background-color: #A8F0C6;
 }
 
 QPushButton#pushButtonSetIntroTime,
