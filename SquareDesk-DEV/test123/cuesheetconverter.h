@@ -70,7 +70,7 @@ Result convert(const QString &sourceHtml, Mode mode, const QString &versionStrin
 // Debugging aid: the flattened lines and segments that convert() works from.
 QString dumpLines(const QString &sourceHtml);
 
-// Shared section-heading detector (also intended for Auto-format and #1772).
+// Shared section-heading detector (also intended for #1772).
 //   Recognizes lines like "OPENER", "FIGURE 1+2", "Opener - Middle Break - Closer",
 //   "Break Lyrics", "FIGURE 1 (mainstream)", and heading-plus-call lines like
 //   "Open : Circle Left" or (ALL-CAPS keyword only) "OPENER Circle Left".

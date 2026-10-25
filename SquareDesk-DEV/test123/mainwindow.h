@@ -891,7 +891,6 @@ private slots:
     void on_actionBold_triggered();
     void on_actionItalic_triggered();
     void on_actionClear_Recent_triggered();
-    void on_actionAuto_format_Lyrics_triggered();
     void on_actionSD_Output_triggered();
     void on_actionShow_Frames_triggered();
     void on_menuSections_aboutToShow();

@@ -4722,7 +4722,6 @@
     <addaction name="actionPrint_Cuesheet"/>
     <addaction name="separator"/>
     <addaction name="menuFont"/>
-    <addaction name="actionAuto_format_Lyrics"/>
     <addaction name="separator"/>
     <addaction name="actionLyricsCueSheetRevert_Edits"/>
     <addaction name="separator"/>
@@ -6259,14 +6258,6 @@
   <action name="actionRecent6">
    <property name="text">
     <string>recent6</string>
-   </property>
-  </action>
-  <action name="actionAuto_format_Lyrics">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Auto-format Cuesheet</string>
    </property>
   </action>
   <action name="actionSD_Output">

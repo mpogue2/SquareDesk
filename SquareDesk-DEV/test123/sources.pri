@@ -12,7 +12,6 @@ SOURCES += main.cpp\
     embeddedserver.cpp \
     lyricsEditor.cpp \
     cuesheetconverter.cpp \
-    lyricseditor_autoformat.cpp \
     mainwindow.cpp \
     mainwindow_audio.cpp \
     mainwindow_init.cpp \
