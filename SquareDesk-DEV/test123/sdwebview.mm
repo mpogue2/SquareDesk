@@ -44,9 +44,18 @@
 
 struct SquareDeskWebView::Private {
     WKWebView *webView  = nil;      // retained
-    QWidget   *container = nullptr; // owns the QWindow that wraps webView
+    NSView    *host     = nil;      // retained; the plain view Qt manages. webView is its subview only while shown.
+    QWidget   *container = nullptr; // owns the QWindow that wraps host
     QUrl       pendingFileUrl;      // a PDF waiting for this view to be shown (see setUrl)
 };
+
+// Why Qt manages a plain host view, and not the WKWebView itself (issue #1811):
+//   Once a tab's web view has been shown, its native view stays in the main window; switching
+//   tabs only hides it. AppKit skips hidden views for mouse clicks, but NOT for drag and drop:
+//   a hidden WKWebView still swallows every drag over the area it covers (even with its drag
+//   types unregistered), so no drop ever reaches a Qt widget again (palette slots, Finder drops).
+//   A hidden plain NSView does not do this, so the WKWebView is taken out of the window while
+//   hidden (see hideEvent/showEvent). It stays loaded while detached, so its page state is kept.
 
 SquareDeskWebView::SquareDeskWebView(QWidget *parent)
     : QWidget(parent), d(new Private)
@@ -63,9 +72,11 @@ SquareDeskWebView::SquareDeskWebView(QWidget *parent)
             d->webView.inspectable = YES;
         }
 #endif
+        d->webView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;  // follow the host's size
+        d->host = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600)];
     }
 
-    QWindow *window = QWindow::fromWinId(reinterpret_cast<WId>(d->webView));
+    QWindow *window = QWindow::fromWinId(reinterpret_cast<WId>(d->host));
     d->container = QWidget::createWindowContainer(window, this);  // takes ownership of window
 
     QVBoxLayout *layout = new QVBoxLayout(this);
@@ -77,10 +88,13 @@ SquareDeskWebView::~SquareDeskWebView()
 {
     @autoreleasepool {
         [d->webView stopLoading];
-        delete d->container;        // destroys the QWindow, detaching the NSView from our window
+        delete d->container;        // destroys the QWindow, detaching the host from our window
         d->container = nullptr;
+        [d->webView removeFromSuperview];
         [d->webView release];
         d->webView = nil;
+        [d->host release];
+        d->host = nil;
     }
     delete d;
 }
@@ -134,6 +148,12 @@ void SquareDeskWebView::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
 
+    // Put the web view back in the window (see the note at the top of this file) (#1811)
+    if (d->webView.superview != d->host) {
+        d->webView.frame = d->host.bounds;
+        [d->host addSubview:d->webView];
+    }
+
     if (!d->pendingFileUrl.isEmpty()) {
         // Queued, so the layout has given the native view its real size before WebKit loads.
         QTimer::singleShot(0, this, [this]() {
@@ -142,6 +162,14 @@ void SquareDeskWebView::showEvent(QShowEvent *event)
             }
         });
     }
+}
+
+void SquareDeskWebView::hideEvent(QHideEvent *event)
+{
+    QWidget::hideEvent(event);
+
+    // A hidden WKWebView still swallows drags, so take it out of the window (#1811)
+    [d->webView removeFromSuperview];
 }
 
 void SquareDeskWebView::setHtml(const QString &html, const QUrl &baseUrl)
