@@ -229,6 +229,7 @@ CONFIG_ATTRIBUTE_BOOLEAN(checkBoxAutomaticEnterOnAnythingTabCompletion, Automati
 
 
 CONFIG_ATTRIBUTE_INT_NO_PREFS(prefsDialogLastActiveTab, 0)
+CONFIG_ATTRIBUTE_INT_NO_PREFS(prefsDialogLastClubId, -1)   // rowid of the club last selected in Preferences > Clubs (issue #1721)
 CONFIG_ATTRIBUTE_INT_NO_PREFS(SDCallListCopyOptions, 1)
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(SDCallListCopyHTMLIncludeHeaders, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(SDCallListCopyHTMLFormationsAsSVG, true);

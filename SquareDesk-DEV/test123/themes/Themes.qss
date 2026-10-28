@@ -663,6 +663,24 @@ QComboBox#clubRuleKindChip[chipKind="monthly"][theme="Dark"] {
     color: #e8c98a;
 }
 
+/* a one-off event's chip: not a menu, and a third tint so it stands apart from the rules */
+QLabel#clubOneOffChip {
+    font-weight: 600;
+    border-radius: 5px;
+    padding: 2px 8px;
+    min-height: 18px;
+}
+QLabel#clubOneOffChip[theme="Light"] {
+    background-color: #ece4f8;
+    border: 1px solid #d4c4ef;
+    color: #5b3a99;
+}
+QLabel#clubOneOffChip[theme="Dark"] {
+    background-color: #3a2f4f;
+    border: 1px solid #56476f;
+    color: #cdbbf0;
+}
+
 /* the optional label at the end of the sentence: reads as text until it's clicked */
 QLineEdit#clubRuleLabel {
     background: transparent;
@@ -776,6 +794,14 @@ QToolButton#clubRuleRemove:hover[theme="Dark"] {
 #clubsAgendaTag[theme="Dark"] {
     border: 1px solid #555555;
     color: #999999;
+}
+#clubsAgendaTag[tagKind="oneoff"][theme="Light"] {
+    border: 1px solid #c8b6ea;
+    color: #5b3a99;
+}
+#clubsAgendaTag[tagKind="oneoff"][theme="Dark"] {
+    border: 1px solid #6a5a8a;
+    color: #cdbbf0;
 }
 #clubsAgendaFooter {
     font-style: italic;

@@ -76,10 +76,29 @@ static QDate nthWeekdayOfMonth(int year, int month, int weekday, int nth)
     return (d.month() == month) ? d : QDate();
 }
 
+void sortClubRules(QList<ClubRule> &rules)
+{
+    std::stable_sort(rules.begin(), rules.end(), [](const ClubRule &a, const ClubRule &b) {
+        if (a.isOneOff() != b.isOneOff()) {
+            return b.isOneOff();
+        }
+        return a.isOneOff() && (a.since < b.since);
+    });
+}
+
 QList<QDate> ClubRule::datesBetween(const QDate &from, const QDate &to) const
 {
     QList<QDate> dates;
-    if (!since.isValid() || !from.isValid() || !to.isValid() || weekday < 1 || weekday > 7) {
+    if (!since.isValid() || !from.isValid() || !to.isValid()) {
+        return dates;
+    }
+    if (kind == Once) {
+        if (since >= from && since <= to) {
+            dates.append(since);
+        }
+        return dates;
+    }
+    if (weekday < 1 || weekday > 7) {
         return dates;
     }
 
@@ -148,7 +167,11 @@ QString clubContinuationText(const QList<ClubRule> &rules, const QDate &shownThr
         if (!rule.since.isValid()) {
             continue;
         }
-        if (!rule.until.isValid()) {
+        if (rule.isOneOff()) {
+            if (!lastUntil.isValid() || rule.since > lastUntil) {
+                lastUntil = rule.since;
+            }
+        } else if (!rule.until.isValid()) {
             if (!openKinds.contains(rule.kind)) {
                 openKinds.append(rule.kind);
             }

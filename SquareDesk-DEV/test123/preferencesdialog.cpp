@@ -642,6 +642,16 @@ QList<ClubInfo> PreferencesDialog::getClubInfoList()
     return clubsTab->clubs();
 }
 
+int PreferencesDialog::getSelectedClubRow()
+{
+    return clubsTab->currentRow();
+}
+
+void PreferencesDialog::setSelectedClubId(int id)
+{
+    clubsTab->selectClubWithId(id);
+}
+
 void PreferencesDialog::on_toolButtonSessionAddItem_clicked()
 {
     int lastSelectedRow = getLastSelectedRow(ui->tableWidgetSessionsList);

@@ -4677,10 +4677,18 @@ void MainWindow::on_actionPreferences_triggered()
 
     prefDialog->setSessionInfoList(songSettings.getSessionInfo());
     prefDialog->setClubInfoList(songSettings.getClubInfo());   // the first time, seeded from the sessions (issue #1721)
+    prefDialog->setSelectedClubId(prefsManager.GetprefsDialogLastClubId());   // the club selected last time
 
     // modal dialog
     int dialogCode = prefDialog->exec();
     trapKeypresses = true;
+
+    // Remember the selected club, on Cancel too: it's where the user was, not a setting.  A club
+    //   added in this visit has no rowid yet; that case is handled after it's saved, below.
+    int selectedClubRow = prefDialog->getSelectedClubRow();
+    if (selectedClubRow >= 0 && prefDialog->getClubInfoList()[selectedClubRow].id != -1) {
+        prefsManager.SetprefsDialogLastClubId(prefDialog->getClubInfoList()[selectedClubRow].id);
+    }
 
     QString oldMusicRootPath = prefsManager.GetmusicPath();
 
@@ -4773,6 +4781,12 @@ void MainWindow::on_actionPreferences_triggered()
 
         songSettings.setSessionInfo(prefDialog->getSessionInfoList());
         songSettings.setClubInfo(prefDialog->getClubInfoList());   // remembered only; nothing reads clubs yet (issue #1721)
+        if (selectedClubRow >= 0 && prefDialog->getClubInfoList()[selectedClubRow].id == -1) {
+            QList<ClubInfo> savedClubs = songSettings.getClubInfo();   // same order, now with rowids
+            if (selectedClubRow < savedClubs.size()) {
+                prefsManager.SetprefsDialogLastClubId(savedClubs[selectedClubRow].id);
+            }
+        }
         // qDebug() << "preferences set lastsessionid to -1";
         lastSessionID = -1;  // invalidate the lastSessionID cached value, forcing reevaluation of which session we are in...
 

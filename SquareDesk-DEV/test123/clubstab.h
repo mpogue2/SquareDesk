@@ -37,6 +37,7 @@ class QComboBox;
 class QDateEdit;
 class QLabel;
 class QLineEdit;
+class QScrollArea;
 class QTableWidget;
 class QTabWidget;
 class QTimeEdit;
@@ -46,8 +47,8 @@ class QVBoxLayout;
 // Preferences > Clubs (issue #1721).
 //
 // A list of clubs on the left; on the right, the selected club's name and color, and a Schedule
-//   sub-tab holding its rules (each one an editable sentence) and a read-only agenda of the
-//   events those rules produce.  Built in code rather than in preferencesdialog.ui, so that the
+//   sub-tab holding its rules and one-off events (each one an editable sentence) and a read-only
+//   agenda of the events those produce.  Built in code rather than in preferencesdialog.ui, so that the
 //   whole tab lives in one place.
 //
 // Edits are held here until PreferencesDialog's caller reads them back with clubs() on OK.
@@ -61,6 +62,10 @@ public:
     void setClubs(const QList<ClubInfo> &clubs);
     QList<ClubInfo> clubs() const;
 
+    // the selected club, as a row of clubs(), or -1; and selecting one by its id (rowid), if it's there
+    int currentRow() const { return m_current; }
+    void selectClubWithId(int id);
+
     // For debugging only, for now: "Re-create from Sessions" replaces every club with ones made
     //   from the Sessions tab.  The button only appears when this is set.
     std::function<QList<ClubInfo>()> clubsFromSessions;
@@ -71,6 +76,7 @@ private:
     void refreshClubListRow(int row);
     void selectClub(int row);
     void rebuildRuleCards();
+    void scrollToRuleCard(int index);
     void refreshAgenda(bool scrollToEnd = false);
     void refreshColorButton();
     void stampTheme(QWidget *widget);   // see the comment in the .cpp
@@ -79,6 +85,7 @@ private:
     void removeClub();
     void moveClub(int delta);
     void addRule();
+    void addOneOff();
 
     QString m_theme;
     QList<ClubInfo> m_clubs;
@@ -92,6 +99,7 @@ private:
     QLineEdit *m_nameEdit;
     QToolButton *m_colorButton;
     QTabWidget *m_subTabs;
+    QScrollArea *m_rulesScroll;
     QVBoxLayout *m_rulesLayout;
     QList<QWidget *> m_ruleCards;
     QLabel *m_agendaRange;
@@ -125,6 +133,24 @@ private:
     QComboBox *m_endKind;
     QDateEdit *m_until;
     QLineEdit *m_label;
+};
+
+// One one-off event, as a sentence:
+//   [One-off] on [Sat Dec 13, 2026] from [8:00 PM] to [11:00 PM]                            x
+//   [label]
+// Stored as a ClubRule of kind Once, so it has the same callbacks as a rule card.
+class ClubOneOffCard : public QFrame
+{
+public:
+    explicit ClubOneOffCard(const ClubRule &rule, QWidget *parent = nullptr);
+
+    std::function<void(const ClubRule &)> onChanged;
+    std::function<void()> onRemove;
+
+private:
+    void emitChanged();
+
+    ClubRule m_rule;
 };
 
 #endif // CLUBSTAB_H

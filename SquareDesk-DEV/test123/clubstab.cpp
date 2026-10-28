@@ -40,6 +40,7 @@
 #include <QMenu>
 #include <QPainter>
 #include <QRegularExpression>
+#include <QScrollArea>
 #include <QStyle>
 #include <QTabWidget>
 #include <QTableWidget>
@@ -329,6 +330,91 @@ void ClubRuleCard::emitChanged()
 }
 
 // ============================================================================================
+ClubOneOffCard::ClubOneOffCard(const ClubRule &rule, QWidget *parent) :
+    QFrame(parent),
+    m_rule(rule)
+{
+    setObjectName("clubRuleCard");
+
+    // not a menu: a one-off can't turn into a rule (it has no "since" or "until")
+    QLabel *chip = new QLabel("One-off");
+    chip->setObjectName("clubOneOffChip");
+
+    QDateEdit *date = chipDateEdit(rule.since.isValid() ? rule.since : QDate::currentDate());
+    date->setDisplayFormat("ddd MMM d, yyyy");   // with the day, which a rule card shows in its own chip
+    QTimeEdit *start = chipTimeEdit(rule.start_minutes);
+    QTimeEdit *end   = chipTimeEdit(rule.end_minutes);
+
+    QLineEdit *label = new QLineEdit(rule.label);
+    label->setObjectName("clubRuleLabel");
+    label->setPlaceholderText("add a label");
+
+    QToolButton *remove = new QToolButton();
+    remove->setObjectName("clubRuleRemove");
+    remove->setText(QString::fromUtf8("✕"));
+    remove->setToolTip("Delete this one-off event");
+    remove->setCursor(Qt::PointingHandCursor);
+
+    // the widest date this format makes, so the year is never clipped (the Dark style's arrow is wider)
+    date->ensurePolished();
+    date->setMinimumWidth(date->fontMetrics().horizontalAdvance("Wed Sep 30, 2026") + 48);
+
+    QHBoxLayout *line1 = new QHBoxLayout();
+    line1->setSpacing(6);
+    line1->addWidget(chip);
+    line1->addWidget(wordLabel("on"));
+    line1->addWidget(date);
+    line1->addWidget(wordLabel("from"));
+    line1->addWidget(start);
+    line1->addWidget(wordLabel("to"));
+    line1->addWidget(end);
+    line1->addStretch(1);
+    line1->addWidget(remove, 0, Qt::AlignTop);
+
+    // the label gets a line of its own: on the first, it would be squeezed to a few letters
+    QHBoxLayout *line2 = new QHBoxLayout();
+    line2->setSpacing(6);
+    line2->addWidget(label, 1);
+
+    QVBoxLayout *lines = new QVBoxLayout(this);
+    lines->setContentsMargins(12, 8, 8, 8);
+    lines->setSpacing(6);
+    lines->addLayout(line1);
+    lines->addLayout(line2);
+
+    connect(date, &QDateEdit::dateChanged, this, [this](const QDate &d) {
+        m_rule.since = d;
+        m_rule.until = d;
+        m_rule.weekday = d.dayOfWeek();   // unused, but keeps the stored row self-consistent
+        emitChanged();
+    });
+    connect(start, &QTimeEdit::timeChanged, this, [this](const QTime &t) {
+        m_rule.start_minutes = timeToMinutes(t);
+        emitChanged();
+    });
+    connect(end, &QTimeEdit::timeChanged, this, [this](const QTime &t) {
+        m_rule.end_minutes = timeToMinutes(t);
+        emitChanged();
+    });
+    connect(label, &QLineEdit::textEdited, this, [this](const QString &text) {
+        m_rule.label = text;
+        emitChanged();
+    });
+    connect(remove, &QToolButton::clicked, this, [this]() {
+        if (onRemove) {
+            onRemove();
+        }
+    });
+}
+
+void ClubOneOffCard::emitChanged()
+{
+    if (onChanged) {
+        onChanged(m_rule);
+    }
+}
+
+// ============================================================================================
 ClubsTab::ClubsTab(const QString &theme, QWidget *parent) :
     QWidget(parent),
     m_theme(theme),
@@ -466,17 +552,36 @@ void ClubsTab::buildUi()
     m_rulesLayout->setContentsMargins(0, 0, 0, 0);
     m_rulesLayout->setSpacing(8);
 
+    // A few cards, plus the agenda, are more than the dialog is tall.  The cards scroll rather
+    //   than be squashed; see rebuildRuleCards() for how tall this is.
+    m_rulesScroll = new QScrollArea();
+    m_rulesScroll->setObjectName("clubsRulesScroll");
+    m_rulesScroll->setWidget(rulesContainer);
+    m_rulesScroll->setWidgetResizable(true);
+    m_rulesScroll->setFrameShape(QFrame::NoFrame);
+    m_rulesScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_rulesScroll->viewport()->setAutoFillBackground(false);
+    rulesContainer->setAutoFillBackground(false);
+
     QFrame *addRuleCard = new QFrame();
     addRuleCard->setObjectName("clubAddRuleCard");
     QLabel *addRuleLink = new QLabel();
     addRuleLink->setObjectName("clubAddRuleLink");
-    addRuleLink->setText(QString("<a href=\"add\" style=\"color:%1; text-decoration:none;\">+ Add a schedule rule</a>")
+    addRuleLink->setText(QString("<a href=\"rule\" style=\"color:%1; text-decoration:none;\">+ Add a schedule rule</a>"
+                                 " &nbsp;&middot;&nbsp; "
+                                 "<a href=\"oneoff\" style=\"color:%1; text-decoration:none;\">+ Add a one-off event</a>")
                          .arg(linkColor(m_theme)));
     addRuleLink->setAlignment(Qt::AlignCenter);
     QVBoxLayout *addRuleLayout = new QVBoxLayout(addRuleCard);
     addRuleLayout->setContentsMargins(8, 6, 8, 6);
     addRuleLayout->addWidget(addRuleLink);
-    connect(addRuleLink, &QLabel::linkActivated, this, [this]() { addRule(); });
+    connect(addRuleLink, &QLabel::linkActivated, this, [this](const QString &link) {
+        if (link == "oneoff") {
+            addOneOff();
+        } else {
+            addRule();
+        }
+    });
 
     QFrame *agenda = new QFrame();
     agenda->setObjectName("clubsAgenda");
@@ -509,7 +614,7 @@ void ClubsTab::buildUi()
     m_agendaTable->horizontalHeader()->setSectionResizeMode(kAgendaColTime, QHeaderView::ResizeToContents);
     m_agendaTable->horizontalHeader()->setSectionResizeMode(kAgendaColName, QHeaderView::Stretch);
     m_agendaTable->horizontalHeader()->setSectionResizeMode(kAgendaColTag, QHeaderView::Fixed);   // holds cell widgets, which ResizeToContents doesn't measure
-    m_agendaTable->setColumnWidth(kAgendaColTag, 72);
+    m_agendaTable->setColumnWidth(kAgendaColTag, 84);   // room for "ONE-OFF"
     m_agendaTable->verticalHeader()->setDefaultSectionSize(26);
     m_agendaTable->setShowGrid(false);
     m_agendaTable->setSelectionMode(QAbstractItemView::NoSelection);
@@ -539,7 +644,7 @@ void ClubsTab::buildUi()
     QVBoxLayout *scheduleLayout = new QVBoxLayout(schedulePage);
     scheduleLayout->setContentsMargins(8, 10, 8, 8);
     scheduleLayout->setSpacing(8);
-    scheduleLayout->addWidget(rulesContainer);
+    scheduleLayout->addWidget(m_rulesScroll, 2);
     scheduleLayout->addWidget(addRuleCard);
     scheduleLayout->addWidget(agenda, 1);
 
@@ -583,6 +688,18 @@ void ClubsTab::setClubs(const QList<ClubInfo> &clubs)
     selectClub(m_current);
 }
 
+void ClubsTab::selectClubWithId(int id)
+{
+    for (int row = 0; row < m_clubs.size(); ++row) {
+        if (id != -1 && m_clubs[row].id == id) {
+            m_current = row;
+            rebuildClubList();
+            selectClub(row);
+            return;
+        }
+    }
+}
+
 QList<ClubInfo> ClubsTab::clubs() const
 {
     QList<ClubInfo> result = m_clubs;
@@ -619,7 +736,7 @@ void ClubsTab::refreshClubListRow(int row)
     nameItem->setText(club.name);
     nameItem->setIcon(swatchIcon(club.color));
 
-    // the day of the club's first rule ("Wed"), or a dash for a club with no schedule yet
+    // the day of the club's first recurring rule ("Wed"), or a dash for a club with none
     QTableWidgetItem *dayItem = m_clubList->item(row, kListColDay);
     if (!dayItem) {
         dayItem = new QTableWidgetItem();
@@ -627,13 +744,19 @@ void ClubsTab::refreshClubListRow(int row)
         dayItem->setForeground(QColor(m_theme == "Dark" ? "#8a8a8a" : "#7a7a7a"));
         m_clubList->setItem(row, kListColDay, dayItem);
     }
-    dayItem->setText(club.rules.isEmpty() ? QString::fromUtf8("—") : shortDayName(club.rules.first().weekday));
+    auto firstRule = std::find_if(club.rules.cbegin(), club.rules.cend(), [](const ClubRule &r) { return !r.isOneOff(); });
+    dayItem->setText(firstRule == club.rules.cend() ? QString::fromUtf8("—") : shortDayName(firstRule->weekday));
 }
 
 void ClubsTab::selectClub(int row)
 {
     m_current = (row >= 0 && row < m_clubs.size()) ? row : -1;
     m_detail->setEnabled(m_current >= 0);
+    if (m_current >= 0) {
+        // Not re-sorted while a date is being edited, which would move the card out from under
+        //   the cursor -- only when the club is selected again.
+        sortClubRules(m_clubs[m_current].rules);
+    }
 
     m_nameEdit->setText(m_current >= 0 ? m_clubs[m_current].name : QString());
     refreshColorButton();
@@ -657,27 +780,44 @@ void ClubsTab::rebuildRuleCards()
     m_ruleCards.clear();
 
     if (m_current < 0) {
+        m_rulesScroll->setMaximumHeight(0);
         return;
     }
 
     const QList<ClubRule> &rules = m_clubs[m_current].rules;
     for (int i = 0; i < rules.size(); ++i) {
-        ClubRuleCard *card = new ClubRuleCard(rules[i]);
-        card->onChanged = [this, i](const ClubRule &rule) {
+        auto onChanged = [this, i](const ClubRule &rule) {
             m_clubs[m_current].rules[i] = rule;
             refreshClubListRow(m_current);
             refreshAgenda();
         };
-        card->onRemove = [this, i]() {
+        auto onRemove = [this, i]() {
             m_clubs[m_current].rules.removeAt(i);
             rebuildRuleCards();
             refreshClubListRow(m_current);
             refreshAgenda();
         };
+        QWidget *card;
+        if (rules[i].isOneOff()) {
+            ClubOneOffCard *oneOff = new ClubOneOffCard(rules[i]);
+            oneOff->onChanged = onChanged;
+            oneOff->onRemove = onRemove;
+            card = oneOff;
+        } else {
+            ClubRuleCard *ruleCard = new ClubRuleCard(rules[i]);
+            ruleCard->onChanged = onChanged;
+            ruleCard->onRemove = onRemove;
+            card = ruleCard;
+        }
         m_rulesLayout->addWidget(card);
+        card->show();   // now, not on the next pass through the event loop, so it counts in the height below
         m_ruleCards.append(card);
         stampTheme(card);
     }
+
+    // No taller than the cards, so when they fit, the agenda gets all the rest.  When they don't,
+    //   the cards and the agenda share the space, 2:1, and the cards scroll.
+    m_rulesScroll->setMaximumHeight(m_rulesScroll->widget()->sizeHint().height());
 }
 
 void ClubsTab::refreshAgenda(bool scrollToEnd)
@@ -708,7 +848,7 @@ void ClubsTab::refreshAgenda(bool scrollToEnd)
 
     if (m_current >= 0 && m_clubs[m_current].rules.isEmpty()) {
         m_agendaTable->setRowCount(1);
-        QTableWidgetItem *item = new QTableWidgetItem("No schedule yet. Add a rule above to see its events here.");
+        QTableWidgetItem *item = new QTableWidgetItem("No schedule yet. Add a rule or a one-off event above to see its events here.");
         item->setForeground(QColor(m_theme == "Dark" ? "#8a8a8a" : "#7a7a7a"));
         m_agendaTable->setItem(0, kAgendaColDate, item);
         m_agendaTable->setSpan(0, kAgendaColDate, 1, 4);
@@ -739,9 +879,10 @@ void ClubsTab::refreshAgenda(bool scrollToEnd)
             nameItem->setForeground(muted);
         }
 
-        // where this event came from.  Only "rule" for now; skipped / edited / ics come later.
-        QLabel *tag = new QLabel("RULE");
+        // where this event came from: a rule or a one-off.  Skipped / edited / ics come later.
+        QLabel *tag = new QLabel(rule.isOneOff() ? "ONE-OFF" : "RULE");
         tag->setObjectName("clubsAgendaTag");
+        tag->setProperty("tagKind", rule.isOneOff() ? "oneoff" : "rule");
         tag->setFont(mono);
         tag->setAlignment(Qt::AlignCenter);
         QWidget *tagCell = new QWidget();
@@ -832,8 +973,63 @@ void ClubsTab::addRule()
     ClubRule rule;
     rule.weekday = QDate::currentDate().dayOfWeek();
     rule.since = QDate::currentDate();
-    m_clubs[m_current].rules.append(rule);
+    QList<ClubRule> &rules = m_clubs[m_current].rules;
+    rules.append(rule);
+    sortClubRules(rules);   // above the one-offs
+    int added = 0;
+    while (added + 1 < rules.size() && !rules[added + 1].isOneOff()) {
+        ++added;            // the last recurring rule, which is the new one
+    }
     rebuildRuleCards();
+    scrollToRuleCard(added);
     refreshClubListRow(m_current);
     refreshAgenda();
+}
+
+void ClubsTab::addOneOff()
+{
+    if (m_current < 0) {
+        return;
+    }
+    // A new one-off starts at the club's next regular event, so its times are usually right and
+    //   only the date needs changing.  With no recurring rule, today at the default times.
+    QList<ClubRule> recurring;
+    for (const ClubRule &r : std::as_const(m_clubs[m_current].rules)) {
+        if (!r.isOneOff()) {
+            recurring.append(r);
+        }
+    }
+    ClubRule rule;
+    rule.since = QDate::currentDate();
+    const QList<ClubOccurrence> next = clubOccurrencesBetween(recurring, QDate::currentDate(), QDate::currentDate().addYears(1));
+    if (!next.isEmpty()) {
+        rule.since = next.first().date;
+        rule.start_minutes = next.first().start_minutes;
+        rule.end_minutes = next.first().end_minutes;
+    }
+    rule.kind = ClubRule::Once;
+    rule.until = rule.since;
+    rule.weekday = rule.since.dayOfWeek();
+    QList<ClubRule> &rules = m_clubs[m_current].rules;
+    rules.append(rule);
+    sortClubRules(rules);
+    int added = 0;
+    for (int i = 0; i < rules.size(); ++i) {
+        if (rules[i].isOneOff() && rules[i].since <= rule.since) {
+            added = i;      // the sort is stable, so the new one is the last on or before its date
+        }
+    }
+    rebuildRuleCards();
+    scrollToRuleCard(added);
+    refreshAgenda();
+}
+
+// The cards scroll, so a new one may land out of sight.  Deferred until the cards are laid out.
+void ClubsTab::scrollToRuleCard(int index)
+{
+    if (index < 0 || index >= m_ruleCards.size()) {
+        return;
+    }
+    QWidget *card = m_ruleCards[index];
+    QTimer::singleShot(0, card, [this, card]() { m_rulesScroll->ensureWidgetVisible(card, 0, 0); });
 }

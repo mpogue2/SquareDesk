@@ -39,12 +39,14 @@
 // One recurrence rule, which the Clubs tab shows as one editable sentence:
 //   "Every week on Tue from 7:30 PM to 9:30 PM, since Jan 1, 2019, no end"
 //   "2nd Sat of the month from 8:00 PM to 11:00 PM, since ..., until ..."
+//   "One-off on Dec 13, 2026 from 8:00 PM to 11:00 PM"
 class ClubRule {
 public:
     enum Kind {
         Weekly    = 0,
         Biweekly  = 1,   // every other week, counted from the first matching day on/after `since`
-        Monthly   = 2    // the nth weekday of the month (nth = 1..5, or -1 for the last one)
+        Monthly   = 2,   // the nth weekday of the month (nth = 1..5, or -1 for the last one)
+        Once      = 3    // a one-off event on `since` (and `until` is the same day); weekday and nth are unused
     };
 
     int kind;
@@ -58,9 +60,15 @@ public:
 
     ClubRule() : kind(Weekly), weekday(1), nth(1), start_minutes(19 * 60 + 30), end_minutes(21 * 60 + 30) {}
 
+    bool isOneOff() const { return kind == Once; }
+
     // every date this rule produces in [from, to], in order
     QList<QDate> datesBetween(const QDate &from, const QDate &to) const;
 };
+
+// The order the Clubs tab shows a club's rules in: the recurring rules as the user arranged them,
+//   then the one-off events by date
+void sortClubRules(QList<ClubRule> &rules);
 
 class ClubInfo {
 public:
@@ -98,6 +106,7 @@ QList<ClubOccurrence> clubOccurrencesBetween(const QList<ClubRule> &rules, const
 
 // How the agenda tells the user that it isn't showing everything, for the events after `shownThrough`:
 //   "continues weekly with no end", "4 more, until May 4, 2027", or "" when nothing comes after.
+//   One-off events count toward "N more".
 QString clubContinuationText(const QList<ClubRule> &rules, const QDate &shownThrough);
 
 #endif /* ifndef CLUBINFO_H_INCLUDED */

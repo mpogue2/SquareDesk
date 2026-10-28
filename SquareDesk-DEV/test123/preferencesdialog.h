@@ -84,6 +84,8 @@ public:
     QList<SessionInfo> getSessionInfoList();
     void setClubInfoList(const QList<ClubInfo> &);   // Preferences > Clubs (issue #1721)
     QList<ClubInfo> getClubInfoList();
+    int getSelectedClubRow();                          // a row of getClubInfoList(), or -1
+    void setSelectedClubId(int id);                    // the club with this rowid, if it's still there
     void setTagColor(const QString &tagName, const QString &color, bool foreground);
 
     int getActiveTab();
