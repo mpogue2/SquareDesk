@@ -2232,7 +2232,10 @@ void MainWindow::initializeSessions() {
         int currentSessionID;
         if (sessionDefault == SessionDefaultClubs) {
             songSettings.ensureSessionsForClubs();   // a session for every club (issue #1721)
-            currentSessionID = songSettings.currentSessionIDByClubs();
+            int clubID;
+            currentSessionID = songSettings.currentSessionIDByClubs(QDateTime::currentDateTime(), &clubID);
+            clubForAges.setAutomatic(clubID);
+            applyClubForAges();                      // Age and Recent come from this club's events
         } else {
             currentSessionID = songSettings.currentSessionIDByTime(); // what session are we in?
         }

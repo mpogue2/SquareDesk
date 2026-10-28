@@ -34,8 +34,8 @@
 
 // Clubs, and the schedule rules that say when each one meets (issue #1721).
 //
-// For now these are only edited and remembered (Preferences > Clubs).  Nothing reads them yet:
-//   the Sessions tab is still what decides Recent / Age.
+// Edited in Preferences > Clubs.  In "Automatic: Use Clubs instead of Sessions" mode, the club whose
+//   event is going on picks the session, and its events decide Age and Recent.
 
 // One recurrence rule, which the Clubs tab shows as one editable sentence:
 //   "Every week on Tue from 7:30 PM to 9:30 PM, since Jan 1, 2019, no end"
@@ -109,6 +109,43 @@ QList<ClubOccurrence> clubOccurrencesBetween(const QList<ClubRule> &rules, const
 //   its start minute to its end minute, inclusive; one that ends before it starts runs past
 //   midnight.  When events overlap, the one that started most recently wins, as with Sessions.
 int currentClubIndex(const QList<ClubInfo> &clubs, const QDateTime &now);
+
+// Which club Age and Recent are shown for, in Clubs mode: the schedule's club (the one whose event
+//   is going on, or -1), unless the user chose one from the Session menu.  A choice lasts until the
+//   schedule's club changes, so that the next event never starts with another club's ages showing.
+class ClubForAges {
+public:
+    int automatic = -1;   // club ids (clubs rowid), or -1
+    int chosen = -1;
+
+    // the schedule's club now; true when that's a change (which also ends any choice)
+    bool setAutomatic(int clubID) {
+        if (clubID == automatic) {
+            return false;
+        }
+        automatic = clubID;
+        chosen = -1;
+        return true;
+    }
+    void choose(int clubID) { chosen = clubID; }     // -1 = back to Automatic
+    void reset() { automatic = -1; chosen = -1; }
+    int effective() const { return (chosen >= 0) ? chosen : automatic; }
+};
+
+// When a club met, as UTC instants, for matching plays against (Age and Recent, issue #1721): every
+//   event its rules produce from the earliest "since" through `through`, each from its first second
+//   to the last second of its end minute (and past midnight when it ends before it starts).  The
+//   local times are converted one event at a time, so each is right on its own side of a DST change.
+//   Sorted, with overlapping events merged, so that clubWindowsContain() can binary-search them.
+class ClubWindow {
+public:
+    QDateTime start;   // UTC
+    QDateTime end;     // UTC, inclusive
+};
+QList<ClubWindow> clubEventWindowsUtc(const QList<ClubRule> &rules, const QDate &through);
+
+// Whether a UTC instant falls inside one of the windows
+bool clubWindowsContain(const QList<ClubWindow> &windows, const QDateTime &utc);
 
 // How the agenda tells the user that it isn't showing everything, for the events after `shownThrough`:
 //   "continues weekly with no end", "4 more, until May 4, 2027", or "" when nothing comes after.

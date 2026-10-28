@@ -1119,6 +1119,40 @@ void MainWindow::populateMenuSessionOptions()
     QList<QAction *> sessionActions(ui->menuSession->actions());
     QAction *topSeparator = sessionActions[0];
     
+    if (sessionDefault == SessionDefaultClubs) {
+        // Clubs mode (issue #1721): Automatic, or a club to show Age and Recent for.  Only the view
+        //   changes: a play still counts for whichever club's event was on when it happened.
+        QList<ClubInfo> clubs(songSettings.getClubInfo());
+        QString now("none");
+        for (const auto &club : std::as_const(clubs)) {
+            if (club.id == clubForAges.automatic) {
+                now = club.name;
+            }
+        }
+        QAction *automatic = new QAction(QString("Automatic (now: %1)").arg(now), this);
+        automatic->setCheckable(true);
+        automatic->setChecked(clubForAges.chosen < 0);
+        ui->menuSession->insertAction(topSeparator, automatic);
+        connect(automatic, &QAction::triggered, this, [this]() { chooseClubForAges(-1); });
+        sessionActionGroup->addAction(automatic);
+
+        QAction *separator = new QAction(this);
+        separator->setSeparator(true);
+        ui->menuSession->insertAction(topSeparator, separator);
+        sessionActionGroup->addAction(separator);   // so that it's removed with the rest, next time
+
+        for (const auto &club : std::as_const(clubs)) {
+            QAction *action = new QAction(club.name, this);
+            action->setCheckable(true);
+            action->setChecked(club.id == clubForAges.chosen);
+            ui->menuSession->insertAction(topSeparator, action);
+            const int clubID = club.id;
+            connect(action, &QAction::triggered, this, [this, clubID]() { chooseClubForAges(clubID); });
+            sessionActionGroup->addAction(action);
+        }
+        return;
+    }
+
     int id = songSettings.getCurrentSession();
     // qDebug() << "populateMenuSessionOptions, currentSessionID:" << id;
 
@@ -1138,6 +1172,23 @@ void MainWindow::populateMenuSessionOptions()
         }
         action->setEnabled(sessionDefault == SessionDefaultPractice); // automatic mode disables these menu items, manual mode enables
     }
+}
+
+void MainWindow::applyClubForAges()
+{
+    SessionDefaultType sessionDefault = static_cast<SessionDefaultType>(prefsManager.GetSessionDefault());
+    songSettings.setClubForAges(sessionDefault == SessionDefaultClubs ? clubForAges.effective() : -1);
+}
+
+// Session > <club>, in Clubs mode (issue #1721): show Age and Recent for that club, or for the
+//   schedule's club again (-1, Automatic)
+void MainWindow::chooseClubForAges(int clubID)
+{
+    clubForAges.choose(clubID);
+    applyClubForAges();
+    reloadSongAges(ui->actionShow_All_Ages->isChecked());
+    populateMenuSessionOptions();
+    microphoneStatusUpdate();
 }
 
 void MainWindow::on_menuLyrics_aboutToShow()
@@ -2526,12 +2577,15 @@ void MainWindow::on_UIUpdateTimerTick(void)
         // qDebug() << "Tick: " << sessionDefault << currentMinuteInHour << lastMinuteInHour;
         if ((currentMinuteInHour != lastMinuteInHour) || (lastSessionID < 0)) { // or cached sessionID is invalid
             // this code is executed once per minute, we're now in a new minute
+            int clubID = -1;
             int currentSessionID = (sessionDefault == SessionDefaultClubs) ?
-                                       songSettings.currentSessionIDByClubs() :   // the session named after the club whose event is on (issue #1721)
+                                       songSettings.currentSessionIDByClubs(QDateTime::currentDateTime(), &clubID) :   // the session named after the club whose event is on (issue #1721)
                                        songSettings.currentSessionIDByTime();     // what session are we in?
             // qDebug() << "Tock: " << currentSessionID << lastSessionID;
-            if (currentSessionID != lastSessionID) {
+            bool clubChanged = (sessionDefault == SessionDefaultClubs) && clubForAges.setAutomatic(clubID);   // also ends a club chosen from the Session menu
+            if (currentSessionID != lastSessionID || clubChanged) {
                 // only happens at session boundaries, we're now in a new Session, so update Ages column
+                applyClubForAges();                    // in Clubs mode, Age and Recent come from this club's events
                 setCurrentSessionId(currentSessionID); // save it in songSettings
                 populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
                 reloadSongAges(ui->actionShow_All_Ages->isChecked());
@@ -4784,7 +4838,7 @@ void MainWindow::on_actionPreferences_triggered()
         musicRootPath = prefsManager.GetmusicPath();
 
         songSettings.setSessionInfo(prefDialog->getSessionInfoList());
-        songSettings.setClubInfo(prefDialog->getClubInfoList());   // remembered only; nothing reads clubs yet (issue #1721)
+        songSettings.setClubInfo(prefDialog->getClubInfoList());   // issue #1721
         if (selectedClubRow >= 0 && prefDialog->getClubInfoList()[selectedClubRow].id == -1) {
             QList<ClubInfo> savedClubs = songSettings.getClubInfo();   // same order, now with rowids
             if (selectedClubRow < savedClubs.size()) {
@@ -4793,6 +4847,10 @@ void MainWindow::on_actionPreferences_triggered()
         }
         // qDebug() << "preferences set lastsessionid to -1";
         lastSessionID = -1;  // invalidate the lastSessionID cached value, forcing reevaluation of which session we are in...
+        if (static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()) != SessionDefaultClubs) {
+            clubForAges.reset();
+            applyClubForAges();   // Age and Recent come from the session's plays again (issue #1721)
+        }
 
         if (previousSessionDefaultType != static_cast<SessionDefaultType>(prefsManager.GetSessionDefault())
             && static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()) == SessionDefaultDOW)
@@ -4805,7 +4863,18 @@ void MainWindow::on_actionPreferences_triggered()
             //   changed.  The sessions for new clubs are added here, now that the dialog (whose OK
             //   deletes any session not in its own list) is closed (issue #1721).
             songSettings.ensureSessionsForClubs();
-            setCurrentSessionIdReloadSongAgesCheckMenu(songSettings.currentSessionIDByClubs());
+            int clubID;
+            int currentSessionID = songSettings.currentSessionIDByClubs(QDateTime::currentDateTime(), &clubID);
+            clubForAges.setAutomatic(clubID);
+            bool chosenStillExists = false;   // a club chosen from the Session menu stays chosen, unless it was removed
+            for (const auto &club : songSettings.getClubInfo()) {
+                chosenStillExists = chosenStillExists || (club.id == clubForAges.chosen);
+            }
+            if (!chosenStillExists) {
+                clubForAges.choose(-1);
+            }
+            applyClubForAges();                    // Age and Recent come from this club's events
+            setCurrentSessionIdReloadSongAgesCheckMenu(currentSessionID);
         }
         else if (static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()) == SessionDefaultPractice)
         {
@@ -6156,7 +6225,18 @@ void MainWindow::microphoneStatusUpdate() {
         kybdStatus = "Audio: " + lastAudioDeviceName; // not in SD tab, don't show SD status info
     }
 
-    if (currentSessionName != "Practice") {
+    QString chosenClubName;   // a club chosen from the Session menu, in Clubs mode (issue #1721)
+    if (clubForAges.chosen >= 0 && songSettings.isDatabaseOpened()) {
+        for (const auto &club : songSettings.getClubInfo()) {
+            if (club.id == clubForAges.chosen) {
+                chosenClubName = club.name;
+            }
+        }
+    }
+
+    if (!chosenClubName.isEmpty()) {
+        kybdStatus = "Club: " + chosenClubName + " (chosen), " + kybdStatus;
+    } else if (currentSessionName != "Practice") {
         kybdStatus = "Session: " + currentSessionName + ", " + kybdStatus; // prepend the Session name
     }
 

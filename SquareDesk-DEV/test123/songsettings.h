@@ -107,6 +107,11 @@ public:
 
     void setCurrentSession(int id) { current_session_id = id; }
     int getCurrentSession() { return current_session_id; }
+    // The club whose events decide Age and Recent (issue #1721), by its id (clubs rowid), or -1 to
+    //   use the current session's plays, as always.  Only "Automatic: Use Clubs instead of
+    //   Sessions" sets it, to the club whose event is going on.
+    void setClubForAges(int clubID) { club_for_ages_id = clubID; }
+    int getClubForAges() const { return club_for_ages_id; }
     // lastPlayed, if given, also gets the instant behind each age, in local time (issue #1783).
     void getSongAges(QHash<QString,QString> &ages, bool show_all_sessions,
                      QHash<QString,QDateTime> *lastPlayed = nullptr);
@@ -148,8 +153,9 @@ public:
     void clearTaughtCalls(const QString &program);
     int currentSessionIDByTime();
     // "Automatic: Use Clubs instead of Sessions" (issue #1721): the session named after the club
-    //   whose event is going on now, or the first session when there's none
-    int currentSessionIDByClubs(const QDateTime &now = QDateTime::currentDateTime());
+    //   whose event is going on now, or the first session when there's none.  clubID, if given,
+    //   gets that club's id, or -1.
+    int currentSessionIDByClubs(const QDateTime &now = QDateTime::currentDateTime(), int *clubID = nullptr);
     // ...which needs a session for every club: add one (no day, last) for each club that has none
     void ensureSessionsForClubs();
 
@@ -201,11 +207,13 @@ private:
     void exec(const char *where, QSqlQuery &q);
     void exec(const char *where, QSqlQuery &q, const QString &str);
     void seedClubsFromSessionsIfNeeded();
+    void getSongAgesForClub(QHash<QString,QString> &ages, QHash<QString,QDateTime> *lastPlayed);
     QString tagsBackgroundColorString;
     QString tagsForegroundColorString;
     bool databaseOpened;
     QSqlDatabase m_db;
     int current_session_id;
+    int club_for_ages_id;
     QHash<QString, int> tagCounts;
 
     void ensureSchema(TableDefinition *);

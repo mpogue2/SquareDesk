@@ -103,6 +103,7 @@
 
 #include "third_party/levelmeter.h"
 #include "songsettings.h"
+#include "clubinfo.h"
 
 // Forward declaration for debug dialog
 class CuesheetMatchingDebugDialog;
@@ -1454,6 +1455,9 @@ private:
     PreferencesManager prefsManager;
     int lastMinuteInHour;
     int lastSessionID;
+    ClubForAges clubForAges;   // in Clubs mode, the club Age and Recent are shown for (issue #1721)
+    void applyClubForAges();
+    void chooseClubForAges(int clubID);
     int currentSongSecondsPlayed;
     bool currentSongSecondsPlayedRecorded;
     bool firstTimeSongIsPlayed;

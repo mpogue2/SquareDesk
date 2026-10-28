@@ -390,6 +390,7 @@ SongSettings::SongSettings() :
     tagsForegroundColorString(DEFAULTTAGSFOREGROUNDCOLOR),
     databaseOpened(false),
     current_session_id(0), // NOTE: invalid current_session_id (this is supposed to be a row number in the sessions table)
+    club_for_ages_id(-1),
     tagColorCacheSet(false)
 {
 }
@@ -436,7 +437,7 @@ int SongSettings::currentSessionIDByTime()
     return session_id;
 }
 
-int SongSettings::currentSessionIDByClubs(const QDateTime &now)
+int SongSettings::currentSessionIDByClubs(const QDateTime &now, int *clubID)
 {
     QList<SessionInfo> sessions = getSessionInfo();
     int sessionID = 1;   // wrong, if there are deleted rows in Sessions table
@@ -450,6 +451,9 @@ int SongSettings::currentSessionIDByClubs(const QDateTime &now)
     //   not add sessions (the dialog's OK would delete them again).  ensureSessionsForClubs() does.
     QList<ClubInfo> clubs = getClubInfo();
     int club = currentClubIndex(clubs, now);
+    if (clubID != nullptr) {
+        *clubID = (club >= 0) ? clubs[club].id : -1;
+    }
     if (club >= 0) {
         for (const auto &s : std::as_const(sessions)) {
             if (s.name == clubs[club].name) {
@@ -1181,6 +1185,11 @@ void SongSettings::getSongPlayHistory(SongPlayEvent &event,
 void SongSettings::getSongAges(QHash<QString,QString> &ages, bool show_all_sessions,
                                QHash<QString,QDateTime> *lastPlayed)
 {
+    if (!show_all_sessions && club_for_ages_id >= 0) {
+        getSongAgesForClub(ages, lastPlayed);
+        return;
+    }
+
     QString sql("SELECT filename, julianday('now') - julianday(max(played_on)), max(played_on) FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid");
     if (!show_all_sessions)
         sql += " WHERE session_rowid = :session_rowid";
@@ -1205,6 +1214,71 @@ void SongSettings::getSongAges(QHash<QString,QString> &ages, bool show_all_sessi
                 when.setTimeZone(QTimeZone::UTC);
                 lastPlayed->insert(q.value(0).toString(), when.toLocalTime());
             }
+        }
+    }
+}
+
+// In Clubs mode (issue #1721), a play counts for the club when it happened during one of the club's
+//   events, whatever session it was recorded under.  So editing a rule, or adding a one-off, changes
+//   Age and Recent for past plays too.  played_on is written about a second after playback starts.
+//
+// There's no index on played_on, so rather than join the plays against hundreds of events in SQL,
+//   read every play once and look each one up in the club's (sorted) event windows.
+//
+// Only SquareDesk's own plays count, for now: imported Apple Music plays are left out.  They still
+//   show with Show All Song Ages.
+void SongSettings::getSongAgesForClub(QHash<QString,QString> &ages, QHash<QString,QDateTime> *lastPlayed)
+{
+    QList<ClubRule> rules;
+    const QList<ClubInfo> clubs = getClubInfo();
+    for (const ClubInfo &club : clubs) {
+        if (club.id == club_for_ages_id) {
+            rules = club.rules;
+            break;
+        }
+    }
+    const QDateTime nowUtc = QDateTime::currentDateTimeUtc();
+    const QList<ClubWindow> windows = clubEventWindowsUtc(rules, QDate::currentDate());
+    if (windows.isEmpty()) {
+        return;
+    }
+
+    QSqlQuery q(m_db);
+    q.setForwardOnly(true);
+    q.prepare("SELECT songs.filename, song_plays.played_on FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid"
+              " WHERE COALESCE(song_plays.origin,'squaredesk') = 'squaredesk' AND song_plays.played_on >= :since");
+    q.bindValue(":since", windows.first().start.toString("yyyy-MM-dd HH:mm:ss"));
+    exec("songAgesForClub", q);
+
+    QHash<QString, QDateTime> latest;   // filename -> its latest play during one of the events (UTC)
+    while (q.next())
+    {
+        // "yyyy-MM-dd HH:mm:ss", taken apart by hand: QDateTime::fromString() is slow, and this is
+        //   every play there has ever been
+        const QString text = q.value(1).toString();
+        if (text.size() < 19) {
+            continue;
+        }
+        QDateTime when(QDate(QStringView(text).mid(0, 4).toInt(), QStringView(text).mid(5, 2).toInt(), QStringView(text).mid(8, 2).toInt()),
+                       QTime(QStringView(text).mid(11, 2).toInt(), QStringView(text).mid(14, 2).toInt(), QStringView(text).mid(17, 2).toInt()),
+                       QTimeZone::UTC);
+        if (!when.isValid() || !clubWindowsContain(windows, when)) {
+            continue;
+        }
+        const QString filename = q.value(0).toString();
+        auto it = latest.find(filename);
+        if (it == latest.end()) {
+            latest.insert(filename, when);
+        } else if (when > it.value()) {
+            it.value() = when;
+        }
+    }
+
+    for (auto it = latest.cbegin(); it != latest.cend(); ++it) {
+        // fractional days, as julianday('now') - julianday(played_on) gives it in getSongAges()
+        ages[it.key()] = QString::number(double(it.value().secsTo(nowUtc)) / 86400.0, 'f', 10);
+        if (lastPlayed != nullptr) {
+            lastPlayed->insert(it.key(), it.value().toLocalTime());
         }
     }
 }

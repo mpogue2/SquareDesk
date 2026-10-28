@@ -27,6 +27,7 @@
 #include "sessioninfo.h"
 
 #include <QLocale>
+#include <QTimeZone>
 #include <algorithm>
 
 QStringList clubPaletteColors()
@@ -180,6 +181,56 @@ int currentClubIndex(const QList<ClubInfo> &clubs, const QDateTime &now)
         }
     }
     return best;
+}
+
+QList<ClubWindow> clubEventWindowsUtc(const QList<ClubRule> &rules, const QDate &through)
+{
+    QDate from;
+    for (const ClubRule &rule : rules) {
+        if (rule.since.isValid() && (!from.isValid() || rule.since < from)) {
+            from = rule.since;
+        }
+    }
+    QList<ClubWindow> windows;
+    if (!from.isValid() || !through.isValid() || from > through) {
+        return windows;
+    }
+
+    const QList<ClubOccurrence> events = clubOccurrencesBetween(rules, from, through);
+    windows.reserve(events.size());
+    for (const ClubOccurrence &event : events) {
+        QDate endDate = (event.end_minutes < event.start_minutes) ? event.date.addDays(1) : event.date;
+        QDateTime start(event.date, QTime(event.start_minutes / 60, event.start_minutes % 60, 0));
+        QDateTime end(endDate, QTime(event.end_minutes / 60, event.end_minutes % 60, 59));
+        windows.append({ start.toUTC(), end.toUTC() });
+    }
+
+    std::sort(windows.begin(), windows.end(), [](const ClubWindow &a, const ClubWindow &b) {
+        return a.start < b.start;
+    });
+    QList<ClubWindow> merged;
+    for (const ClubWindow &w : std::as_const(windows)) {
+        if (!merged.isEmpty() && w.start <= merged.last().end) {
+            if (w.end > merged.last().end) {
+                merged.last().end = w.end;
+            }
+        } else {
+            merged.append(w);
+        }
+    }
+    return merged;
+}
+
+bool clubWindowsContain(const QList<ClubWindow> &windows, const QDateTime &utc)
+{
+    // the last window that starts at or before utc is the only one that can hold it
+    auto after = std::upper_bound(windows.cbegin(), windows.cend(), utc, [](const QDateTime &t, const ClubWindow &w) {
+        return t < w.start;
+    });
+    if (after == windows.cbegin()) {
+        return false;
+    }
+    return utc <= std::prev(after)->end;
 }
 
 QString clubContinuationText(const QList<ClubRule> &rules, const QDate &shownThrough)
