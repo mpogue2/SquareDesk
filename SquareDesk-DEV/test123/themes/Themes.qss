@@ -548,6 +548,247 @@ QDialog[theme="Dark"] QRadioButton:checked {
     background: transparent;
 }
 
+/* PREFERENCES > CLUBS (issue #1721) ================
+   The whole tab is built in clubstab.cpp; these are keyed on its object names.  The rule cards
+   and agenda tags are built after the dialog is themed, so clubstab.cpp stamps "theme" on them
+   itself. */
+
+#clubsList[theme="Light"] {
+    background-color: #fafafa;
+    border: 1px solid #c9c9c9;
+    color: #1a1a1a;
+}
+#clubsList[theme="Dark"] {
+    background-color: #2d2d2d;
+    border: 1px solid #4a4a4a;
+    color: #d4d4d4;
+}
+#clubsList::item {
+    padding-left: 6px;
+    padding-right: 6px;
+}
+#clubsList::item:selected[theme="Light"] {
+    background-color: #d6eaea;
+    color: #000;
+}
+#clubsList::item:selected[theme="Dark"] {
+    background-color: #1f4446;
+    color: #eee;
+}
+
+/* the swatch is the whole button: no menu arrow drawn over it */
+QToolButton#clubsColorButton {
+    padding: 3px 6px;
+}
+QToolButton#clubsColorButton::menu-indicator {
+    image: none;
+    width: 0px;
+}
+#clubsListHeading[theme="Light"],
+#clubRuleWord[theme="Light"] {
+    color: #666;
+}
+#clubsListHeading[theme="Dark"],
+#clubRuleWord[theme="Dark"] {
+    color: #9a9a9a;
+}
+
+/* one rule = one card, holding a sentence of small "chip" editors */
+#clubRuleCard[theme="Light"] {
+    background-color: #fafafa;
+    border: 1px solid #c9c9c9;
+    border-radius: 7px;
+}
+#clubRuleCard[theme="Dark"] {
+    background-color: #303030;
+    border: 1px solid #4a4a4a;
+    border-radius: 7px;
+}
+
+QComboBox#clubRuleChip,
+QComboBox#clubRuleKindChip,
+QTimeEdit#clubRuleChip,
+QDateEdit#clubRuleChip {
+    border-radius: 5px;
+    padding: 2px 8px;
+    min-height: 18px;
+}
+QComboBox#clubRuleChip[theme="Light"],
+QTimeEdit#clubRuleChip[theme="Light"],
+QDateEdit#clubRuleChip[theme="Light"] {
+    background-color: #ffffff;
+    border: 1px solid #c4c4c4;
+    color: #1a1a1a;
+}
+QComboBox#clubRuleChip[theme="Dark"],
+QTimeEdit#clubRuleChip[theme="Dark"],
+QDateEdit#clubRuleChip[theme="Dark"] {
+    background-color: #3c3c3c;
+    border: 1px solid #555555;
+    color: #dddddd;
+}
+QComboBox#clubRuleChip:hover[theme="Light"],
+QTimeEdit#clubRuleChip:hover[theme="Light"],
+QDateEdit#clubRuleChip:hover[theme="Light"] {
+    border: 1px solid #8a8a8a;
+}
+QComboBox#clubRuleChip:hover[theme="Dark"],
+QTimeEdit#clubRuleChip:hover[theme="Dark"],
+QDateEdit#clubRuleChip:hover[theme="Dark"] {
+    border: 1px solid #808080;
+}
+
+/* the kind chip is tinted: one color for weekly rules, another for monthly ones */
+QComboBox#clubRuleKindChip {
+    font-weight: 600;
+}
+QComboBox#clubRuleKindChip[chipKind="weekly"][theme="Light"] {
+    background-color: #dcefef;
+    border: 1px solid #b5d9da;
+    color: #0E5C63;
+}
+QComboBox#clubRuleKindChip[chipKind="monthly"][theme="Light"] {
+    background-color: #f6e8cc;
+    border: 1px solid #e5cf9f;
+    color: #7f520c;
+}
+QComboBox#clubRuleKindChip[chipKind="weekly"][theme="Dark"] {
+    background-color: #1f4446;
+    border: 1px solid #2d6366;
+    color: #9fd7da;
+}
+QComboBox#clubRuleKindChip[chipKind="monthly"][theme="Dark"] {
+    background-color: #4a3a1d;
+    border: 1px solid #6b5527;
+    color: #e8c98a;
+}
+
+/* the optional label at the end of the sentence: reads as text until it's clicked */
+QLineEdit#clubRuleLabel {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    padding: 2px 4px;
+}
+QLineEdit#clubRuleLabel[theme="Light"] {
+    color: #333;
+}
+QLineEdit#clubRuleLabel[theme="Dark"] {
+    color: #ccc;
+}
+QLineEdit#clubRuleLabel:focus[theme="Light"] {
+    background-color: #ffffff;
+    border: 1px solid #c4c4c4;
+}
+QLineEdit#clubRuleLabel:focus[theme="Dark"] {
+    background-color: #3c3c3c;
+    border: 1px solid #555555;
+}
+
+QToolButton#clubRuleRemove,
+QToolButton#clubRuleRemove:hover,
+QToolButton#clubRuleRemove:pressed {
+    background: transparent;
+    border: none;
+    padding: 0px 4px;
+}
+QToolButton#clubRuleRemove[theme="Light"] {
+    color: #888;
+}
+QToolButton#clubRuleRemove[theme="Dark"] {
+    color: #8a8a8a;
+}
+QToolButton#clubRuleRemove:hover[theme="Light"] {
+    color: #8E2F3A;
+}
+QToolButton#clubRuleRemove:hover[theme="Dark"] {
+    color: #e08a94;
+}
+
+#clubAddRuleCard[theme="Light"] {
+    border: 1px dashed #a8a8a8;
+    border-radius: 7px;
+}
+#clubAddRuleCard[theme="Dark"] {
+    border: 1px dashed #5a5a5a;
+    border-radius: 7px;
+}
+
+/* the agenda: what the rules produce */
+#clubsAgenda[theme="Light"] {
+    background-color: #ffffff;
+    border: 1px solid #c9c9c9;
+    border-radius: 7px;
+}
+#clubsAgenda[theme="Dark"] {
+    background-color: #2d2d2d;
+    border: 1px solid #4a4a4a;
+    border-radius: 7px;
+}
+#clubsAgendaHeader[theme="Light"] {
+    background-color: #f2f3f3;
+    border-bottom: 1px solid #dddddd;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+}
+#clubsAgendaHeader[theme="Dark"] {
+    background-color: #333333;
+    border-bottom: 1px solid #444444;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+}
+#clubsAgendaTitle[theme="Light"],
+#clubsAgendaRange[theme="Light"] {
+    color: #6a6a6a;
+}
+#clubsAgendaTitle[theme="Dark"],
+#clubsAgendaRange[theme="Dark"] {
+    color: #999999;
+}
+#clubsAgendaTable {
+    background: transparent;
+}
+#clubsAgendaTable[theme="Light"] {
+    color: #1a1a1a;
+}
+#clubsAgendaTable[theme="Dark"] {
+    color: #d4d4d4;
+}
+#clubsAgendaTable::item {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+#clubsAgendaTable::item[theme="Light"] {
+    border-bottom: 1px solid #ececec;
+}
+#clubsAgendaTable::item[theme="Dark"] {
+    border-bottom: 1px solid #3a3a3a;
+}
+#clubsAgendaTag {
+    border-radius: 3px;
+    padding: 0px 5px;
+    font-size: 10px;
+}
+#clubsAgendaTag[theme="Light"] {
+    border: 1px solid #c9c9c9;
+    color: #6a6a6a;
+}
+#clubsAgendaTag[theme="Dark"] {
+    border: 1px solid #555555;
+    color: #999999;
+}
+#clubsAgendaFooter {
+    font-style: italic;
+}
+#clubsAgendaFooter[theme="Light"] {
+    color: #777;
+    border-top: 1px solid #ececec;
+}
+#clubsAgendaFooter[theme="Dark"] {
+    color: #999;
+    border-top: 1px solid #3a3a3a;
+}
+
 /* TABLE COLORS ================ */
 #tableWidgetTagColors[theme="Dark"],
 #tableWidgetSessionsList[theme="Dark"],

@@ -36,6 +36,7 @@
 
 #include "songsettings.h"
 #include "sessioninfo.h"
+#include "clubinfo.h"
 #include "default_colors.h"
 
 // The songs.filename prefix that marks a row as keyed by Apple Music's persistentID rather
@@ -344,6 +345,35 @@ RowDefinition song_duration_rows[] =
 };
 TableDefinition song_duration_table("song_durations", song_duration_rows);
 
+// Clubs, and the schedule rules that say when each meets (issue #1721) ----------------
+//   Edited in Preferences > Clubs.  Nothing reads them yet: Sessions still decide Recent / Age.
+RowDefinition club_rows[] =
+{
+    RowDefinition("name", "TEXT"),
+    RowDefinition("color", "TEXT"),                       // "#rrggbb"
+    RowDefinition("order_number", "INTEGER DEFAULT 0"),
+    RowDefinition("deleted", "INTEGER DEFAULT 0"),
+    RowDefinition("session_rowid", "INTEGER"),            // the session this club was seeded from, or NULL
+    RowDefinition(nullptr, nullptr),
+};
+TableDefinition club_table("clubs", club_rows);
+
+RowDefinition club_rule_rows[] =
+{
+    RowDefinition("club_rowid", "INTEGER REFERENCES clubs(rowid)"),
+    RowDefinition("order_number", "INTEGER DEFAULT 0"),
+    RowDefinition("kind", "INTEGER DEFAULT 0"),           // ClubRule::Kind
+    RowDefinition("weekday", "INTEGER"),                  // 1 = Monday ... 7 = Sunday
+    RowDefinition("nth", "INTEGER"),                      // Monthly only: 1..5, or -1 = last
+    RowDefinition("start_minutes", "INTEGER"),
+    RowDefinition("end_minutes", "INTEGER"),
+    RowDefinition("since_date", "TEXT"),                  // "yyyy-MM-dd"
+    RowDefinition("until_date", "TEXT"),                  // "yyyy-MM-dd", or NULL = no end
+    RowDefinition("label", "TEXT"),
+    RowDefinition(nullptr, nullptr),
+};
+TableDefinition club_rule_table("club_rules", club_rule_rows);
+
 /*
 "CREATE TABLE play_history (
  id int auto_increment primary key,
@@ -461,7 +491,9 @@ void SongSettings::openDatabase(const QString& path,
     ensureSchema(&markers_table);
     ensureSchema(&cuesheet_table);
     ensureSchema(&song_duration_table);
-    
+    ensureSchema(&club_table);
+    ensureSchema(&club_rule_table);
+
     for (size_t i = 0; i < sizeof(index_definitions) / sizeof(*index_definitions); ++i)
     {
         ensureIndex(&index_definitions[i]);
@@ -1594,6 +1626,134 @@ void SongSettings::setSessionInfo(const QList<SessionInfo> &sessions)
         QSqlQuery q(m_db);
         q.prepare("COMMIT");
         exec("SessionInfo COMMIT", q);
+    }
+}
+
+// CLUBS (issue #1721) ---------------
+
+// The very first time (the clubs table has never had a row in it), the clubs are made from the
+//   sessions (see clubsSeededFromSessions()).
+// After that, Clubs and Sessions are independent: a user who deletes every club is not re-seeded.
+void SongSettings::seedClubsFromSessionsIfNeeded()
+{
+    {
+        QSqlQuery q(m_db);
+        exec("seedClubs COUNT", q, "SELECT COUNT(*) FROM clubs");
+        if (!q.next() || q.value(0).toInt() > 0) {
+            return;
+        }
+    }
+
+    QList<ClubInfo> clubs = clubsSeededFromSessions(getSessionInfo());
+    setClubInfo(clubs);
+}
+
+QList<ClubInfo> SongSettings::getClubInfo()
+{
+    seedClubsFromSessionsIfNeeded();
+
+    QList<ClubInfo> clubs;
+    QHash<int, int> indexById;
+    {
+        QSqlQuery q(m_db);
+        q.prepare("SELECT rowid, name, color, order_number, session_rowid FROM clubs WHERE NOT deleted ORDER BY order_number, rowid");
+        exec("getClubInfo", q);
+        while (q.next()) {
+            ClubInfo club;
+            club.id = q.value(0).toInt();
+            club.name = q.value(1).toString();
+            club.color = q.value(2).toString();
+            club.order_number = q.value(3).toInt();
+            club.session_rowid = q.value(4).isNull() ? -1 : q.value(4).toInt();
+            indexById[club.id] = clubs.size();
+            clubs.append(club);
+        }
+    }
+    {
+        QSqlQuery q(m_db);
+        q.prepare("SELECT club_rowid, kind, weekday, nth, start_minutes, end_minutes, since_date, until_date, label "
+                  " FROM club_rules ORDER BY club_rowid, order_number, rowid");
+        exec("getClubInfo rules", q);
+        while (q.next()) {
+            auto it = indexById.constFind(q.value(0).toInt());
+            if (it == indexById.constEnd()) {
+                continue;   // a rule of a deleted club
+            }
+            ClubRule rule;
+            rule.kind = q.value(1).toInt();
+            rule.weekday = q.value(2).toInt();
+            rule.nth = q.value(3).toInt();
+            rule.start_minutes = q.value(4).toInt();
+            rule.end_minutes = q.value(5).toInt();
+            rule.since = QDate::fromString(q.value(6).toString(), Qt::ISODate);
+            rule.until = q.value(7).isNull() ? QDate() : QDate::fromString(q.value(7).toString(), Qt::ISODate);
+            rule.label = q.value(8).toString();
+            clubs[it.value()].rules.append(rule);
+        }
+    }
+    return clubs;
+}
+
+// Same shape as setSessionInfo(): every club is marked deleted, then the ones still in the list
+//   are brought back (by rowid) or inserted.  Clubs keep their rowids because later work will
+//   point at them.  Rules have nothing pointing at them, so they are simply rewritten.
+void SongSettings::setClubInfo(const QList<ClubInfo> &clubs)
+{
+    {
+        QSqlQuery q(m_db);
+        exec("ClubInfo BEGIN", q, "BEGIN");
+    }
+    {
+        QSqlQuery q(m_db);
+        exec("ClubInfo DELETE", q, "UPDATE clubs SET deleted = 1");
+    }
+    {
+        QSqlQuery q(m_db);
+        exec("ClubInfo DELETE rules", q, "DELETE FROM club_rules");
+    }
+    {
+        QSqlQuery q_insert(m_db);
+        QSqlQuery q_update(m_db);
+        QSqlQuery q_rule(m_db);
+        q_insert.prepare("INSERT INTO clubs(deleted, name, color, order_number, session_rowid) "
+                         " VALUES (0, :name, :color, :order_number, :session_rowid)");
+        q_update.prepare("UPDATE clubs SET deleted=0, name=:name, color=:color, order_number=:order_number, "
+                         " session_rowid=:session_rowid WHERE rowid=:id");
+        q_rule.prepare("INSERT INTO club_rules(club_rowid, order_number, kind, weekday, nth, start_minutes, end_minutes, since_date, until_date, label) "
+                       " VALUES (:club_rowid, :order_number, :kind, :weekday, :nth, :start_minutes, :end_minutes, :since_date, :until_date, :label)");
+
+        for (int i = 0; i < clubs.size(); ++i) {
+            const ClubInfo &club = clubs[i];
+            QSqlQuery *pq = (club.id > 0) ? &q_update : &q_insert;
+            if (club.id > 0) {
+                pq->bindValue(":id", club.id);
+            }
+            pq->bindValue(":name", club.name);
+            pq->bindValue(":color", club.color);
+            pq->bindValue(":order_number", i);
+            pq->bindValue(":session_rowid", club.session_rowid > 0 ? QVariant(club.session_rowid) : QVariant(QMetaType(QMetaType::Int)));
+            exec("ClubInfo UPDATE/INSERT", *pq);
+
+            int clubId = (club.id > 0) ? club.id : pq->lastInsertId().toInt();
+            for (int r = 0; r < club.rules.size(); ++r) {
+                const ClubRule &rule = club.rules[r];
+                q_rule.bindValue(":club_rowid", clubId);
+                q_rule.bindValue(":order_number", r);
+                q_rule.bindValue(":kind", rule.kind);
+                q_rule.bindValue(":weekday", rule.weekday);
+                q_rule.bindValue(":nth", rule.nth);
+                q_rule.bindValue(":start_minutes", rule.start_minutes);
+                q_rule.bindValue(":end_minutes", rule.end_minutes);
+                q_rule.bindValue(":since_date", rule.since.toString(Qt::ISODate));
+                q_rule.bindValue(":until_date", rule.until.isValid() ? QVariant(rule.until.toString(Qt::ISODate)) : QVariant(QMetaType(QMetaType::QString)));
+                q_rule.bindValue(":label", rule.label);
+                exec("ClubInfo rule INSERT", q_rule);
+            }
+        }
+    }
+    {
+        QSqlQuery q(m_db);
+        exec("ClubInfo COMMIT", q, "COMMIT");
     }
 }
 

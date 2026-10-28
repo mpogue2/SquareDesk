@@ -77,6 +77,7 @@
 #include "songhistoryexportdialog.h"
 #include "calllistcheckbox.h"
 #include "sessioninfo.h"
+#include "clubinfo.h"
 // #include "songtitlelabel.h"
 #include "tablewidgettimingitem.h"
 #include "danceprograms.h"
@@ -4675,6 +4676,7 @@ void MainWindow::on_actionPreferences_triggered()
         static_cast<SessionDefaultType>(prefsManager.GetSessionDefault());
 
     prefDialog->setSessionInfoList(songSettings.getSessionInfo());
+    prefDialog->setClubInfoList(songSettings.getClubInfo());   // the first time, seeded from the sessions (issue #1721)
 
     // modal dialog
     int dialogCode = prefDialog->exec();
@@ -4770,6 +4772,7 @@ void MainWindow::on_actionPreferences_triggered()
         musicRootPath = prefsManager.GetmusicPath();
 
         songSettings.setSessionInfo(prefDialog->getSessionInfoList());
+        songSettings.setClubInfo(prefDialog->getClubInfoList());   // remembered only; nothing reads clubs yet (issue #1721)
         // qDebug() << "preferences set lastsessionid to -1";
         lastSessionID = -1;  // invalidate the lastSessionID cached value, forcing reevaluation of which session we are in...
 

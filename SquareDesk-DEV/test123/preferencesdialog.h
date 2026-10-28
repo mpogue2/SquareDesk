@@ -44,6 +44,8 @@
 #include <vector>
 
 class SessionInfo;
+class ClubInfo;
+class ClubsTab;
 class QComboBox;
 class QTableWidget;
 class QToolButton;
@@ -80,6 +82,8 @@ public:
 
     void setSessionInfoList(const QList<SessionInfo> &);
     QList<SessionInfo> getSessionInfoList();
+    void setClubInfoList(const QList<ClubInfo> &);   // Preferences > Clubs (issue #1721)
+    QList<ClubInfo> getClubInfoList();
     void setTagColor(const QString &tagName, const QString &color, bool foreground);
 
     int getActiveTab();
@@ -203,6 +207,8 @@ private:
     QTimer *appleMusicRecountTimer = nullptr;
     QStringList appleMusicPreviewHeaders;  // so column widths survive a rebuild
     bool appleMusicSetupDone = false;
+
+    ClubsTab *clubsTab = nullptr;   // Preferences > Clubs (issue #1721), built in code, not in the .ui
 
     void SetLabelTagAppearanceColors();
     Ui::PreferencesDialog *ui;

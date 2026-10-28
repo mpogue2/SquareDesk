@@ -31,6 +31,8 @@
 #include <QKeySequenceEdit>
 #include <QTimeEdit>
 #include "sessioninfo.h"
+#include "clubinfo.h"
+#include "clubstab.h"
 #include "applemusicfilter.h"
 #include <algorithm>
 #include <utility>
@@ -239,6 +241,14 @@ PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *p
 
     ui->tableWidgetKeyBindings->resizeColumnToContents(0);
     ui->tableWidgetKeyBindings->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+
+    // Clubs goes just to the right of Sessions.  For now it is only edited and remembered: the
+    //   Sessions tab is still what decides Recent / Age (issue #1721).
+    clubsTab = new ClubsTab(mw->currentThemeString);
+    ui->tabWidget->insertTab(ui->tabWidget->indexOf(ui->tab_2) + 1, clubsTab, "Clubs");
+    clubsTab->clubsFromSessions = [this]() {
+        return clubsSeededFromSessions(getSessionInfoList());   // including unsaved edits on the Sessions tab
+    };
 
     // qDebug() << "setting tab to music!";
     ui->tabWidget->setCurrentIndex(0); // Music tab (not Experimental tab) is primary, regardless of last setting in Qt Designer
@@ -621,6 +631,16 @@ QList<SessionInfo> PreferencesDialog::getSessionInfoList()
     return info;
 }
 
+
+void PreferencesDialog::setClubInfoList(const QList<ClubInfo> &clubs)
+{
+    clubsTab->setClubs(clubs);
+}
+
+QList<ClubInfo> PreferencesDialog::getClubInfoList()
+{
+    return clubsTab->clubs();
+}
 
 void PreferencesDialog::on_toolButtonSessionAddItem_clicked()
 {

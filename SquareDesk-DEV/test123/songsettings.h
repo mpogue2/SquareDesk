@@ -30,6 +30,7 @@
 #include <vector>
 
 class SessionInfo;
+class ClubInfo;
 
 class SongPlayEvent {
 public:
@@ -148,6 +149,8 @@ public:
 
     QList<SessionInfo> getSessionInfo();
     void setSessionInfo(const QList<SessionInfo> &sessions);
+    QList<ClubInfo> getClubInfo();                      // Preferences > Clubs (issue #1721)
+    void setClubInfo(const QList<ClubInfo> &clubs);
     void setTagColors( const QHash<QString,QPair<QString,QString>> &);
     QHash<QString,QPair<QString,QString>> getTagColors(bool loadCache = true);
 
@@ -191,6 +194,7 @@ private:
     void deleteCuesheetRowIfAllDefault(const QString &relativePath);
     void exec(const char *where, QSqlQuery &q);
     void exec(const char *where, QSqlQuery &q, const QString &str);
+    void seedClubsFromSessionsIfNeeded();
     QString tagsBackgroundColorString;
     QString tagsForegroundColorString;
     bool databaseOpened;
