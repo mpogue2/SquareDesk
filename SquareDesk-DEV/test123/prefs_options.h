@@ -94,7 +94,6 @@ CONFIG_ATTRIBUTE_BOOLEAN(breakTimerCheckbox, breakLengthTimerEnabled, false)
 CONFIG_ATTRIBUTE_COMBO(breakLength,breakLengthTimerLength, 10)
 CONFIG_ATTRIBUTE_COMBO(afterBreakAction,breakLengthAlarmAction, 10)
 CONFIG_ATTRIBUTE_COMBO(comboBoxMusicFormat, SongFilenameFormat, SongFilenameBestGuess)
-CONFIG_ATTRIBUTE_COMBO(comboBoxSessionDefault, SessionDefault, SessionDefaultPractice)
 CONFIG_ATTRIBUTE_STRING(lineEditMusicTypeSinging, MusicTypeSinging, "singing;singers")
 CONFIG_ATTRIBUTE_STRING(lineEditMusicTypePatter, MusicTypePatter, "patter;hoedown")
 
@@ -229,6 +228,10 @@ CONFIG_ATTRIBUTE_BOOLEAN(checkBoxAutomaticEnterOnAnythingTabCompletion, Automati
 
 
 CONFIG_ATTRIBUTE_INT_NO_PREFS(prefsDialogLastActiveTab, 0)
+// The old Manual / Automatic: Date and Time / Automatic: Clubs choice, no longer shown (Clubs are
+//   always on, issue #1721).  Still read once, to decide how a user's first Clubs are made from
+//   their Sessions.
+CONFIG_ATTRIBUTE_INT_NO_PREFS(SessionDefault, SessionDefaultPractice)
 CONFIG_ATTRIBUTE_INT_NO_PREFS(prefsDialogLastClubId, -1)   // rowid of the club last selected in Preferences > Clubs (issue #1721)
 CONFIG_ATTRIBUTE_INT_NO_PREFS(SDCallListCopyOptions, 1)
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(SDCallListCopyHTMLIncludeHeaders, true);

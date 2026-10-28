@@ -28,7 +28,7 @@
 #include "ui_songhistoryexportdialog.h"
 #include "QFileDialog"
 #include "songsettings.h"
-#include "sessioninfo.h"
+#include "clubinfo.h"
 #include "globaldefines.h"
 #include "mainwindow.h"
 
@@ -88,13 +88,15 @@ void SongHistoryExportDialog::populateOptions(SongSettings &songSettings)
     ui->dateTimeEditEnd->setDisplayFormat(dateTimeFormat);
     // -------------------
 
-    QList<SessionInfo> sessions(songSettings.getSessionInfo());
+    // The plays to export: All, a club's (during its events), or Other's (during no club's events),
+    //   counted the way Age and Recent are (issue #1721)
     ui->comboBoxSession->clear();
-    ui->comboBoxSession->addItem("<all sessions>", 0);
-    for (const auto &session : sessions)
+    ui->comboBoxSession->addItem(builtInClubName(kClubAll), kClubAll);
+    for (const auto &club : songSettings.getClubInfo())
     {
-        ui->comboBoxSession->addItem(session.name, session.id);
+        ui->comboBoxSession->addItem(club.name, club.id);
     }
+    ui->comboBoxSession->addItem(builtInClubName(kClubOther), kClubOther);
 
     ui->checkBoxOpenAfterExport->setChecked(true);
 }
@@ -200,10 +202,10 @@ QString SongHistoryExportDialog::exportSongPlayData(SongSettings &settings, QStr
 
         bool omitStartDate = ui->checkBoxOmitStart->isChecked();
         bool omitEndDate = ui->checkBoxOmitEnd->isChecked();
-        int session_id = ui->comboBoxSession->currentData().toInt();
+        int clubID = ui->comboBoxSession->currentData().toInt();
 
         stream << "\"labelID\",\"Song\",\"when played (local)\",\"when played (UTC)\",\"filename\",\"pitch\",\"tempo\",\"last_cuesheet\"\n"; // CSV HEADER
-        settings.getSongPlayHistory(fespe, session_id,
+        settings.getSongPlayHistory(fespe, clubID,
                                     omitStartDate,
                                     startDate,
                                     omitEndDate,

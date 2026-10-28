@@ -34,8 +34,9 @@
 
 // Clubs, and the schedule rules that say when each one meets (issue #1721).
 //
-// Edited in Preferences > Clubs.  In "Automatic: Use Clubs instead of Sessions" mode, the club whose
-//   event is going on picks the session, and its events decide Age and Recent.
+// Edited in Preferences > Clubs, which replaced Sessions.  The club whose event is going on picks
+//   the session that plays are recorded under, and the Clubs menu picks the club whose events decide
+//   Age and Recent.
 
 // One recurrence rule, which the Clubs tab shows as one editable sentence:
 //   "Every week on Tue from 7:30 PM to 9:30 PM, since Jan 1, 2019, no end"
@@ -77,7 +78,7 @@ public:
     QString color;       // "#rrggbb"
     int id;              // rowid in the clubs table, or -1 for a club that hasn't been saved yet
     int order_number;
-    int session_rowid;   // the session this club was seeded from, or -1.  Not read yet.
+    int session_rowid;   // the session this club was seeded from, or -1 (see retireEmptyPracticeClub())
     QList<ClubRule> rules;
 
     ClubInfo() : name(), color(), id(-1), order_number(0), session_rowid(-1) {}
@@ -97,10 +98,15 @@ QStringList clubPaletteColors();
 
 class SessionInfo;
 
-// One club per session, same name and order.  A session with a day gets one rule:
-//   "Every week on <day> from <start time> to 11:59 PM, since Jan 1, 2019, no end";
-//   a session with no day (Practice) gets none.
-QList<ClubInfo> clubsSeededFromSessions(const QList<SessionInfo> &sessions);
+// One club per session, same name and order, for a user's first Clubs.  With withSchedules (the
+//   user had "Automatic: Date and Time" on, so the sessions' days and times were in use), a session
+//   with a day gets one rule:
+//     "Every week on <day> from <start time> to 11:59 PM, since Jan 1, 2019, no end"
+//   Without it, the clubs get no rules, and the Monday ... Sunday sessions that a new database
+//   starts with, still unchanged, are left out.
+// Either way the first session, when it has no day (Practice), is left out: Other does its job.  And
+//   a session named like a built-in club (Other, All) gets " (club)" added.
+QList<ClubInfo> clubsSeededFromSessions(const QList<SessionInfo> &sessions, bool withSchedules = true);
 
 // All of a club's events in [from, to], in date then start-time order
 QList<ClubOccurrence> clubOccurrencesBetween(const QList<ClubRule> &rules, const QDate &from, const QDate &to);
@@ -110,13 +116,22 @@ QList<ClubOccurrence> clubOccurrencesBetween(const QList<ClubRule> &rules, const
 //   midnight.  When events overlap, the one that started most recently wins, as with Sessions.
 int currentClubIndex(const QList<ClubInfo> &clubs, const QDateTime &now);
 
-// Which club Age and Recent are shown for, in Clubs mode: the schedule's club (the one whose event
-//   is going on, or -1), unless the user chose one from the Session menu.  A choice lasts until the
-//   schedule's club changes, so that the next event never starts with another club's ages showing.
+// The two built-in "clubs" (issue #1721), which aren't in the clubs table and have no schedule:
+//   Other, every play during no club's event, and All, every play.  They take ids that no real club
+//   (a clubs rowid) can have.
+const int kClubNone  = -1;   // no club
+const int kClubOther = -2;
+const int kClubAll   = -3;
+QString builtInClubName(int clubID);                  // "Other", "All", or "" for any other id
+bool isReservedClubName(const QString &name);         // a name a real club can't take
+
+// Which club Age and Recent are shown for: the schedule's club (the one whose event is going on),
+//   or Other when there's none, unless the user chose one from the Clubs menu.  A choice lasts until
+//   the schedule's club changes, so that the next event never starts with another club's ages showing.
 class ClubForAges {
 public:
-    int automatic = -1;   // club ids (clubs rowid), or -1
-    int chosen = -1;
+    int automatic = kClubNone;   // a club id, or kClubNone
+    int chosen = kClubNone;      // a club id, kClubOther, kClubAll, or kClubNone for Automatic
 
     // the schedule's club now; true when that's a change (which also ends any choice)
     bool setAutomatic(int clubID) {
@@ -124,12 +139,16 @@ public:
             return false;
         }
         automatic = clubID;
-        chosen = -1;
+        chosen = kClubNone;
         return true;
     }
-    void choose(int clubID) { chosen = clubID; }     // -1 = back to Automatic
-    void reset() { automatic = -1; chosen = -1; }
-    int effective() const { return (chosen >= 0) ? chosen : automatic; }
+    void choose(int clubID) { chosen = clubID; }     // kClubNone = back to Automatic
+    int effective() const {
+        if (chosen != kClubNone) {
+            return chosen;
+        }
+        return (automatic != kClubNone) ? automatic : kClubOther;
+    }
 };
 
 // When a club met, as UTC instants, for matching plays against (Age and Recent, issue #1721): every
@@ -146,6 +165,17 @@ QList<ClubWindow> clubEventWindowsUtc(const QList<ClubRule> &rules, const QDate 
 
 // Whether a UTC instant falls inside one of the windows
 bool clubWindowsContain(const QList<ClubWindow> &windows, const QDateTime &utc);
+
+// Which plays count for a club, for Age and Recent and the Song History export: for a club, those
+//   during its events; for Other, those during no club's events; for All, every one.
+class ClubPlayMatcher {
+public:
+    bool all = false;
+    bool inside = true;            // false for Other
+    QList<ClubWindow> windows;
+    bool matches(const QDateTime &utc) const { return all || (clubWindowsContain(windows, utc) == inside); }
+};
+ClubPlayMatcher clubPlayMatcher(const QList<ClubInfo> &clubs, int clubID, const QDate &through);
 
 // How the agenda tells the user that it isn't showing everything, for the events after `shownThrough`:
 //   "continues weekly with no end", "4 more, until May 4, 2027", or "" when nothing comes after.

@@ -47,6 +47,7 @@
 #include <QTimeEdit>
 #include <QTimer>
 #include <QToolButton>
+#include <QToolTip>
 #include <QVBoxLayout>
 
 // All the colors for this tab are in Themes.qss, keyed on these object names and on the "theme"
@@ -462,7 +463,7 @@ void ClubsTab::buildUi()
     m_clubList->setIconSize(QSize(12, 12));
     m_clubList->setFocusPolicy(Qt::NoFocus);
 
-    // same icons as the Sessions tab's buttons; the text is the fallback if there's no icon
+    // the same icons as the other Preferences tabs' list buttons; the text is the fallback if there's no icon
     auto listButton = [](const QString &text, const QString &icon, const QString &tip) {
         QToolButton *button = new QToolButton();
         button->setText(text);
@@ -489,18 +490,6 @@ void ClubsTab::buildUi()
     leftLayout->addWidget(listHeading);
     leftLayout->addWidget(m_clubList, 1);
     leftLayout->addLayout(listButtons);
-
-    QPushButton *resetFromSessions = new QPushButton("Re-create from Sessions");
-    resetFromSessions->setToolTip("Replace every club with ones made from the Sessions tab, as on first use.\n"
-                                  "Nothing is saved until OK.  (A debugging aid for now.)");
-    resetFromSessions->hide();   // until clubsFromSessions is set
-    m_resetFromSessions = resetFromSessions;
-    leftLayout->addWidget(resetFromSessions);
-    connect(resetFromSessions, &QPushButton::clicked, this, [this]() {
-        if (clubsFromSessions) {
-            setClubs(clubsFromSessions());
-        }
-    });
 
     // RIGHT: the selected club --------------------------------------------------------------
     m_nameEdit = new QLineEdit();
@@ -669,6 +658,11 @@ void ClubsTab::buildUi()
     connect(m_nameEdit, &QLineEdit::textEdited, this, [this](const QString &text) {
         if (m_current < 0) return;
         m_clubs[m_current].name = text;
+        if (isReservedClubName(text)) {
+            QToolTip::showText(m_nameEdit->mapToGlobal(QPoint(0, m_nameEdit->height())),
+                               QString("\"%1\" is built in, so this club will be saved as \"%2 (club)\"").arg(text.trimmed(), text.trimmed()),
+                               m_nameEdit);
+        }
         refreshClubListRow(m_current);
         refreshAgenda();   // events with no label are named after the club
     });
@@ -681,7 +675,6 @@ void ClubsTab::buildUi()
 // --------------------------------------------------------------------------------------------
 void ClubsTab::setClubs(const QList<ClubInfo> &clubs)
 {
-    m_resetFromSessions->setVisible(bool(clubsFromSessions));
     m_clubs = clubs;
     m_current = m_clubs.isEmpty() ? -1 : 0;
     rebuildClubList();
@@ -707,6 +700,8 @@ QList<ClubInfo> ClubsTab::clubs() const
         result[i].order_number = i;
         if (result[i].name.trimmed().isEmpty()) {
             result[i].name = "Untitled club";
+        } else if (isReservedClubName(result[i].name)) {
+            result[i].name = result[i].name.trimmed() + " (club)";   // Other and All are built in (issue #1721)
         }
     }
     return result;

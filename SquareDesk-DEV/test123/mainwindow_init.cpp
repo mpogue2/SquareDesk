@@ -2223,58 +2223,22 @@ void MainWindow::initializeReferenceTab() {
 
 // ====================================================
 void MainWindow::initializeSessions() {
-    // what session are we in to start with?
-    SessionDefaultType sessionDefault =
-        static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()); // preference setting
+    // which club's event are we in to start with? (issue #1721)
+    songSettings.ensureSessionsForClubs();   // a session for every club: plays and taught-on dates are still recorded by session
+    int clubID;
+    int currentSessionID = songSettings.currentSessionIDByClubs(QDateTime::currentDateTime(), &clubID);
+    clubForAges.setAutomatic(clubID);
+    applyClubForAges();                      // Age and Recent come from this club's events (or Other)
+    setCurrentSessionId(currentSessionID); // save it in songSettings
 
-    if (sessionDefault == SessionDefaultDOW || sessionDefault == SessionDefaultClubs) {
+    // splash->setProgress(25, "Looking up when songs were last played...");
+    reloadSongAges();
 
-        int currentSessionID;
-        if (sessionDefault == SessionDefaultClubs) {
-            songSettings.ensureSessionsForClubs();   // a session for every club (issue #1721)
-            int clubID;
-            currentSessionID = songSettings.currentSessionIDByClubs(QDateTime::currentDateTime(), &clubID);
-            clubForAges.setAutomatic(clubID);
-            applyClubForAges();                      // Age and Recent come from this club's events
-        } else {
-            currentSessionID = songSettings.currentSessionIDByTime(); // what session are we in?
-        }
-        setCurrentSessionId(currentSessionID); // save it in songSettings
+    lastSessionID = currentSessionID;
+    currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
+    currentSongSecondsPlayedRecorded = false; // not reported yet, because this is a new session
 
-        populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
-
-        // splash->setProgress(25, "Looking up when songs were last played...");
-        reloadSongAges(ui->actionShow_All_Ages->isChecked());
-
-
-        lastSessionID = currentSessionID;
-        currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
-        currentSongSecondsPlayedRecorded = false; // not reported yet, because this is a new session
-    } else {
-        // do this once at startup, and never again.  I think that was the intent of this mode.
-        int practiceID = 1; // wrong, if there are deleted rows in Sessions table
-        QList<SessionInfo> sessions = songSettings.getSessionInfo();
-
-        for (const auto &s : std::as_const(sessions)) {
-            // qDebug() << s.day_of_week << s.id << s.name << s.order_number << s.start_minutes;
-            if (s.order_number == 0) { // 0 is the first non-deleted row where order_number == 0
-                // qDebug() << "Found it: " << s.name << "row:" << s.id;
-                practiceID = s.id; // now it's right!
-            }
-        }
-
-        setCurrentSessionId(practiceID); // save it in songSettings
-
-        reloadSongAges(ui->actionShow_All_Ages->isChecked());
-
-        populateMenuSessionOptions(); // update the sessions menu with whatever is checked now
-        lastSessionID = practiceID;
-        currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
-        currentSongSecondsPlayedRecorded = false; // not reported yet, because this is a new session
-        // qDebug() << "***** We are now in Practice Session, id =" << practiceID;
-    }
-
-    populateMenuSessionOptions();  // update the Session menu
+    populateMenuSessionOptions();  // update the Clubs menu
 
     // The call list was loaded by initializeMusicSongTable() before the session was known, so
     //   it showed no taught calls. Reload it now that current_session_id is set (#1766).

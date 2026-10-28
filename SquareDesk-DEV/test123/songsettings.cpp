@@ -390,7 +390,8 @@ SongSettings::SongSettings() :
     tagsForegroundColorString(DEFAULTTAGSFOREGROUNDCOLOR),
     databaseOpened(false),
     current_session_id(0), // NOTE: invalid current_session_id (this is supposed to be a row number in the sessions table)
-    club_for_ages_id(-1),
+    club_for_ages_id(kClubOther),
+    seed_club_schedules(true),
     tagColorCacheSet(false)
 {
 }
@@ -402,47 +403,12 @@ void SongSettings::setDefaultTagColors( const QString &background, const QString
 }
 
 
-int SongSettings::currentSessionIDByTime()
-{
-    // find the first non-deleted row where order_number == 0
-    int practiceID = 1; // wrong, if there are deleted rows in Sessions table
-    QList<SessionInfo> sessions = getSessionInfo();
-    for (const auto& s : sessions) {
-        // qDebug() << s.day_of_week << s.id << s.name << s.order_number << s.start_minutes;
-        if (s.order_number == 0) { // 0 is the first non-deleted row where order_number == 0
-            // qDebug() << "Found it: " << s.name << "row:" << s.id;
-            practiceID = s.id; // now it's right!
-        }
-    }
-
-    // int session_id = 1;
-    int session_id = practiceID;  // If we're in Automatic mode, and NOTHING matches, default to the first non-deleted session
-
-    QDate date(QDate::currentDate());
-    QTime time(QTime::currentTime());
-    int day_of_week = date.dayOfWeek();
-    int start_minutes = time.hour() * 60 + time.minute();
-    QSqlQuery q(m_db);
-    q.prepare("SELECT rowid FROM sessions WHERE day_of_week = :day_of_week AND start_minutes <= :start_minutes AND NOT deleted ORDER BY start_minutes DESC LIMIT 1");
-    q.bindValue(":day_of_week", day_of_week);
-    q.bindValue(":start_minutes", start_minutes);
-
-    exec("currentSession", q);
-    if (q.next())
-    {
-        session_id = q.value(0).toInt();
-    }
-    // q.prepare("SELECT rowid FROM sessions WHERE day_of_week = :day_of_week AND start_minutes < :start_minutes AND NOT deleted ORDER BY start_minutes DESC LIMIT 1");
-    
-    return session_id;
-}
-
 int SongSettings::currentSessionIDByClubs(const QDateTime &now, int *clubID)
 {
     QList<SessionInfo> sessions = getSessionInfo();
     int sessionID = 1;   // wrong, if there are deleted rows in Sessions table
     for (const auto &s : std::as_const(sessions)) {
-        if (s.order_number == 0) {   // with no club event on, the first session, as in currentSessionIDByTime()
+        if (s.order_number == 0) {   // with no club event on, the first session (Practice): plays for Other are recorded there
             sessionID = s.id;
         }
     }
@@ -578,6 +544,8 @@ void SongSettings::openDatabase(const QString& path,
             }
         }
     }
+    seedClubsFromSessionsIfNeeded();
+    retireEmptyPracticeClub();
 }
 
 void SongSettings::setTagColors( const QHash<QString,QPair<QString,QString>> &colors)
@@ -1117,8 +1085,21 @@ void SongSettings::clearTaughtCalls(const QString &program)
 }
 
 
+// played_on, "yyyy-MM-dd HH:mm:ss" in UTC, taken apart by hand: QDateTime::fromString() is slow, and
+//   this runs on every play there has ever been
+static QDateTime playedOnUtc(const QString &text)
+{
+    if (text.size() < 19) {
+        return QDateTime();
+    }
+    QStringView v(text);
+    return QDateTime(QDate(v.mid(0, 4).toInt(), v.mid(5, 2).toInt(), v.mid(8, 2).toInt()),
+                     QTime(v.mid(11, 2).toInt(), v.mid(14, 2).toInt(), v.mid(17, 2).toInt()),
+                     QTimeZone::UTC);
+}
+
 void SongSettings::getSongPlayHistory(SongPlayEvent &event,
-                            int session_id,
+                            int clubID,
                             bool omitStartDate,
                             QString startDate,
                             bool omitEndDate,
@@ -1127,12 +1108,15 @@ void SongSettings::getSongPlayHistory(SongPlayEvent &event,
     // #1684: song_plays is the driving table here, and the join to songs is a LEFT JOIN, so that a
     //   play whose song_rowid matches no song (written by older versions, which recorded -1 when the
     //   song was not yet in the songs table) still shows up, rather than silently disappearing.
+    //
+    // The club filter (issue #1721) counts plays exactly as Age and Recent do; see getSongAgesForClub().
     QString sql("SELECT COALESCE(songs.name,'<song not recorded>'), played_on, datetime(played_on,'localtime'), COALESCE(songs.filename,''), pitch, tempo, last_cuesheet FROM song_plays LEFT JOIN songs ON songs.rowid=song_plays.song_rowid");
     QStringList whereClause;
-    
-    if (session_id)
+
+    const ClubPlayMatcher matcher = clubPlayMatcher(getClubInfo(), clubID, QDate::currentDate());
+    if (!matcher.all)
     {
-        whereClause.append("session_rowid=:session_rowid");
+        whereClause.append("COALESCE(song_plays.origin,'squaredesk') = 'squaredesk'");
     }
     if (!omitStartDate)
     {
@@ -1152,10 +1136,6 @@ void SongSettings::getSongPlayHistory(SongPlayEvent &event,
     sql += " ORDER BY played_on";
     QSqlQuery q(m_db);
     q.prepare(sql);
-    if (session_id)
-    {
-        q.bindValue(":session_rowid", session_id);
-    }
     if (!omitStartDate)
     {
         q.bindValue(":start_date", startDate);
@@ -1167,6 +1147,10 @@ void SongSettings::getSongPlayHistory(SongPlayEvent &event,
     exec("songplayhistory", q);
     while (q.next())
     {
+        if (!matcher.all && !matcher.matches(playedOnUtc(q.value(1).toString())))
+        {
+            continue;
+        }
         event(q.value(0).toString(), // name
               q.value(1).toString(), // UTC time
               q.value(2).toString(), // local time
@@ -1182,21 +1166,20 @@ void SongSettings::getSongPlayHistory(SongPlayEvent &event,
 //   Played columns can never disagree.  played_on is UTC for every origin -- CURRENT_TIMESTAMP for
 //   SquareDesk's own plays, and importExternalPlays() normalizes Apple Music's to the same spelling
 //   -- so it is an absolute instant, and is converted to whatever time zone the computer is in now.
-void SongSettings::getSongAges(QHash<QString,QString> &ages, bool show_all_sessions,
-                               QHash<QString,QDateTime> *lastPlayed)
+//
+// All (issue #1721) is every play, of every origin, as Show All Song Ages used to be.  Any other
+//   club, and Other, go through getSongAgesForClub().
+void SongSettings::getSongAges(QHash<QString,QString> &ages, QHash<QString,QDateTime> *lastPlayed)
 {
-    if (!show_all_sessions && club_for_ages_id >= 0) {
+    if (club_for_ages_id != kClubAll) {
         getSongAgesForClub(ages, lastPlayed);
         return;
     }
 
     QString sql("SELECT filename, julianday('now') - julianday(max(played_on)), max(played_on) FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid");
-    if (!show_all_sessions)
-        sql += " WHERE session_rowid = :session_rowid";
     sql += " GROUP BY songs.rowid";
     QSqlQuery q(m_db);
     q.prepare(sql);
-    q.bindValue(":session_rowid", current_session_id);
 
     exec("songAges", q);
     while (q.next())
@@ -1218,51 +1201,42 @@ void SongSettings::getSongAges(QHash<QString,QString> &ages, bool show_all_sessi
     }
 }
 
-// In Clubs mode (issue #1721), a play counts for the club when it happened during one of the club's
-//   events, whatever session it was recorded under.  So editing a rule, or adding a one-off, changes
-//   Age and Recent for past plays too.  played_on is written about a second after playback starts.
+// A play counts for a club when it happened during one of the club's events, and for Other when it
+//   happened during none (issue #1721), whatever session it was recorded under.  So editing a rule,
+//   or adding a one-off, changes Age and Recent for past plays too.  played_on is written about a
+//   second after playback starts.
 //
 // There's no index on played_on, so rather than join the plays against hundreds of events in SQL,
-//   read every play once and look each one up in the club's (sorted) event windows.
+//   read every play once and look each one up in the (sorted) event windows.
 //
 // Only SquareDesk's own plays count, for now: imported Apple Music plays are left out.  They still
-//   show with Show All Song Ages.
+//   show under All.
 void SongSettings::getSongAgesForClub(QHash<QString,QString> &ages, QHash<QString,QDateTime> *lastPlayed)
 {
-    QList<ClubRule> rules;
-    const QList<ClubInfo> clubs = getClubInfo();
-    for (const ClubInfo &club : clubs) {
-        if (club.id == club_for_ages_id) {
-            rules = club.rules;
-            break;
-        }
-    }
     const QDateTime nowUtc = QDateTime::currentDateTimeUtc();
-    const QList<ClubWindow> windows = clubEventWindowsUtc(rules, QDate::currentDate());
-    if (windows.isEmpty()) {
-        return;
+    const ClubPlayMatcher matcher = clubPlayMatcher(getClubInfo(), club_for_ages_id, QDate::currentDate());
+    if (matcher.inside && matcher.windows.isEmpty()) {
+        return;   // a club with no events: nothing can count
     }
 
     QSqlQuery q(m_db);
     q.setForwardOnly(true);
-    q.prepare("SELECT songs.filename, song_plays.played_on FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid"
-              " WHERE COALESCE(song_plays.origin,'squaredesk') = 'squaredesk' AND song_plays.played_on >= :since");
-    q.bindValue(":since", windows.first().start.toString("yyyy-MM-dd HH:mm:ss"));
+    QString sql("SELECT songs.filename, song_plays.played_on FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid"
+                " WHERE COALESCE(song_plays.origin,'squaredesk') = 'squaredesk'");
+    if (matcher.inside) {
+        sql += " AND song_plays.played_on >= :since";   // nothing before the first event can count
+    }
+    q.prepare(sql);
+    if (matcher.inside) {
+        q.bindValue(":since", matcher.windows.first().start.toString("yyyy-MM-dd HH:mm:ss"));
+    }
     exec("songAgesForClub", q);
 
-    QHash<QString, QDateTime> latest;   // filename -> its latest play during one of the events (UTC)
+    QHash<QString, QDateTime> latest;   // filename -> its latest play that counts (UTC)
     while (q.next())
     {
-        // "yyyy-MM-dd HH:mm:ss", taken apart by hand: QDateTime::fromString() is slow, and this is
-        //   every play there has ever been
-        const QString text = q.value(1).toString();
-        if (text.size() < 19) {
-            continue;
-        }
-        QDateTime when(QDate(QStringView(text).mid(0, 4).toInt(), QStringView(text).mid(5, 2).toInt(), QStringView(text).mid(8, 2).toInt()),
-                       QTime(QStringView(text).mid(11, 2).toInt(), QStringView(text).mid(14, 2).toInt(), QStringView(text).mid(17, 2).toInt()),
-                       QTimeZone::UTC);
-        if (!when.isValid() || !clubWindowsContain(windows, when)) {
+        const QDateTime when = playedOnUtc(q.value(1).toString());
+        if (!when.isValid() || !matcher.matches(when)) {
             continue;
         }
         const QString filename = q.value(0).toString();
@@ -1769,8 +1743,20 @@ void SongSettings::seedClubsFromSessionsIfNeeded()
         }
     }
 
-    QList<ClubInfo> clubs = clubsSeededFromSessions(getSessionInfo());
+    QList<ClubInfo> clubs = clubsSeededFromSessions(getSessionInfo(), seed_club_schedules);
     setClubInfo(clubs);
+}
+
+// The club that was seeded from the Practice session (the first one, with no day), as long as it
+//   still has no rules, has no events and so could only ever show an empty Age column.  Other does
+//   its job now (issue #1721), so it goes.  Clubs seeded from now on leave Practice out anyway.
+void SongSettings::retireEmptyPracticeClub()
+{
+    QSqlQuery q(m_db);
+    q.prepare("UPDATE clubs SET deleted = 1 WHERE NOT deleted"
+              " AND session_rowid IN (SELECT rowid FROM sessions WHERE NOT deleted AND order_number = 0 AND day_of_week = 0)"
+              " AND NOT EXISTS (SELECT 1 FROM club_rules WHERE club_rules.club_rowid = clubs.rowid)");
+    exec("retireEmptyPracticeClub", q);
 }
 
 QList<ClubInfo> SongSettings::getClubInfo()

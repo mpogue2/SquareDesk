@@ -52,7 +52,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Session:</string>
+    <string>Club:</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>

@@ -32,6 +32,8 @@ enum SongFilenameMatchingType {
     SongFilenameBestGuess
 };
 
+// The old Manual / Automatic: Date and Time / Automatic: Clubs choice.  Clubs are always on now
+//   (issue #1721); the stored value is only read to decide how a user's first Clubs are made.
 enum SessionDefaultType {
     SessionDefaultPractice = 1,
     SessionDefaultDOW,

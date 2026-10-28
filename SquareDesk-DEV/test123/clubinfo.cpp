@@ -36,16 +36,25 @@ QStringList clubPaletteColors()
     return { "#2BB3C0", "#F2A93B", "#E5566B", "#6C8EF5", "#5DC264", "#A97CF0", "#F07A4A", "#3FB8E8" };
 }
 
-QList<ClubInfo> clubsSeededFromSessions(const QList<SessionInfo> &sessions)
+QList<ClubInfo> clubsSeededFromSessions(const QList<SessionInfo> &sessions, bool withSchedules)
 {
+    static const QStringList defaultDayNames { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
     const QStringList palette = clubPaletteColors();
     QList<ClubInfo> clubs;
     for (const auto &session : sessions) {
+        const bool hasDay = (session.day_of_week >= 1 && session.day_of_week <= 7);
+        if (session.order_number == 0 && !hasDay) {
+            continue;   // Practice
+        }
+        if (!withSchedules && hasDay && session.start_minutes <= 0 &&
+            session.name == defaultDayNames[session.day_of_week - 1]) {
+            continue;   // a default session, never used
+        }
         ClubInfo club;
-        club.name = session.name;
+        club.name = isReservedClubName(session.name) ? session.name + " (club)" : session.name;
         club.color = palette[clubs.size() % palette.size()];
         club.session_rowid = session.id;
-        if (session.day_of_week >= 1 && session.day_of_week <= 7) {
+        if (withSchedules && hasDay) {
             ClubRule rule;
             rule.kind = ClubRule::Weekly;
             rule.weekday = session.day_of_week;
@@ -231,6 +240,44 @@ bool clubWindowsContain(const QList<ClubWindow> &windows, const QDateTime &utc)
         return false;
     }
     return utc <= std::prev(after)->end;
+}
+
+QString builtInClubName(int clubID)
+{
+    switch (clubID) {
+    case kClubOther: return QString("Other");
+    case kClubAll:   return QString("All");
+    }
+    return QString();
+}
+
+bool isReservedClubName(const QString &name)
+{
+    const QString trimmed = name.trimmed();
+    return trimmed.compare(builtInClubName(kClubOther), Qt::CaseInsensitive) == 0 ||
+           trimmed.compare(builtInClubName(kClubAll), Qt::CaseInsensitive) == 0;
+}
+
+ClubPlayMatcher clubPlayMatcher(const QList<ClubInfo> &clubs, int clubID, const QDate &through)
+{
+    ClubPlayMatcher matcher;
+    if (clubID == kClubAll) {
+        matcher.all = true;
+    } else if (clubID == kClubOther) {
+        QList<ClubRule> everyRule;   // every club's events at once, so the windows come out merged
+        for (const ClubInfo &club : clubs) {
+            everyRule.append(club.rules);
+        }
+        matcher.windows = clubEventWindowsUtc(everyRule, through);
+        matcher.inside = false;
+    } else {
+        for (const ClubInfo &club : clubs) {
+            if (club.id == clubID) {
+                matcher.windows = clubEventWindowsUtc(club.rules, through);
+            }
+        }
+    }
+    return matcher;
 }
 
 QString clubContinuationText(const QList<ClubRule> &rules, const QDate &shownThrough)

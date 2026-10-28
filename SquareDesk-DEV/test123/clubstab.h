@@ -66,10 +66,6 @@ public:
     int currentRow() const { return m_current; }
     void selectClubWithId(int id);
 
-    // For debugging only, for now: "Re-create from Sessions" replaces every club with ones made
-    //   from the Sessions tab.  The button only appears when this is set.
-    std::function<QList<ClubInfo>()> clubsFromSessions;
-
 private:
     void buildUi();
     void rebuildClubList();
@@ -92,7 +88,6 @@ private:
     int m_current;
     QDate m_agendaFrom;                 // the agenda shows m_agendaFrom through m_agendaThrough
     QDate m_agendaThrough;
-    QWidget *m_resetFromSessions;
 
     QTableWidget *m_clubList;
     QWidget *m_detail;

@@ -817,7 +817,6 @@ QToolButton#clubRuleRemove:hover[theme="Dark"] {
 
 /* TABLE COLORS ================ */
 #tableWidgetTagColors[theme="Dark"],
-#tableWidgetSessionsList[theme="Dark"],
 #tableWidgetKeyBindings[theme="Dark"]
 {
 	gridline-color: #303030;

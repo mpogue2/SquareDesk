@@ -1007,6 +1007,9 @@ bool MainWindow::findMusic(QString mainRootDir, bool refreshDatabase, bool force
 
     if (refreshDatabase)
     {
+        // A user's first Clubs are made from their Sessions when the database opens.  They get the
+        //   sessions' days and times as schedules only if those were in use (issue #1721).
+        songSettings.setSeedClubSchedules(prefsManager.GetSessionDefault() != SessionDefaultPractice);
         songSettings.openDatabase(databaseDir, mainRootDir, false);
     }
     t.elapsed(__LINE__);
@@ -1832,7 +1835,6 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
     QListIterator<QString> iter(*aPathStack); // filter the one we were given (pathStack, pathStackPlaylists, pathStackApplePlaylists), OR refresh the last one
 
     QColor textCol = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
-    bool show_all_ages = ui->actionShow_All_Ages->isChecked();
 
     // first, filter down to just those string that are the type we are looking for -------
     // QString startsWithTypeFilter(QString("^") + typeFilter + ".*");
@@ -1935,7 +1937,7 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
 
     QHash<QString, QString> agesByFilename;
     QHash<QString, QDateTime> lastPlayedByFilename;   // same query, issue #1783
-    songSettings.getSongAges(agesByFilename, show_all_ages, &lastPlayedByFilename);
+    songSettings.getSongAges(agesByFilename, &lastPlayedByFilename);
 
     t.elapsed(__LINE__);
 

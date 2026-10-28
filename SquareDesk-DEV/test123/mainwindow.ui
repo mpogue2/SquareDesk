@@ -4729,10 +4729,8 @@
    </widget>
    <widget class="QMenu" name="menuSession">
     <property name="title">
-     <string>Session</string>
+     <string>Clubs</string>
     </property>
-    <addaction name="separator"/>
-    <addaction name="actionShow_All_Ages"/>
     <addaction name="separator"/>
     <addaction name="actionClear_Recent"/>
     <addaction name="actionDon_t_Save_Plays"/>
@@ -5440,14 +5438,6 @@
   <action name="actionExport">
    <property name="text">
     <string>Export Song Data...</string>
-   </property>
-  </action>
-  <action name="actionShow_All_Ages">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Show All Ages</string>
    </property>
   </action>
   <action name="actionAge">

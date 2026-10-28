@@ -107,14 +107,16 @@ public:
 
     void setCurrentSession(int id) { current_session_id = id; }
     int getCurrentSession() { return current_session_id; }
-    // The club whose events decide Age and Recent (issue #1721), by its id (clubs rowid), or -1 to
-    //   use the current session's plays, as always.  Only "Automatic: Use Clubs instead of
-    //   Sessions" sets it, to the club whose event is going on.
+    // The club whose events decide Age and Recent (issue #1721): a club's id (clubs rowid),
+    //   kClubOther or kClubAll.  Other until it's set.
     void setClubForAges(int clubID) { club_for_ages_id = clubID; }
+    // Whether a user's first Clubs, made from their Sessions, get the sessions' days and times as
+    //   schedules (see clubsSeededFromSessions()).  Set before openDatabase().
+    void setSeedClubSchedules(bool withSchedules) { seed_club_schedules = withSchedules; }
     int getClubForAges() const { return club_for_ages_id; }
     // lastPlayed, if given, also gets the instant behind each age, in local time (issue #1783).
-    void getSongAges(QHash<QString,QString> &ages, bool show_all_sessions,
-                     QHash<QString,QDateTime> *lastPlayed = nullptr);
+    //   For the club set by setClubForAges(), or Other, or All (issue #1721).
+    void getSongAges(QHash<QString,QString> &ages, QHash<QString,QDateTime> *lastPlayed = nullptr);
     QString getSongAge(const QString &filename, const QString &filenameWithPath, bool show_all_sessions);
     void markSongPlayed(const QString &filename, const QString &filenameWithPath);
 
@@ -151,10 +153,8 @@ public:
     void setCallTaughtOn(const QString &program, const QString &call_name, const QDate &date);
     void deleteCallTaught(const QString &program, const QString &call_name);
     void clearTaughtCalls(const QString &program);
-    int currentSessionIDByTime();
-    // "Automatic: Use Clubs instead of Sessions" (issue #1721): the session named after the club
-    //   whose event is going on now, or the first session when there's none.  clubID, if given,
-    //   gets that club's id, or -1.
+    // The session named after the club whose event is going on now, or the first session (Practice)
+    //   when there's none (issue #1721).  clubID, if given, gets that club's id, or kClubNone.
     int currentSessionIDByClubs(const QDateTime &now = QDateTime::currentDateTime(), int *clubID = nullptr);
     // ...which needs a session for every club: add one (no day, last) for each club that has none
     void ensureSessionsForClubs();
@@ -173,8 +173,9 @@ public:
     void endBulkUpdate();
     void setDefaultTagColors( const QString &background, const QString & foreground);
 
+    // clubID: a club, kClubOther or kClubAll, counted as Age and Recent are (issue #1721)
     void getSongPlayHistory(SongPlayEvent &event,
-                            int session_id,
+                            int clubID,
                             bool omitStartDate,
                             QString startDate,
                             bool omitEndDate,
@@ -207,6 +208,7 @@ private:
     void exec(const char *where, QSqlQuery &q);
     void exec(const char *where, QSqlQuery &q, const QString &str);
     void seedClubsFromSessionsIfNeeded();
+    void retireEmptyPracticeClub();
     void getSongAgesForClub(QHash<QString,QString> &ages, QHash<QString,QDateTime> *lastPlayed);
     QString tagsBackgroundColorString;
     QString tagsForegroundColorString;
@@ -214,6 +216,7 @@ private:
     QSqlDatabase m_db;
     int current_session_id;
     int club_for_ages_id;
+    bool seed_club_schedules;
     QHash<QString, int> tagCounts;
 
     void ensureSchema(TableDefinition *);

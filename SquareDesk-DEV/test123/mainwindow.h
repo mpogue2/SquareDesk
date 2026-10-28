@@ -828,7 +828,6 @@ private slots:
     void on_actionItemNumber_toggled(bool arg1);     // issue #1799
     void on_actionResetColumnVisibility_triggered();
 
-    void on_actionShow_All_Ages_triggered(bool checked);
     void on_actionIn_Out_Loop_points_to_default_triggered(bool checked);
     void on_actionShow_group_station_toggled(bool arg1);
     void on_actionShow_order_sequence_toggled(bool arg1);
@@ -886,7 +885,6 @@ private slots:
     void on_actionExplore_Cuesheet_Matching_triggered();
     void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);
     void on_comboBoxCallListProgram_currentIndexChanged(int currentIndex);
-    void action_session_change_triggered();
     void on_actionDownload_Cuesheets_triggered();
     void on_actionResetCuesheetFontSize_triggered();
     void on_actionBold_triggered();
@@ -1470,7 +1468,7 @@ private:
     QString ageToRecent(QString age);
     QString ageToIntString(QString ageString, const QDateTime &lastPlayed = QDateTime());
     QDateTime recentFenceDateTime;
-    void reloadSongAges(bool show_all_sessions);
+    void reloadSongAges();
     void setDateLastPlayedCell(int row, const QDateTime &lastPlayed, const QBrush &textBrush);  // issue #1783
     void migrateSortOrderForPlaylistColumns();  // issue #1799, one-shot
     bool autoScrollCuesheetsByDefault;  // #1724: global default from Preferences; each cuesheet may override

@@ -43,7 +43,6 @@
 #include <QTimer>
 #include <vector>
 
-class SessionInfo;
 class ClubInfo;
 class ClubsTab;
 class QComboBox;
@@ -80,8 +79,6 @@ public:
     void setTagColors( const QHash<QString,QPair<QString,QString>> &);
     QHash<QString,QPair<QString,QString>> getTagColors();
 
-    void setSessionInfoList(const QList<SessionInfo> &);
-    QList<SessionInfo> getSessionInfoList();
     void setClubInfoList(const QList<ClubInfo> &);   // Preferences > Clubs (issue #1721)
     QList<ClubInfo> getClubInfoList();
     int getSelectedClubRow();                          // a row of getClubInfoList(), or -1
@@ -153,10 +150,6 @@ private slots:
     void on_comboBoxMusicFormat_currentIndexChanged(int /* currentIndex */);
     void on_pushButtonResetHotkeysToDefaults_clicked();
 
-    void on_toolButtonSessionAddItem_clicked();
-    void on_toolButtonSessionMoveItemDown_clicked();
-    void on_toolButtonSessionMoveItemUp_clicked();
-    void on_toolButtonSessionRemoveItem_clicked();
     void on_pushButtonTagsBackgroundColor_clicked();
     void on_pushButtonTagsForegroundColor_clicked();
 
