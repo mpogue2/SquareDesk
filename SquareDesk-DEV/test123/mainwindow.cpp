@@ -734,6 +734,7 @@ void MainWindow::setCurrentSessionIdReloadSongAges(int id)
     // qDebug() << "***** manual change of session id to:" << id;
     reloadSongAges(ui->actionShow_All_Ages->isChecked());
     on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex()); // this tab is gone now
+    microphoneStatusUpdate();   // the "Session: ..." in the status bar, now rather than at the next unrelated update
 }
 
 void MainWindow::setCurrentSessionIdReloadSongAgesCheckMenu(int id)
@@ -2515,17 +2516,19 @@ void MainWindow::on_UIUpdateTimerTick(void)
     }
 
     // figure out what Session we are in, once per minute
-    // either SessionDefaultDOW or SessionDefaultPractice
+    // SessionDefaultDOW, SessionDefaultClubs, or SessionDefaultPractice
     SessionDefaultType sessionDefault =
         static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()); // preference setting
 
     // qDebug() << "Ding: " << sessionDefault << SessionDefaultDOW << SessionDefaultPractice;
-    if (sessionDefault == SessionDefaultDOW) {
+    if (sessionDefault == SessionDefaultDOW || sessionDefault == SessionDefaultClubs) {
         int currentMinuteInHour = time.minute();
         // qDebug() << "Tick: " << sessionDefault << currentMinuteInHour << lastMinuteInHour;
         if ((currentMinuteInHour != lastMinuteInHour) || (lastSessionID < 0)) { // or cached sessionID is invalid
             // this code is executed once per minute, we're now in a new minute
-            int currentSessionID = songSettings.currentSessionIDByTime(); // what session are we in?
+            int currentSessionID = (sessionDefault == SessionDefaultClubs) ?
+                                       songSettings.currentSessionIDByClubs() :   // the session named after the club whose event is on (issue #1721)
+                                       songSettings.currentSessionIDByTime();     // what session are we in?
             // qDebug() << "Tock: " << currentSessionID << lastSessionID;
             if (currentSessionID != lastSessionID) {
                 // only happens at session boundaries, we're now in a new Session, so update Ages column
@@ -2536,6 +2539,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
                 lastSessionID = currentSessionID;
                 currentSongSecondsPlayed = 0; // reset the counter, because this is a new session
                 currentSongSecondsPlayedRecorded = false; // not reported yet, because this is a new session
+                microphoneStatusUpdate(); // the "Session: ..." in the status bar (uses lastSessionID, so after it's set)
                 // qDebug() << "***** We are now in Session " << currentSessionID;
             }
             lastMinuteInHour = currentMinuteInHour;
@@ -4794,6 +4798,14 @@ void MainWindow::on_actionPreferences_triggered()
             && static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()) == SessionDefaultDOW)
         {
             setCurrentSessionIdReloadSongAgesCheckMenu(songSettings.currentSessionIDByTime()); // TODO: Do we need this now?
+        }
+        else if (static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()) == SessionDefaultClubs)
+        {
+            // Every time, not only when the mode changes: the clubs or their schedules may have
+            //   changed.  The sessions for new clubs are added here, now that the dialog (whose OK
+            //   deletes any session not in its own list) is closed (issue #1721).
+            songSettings.ensureSessionsForClubs();
+            setCurrentSessionIdReloadSongAgesCheckMenu(songSettings.currentSessionIDByClubs());
         }
         else if (static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()) == SessionDefaultPractice)
         {

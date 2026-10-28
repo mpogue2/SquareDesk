@@ -34,7 +34,8 @@ enum SongFilenameMatchingType {
 
 enum SessionDefaultType {
     SessionDefaultPractice = 1,
-    SessionDefaultDOW
+    SessionDefaultDOW,
+    SessionDefaultClubs     // like DOW, but the session is the one named after the club whose event is on now (issue #1721)
 };
 
 enum ColumnExportData

@@ -30,6 +30,8 @@
 #include <QDateTime>
 #include <QTimeZone>
 #include <QFileInfo>
+#include <QSet>
+#include <algorithm>
 #include <vector>
 #include <map>
 #include <utility>
@@ -432,6 +434,55 @@ int SongSettings::currentSessionIDByTime()
     // q.prepare("SELECT rowid FROM sessions WHERE day_of_week = :day_of_week AND start_minutes < :start_minutes AND NOT deleted ORDER BY start_minutes DESC LIMIT 1");
     
     return session_id;
+}
+
+int SongSettings::currentSessionIDByClubs(const QDateTime &now)
+{
+    QList<SessionInfo> sessions = getSessionInfo();
+    int sessionID = 1;   // wrong, if there are deleted rows in Sessions table
+    for (const auto &s : std::as_const(sessions)) {
+        if (s.order_number == 0) {   // with no club event on, the first session, as in currentSessionIDByTime()
+            sessionID = s.id;
+        }
+    }
+
+    // Read-only: this runs once a minute, even while the Preferences dialog is open, so it must
+    //   not add sessions (the dialog's OK would delete them again).  ensureSessionsForClubs() does.
+    QList<ClubInfo> clubs = getClubInfo();
+    int club = currentClubIndex(clubs, now);
+    if (club >= 0) {
+        for (const auto &s : std::as_const(sessions)) {
+            if (s.name == clubs[club].name) {
+                sessionID = s.id;
+                break;
+            }
+        }
+    }
+    return sessionID;
+}
+
+void SongSettings::ensureSessionsForClubs()
+{
+    QList<SessionInfo> sessions = getSessionInfo();
+    QSet<QString> names;
+    int nextOrder = 0;
+    for (const auto &s : std::as_const(sessions)) {
+        names.insert(s.name);
+        nextOrder = std::max(nextOrder, s.order_number + 1);
+    }
+
+    QSqlQuery q(m_db);
+    q.prepare("INSERT INTO sessions(deleted, name, order_number, day_of_week) "
+              " VALUES (0, :name, :order_number, 0)");   // no day, so the day-and-time mode never picks it
+    const QList<ClubInfo> clubs = getClubInfo();
+    for (const auto &club : clubs) {
+        if (!names.contains(club.name)) {
+            q.bindValue(":name", club.name);
+            q.bindValue(":order_number", nextOrder++);
+            exec("ensureSessionsForClubs", q);
+            names.insert(club.name);
+        }
+    }
 }
 
 static const char *default_session_names[] =

@@ -2227,9 +2227,15 @@ void MainWindow::initializeSessions() {
     SessionDefaultType sessionDefault =
         static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()); // preference setting
 
-    if (sessionDefault == SessionDefaultDOW) {
+    if (sessionDefault == SessionDefaultDOW || sessionDefault == SessionDefaultClubs) {
 
-        int currentSessionID = songSettings.currentSessionIDByTime(); // what session are we in?
+        int currentSessionID;
+        if (sessionDefault == SessionDefaultClubs) {
+            songSettings.ensureSessionsForClubs();   // a session for every club (issue #1721)
+            currentSessionID = songSettings.currentSessionIDByClubs();
+        } else {
+            currentSessionID = songSettings.currentSessionIDByTime(); // what session are we in?
+        }
         setCurrentSessionId(currentSessionID); // save it in songSettings
 
         populateMenuSessionOptions(); // update the sessions menu with whatever is checked now

@@ -760,6 +760,11 @@ Turning this on builds a search index once, which can take a little while on a l
                  <string>Automatic: session will change based on day and time</string>
                 </property>
                </item>
+               <item>
+                <property name="text">
+                 <string>Automatic: Use Clubs instead of Sessions</string>
+                </property>
+               </item>
               </widget>
              </item>
             </layout>

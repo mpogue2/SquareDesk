@@ -28,6 +28,7 @@
 
 #include <QString>
 #include <QDate>
+#include <QDateTime>
 #include <QList>
 #include <QStringList>
 
@@ -103,6 +104,11 @@ QList<ClubInfo> clubsSeededFromSessions(const QList<SessionInfo> &sessions);
 
 // All of a club's events in [from, to], in date then start-time order
 QList<ClubOccurrence> clubOccurrencesBetween(const QList<ClubRule> &rules, const QDate &from, const QDate &to);
+
+// The club with an event going on at `now` (a row of `clubs`), or -1 for none.  An event runs from
+//   its start minute to its end minute, inclusive; one that ends before it starts runs past
+//   midnight.  When events overlap, the one that started most recently wins, as with Sessions.
+int currentClubIndex(const QList<ClubInfo> &clubs, const QDateTime &now);
 
 // How the agenda tells the user that it isn't showing everything, for the events after `shownThrough`:
 //   "continues weekly with no end", "4 more, until May 4, 2027", or "" when nothing comes after.

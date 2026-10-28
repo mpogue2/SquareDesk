@@ -158,6 +158,30 @@ QList<ClubOccurrence> clubOccurrencesBetween(const QList<ClubRule> &rules, const
     return occurrences;
 }
 
+int currentClubIndex(const QList<ClubInfo> &clubs, const QDateTime &now)
+{
+    const QDate today = now.date();
+    const int minute = now.time().hour() * 60 + now.time().minute();
+
+    int best = -1;
+    int bestStart = 0;
+    for (int i = 0; i < clubs.size(); ++i) {
+        // yesterday too, for an event that started last night and runs past midnight
+        const QList<ClubOccurrence> events = clubOccurrencesBetween(clubs[i].rules, today.addDays(-1), today);
+        for (const ClubOccurrence &event : events) {
+            // in minutes after today's midnight, so last night's are negative
+            int dayOffset = -1440 * int(event.date.daysTo(today));
+            int start = dayOffset + event.start_minutes;
+            int end   = dayOffset + event.end_minutes + ((event.end_minutes < event.start_minutes) ? 1440 : 0);
+            if (start <= minute && minute <= end && (best == -1 || start > bestStart)) {
+                best = i;
+                bestStart = start;
+            }
+        }
+    }
+    return best;
+}
+
 QString clubContinuationText(const QList<ClubRule> &rules, const QDate &shownThrough)
 {
     // A rule with no end goes on forever, so there is no count to give -- say how it repeats.

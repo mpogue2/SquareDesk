@@ -27,6 +27,7 @@
 #define SONGSETTINGS_H_INCLUDED
 #include <QtSql/QSqlDatabase>
 #include <QtSql>
+#include <QDateTime>
 #include <vector>
 
 class SessionInfo;
@@ -146,6 +147,11 @@ public:
     void deleteCallTaught(const QString &program, const QString &call_name);
     void clearTaughtCalls(const QString &program);
     int currentSessionIDByTime();
+    // "Automatic: Use Clubs instead of Sessions" (issue #1721): the session named after the club
+    //   whose event is going on now, or the first session when there's none
+    int currentSessionIDByClubs(const QDateTime &now = QDateTime::currentDateTime());
+    // ...which needs a session for every club: add one (no day, last) for each club that has none
+    void ensureSessionsForClubs();
 
     QList<SessionInfo> getSessionInfo();
     void setSessionInfo(const QList<SessionInfo> &sessions);
