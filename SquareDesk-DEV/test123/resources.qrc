@@ -42,5 +42,17 @@
         <file>graphics/cuesheet_autoscroll_always_white.svg</file>
         <file>graphics/cuesheet_autoscroll_never.svg</file>
         <file>graphics/cuesheet_autoscroll_never_white.svg</file>
+        <file>graphics/status_tempo.svg</file>
+        <file>graphics/status_tempo_white.svg</file>
+        <file>graphics/status_pitch.svg</file>
+        <file>graphics/status_pitch_white.svg</file>
+        <file>graphics/status_club_chosen.svg</file>
+        <file>graphics/status_club_chosen_white.svg</file>
+        <file>graphics/status_club_automatic.svg</file>
+        <file>graphics/status_club_automatic_white.svg</file>
+        <file>graphics/status_sd.svg</file>
+        <file>graphics/status_sd_white.svg</file>
+        <file>graphics/status_speaker.svg</file>
+        <file>graphics/status_speaker_white.svg</file>
     </qresource>
 </RCC>

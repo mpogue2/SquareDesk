@@ -285,9 +285,51 @@ void MainWindow::initializeUI() {
     // Manually connect the loop toggle button signal
     connect(ui->loopToggleButton, &QToolButton::toggled, this, &MainWindow::on_loopToggleButton_toggled);
 
+    // The status bar has 4 parts (issue #1812): temporary messages on the left, the club centered,
+    //   then the SD level and dance (SD tab only) and the audio device on the right.  They all live in
+    //   one full-width permanent widget, which leaves QStatusBar no room to paint its own (plain text)
+    //   message, so showMessage()/clearMessage() keep working everywhere, and show up in our left label.
+    QWidget *statusParts = new QWidget();
+    QGridLayout *statusGrid = new QGridLayout(statusParts);
+    statusGrid->setContentsMargins(0, 0, 0, 0);
+
+    statusMessageLabel = new QLabel();
+    statusMessageLabel->setTextFormat(Qt::RichText);
+    statusMessageLabel->setContentsMargins(8, 0, 0, 0); // a little space from the window edge, for every message
+    statusMessageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred); // a long message is clipped, rather than pushing the club off center
+    statusClubLabel = new QLabel();
+    statusClubLabel->setTextFormat(Qt::RichText);
+
+    QWidget *statusRightParts = new QWidget();
+    QHBoxLayout *statusRightLayout = new QHBoxLayout(statusRightParts);
+    statusRightLayout->setContentsMargins(0, 0, 0, 0);
+    statusSDLabel = new QLabel();
+    statusSDLabel->setTextFormat(Qt::RichText);
+    statusSDLabel->setToolTip("SD level and dance");
+    statusSDDivider = new QFrame();
+    statusSDDivider->setFrameShape(QFrame::VLine);
+    statusAudioLabel = new QLabel();
+    statusAudioLabel->setTextFormat(Qt::RichText);
+    statusAudioLabel->setToolTip("Audio output device");
+    statusRightLayout->addStretch(1);
+    statusRightLayout->addWidget(statusSDLabel);
+    statusRightLayout->addWidget(statusSDDivider);
+    statusRightLayout->addWidget(statusAudioLabel);
+    statusSDLabel->hide();
+    statusSDDivider->hide();
+
+    statusGrid->addWidget(statusMessageLabel, 0, 0);
+    statusGrid->addWidget(statusClubLabel, 0, 1, Qt::AlignHCenter);
+    statusGrid->addWidget(statusRightParts, 0, 2);
+    statusGrid->setColumnStretch(0, 1);  // equal stretch on both sides keeps the club centered
+    statusGrid->setColumnStretch(2, 1);
+    ui->statusBar->addPermanentWidget(statusParts, 1);
+
+    connect(ui->statusBar, &QStatusBar::messageChanged, this, [this](const QString &message) {
+        // the label is always rich text (for the tempo/pitch icons), so a plain message is escaped, e.g. "R&B"
+        statusMessageLabel->setText(Qt::mightBeRichText(message) ? message : message.toHtmlEscaped());
+    });
     ui->statusBar->showMessage("");
-    micStatusLabel = new QLabel("MICS OFF");
-    ui->statusBar->addPermanentWidget(micStatusLabel);
 
     usePersistentFontSize(); // sets the font of the songTable, which is used by adjustFontSizes to scale other font sizes
 

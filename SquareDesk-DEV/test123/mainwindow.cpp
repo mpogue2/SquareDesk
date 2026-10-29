@@ -1616,8 +1616,7 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
     }
     this->ui->pitchLabel->setText(s);
 
-    QString msg1 = QString("Tempo:") + ui->tempoLabel->text() + ", Pitch:" + ui->pitchLabel->text();
-    ui->statusBar->showMessage(msg1);
+    showTempoPitchStatus();
 }
 
 // ----------------------------------------------------------------------
@@ -1799,8 +1798,7 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
     ui->tempoLabel->setText(tempoText);
     fitTempoLabelFont();
 
-    QString msg1 = QString("Tempo:") + ui->tempoLabel->text() + ", Pitch:" + ui->pitchLabel->text();
-    ui->statusBar->showMessage(msg1);
+    showTempoPitchStatus();
 }
 
 // ----------------------------------------------------------------------
@@ -6059,9 +6057,8 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 
 void MainWindow::microphoneStatusUpdate() {
 
-    // "Club: Jokers" during Jokers' event, "Club: ECR (chosen)" or "Club: All (chosen)" for a choice
-    //   from the Clubs menu, and nothing for Other, the way Practice showed nothing (issue #1721)
-    QString clubStatus;
+    // CLUB (center): "[chosen] ECR" or "[chosen] All" for a choice from the Clubs menu, "[automatic] Jokers"
+    //   during Jokers' event, and nothing for Other, the way Practice showed nothing (issues #1721, #1812)
     const int shownClub = clubForAges.effective();
     QString clubName = builtInClubName(shownClub);
     if (clubName.isEmpty() && songSettings.isDatabaseOpened()) {
@@ -6072,35 +6069,54 @@ void MainWindow::microphoneStatusUpdate() {
         }
     }
     if (clubForAges.chosen != kClubNone) {
-        clubStatus = "Club: " + clubName + " (chosen)";
+        statusClubLabel->setText(statusIcon("club_chosen") + "&nbsp;" + clubName.toHtmlEscaped());
+        statusClubLabel->setToolTip("Club chosen from the Clubs menu");
     } else if (shownClub != kClubOther && !clubName.isEmpty()) {
-        clubStatus = "Club: " + clubName;
+        statusClubLabel->setText(statusIcon("club_automatic") + "&nbsp;" + clubName.toHtmlEscaped());
+        statusClubLabel->setToolTip("Club picked automatically from the schedule");
+    } else {
+        statusClubLabel->setText("");
+        statusClubLabel->setToolTip("");
     }
 
-    QString kybdStatus;
-
+    // SD (right, SD tab only): "[SD] Plus · Dance 3"
     int currentTabNumber = ui->tabWidget->currentIndex();           // what tab are we on?
     QString tabTitle = ui->tabWidget->tabText(currentTabNumber);    // what's its title?
-    if (tabTitle.contains("SD")) // if we are on the SD tab
-    {
-        kybdStatus = "SD (Level: " + currentSDKeyboardLevel + ", Dance: " + frameName + "), Audio: " + lastAudioDeviceName;
-    } else {
-        kybdStatus = "Audio: " + lastAudioDeviceName; // not in SD tab, don't show SD status info
+    bool onSDTab = tabTitle.contains("SD");
+    if (onSDTab) {
+        QString sdStatus = currentSDKeyboardLevel.toHtmlEscaped();
+        if (!frameName.isEmpty()) {
+            sdStatus += " &middot; " + frameName.toHtmlEscaped();
+        }
+        statusSDLabel->setText(statusIcon("sd") + "&nbsp;" + sdStatus);
     }
+    statusSDLabel->setVisible(onSDTab);
+    statusSDDivider->setVisible(onSDTab);
 
-    if (!clubStatus.isEmpty()) {
-        kybdStatus = clubStatus + ", " + kybdStatus; // prepend the club
+    // AUDIO (right edge): "[speaker] MacBook Air Speakers"
+    statusAudioLabel->setText(statusIcon("speaker") + "&nbsp;" + lastAudioDeviceName.toHtmlEscaped());
+    // text colors come from Themes.qss ("QStatusBar QLabel"), so they follow the Light/Dark theme
+}
+
+// rich-text icon for the status bar (issue #1812), e.g. statusIcon("tempo") -> graphics/status_tempo(_white).svg
+QString MainWindow::statusIcon(const QString &name) const {
+    int px = ui->statusBar->fontMetrics().height();
+    QString suffix = (currentThemeString == "Light" ? "" : "_white");  // light icons to match the Dark theme's #ccc text
+    return QString("<img src=\":/graphics/status_%1%2.svg\" width=\"%3\" height=\"%3\" style=\"vertical-align: bottom;\">")  // bottom: keeps the text on the same baseline as plain messages
+        .arg(name, suffix, QString::number(px));
+}
+
+void MainWindow::showTempoPitchStatus() {
+    ui->statusBar->showMessage(statusIcon("tempo") + "&nbsp;" + ui->tempoLabel->text().toHtmlEscaped() +
+                               "&nbsp;&nbsp;&nbsp;&nbsp;" +
+                               statusIcon("pitch") + "&nbsp;" + ui->pitchLabel->text().toHtmlEscaped());
+}
+
+void MainWindow::refreshStatusBar() {
+    microphoneStatusUpdate();
+    if (ui->statusBar->currentMessage().contains("<img")) {
+        showTempoPitchStatus(); // the only temporary message with icons
     }
-
-#ifndef DEBUG_LIGHT_MODE
-    if (darkmode) {
-        micStatusLabel->setStyleSheet("color: #C0C0C0;");
-    } else {
-        micStatusLabel->setStyleSheet("color: black");
-    }
-#endif
-
-    micStatusLabel->setText(kybdStatus);
 }
 
 // ---------------------------------------------

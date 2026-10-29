@@ -142,7 +142,6 @@ void MainWindow::setFontSizes()
     ui->tabWidget->setFont(font);  // most everything inherits from this one
     ui->tabWidget->tabBar()->setFont(font);  // explicitly set tab bar font for tab titles
     ui->statusBar->setFont(font);
-    micStatusLabel->setFont(font);
     // ui->darkcurrentLocLabel->setFont(font);
 
     ui->currentLocLabel3->setFont(font);
@@ -314,8 +313,15 @@ void MainWindow::adjustFontSizes()
     // int newCurrentWidth = static_cast<int>(scaleWidth1 * currentFontPointSize);
     // ui->currentMixLabel->setFixedWidth(newCurrentWidth);
 
-    ui->statusBar->setFont(currentFont);
-    micStatusLabel->setFont(currentFont);
+    QFont statusFont = currentFont;
+    if (currentFont.pointSizeF() > 0) {
+        statusFont.setPointSizeF(currentFont.pointSizeF() * 1.2);  // a bit bigger than the song table, for readability (issue #1812)
+    }
+    ui->statusBar->setFont(statusFont);
+    for (QLabel *label : {statusMessageLabel, statusClubLabel, statusSDLabel, statusAudioLabel}) {
+        label->setFont(statusFont);  // explicitly: Themes.qss styles these labels, which stops them from inheriting the font
+    }
+    refreshStatusBar();  // resize the icons, too (issue #1812)
 
     ui->tabWidget->setFont(currentFont);  // most everything inherits from this one
     ui->tabWidget->tabBar()->setFont(currentFont);  // explicitly set tab bar font for tab titles

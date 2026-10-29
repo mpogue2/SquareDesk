@@ -135,6 +135,8 @@ void MainWindow::themeTriggered(QAction * action) {
         reloadPaletteSlots();
     }
 
+    refreshStatusBar(); // the status bar icons have Light and Dark versions (issue #1812)
+
     QApplication::restoreOverrideCursor(); // back to normal cursor...
 }
 

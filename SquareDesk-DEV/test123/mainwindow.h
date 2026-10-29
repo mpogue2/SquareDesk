@@ -997,7 +997,15 @@ private:
     bool rebuildingTreeWidget = false;       // updateTreeWidget() is rebuilding, so expand/collapse signals are not the user's
     void saveTreeWidgetExpandedPaths();
     unsigned int screensaverSeconds;
-    QLabel *micStatusLabel;
+    // the 4-part status bar (issue #1812): temporary messages | club (centered) | SD (SD tab only) | audio device
+    QLabel *statusMessageLabel;
+    QLabel *statusClubLabel;
+    QLabel *statusSDLabel;
+    QFrame *statusSDDivider;
+    QLabel *statusAudioLabel;
+    QString statusIcon(const QString &name) const;  // rich-text <img> for graphics/status_<name>.svg, sized to the status bar font
+    void showTempoPitchStatus();                    // "[tempo] 126  [pitch] +1" as a temporary status message
+    void refreshStatusBar();                        // after a font size or theme change, so the icons are resized/recolored
     bool justWentActive;
     bool inPreferencesDialog;
     enum SongFilenameMatchingType songFilenameFormat;
