@@ -315,7 +315,7 @@ void MainWindow::adjustFontSizes()
 
     QFont statusFont = currentFont;
     if (currentFont.pointSizeF() > 0) {
-        statusFont.setPointSizeF(currentFont.pointSizeF() * 1.2);  // a bit bigger than the song table, for readability (issue #1812)
+        statusFont.setPointSizeF(currentFont.pointSizeF() * 1.1);  // a bit bigger than the song table, for readability (issue #1812)
     }
     ui->statusBar->setFont(statusFont);
     for (QLabel *label : {statusMessageLabel, statusClubLabel, statusSDLabel, statusAudioLabel}) {
