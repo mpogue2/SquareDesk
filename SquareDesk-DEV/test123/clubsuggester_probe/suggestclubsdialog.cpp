@@ -381,7 +381,14 @@ void SuggestClubsDialog::buildUi()
     m_makeWeekly = new QPushButton("Make Checked Nights Weekly");
     m_makeWeekly->setToolTip("Replace the checked one-off nights with one weekly rule, from the first of them to"
                              " the last (no end, when the last one is recent)");
+    // one click keeps every night not already in a rule as a one-off; the next leaves them all in Other
+    m_allNights = new QCheckBox();
+    m_allNights->setTristate(true);
+    m_allNights->setToolTip("Check or uncheck every night that isn't already in a rule");
     QHBoxLayout *nightsRow = new QHBoxLayout();
+    nightsRow->addSpacing(7);   // over the column of check boxes
+    nightsRow->addWidget(m_allNights);
+    nightsRow->addSpacing(4);
     nightsRow->addWidget(m_nightsHeading);
     nightsRow->addStretch(1);
     nightsRow->addWidget(m_makeWeekly);
@@ -493,6 +500,33 @@ void SuggestClubsDialog::buildUi()
         }
     });
     connect(m_makeWeekly, &QPushButton::clicked, this, &SuggestClubsDialog::makeOneOffsWeekly);
+    connect(m_allNights, &QCheckBox::clicked, this, [this]() {
+        if (m_current < 0) {
+            return;
+        }
+        Choice &c = m_choices[m_current];
+        QList<QDate> checkable;
+        bool allKept = true;
+        for (const SuggestedEvent &e : std::as_const(c.original.events)) {
+            if (!coveredByRule(c, e.date) && !coveredByTarget(c, e.date)) {
+                checkable.append(e.date);
+                allKept = allKept && c.oneOffs.contains(e.date);
+            }
+        }
+        for (const QDate &d : std::as_const(checkable)) {
+            if (allKept) {
+                c.oneOffs.remove(d);
+            } else {
+                c.oneOffs.insert(d);
+            }
+        }
+        if (!allKept && !checkable.isEmpty()) {
+            keepCurrent();
+        }
+        refreshNights();   // which also sets this check box's own state
+        refreshListItem(m_current);
+        refreshSummary();
+    });
 }
 
 void SuggestClubsDialog::fillList()
@@ -805,6 +839,7 @@ void SuggestClubsDialog::refreshNights()
                 Choice &chosen = m_choices[m_current];
                 if (on) {
                     chosen.oneOffs.insert(date);
+                    keepCurrent();
                 } else {
                     chosen.oneOffs.remove(date);
                 }
@@ -840,12 +875,33 @@ void SuggestClubsDialog::refreshNights()
     // making nights weekly needs a few of them, on one weekday
     m_makeWeekly->setEnabled(oneOffs >= 2);
 
+    {
+        const QSignalBlocker blocker(m_allNights);
+        const int checkable = oneOffs + other;
+        m_allNights->setEnabled(checkable > 0);
+        m_allNights->setCheckState((checkable > 0 && oneOffs == checkable) ? Qt::Checked
+                                   : (oneOffs == 0)                        ? Qt::Unchecked
+                                                                           : Qt::PartiallyChecked);
+    }
+
     QString color = c.color;
     for (const ClubInfo &club : std::as_const(m_existing)) {
         color = (club.id == c.targetClubId) ? club.color : color;
     }
     m_timeline->setNights(timeline, c.original.events.first().date, std::max(m_asOf, c.original.events.last().date),
                           QColor(color));
+}
+
+// Keeping a night, or making nights weekly, means the user wants this suggestion: check Keep, or
+//   the nights would quietly not be saved (e.g. on an unchecked "already covered by Jokers")
+void SuggestClubsDialog::keepCurrent()
+{
+    if (m_current < 0 || m_choices[m_current].keep) {
+        return;
+    }
+    m_choices[m_current].keep = true;
+    const QSignalBlocker blocker(m_keep);
+    m_keep->setChecked(true);
 }
 
 void SuggestClubsDialog::makeOneOffsWeekly()
@@ -889,6 +945,7 @@ void SuggestClubsDialog::makeOneOffsWeekly()
     for (const QDate &d : std::as_const(used)) {
         c.oneOffs.remove(d);
     }
+    keepCurrent();
     rebuildRuleCards();
     refreshNights();
     refreshListItem(m_current);

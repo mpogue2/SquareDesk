@@ -91,6 +91,7 @@ private:
     QCheckBox *nightCheckBox(int row) const;
     void refreshSummary();
     void makeOneOffsWeekly();
+    void keepCurrent();       // check Keep for the selected suggestion
     void stampTheme(QWidget *widget);
 
     void resetChoice(Choice &c) const;
@@ -121,6 +122,7 @@ private:
     QVBoxLayout *m_rulesLayout;
     QLabel *m_noRules;
     QList<QWidget *> m_ruleCards;
+    QCheckBox *m_allNights;
     QLabel *m_nightsHeading;
     QPushButton *m_makeWeekly;
     QTableWidget *m_nights;
