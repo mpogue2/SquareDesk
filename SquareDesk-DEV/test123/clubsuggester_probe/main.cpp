@@ -1,7 +1,7 @@
 // Probe for the Suggest Clubs review dialog (#1814).
 //
 // Usage: clubsuggester_probe [--asof yyyy-MM-dd] [--no-clubs] [--theme Light|Dark]
-//                            [--screenshot PNG [--select N]] [--accept] DBFILE
+//                            [--screenshot PNG [--select N]] [--accept] [--import ANSWER] DBFILE
 //
 //   Opens DBFILE (a copy of SquareDesk.sqlite3) read-only, suggests clubs from its play times, and
 //   shows the review dialog.  --no-clubs pretends the user has no clubs yet, as a new user would.
@@ -11,6 +11,7 @@
 //   clicks OK at once and prints what would be saved.
 
 #include "suggestclubsdialog.h"
+#include "clubsai.h"
 
 #include <QApplication>
 #include <QDialogButtonBox>
@@ -45,12 +46,15 @@ int main(int argc, char *argv[])
     QDate asOf = QDate::currentDate();
     bool noClubs = false;
     bool acceptNow = false;
+    QString importFile;   // an AI's answer: show its clubs instead of the suggester's (Import Club Rules from AI)
     QString theme = "Light";
     QString dbFile, screenshot;
     int select = 0;
     for (int i = 0; i < args.size(); ++i) {
         if (args[i] == "--asof" && i + 1 < args.size()) {
             asOf = QDate::fromString(args[++i], "yyyy-MM-dd");
+        } else if (args[i] == "--import" && i + 1 < args.size()) {
+            importFile = args[++i];
         } else if (args[i] == "--accept") {
             acceptNow = true;
         } else if (args[i] == "--no-clubs") {
@@ -127,8 +131,23 @@ int main(int argc, char *argv[])
         }
     }
 
-    QList<ClubSuggestion> suggestions = suggestClubs(plays, asOf);
-    matchExistingClubs(suggestions, clubs, asOf);
+    QList<ClubSuggestion> suggestions;
+    if (importFile.isEmpty()) {
+        suggestions = suggestClubs(plays, asOf);
+        matchExistingClubs(suggestions, clubs, asOf);
+    } else {
+        QFile answer(importFile);
+        if (!answer.open(QIODevice::ReadOnly)) {
+            out << "Can't read " << importFile << "\n";
+            return 1;
+        }
+        QStringList problems;
+        const QList<ClubInfo> imported = clubsFromAIAnswer(QString::fromUtf8(answer.readAll()), &problems);
+        for (const QString &p : std::as_const(problems)) {
+            out << "Problem: " << p << "\n";
+        }
+        suggestions = suggestionsForImportedClubs(imported, plays, clubs, asOf);
+    }
     out << plays.size() << " plays, " << suggestions.size() << " suggestions, " << clubs.size() << " existing clubs\n";
     if (suggestions.isEmpty()) {
         out << "Nothing to suggest\n";
@@ -136,6 +155,9 @@ int main(int argc, char *argv[])
     }
 
     SuggestClubsDialog dialog(suggestions, clubs, asOf, theme);
+    if (!importFile.isEmpty()) {
+        dialog.setIntroText(importedClubsIntroText());
+    }
     if (!screenshot.isEmpty()) {
         dialog.show();
         dialog.selectSuggestion(select);

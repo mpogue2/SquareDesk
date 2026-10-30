@@ -12,6 +12,6 @@ DEFINES += THEMES_QSS=\\\"$$PWD/../themes/Themes.qss\\\"
 
 INCLUDEPATH += ..
 SOURCES += main.cpp ../suggestclubsdialog.cpp \
-           ../clubsuggester.cpp ../clubinfo.cpp ../clubstab.cpp
+           ../clubsuggester.cpp ../clubsai.cpp ../clubinfo.cpp ../clubstab.cpp
 HEADERS += ../suggestclubsdialog.h \
-           ../clubsuggester.h ../clubinfo.h ../clubstab.h ../sessioninfo.h
+           ../clubsuggester.h ../clubsai.h ../clubinfo.h ../clubstab.h ../sessioninfo.h

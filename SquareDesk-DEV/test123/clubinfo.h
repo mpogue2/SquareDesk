@@ -68,6 +68,9 @@ public:
     QList<QDate> datesBetween(const QDate &from, const QDate &to) const;
 };
 
+// Whether `rules` already has one that makes the same events as `rule` (its label aside)
+bool clubHasRule(const QList<ClubRule> &rules, const ClubRule &rule);
+
 // The order the Clubs tab shows a club's rules in: the recurring rules as the user arranged them,
 //   then the one-off events by date
 void sortClubRules(QList<ClubRule> &rules);

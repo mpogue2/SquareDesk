@@ -49,13 +49,13 @@
 #include <algorithm>
 #include <cmath>
 
-static const int kEndedDays = 8 * 7;   // a weekly rule made from nights this recent gets no end
+static const int kEndedDays = 8 * 7;   // a weekly rule made from events this recent gets no end
 
-// the "More nights for" menu's items: an existing club (its id), or another suggestion (its index)
+// the "More events for" menu's items: an existing club (its id), or another suggestion (its index)
 enum { kTargetKindRole = Qt::UserRole, kTargetIdRole = Qt::UserRole + 1 };
 enum { kTargetExisting = 0, kTargetSuggestion = 1 };
 
-enum { kNightColKeep = 0, kNightColDate = 1, kNightColTime = 2, kNightColPlays = 3, kNightColStatus = 4 };
+enum { kEventColKeep = 0, kEventColDate = 1, kEventColTime = 2, kEventColPlays = 3, kEventColStatus = 4 };
 
 static QIcon swatchIcon(const QString &color)
 {
@@ -84,15 +84,15 @@ static int floorQuarter(int m) { return int(std::floor(m / 15.0)) * 15; }
 static int ceilQuarter(int m)  { return int(std::ceil(m / 15.0)) * 15; }
 
 // --------------------------------------------------------------------------------------------
-// A strip of the years the suggestion spans, with a tick for each night: tall in the club's color
-//   for a night in one of its rules, shorter for a one-off event, and short and gray for a night
+// A strip of the years the suggestion spans, with a tick for each event: tall in the club's color
+//   for an event in one of its rules, shorter for a one-off event, and short and gray for an event
 //   left in Other.
-class NightsTimeline : public QWidget
+class EventsTimeline : public QWidget
 {
 public:
     enum State { InRule, OneOff, Other };
 
-    explicit NightsTimeline(QWidget *parent = nullptr) : QWidget(parent)
+    explicit EventsTimeline(QWidget *parent = nullptr) : QWidget(parent)
     {
         setMinimumHeight(54);
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -108,9 +108,9 @@ public:
         update();
     }
 
-    void setNights(const QList<QPair<QDate, State>> &nights, const QDate &from, const QDate &to, const QColor &color)
+    void setEvents(const QList<QPair<QDate, State>> &events, const QDate &from, const QDate &to, const QColor &color)
     {
-        m_nights = nights;
+        m_ticks = events;
         m_from = QDate(from.year(), 1, 1);
         m_to = QDate(to.year() + 1, 1, 1);
         m_color = color;
@@ -152,14 +152,14 @@ protected:
 
         QColor gray = text;
         gray.setAlpha(150);
-        for (const auto &night : std::as_const(m_nights)) {
-            const double x = xOf(night.first);
+        for (const auto &event : std::as_const(m_ticks)) {
+            const double x = xOf(event.first);
             const double full = strip.height() - 8;
             double h = full;
             QColor c = m_color;
-            if (night.second == OneOff) {
+            if (event.second == OneOff) {
                 h = full * 0.65;
-            } else if (night.second == Other) {
+            } else if (event.second == Other) {
                 h = full * 0.35;
                 c = gray;
             }
@@ -170,7 +170,7 @@ protected:
     }
 
 private:
-    QList<QPair<QDate, State>> m_nights;
+    QList<QPair<QDate, State>> m_ticks;
     QDate m_from, m_to;
     QColor m_color;
     QColor m_background = QColor("#fafafa");
@@ -190,7 +190,7 @@ SuggestClubsDialog::SuggestClubsDialog(const QList<ClubSuggestion> &suggestions,
     setWindowTitle("Suggest Clubs from Play History");
     resize(1080, 720);
 
-    // likely clubs first, then the rest, each in the suggester's order (most nights first)
+    // likely clubs first, then the rest, each in the suggester's order (most events first)
     for (int pass = 0; pass < 2; ++pass) {
         for (const ClubSuggestion &s : suggestions) {
             if (s.checked == (pass == 0)) {
@@ -232,6 +232,11 @@ SuggestClubsDialog::SuggestClubsDialog(const QList<ClubSuggestion> &suggestions,
     }
 }
 
+void SuggestClubsDialog::setIntroText(const QString &text)
+{
+    m_intro->setText(text);
+}
+
 void SuggestClubsDialog::selectSuggestion(int n)
 {
     for (int row = 0; row < m_list->count(); ++row) {
@@ -252,39 +257,39 @@ void SuggestClubsDialog::resetChoice(Choice &c) const
     c.targetChoice = -1;
     c.rules.clear();
     c.oneOffs.clear();
-    c.nightRules.clear();
+    c.eventRules.clear();
     for (const ClubRule &r : s.club.rules) {
         if (r.isOneOff()) {
             if (s.checked) {       // an unchecked suggestion's one-offs start out in Other too
                 c.oneOffs.insert(r.since);
             }
-            c.nightRules.insert(r.since, r);
+            c.eventRules.insert(r.since, r);
         } else {
             c.rules.append(r);
         }
     }
-    // a night with no one-off event of its own (e.g. one the suggester left in Other) gets one
+    // an event with no one-off event of its own (e.g. one the suggester left in Other) gets one
     //   from its own times, should the user keep it
     for (const SuggestedEvent &e : s.events) {
-        if (!c.nightRules.contains(e.date)) {
+        if (!c.eventRules.contains(e.date)) {
             ClubRule r;
             r.kind = ClubRule::Once;
             r.weekday = e.date.dayOfWeek();
             r.start_minutes = floorQuarter(e.start_minutes - 10);
             r.end_minutes = ceilQuarter(e.end_minutes + 5) % 1440;
             r.since = r.until = e.date;
-            c.nightRules.insert(e.date, r);
+            c.eventRules.insert(e.date, r);
         }
     }
 }
 
 void SuggestClubsDialog::buildUi()
 {
-    QLabel *intro = new QLabel(
-        "SquareDesk looked at when you played songs, and found these regular nights. The likely clubs are"
-        " checked. Choose the ones to keep, rename them, or add their nights to a club you already have."
-        " Nights you don't keep stay in Other. Nothing is saved until you click OK.");
-    intro->setWordWrap(true);
+    m_intro = new QLabel(
+        "SquareDesk looked at when you played songs, and found these regular events. The likely clubs are"
+        " checked. Choose the ones to keep, rename them, or add their events to a club you already have."
+        " Events you don't keep stay in Other. Nothing is saved until you click OK.");
+    m_intro->setWordWrap(true);
 
     m_list = new QListWidget();
     m_list->setObjectName("clubsList");
@@ -310,7 +315,7 @@ void SuggestClubsDialog::buildUi()
                 m_choices[m_current].color = color;
                 m_colorButton->setIcon(swatchIcon(color));
                 refreshAllListItems();
-                refreshNights();
+                refreshEvents();
             }
         });
     }
@@ -333,7 +338,7 @@ void SuggestClubsDialog::buildUi()
     m_note->setWordWrap(true);
 
     m_asNew = new QRadioButton("A new club");
-    m_asMore = new QRadioButton("More nights for");
+    m_asMore = new QRadioButton("More events for");
     QButtonGroup *asGroup = new QButtonGroup(this);
     asGroup->addButton(m_asNew);
     asGroup->addButton(m_asMore);
@@ -352,7 +357,7 @@ void SuggestClubsDialog::buildUi()
     asRow->addWidget(m_target);
     asRow->addStretch(1);
 
-    m_timeline = new NightsTimeline();
+    m_timeline = new EventsTimeline();
     m_timeline->setTheme(m_theme);
 
     QLabel *rulesHeading = new QLabel("RULES");
@@ -369,40 +374,40 @@ void SuggestClubsDialog::buildUi()
     // a scroll bar when the cards are wider than the pane, rather than the cards' width as the
     //   pane's minimum, which would leave the splitter nowhere to go
     m_rulesScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    m_noRules = new QLabel("No recurring rule. Its nights below can be kept as one-off events, or made weekly.");
+    m_noRules = new QLabel("No recurring rule. Its events below can be kept as one-off events, or made weekly.");
     m_noRules->setObjectName("clubRuleWord");
     m_noRules->setWordWrap(true);
 
-    m_nightsHeading = new QLabel();
-    m_nightsHeading->setObjectName("clubsListHeading");
-    m_makeWeekly = new QPushButton("Make Checked Nights Weekly");
-    m_makeWeekly->setToolTip("Replace the checked one-off nights with one weekly rule, from the first of them to"
+    m_eventsHeading = new QLabel();
+    m_eventsHeading->setObjectName("clubsListHeading");
+    m_makeWeekly = new QPushButton("Make Checked Events Weekly");
+    m_makeWeekly->setToolTip("Replace the checked one-off events with one weekly rule, from the first of them to"
                              " the last (no end, when the last one is recent)");
-    // one click keeps every night not already in a rule as a one-off; the next leaves them all in Other
-    m_allNights = new QCheckBox();
-    m_allNights->setTristate(true);
-    m_allNights->setToolTip("Check or uncheck every night that isn't already in a rule");
-    QHBoxLayout *nightsRow = new QHBoxLayout();
-    nightsRow->addSpacing(7);   // over the column of check boxes
-    nightsRow->addWidget(m_allNights);
-    nightsRow->addSpacing(4);
-    nightsRow->addWidget(m_nightsHeading);
-    nightsRow->addStretch(1);
-    nightsRow->addWidget(m_makeWeekly);
+    // one click keeps every event not already in a rule as a one-off; the next leaves them all in Other
+    m_allEvents = new QCheckBox();
+    m_allEvents->setTristate(true);
+    m_allEvents->setToolTip("Check or uncheck every event that isn't already in a rule");
+    QHBoxLayout *eventsRow = new QHBoxLayout();
+    eventsRow->addSpacing(7);   // over the column of check boxes
+    eventsRow->addWidget(m_allEvents);
+    eventsRow->addSpacing(4);
+    eventsRow->addWidget(m_eventsHeading);
+    eventsRow->addStretch(1);
+    eventsRow->addWidget(m_makeWeekly);
 
-    m_nights = new QTableWidget(0, 5);
-    m_nights->setHorizontalHeaderLabels({ "", "Night", "Time", "Plays", "" });
-    m_nights->verticalHeader()->hide();
-    m_nights->setSelectionMode(QAbstractItemView::NoSelection);
-    m_nights->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_nights->setShowGrid(false);
-    m_nights->horizontalHeader()->setSectionResizeMode(kNightColKeep, QHeaderView::Fixed);
-    m_nights->horizontalHeader()->resizeSection(kNightColKeep, 30);
-    m_nights->horizontalHeader()->setSectionResizeMode(kNightColDate, QHeaderView::ResizeToContents);
-    m_nights->horizontalHeader()->setSectionResizeMode(kNightColTime, QHeaderView::ResizeToContents);
-    m_nights->horizontalHeader()->setSectionResizeMode(kNightColPlays, QHeaderView::ResizeToContents);
-    m_nights->horizontalHeader()->setStretchLastSection(true);
-    m_nights->verticalHeader()->setDefaultSectionSize(22);
+    m_eventsTable = new QTableWidget(0, 5);
+    m_eventsTable->setHorizontalHeaderLabels({ "", "Date", "Time", "Plays", "" });
+    m_eventsTable->verticalHeader()->hide();
+    m_eventsTable->setSelectionMode(QAbstractItemView::NoSelection);
+    m_eventsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_eventsTable->setShowGrid(false);
+    m_eventsTable->horizontalHeader()->setSectionResizeMode(kEventColKeep, QHeaderView::Fixed);
+    m_eventsTable->horizontalHeader()->resizeSection(kEventColKeep, 30);
+    m_eventsTable->horizontalHeader()->setSectionResizeMode(kEventColDate, QHeaderView::ResizeToContents);
+    m_eventsTable->horizontalHeader()->setSectionResizeMode(kEventColTime, QHeaderView::ResizeToContents);
+    m_eventsTable->horizontalHeader()->setSectionResizeMode(kEventColPlays, QHeaderView::ResizeToContents);
+    m_eventsTable->horizontalHeader()->setStretchLastSection(true);
+    m_eventsTable->verticalHeader()->setDefaultSectionSize(22);
 
     QVBoxLayout *detailLayout = new QVBoxLayout(m_detail);
     detailLayout->setContentsMargins(12, 0, 0, 0);
@@ -416,8 +421,8 @@ void SuggestClubsDialog::buildUi()
     detailLayout->addWidget(m_rulesScroll, 1);
     detailLayout->addWidget(m_noRules);
     detailLayout->addSpacing(6);
-    detailLayout->addLayout(nightsRow);
-    detailLayout->addWidget(m_nights, 2);
+    detailLayout->addLayout(eventsRow);
+    detailLayout->addWidget(m_eventsTable, 2);
 
     QSplitter *splitter = new QSplitter();
     splitter->addWidget(m_list);
@@ -435,7 +440,7 @@ void SuggestClubsDialog::buildUi()
     bottom->addWidget(buttons);
 
     QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->addWidget(intro);
+    layout->addWidget(m_intro);
     layout->addSpacing(4);
     layout->addWidget(splitter, 1);
     layout->addLayout(bottom);
@@ -504,7 +509,7 @@ void SuggestClubsDialog::buildUi()
         }
     });
     connect(m_makeWeekly, &QPushButton::clicked, this, &SuggestClubsDialog::makeOneOffsWeekly);
-    connect(m_allNights, &QCheckBox::clicked, this, [this]() {
+    connect(m_allEvents, &QCheckBox::clicked, this, [this]() {
         if (m_current < 0) {
             return;
         }
@@ -527,7 +532,7 @@ void SuggestClubsDialog::buildUi()
         if (!allKept && !checkable.isEmpty()) {
             keepCurrent();
         }
-        refreshNights();   // which also sets this check box's own state
+        refreshEvents();   // which also sets this check box's own state
         refreshListItem(m_current);
         refreshSummary();
     });
@@ -550,7 +555,7 @@ void SuggestClubsDialog::fillList()
             f.setPointSizeF(f.pointSizeF() * 0.85);
             heading->setFont(f);
             if (section == 1) {
-                heading->setToolTip("These look like practice, one-off dances, or nights a club of yours already has."
+                heading->setToolTip("These look like practice, one-off dances, or events a club of yours already has."
                                     " Check one to keep it anyway.");
             }
             m_list->addItem(heading);
@@ -575,7 +580,7 @@ QString SuggestClubsDialog::choiceName(int index) const
     return c.name.trimmed().isEmpty() ? c.original.club.name : c.name.trimmed();
 }
 
-// the club these nights would go to: an existing club, or the new club another suggestion makes
+// the club these events would go to: an existing club, or the new club another suggestion makes
 QString SuggestClubsDialog::targetName(const Choice &c) const
 {
     return (c.targetChoice >= 0) ? choiceName(c.targetChoice) : clubNameForId(c.targetClubId);
@@ -594,7 +599,7 @@ QString SuggestClubsDialog::targetColor(const Choice &c) const
     return c.color;
 }
 
-// After any change to what's kept or where nights go: a suggestion headed for one that isn't kept
+// After any change to what's kept or where events go: a suggestion headed for one that isn't kept
 //   any more goes back to "A new club", and one headed for a suggestion that is itself headed
 //   elsewhere follows it there, so that there are never chains (or loops)
 void SuggestClubsDialog::targetsChanged()
@@ -625,7 +630,7 @@ void SuggestClubsDialog::targetsChanged()
     }
     refreshAllListItems();
     if (m_current >= 0) {
-        selectChoice(m_current);   // the menu, the name and color, and which nights the target has
+        selectChoice(m_current);   // the menu, the name and color, and which events the target has
     }
     refreshSummary();
 }
@@ -684,7 +689,7 @@ bool SuggestClubsDialog::coveredByRule(const Choice &c, const QDate &date) const
     return false;
 }
 
-// A night that the club these nights would go to already has
+// An event that the club these events would go to already has
 bool SuggestClubsDialog::coveredByTarget(const Choice &c, const QDate &date) const
 {
     if (c.targetChoice >= 0) {
@@ -711,8 +716,12 @@ QString SuggestClubsDialog::scheduleText(const Choice &c) const
 {
     const QLocale en(QLocale::English);
     QStringList parts;
-    const SuggestedEvent &first = c.original.events.first();
-    QString when = en.dayName(first.date.dayOfWeek(), QLocale::ShortFormat);
+    // an imported club may have no events yet: then its first rule says which day
+    //   (and with rules, the day goes with the times shown)
+    const int weekday = !c.rules.isEmpty()               ? c.rules.first().weekday
+                      : !c.original.events.isEmpty()     ? c.original.events.first().date.dayOfWeek()
+                      : !c.original.club.rules.isEmpty() ? c.original.club.rules.first().since.dayOfWeek() : 1;
+    QString when = en.dayName(weekday, QLocale::ShortFormat);
     if (!c.rules.isEmpty()) {
         when += " " + timeText(c.rules.first().start_minutes) + QString::fromUtf8("–") + timeText(c.rules.first().end_minutes);
     }
@@ -738,7 +747,8 @@ QString SuggestClubsDialog::scheduleText(const Choice &c) const
         parts << QString("%1 one-off%2").arg(oneOffs).arg(oneOffs == 1 ? "" : "s");
     }
     if (c.rules.isEmpty() && oneOffs == 0) {
-        parts << QString("%1 nights, all in Other").arg(c.original.events.size());
+        parts << (c.original.events.isEmpty() ? QString("no events")
+                                              : QString("%1 events, all in Other").arg(c.original.events.size()));
     }
     return parts.join(QString::fromUtf8(" · "));
 }
@@ -755,7 +765,7 @@ void SuggestClubsDialog::selectChoice(int index)
 
     m_keep->setChecked(c.keep);
 
-    // "More nights for": the user's clubs, then the other kept suggestions that aren't headed
+    // "More events for": the user's clubs, then the other kept suggestions that aren't headed
     //   elsewhere themselves (their new clubs)
     m_target->clear();
     for (const ClubInfo &club : std::as_const(m_existing)) {
@@ -799,37 +809,39 @@ void SuggestClubsDialog::selectChoice(int index)
     m_asMore->setEnabled(anyTarget);
     m_target->setEnabled(anyTarget);
     m_asMore->setToolTip(anyTarget ? QString()
-                                   : QString("No clubs yet: keep another suggestion, and these nights can join its club"));
+                                   : QString("No clubs yet: keep another suggestion, and these events can join its club"));
     m_asMore->setChecked(asMore);
     m_asNew->setChecked(!asMore);
 
-    // the club these nights go to keeps its own name and color
+    // the club these events go to keeps its own name and color
     m_name->setEnabled(!asMore);
     m_colorButton->setEnabled(!asMore);
     m_name->setText(asMore ? targetName(c) : c.name);
     m_colorButton->setIcon(swatchIcon(asMore ? targetColor(c) : c.color));
 
     QStringList notes;
-    const QDate from = c.original.events.first().date, to = c.original.events.last().date;
-    notes << QString("%1 nights from %2 to %3, %4 songs played.")
-                 .arg(c.original.events.size())
-                 .arg(QLocale(QLocale::English).toString(from, "MMM d, yyyy"),
-                      QLocale(QLocale::English).toString(to, "MMM d, yyyy"))
-                 .arg(c.original.plays);
+    if (!c.original.events.isEmpty()) {
+        const QDate from = c.original.events.first().date, to = c.original.events.last().date;
+        notes << QString("%1 events from %2 to %3, %4 songs played.")
+                     .arg(c.original.events.size())
+                     .arg(QLocale(QLocale::English).toString(from, "MMM d, yyyy"),
+                          QLocale(QLocale::English).toString(to, "MMM d, yyyy"))
+                     .arg(c.original.plays);
+    }
     if (!c.original.note.isEmpty()) {
         QString note = c.original.note;
         note[0] = note[0].toUpper();
         notes << note + ".";
     }
-    if (c.original.existingClubId >= 0 && c.original.existingShare < 0.8) {
-        notes << QString("%1% of these nights are already %2 nights.")
+    if (c.original.existingClubId >= 0 && c.original.existingShare > 0 && c.original.existingShare < 0.8) {
+        notes << QString("%1% of these events are already %2 events.")
                      .arg(int(std::lround(100 * c.original.existingShare))).arg(c.original.existingClubName);
     }
     m_note->setText(notes.join(" "));
 
     m_filling = false;
     rebuildRuleCards();
-    rebuildNights();
+    rebuildEvents();
 }
 
 void SuggestClubsDialog::rebuildRuleCards()
@@ -848,13 +860,13 @@ void SuggestClubsDialog::rebuildRuleCards()
         ClubRuleCard *card = new ClubRuleCard(rules[i]);
         card->onChanged = [this, i](const ClubRule &rule) {
             m_choices[m_current].rules[i] = rule;
-            refreshNights();
+            refreshEvents();
             refreshListItem(m_current);
         };
         card->onRemove = [this, i]() {
             m_choices[m_current].rules.removeAt(i);
             rebuildRuleCards();
-            refreshNights();
+            refreshEvents();
             refreshListItem(m_current);
             refreshSummary();
         };
@@ -865,80 +877,80 @@ void SuggestClubsDialog::rebuildRuleCards()
     }
     m_noRules->setVisible(rules.isEmpty());
     m_rulesScroll->setVisible(!rules.isEmpty());
-    // no taller than the cards, so when they fit, the nights get all the rest
+    // no taller than the cards, so when they fit, the events get all the rest
     m_rulesLayout->activate();
     m_rulesScroll->setMaximumHeight(m_rulesScroll->widget()->sizeHint().height() + 2);
 }
 
-// The nights table's rows, one per night, made once for each suggestion shown; refreshNights() then
+// The events table's rows, one per event, made once for each suggestion shown; refreshEvents() then
 //   updates them in place, so the table keeps its scroll position
-void SuggestClubsDialog::rebuildNights()
+void SuggestClubsDialog::rebuildEvents()
 {
     if (m_current < 0) {
         return;
     }
     const QLocale en(QLocale::English);
-    m_nights->setRowCount(0);
+    m_eventsTable->setRowCount(0);
     for (const SuggestedEvent &e : m_choices[m_current].original.events) {
-        const int row = m_nights->rowCount();
-        m_nights->insertRow(row);
-        m_nights->setItem(row, kNightColDate, new QTableWidgetItem(en.toString(e.date, "ddd MMM d, yyyy")));
-        m_nights->setItem(row, kNightColTime, new QTableWidgetItem(
+        const int row = m_eventsTable->rowCount();
+        m_eventsTable->insertRow(row);
+        m_eventsTable->setItem(row, kEventColDate, new QTableWidgetItem(en.toString(e.date, "ddd MMM d, yyyy")));
+        m_eventsTable->setItem(row, kEventColTime, new QTableWidgetItem(
             timeText(e.start_minutes) + QString::fromUtf8(" – ") + timeText(e.end_minutes % 1440)));
         QTableWidgetItem *plays = new QTableWidgetItem(QString::number(e.plays));
         plays->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        m_nights->setItem(row, kNightColPlays, plays);
-        m_nights->setItem(row, kNightColStatus, new QTableWidgetItem());
+        m_eventsTable->setItem(row, kEventColPlays, plays);
+        m_eventsTable->setItem(row, kEventColStatus, new QTableWidgetItem());
     }
-    m_nights->scrollToTop();
-    refreshNights();
+    m_eventsTable->scrollToTop();
+    refreshEvents();
 }
 
-// The check box that keeps a night as a one-off event: a real QCheckBox in the cell, as in the
+// The check box that keeps an event as a one-off event: a real QCheckBox in the cell, as in the
 //   call list, because the item view's own check boxes come and go as the table scrolls on macOS
 //   under the app's stylesheet
-QCheckBox *SuggestClubsDialog::nightCheckBox(int row) const
+QCheckBox *SuggestClubsDialog::eventCheckBox(int row) const
 {
-    QWidget *cell = m_nights->cellWidget(row, kNightColKeep);
+    QWidget *cell = m_eventsTable->cellWidget(row, kEventColKeep);
     return cell ? cell->findChild<QCheckBox *>() : nullptr;
 }
 
-void SuggestClubsDialog::refreshNights()
+void SuggestClubsDialog::refreshEvents()
 {
     if (m_current < 0) {
         return;
     }
     const Choice &c = m_choices[m_current];
-    QList<QPair<QDate, NightsTimeline::State>> timeline;
+    QList<QPair<QDate, EventsTimeline::State>> timeline;
     int inRules = 0, already = 0, oneOffs = 0, other = 0;
 
-    for (int row = 0; row < m_nights->rowCount() && row < c.original.events.size(); ++row) {
+    for (int row = 0; row < m_eventsTable->rowCount() && row < c.original.events.size(); ++row) {
         const QDate date = c.original.events[row].date;
         QString status;
-        NightsTimeline::State state;
+        EventsTimeline::State state;
         bool checkable = false;
         if (coveredByRule(c, date)) {
             status = "in a rule";
-            state = NightsTimeline::InRule;
+            state = EventsTimeline::InRule;
             ++inRules;
         } else if (coveredByTarget(c, date)) {
-            status = "already " + targetName(c);
-            state = NightsTimeline::InRule;
+            status = "already in " + targetName(c);
+            state = EventsTimeline::InRule;
             ++already;
         } else {
             checkable = true;
             if (c.oneOffs.contains(date)) {
                 status = "one-off event";
-                state = NightsTimeline::OneOff;
+                state = EventsTimeline::OneOff;
                 ++oneOffs;
             } else {
                 status = "Other";
-                state = NightsTimeline::Other;
+                state = EventsTimeline::Other;
                 ++other;
             }
         }
 
-        QCheckBox *box = nightCheckBox(row);
+        QCheckBox *box = eventCheckBox(row);
         if (checkable && box == nullptr) {
             QWidget *cell = new QWidget();
             QHBoxLayout *layout = new QHBoxLayout(cell);
@@ -957,14 +969,14 @@ void SuggestClubsDialog::refreshNights()
                 } else {
                     chosen.oneOffs.remove(date);
                 }
-                refreshNights();   // in place: this check box stays
+                refreshEvents();   // in place: this check box stays
                 refreshListItem(m_current);
                 refreshSummary();
             });
-            m_nights->setCellWidget(row, kNightColKeep, cell);
+            m_eventsTable->setCellWidget(row, kEventColKeep, cell);
             stampTheme(cell);
         } else if (!checkable && box != nullptr) {
-            m_nights->removeCellWidget(row, kNightColKeep);
+            m_eventsTable->removeCellWidget(row, kEventColKeep);
             box = nullptr;
         }
         if (box != nullptr) {
@@ -972,39 +984,40 @@ void SuggestClubsDialog::refreshNights()
             box->setChecked(c.oneOffs.contains(date));
         }
 
-        QTableWidgetItem *statusItem = m_nights->item(row, kNightColStatus);
+        QTableWidgetItem *statusItem = m_eventsTable->item(row, kEventColStatus);
         statusItem->setText(status);
-        statusItem->setForeground(m_nights->palette().color(state == NightsTimeline::Other ? QPalette::PlaceholderText
+        statusItem->setForeground(m_eventsTable->palette().color(state == EventsTimeline::Other ? QPalette::PlaceholderText
                                                                                             : QPalette::Text));
         timeline.append({ date, state });
     }
 
     QStringList counts;
     if (inRules > 0)  counts << QString("%1 in rules").arg(inRules);
-    if (already > 0)  counts << QString("%1 already %2's").arg(already).arg(targetName(c));
+    if (already > 0)  counts << QString("%1 already in %2").arg(already).arg(targetName(c));
     if (oneOffs > 0)  counts << QString("%1 one-off").arg(oneOffs);
     if (other > 0)    counts << QString("%1 in Other").arg(other);
-    m_nightsHeading->setText(QString("NIGHTS (%1)").arg(counts.join(", ")));
+    m_eventsHeading->setText(QString("EVENTS (%1)").arg(counts.isEmpty() ? QString("none") : counts.join(", ")));
 
-    // making nights weekly needs a few of them, on one weekday
+    // making events weekly needs a few of them, on one weekday
     m_makeWeekly->setEnabled(oneOffs >= 2);
 
     {
-        const QSignalBlocker blocker(m_allNights);
+        const QSignalBlocker blocker(m_allEvents);
         const int checkable = oneOffs + other;
-        m_allNights->setEnabled(checkable > 0);
-        m_allNights->setCheckState((checkable > 0 && oneOffs == checkable) ? Qt::Checked
+        m_allEvents->setEnabled(checkable > 0);
+        m_allEvents->setCheckState((checkable > 0 && oneOffs == checkable) ? Qt::Checked
                                    : (oneOffs == 0)                        ? Qt::Unchecked
                                                                            : Qt::PartiallyChecked);
     }
 
     const QString color = hasTarget(c) ? targetColor(c) : c.color;
-    m_timeline->setNights(timeline, c.original.events.first().date, std::max(m_asOf, c.original.events.last().date),
-                          QColor(color));
+    const QDate from = c.original.events.isEmpty() ? m_asOf : c.original.events.first().date;
+    const QDate to = c.original.events.isEmpty() ? m_asOf : std::max(m_asOf, c.original.events.last().date);
+    m_timeline->setEvents(timeline, from, to, QColor(color));
 }
 
-// Keeping a night, or making nights weekly, means the user wants this suggestion: check Keep, or
-//   the nights would quietly not be saved (e.g. on an unchecked "already covered by Jokers")
+// Keeping an event, or making events weekly, means the user wants this suggestion: check Keep, or
+//   the events would quietly not be saved (e.g. on an unchecked "already covered by Jokers")
 void SuggestClubsDialog::keepCurrent()
 {
     if (m_current < 0 || m_choices[m_current].keep) {
@@ -1031,13 +1044,13 @@ void SuggestClubsDialog::makeOneOffsWeekly()
     if (dates.size() < 2) {
         return;
     }
-    // the nights on the first one's weekday, at their usual (median) times
+    // the events on the first one's weekday, at their usual (median) times
     const int weekday = dates.first().dayOfWeek();
     QList<int> starts, ends;
     QList<QDate> used;
     for (const QDate &d : std::as_const(dates)) {
         if (d.dayOfWeek() == weekday) {
-            const ClubRule &r = c.nightRules[d];
+            const ClubRule &r = c.eventRules[d];
             starts.append(r.start_minutes);
             ends.append(r.end_minutes);
             used.append(d);
@@ -1058,7 +1071,7 @@ void SuggestClubsDialog::makeOneOffsWeekly()
     }
     keepCurrent();
     rebuildRuleCards();
-    refreshNights();
+    refreshEvents();
     refreshListItem(m_current);
     refreshSummary();
 }
@@ -1085,7 +1098,7 @@ void SuggestClubsDialog::refreshSummary()
         parts << QString("%1 new club%2").arg(newClubs).arg(newClubs == 1 ? "" : "s");
     }
     if (!added.isEmpty()) {
-        parts << "more nights for " + added.join(", ");
+        parts << "more events for " + added.join(", ");
     }
     m_summary->setText(parts.isEmpty() ? QString("Nothing will be added.") : "OK adds " + parts.join(", and ") + ".");
     m_ok->setEnabled(!parts.isEmpty());
@@ -1093,7 +1106,7 @@ void SuggestClubsDialog::refreshSummary()
 
 QList<ClubInfo> SuggestClubsDialog::clubs() const
 {
-    // a kept suggestion's rules, and its kept nights that no rule (of its own, or of the club it
+    // a kept suggestion's rules, and its kept events that no rule (of its own, or of the club it
     //   joins) already has
     auto rulesOf = [this](const Choice &c) {
         QList<ClubRule> rules = c.rules;
@@ -1101,7 +1114,7 @@ QList<ClubInfo> SuggestClubsDialog::clubs() const
         std::sort(oneOffs.begin(), oneOffs.end());
         for (const QDate &d : std::as_const(oneOffs)) {
             if (!coveredByRule(c, d) && !coveredByTarget(c, d)) {
-                rules.append(c.nightRules.value(d));
+                rules.append(c.eventRules.value(d));
             }
         }
         return rules;
@@ -1126,13 +1139,21 @@ QList<ClubInfo> SuggestClubsDialog::clubs() const
             continue;
         }
         const QList<ClubRule> rules = rulesOf(c);
+        // a rule the club already has isn't added again
+        auto addTo = [&rules](ClubInfo &club) {
+            for (const ClubRule &r : rules) {
+                if (!clubHasRule(club.rules, r)) {
+                    club.rules.append(r);
+                }
+            }
+        };
         if (c.targetChoice >= 0 && newClubFor.contains(c.targetChoice)) {
-            result[newClubFor[c.targetChoice]].rules.append(rules);
+            addTo(result[newClubFor[c.targetChoice]]);
             continue;
         }
         for (ClubInfo &club : result) {
             if (club.id >= 0 && club.id == c.targetClubId) {
-                club.rules.append(rules);
+                addTo(club);
                 break;
             }
         }

@@ -48,7 +48,7 @@
 //      `maxSeriesGapDays` of the last, e.g. a class) becomes a rule, and the rest are one-offs.
 //   4. Times: from the slot's early and late events, rounded out to the quarter hour.
 //   5. Checked or not: every suggestion is returned, but only the likely clubs start out checked.
-//      One-off nights that come fewer than `minOneOffsPerYear` times in their busiest year are
+//      One-off events that come fewer than `minOneOffsPerYear` times in their busiest year are
 //      left in Other (probably one-off dances or practice).  Unchecked too: one-offs that don't
 //      start at a steady time (practice), a slot that is mostly practice before a bigger club on
 //      the same days, and one that starts late at night.  A series needs a steady start too.
@@ -63,7 +63,7 @@ public:
     double slotMergeOverlap = 0.5;  // same-weekday slots whose times overlap this much (of the shorter) are one
     int minSeriesEvents = 3;        // a class series: this many events ...
     int maxSeriesGapDays = 14;      // ... each no more than this after the last
-    int minOneOffsPerYear = 8;      // one-off nights this often (busiest year) are a club of one-offs
+    int minOneOffsPerYear = 8;      // one-off events this often (busiest year) are a club of one-offs
     int steadyStartMinutes = 20;    // dances and classes start on time: a series, or a club of one-offs,
     double steadyStartShare = 2.0 / 3;  // ... needs this share of its events to start this close to the median
     double practiceBeforeShare = 0.5;  // this share of events end before a bigger club's, same days: practice
@@ -89,17 +89,17 @@ public:
     int plays = 0;                 // songs played in those events
     bool checked = true;           // starts out checked in the review dialog
     QString note;                  // why it isn't checked, or what was left out of it
-    QList<QDate> leftInOther;      // one-off nights not put in its rules (too few a year)
-    int existingClubId = -1;       // the user's club that holds most of its nights (matchExistingClubs()), or -1
+    QList<QDate> leftInOther;      // one-off events not put in its rules (too few a year)
+    int existingClubId = -1;       // the user's club that holds most of its events (matchExistingClubs()), or -1
     QString existingClubName;
-    double existingShare = 0;      // how many of its nights that club already holds, 0..1
+    double existingShare = 0;      // how many of its events that club already holds, 0..1
 };
 
 // `playsUtc` in any order.  `asOf` is "now", for deciding which clubs still meet.
 QList<ClubSuggestion> suggestClubs(const QList<QDateTime> &playsUtc, const QDate &asOf,
                                    const ClubSuggesterParams &params = ClubSuggesterParams());
 
-// For each suggestion, the user's existing club whose events already hold the most of its nights.
+// For each suggestion, the user's existing club whose events already hold the most of its events.
 //   At `coveredShare` or more, the suggestion is unchecked as already covered; at `likeShare` or
 //   more, that club is where its rules would go by default (see existingClubId).
 void matchExistingClubs(QList<ClubSuggestion> &suggestions, const QList<ClubInfo> &clubs, const QDate &asOf,

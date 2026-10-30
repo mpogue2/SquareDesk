@@ -9,5 +9,5 @@ CONFIG   -= app_bundle
 TARGET    = clubsuggester_test
 
 INCLUDEPATH += ..
-SOURCES += main.cpp ../clubsuggester.cpp ../clubinfo.cpp
-HEADERS += ../clubsuggester.h ../clubinfo.h ../sessioninfo.h
+SOURCES += main.cpp ../clubsuggester.cpp ../clubsai.cpp ../clubinfo.cpp
+HEADERS += ../clubsuggester.h ../clubsai.h ../clubinfo.h ../sessioninfo.h

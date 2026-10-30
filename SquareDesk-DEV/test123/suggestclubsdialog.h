@@ -44,14 +44,15 @@ class QScrollArea;
 class QTableWidget;
 class QToolButton;
 class QVBoxLayout;
-class NightsTimeline;
+class EventsTimeline;
 
-// Clubs > Suggest Clubs from Play History... (issue #1814)
+// Clubs > Suggest Clubs from Play History..., and Clubs > Set Up Clubs with AI > Import Club Rules
+//   from AI... (issue #1814)
 //
 // The suggestions on the left, likely clubs first (checked) and then the ones that probably aren't
 //   clubs (unchecked).  On the right, the selected one: its name and color, whether it becomes a new
-//   club or more rules for an existing one, a timeline of its nights, its rules (the same editable
-//   cards as Preferences > Clubs), and every night it found, where a night not in a rule can be
+//   club or more rules for an existing one, a timeline of its events, its rules (the same editable
+//   cards as Preferences > Clubs), and every event it found, where an event not in a rule can be
 //   kept as a one-off event or left in Other.  Nothing is saved until OK; clubs() then has the
 //   result.
 class SuggestClubsDialog : public QDialog
@@ -65,6 +66,9 @@ public:
     // The existing clubs, with any rules added to them, then the new clubs (id -1)
     QList<ClubInfo> clubs() const;
 
+    // the words over the list (for Import Club Rules from AI, whose suggestions came from one)
+    void setIntroText(const QString &text);
+
     // select the nth suggestion in the list (0 = the first), e.g. for the probe's screenshots
     void selectSuggestion(int n);
 
@@ -75,11 +79,11 @@ private:
         bool keep;
         QString name;
         QString color;
-        int targetClubId;                  // an existing club these nights join, or -1
+        int targetClubId;                  // an existing club these events join, or -1
         int targetChoice;                  // or another suggestion (an index) whose new club they join, or -1
         QList<ClubRule> rules;             // the recurring rules
-        QSet<QDate> oneOffs;               // the nights kept as one-off events
-        QHash<QDate, ClubRule> nightRules; // each night's one-off event, should it be kept
+        QSet<QDate> oneOffs;               // the events kept as one-off events
+        QHash<QDate, ClubRule> eventRules; // each event's one-off event, should it be kept
     };
 
     void buildUi();
@@ -89,9 +93,9 @@ private:
     void targetsChanged();     // keep targets consistent (see the .cpp), then refresh
     void selectChoice(int index);
     void rebuildRuleCards();
-    void rebuildNights();      // the nights table's rows, for the selected suggestion
-    void refreshNights();      // the rows' check boxes and status, and the timeline, in place
-    QCheckBox *nightCheckBox(int row) const;
+    void rebuildEvents();      // the events table's rows, for the selected suggestion
+    void refreshEvents();      // the rows' check boxes and status, and the timeline, in place
+    QCheckBox *eventCheckBox(int row) const;
     void refreshSummary();
     void makeOneOffsWeekly();
     void keepCurrent();       // check Keep for the selected suggestion
@@ -114,6 +118,7 @@ private:
     int m_current = -1;
     bool m_filling = false;
 
+    QLabel *m_intro;
     QListWidget *m_list;
     QWidget *m_detail;
     QCheckBox *m_keep;
@@ -124,15 +129,15 @@ private:
     QRadioButton *m_asNew;
     QRadioButton *m_asMore;
     QComboBox *m_target;
-    NightsTimeline *m_timeline;
+    EventsTimeline *m_timeline;
     QScrollArea *m_rulesScroll;
     QVBoxLayout *m_rulesLayout;
     QLabel *m_noRules;
     QList<QWidget *> m_ruleCards;
-    QCheckBox *m_allNights;
-    QLabel *m_nightsHeading;
+    QCheckBox *m_allEvents;
+    QLabel *m_eventsHeading;
     QPushButton *m_makeWeekly;
-    QTableWidget *m_nights;
+    QTableWidget *m_eventsTable;
     QLabel *m_summary;
     QPushButton *m_ok;
 };

@@ -80,6 +80,7 @@
 #include "clubinfo.h"
 #include "clubsuggester.h"
 #include "suggestclubsdialog.h"
+#include "clubsai.h"
 // #include "songtitlelabel.h"
 #include "tablewidgettimingitem.h"
 #include "danceprograms.h"
@@ -1157,18 +1158,126 @@ void MainWindow::on_actionSuggest_Clubs_from_Play_History_triggered()
 
     if (suggestions.isEmpty()) {
         QMessageBox::information(this, "Suggest Clubs",
-                                 "SquareDesk didn't find any regular nights in your play history yet.\n\n"
+                                 "SquareDesk didn't find any regular events in your play history yet.\n\n"
                                  "It looks for songs played on the same day of the week, at about the same time,"
-                                 " for an hour or more.  Try again after a few more club nights.");
+                                 " for an hour or more.  Try again after your clubs have met a few more times.");
         return;
     }
 
+    reviewClubSuggestions(suggestions, clubs, today, "Suggest Clubs from Play History", QString());
+}
+
+// The review dialog, for Suggest Clubs and Import Club Rules from AI; OK saves what the user made of them
+void MainWindow::reviewClubSuggestions(const QList<ClubSuggestion> &suggestions, const QList<ClubInfo> &clubs,
+                                       const QDate &today, const QString &title, const QString &intro)
+{
     SuggestClubsDialog dialog(suggestions, clubs, today, currentThemeString, this);
+    dialog.setWindowTitle(title);
+    if (!intro.isEmpty()) {
+        dialog.setIntroText(intro);
+    }
     if (dialog.exec() != QDialog::Accepted) {
         return;
     }
     songSettings.setClubInfo(dialog.clubs());
     clubsChanged();
+}
+
+// Clubs > Set Up Clubs with AI > Export Play History for AI... (issue #1814): the text for the user to
+//   give any AI, which asks it to work out club schedules from the events in it, and to answer in
+//   the JSON that Import Club Rules from AI reads.  Copied to the clipboard (to paste straight into
+//   an AI's chat), or saved to a file (to attach).
+void MainWindow::on_actionExport_Play_History_for_AI_triggered()
+{
+    QMessageBox box(this);
+    box.setWindowTitle("Export Play History for AI");
+    box.setText("Get help from an AI with setting up your clubs.");
+    box.setInformativeText("SquareDesk will give you your play history, with instructions for the AI. Paste it into"
+                           " an AI assistant's chat (or attach the file), and answer its questions. When it gives"
+                           " you its club schedules, copy its whole answer, and choose"
+                           " Clubs > Set Up Clubs with AI > Import Club Rules from AI...\n\n"
+                           "It has when you played songs, but not which songs.");
+    QPushButton *copy = box.addButton("Copy to Clipboard", QMessageBox::AcceptRole);
+    QPushButton *save = box.addButton("Save to File...", QMessageBox::ActionRole);
+    box.addButton(QMessageBox::Cancel);
+    box.setDefaultButton(copy);
+    box.exec();
+    if (box.clickedButton() != copy && box.clickedButton() != save) {
+        return;
+    }
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    const QString text = clubsAIExportText(songSettings.getPlayTimesUtc(), songSettings.getClubInfo(), QDate::currentDate());
+    QApplication::restoreOverrideCursor();
+
+    if (box.clickedButton() == copy) {
+        QGuiApplication::clipboard()->setText(text);
+        return;
+    }
+
+    const QString suggested = QDir(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation))
+                                  .filePath("SquareDesk Play History for AI.md");
+    const QString path = QFileDialog::getSaveFileName(this, "Export Play History for AI", suggested,
+                                                      "Text (*.md *.txt)");
+    if (path.isEmpty()) {
+        return;
+    }
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
+        QMessageBox::warning(this, "Export Play History for AI", QString("SquareDesk couldn't write %1.").arg(path));
+        return;
+    }
+    file.write(text.toUtf8());
+    file.close();
+}
+
+// Clubs > Set Up Clubs with AI > Import Club Rules from AI... (issue #1814): an AI's answer to the exported file, read and then
+//   reviewed in the same dialog as Suggest Clubs, before anything is saved
+void MainWindow::on_actionImport_Club_Rules_triggered()
+{
+    // an answer already on the clipboard is filled in (but not the exported file, still there from
+    //   its Copy to Clipboard)
+    const QString clipboard = QGuiApplication::clipboard()->text();
+    const bool answerOnClipboard = clipboard.contains("\"clubs\"") && !isAIExportText(clipboard);
+    bool ok = false;
+    const QString text = QInputDialog::getMultiLineText(this, "Import Club Rules from AI",
+                                                        "Paste your AI's whole answer here:",
+                                                        answerOnClipboard ? clipboard : QString(), &ok);
+    if (!ok || text.trimmed().isEmpty()) {
+        return;
+    }
+    if (isAIExportText(text)) {
+        QMessageBox::warning(this, "Import Club Rules from AI",
+                             "That's the file from Export Play History for AI, not the AI's answer.\n\n"
+                             "Give that file to your AI, and paste in what it answers.");
+        return;
+    }
+
+    QStringList problems;
+    const QList<ClubInfo> imported = clubsFromAIAnswer(text, &problems);
+    auto problemText = [&problems]() {
+        QStringList shown = problems.mid(0, 12);
+        if (problems.size() > shown.size()) {
+            shown << QString("...and %1 more").arg(problems.size() - shown.size());
+        }
+        return shown.join("\n");
+    };
+    if (imported.isEmpty()) {
+        QMessageBox::warning(this, "Import Club Rules from AI",
+                             "SquareDesk couldn't find any club schedules in that answer.\n\n" + problemText());
+        return;
+    }
+    if (!problems.isEmpty()) {
+        QMessageBox::information(this, "Import Club Rules from AI",
+                                 "Some of the answer couldn't be read, and is left out:\n\n" + problemText());
+    }
+
+    const QDate today = QDate::currentDate();
+    const QList<ClubInfo> clubs = songSettings.getClubInfo();
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    const QList<ClubSuggestion> suggestions = suggestionsForImportedClubs(imported, songSettings.getPlayTimesUtc(), clubs, today);
+    QApplication::restoreOverrideCursor();
+    reviewClubSuggestions(suggestions, clubs, today, "Import Club Rules from AI", importedClubsIntroText());
 }
 
 void MainWindow::applyClubForAges()

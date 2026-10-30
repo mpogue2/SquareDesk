@@ -1,14 +1,24 @@
 // Test harness for suggesting Clubs from play history (#1814).
 //
 // Usage: clubsuggester_test [--asof yyyy-MM-dd] [--events] [--detail] DBFILE
+//        clubsuggester_test [--asof yyyy-MM-dd] --export FILE DBFILE
+//        clubsuggester_test [--asof yyyy-MM-dd] --import FILE DBFILE
+//        clubsuggester_test --roundtrip DBFILE
 //
 //   Opens DBFILE (a copy of SquareDesk.sqlite3) read-only, suggests clubs from the times in
 //   song_plays alone, and compares them with the clubs and rules already in DBFILE: for each real
 //   club, the suggestion that shares the most plays with it, how many of the club's plays and
 //   event nights it finds, and how many it adds.  --events also lists every event found, and
 //   --detail lists the events behind each suggestion.
+//
+//   For Export Play History for AI / Import Club Rules from AI (also #1814): --export writes the file a user
+//   gives an AI; --import reads an AI's answer and shows what the review dialog would start with;
+//   --roundtrip writes DBFILE's clubs as the answer's JSON and reads them back, to check they match.
 
 #include "clubsuggester.h"
+#include "clubsai.h"
+
+#include <QFile>
 
 #include <QCoreApplication>
 #include <QSet>
@@ -79,7 +89,8 @@ int main(int argc, char *argv[])
     QDate asOf = QDate::currentDate();
     bool listEvents = false;
     bool detail = false;
-    QString dbFile;
+    bool roundtrip = false;
+    QString dbFile, exportFile, importFile;
     for (int i = 0; i < args.size(); ++i) {
         if (args[i] == "--asof" && i + 1 < args.size()) {
             asOf = QDate::fromString(args[++i], "yyyy-MM-dd");
@@ -87,6 +98,12 @@ int main(int argc, char *argv[])
             listEvents = true;
         } else if (args[i] == "--detail") {
             detail = true;
+        } else if (args[i] == "--export" && i + 1 < args.size()) {
+            exportFile = args[++i];
+        } else if (args[i] == "--import" && i + 1 < args.size()) {
+            importFile = args[++i];
+        } else if (args[i] == "--roundtrip") {
+            roundtrip = true;
         } else {
             dbFile = args[i];
         }
@@ -117,7 +134,8 @@ int main(int argc, char *argv[])
     }
 
     QList<Club> clubs;
-    q.exec("SELECT rowid, name FROM clubs WHERE NOT deleted ORDER BY order_number");
+    QList<ClubInfo> clubInfos;   // the same clubs, as SquareDesk has them
+    q.exec("SELECT rowid, name, color FROM clubs WHERE NOT deleted ORDER BY order_number");
     while (q.next()) {
         Club c;
         c.name = q.value(1).toString();
@@ -140,6 +158,92 @@ int main(int argc, char *argv[])
         }
         sortClubRules(c.rules);
         clubs.append(c);
+        ClubInfo info;
+        info.id = q.value(0).toInt();
+        info.name = c.name;
+        info.color = q.value(2).toString();
+        info.rules = c.rules;
+        clubInfos.append(info);
+    }
+
+    if (!exportFile.isEmpty()) {
+        QFile f(exportFile);
+        if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+            out << "Can't write " << exportFile << "\n";
+            return 1;
+        }
+        const QString text = clubsAIExportText(plays, clubInfos, asOf);
+        f.write(text.toUtf8());
+        out << "Wrote " << exportFile << ": " << text.size() << " characters, "
+            << eventsFromPlays(plays, aiEventParams()).size() << " events\n";
+        return 0;
+    }
+
+    if (roundtrip) {
+        QStringList problems;
+        const QList<ClubInfo> back = clubsFromAIAnswer(clubsJsonText(clubInfos), &problems);
+        int bad = 0;
+        for (const QString &p : std::as_const(problems)) {
+            out << "PROBLEM: " << p << "\n";
+            ++bad;
+        }
+        for (const ClubInfo &club : std::as_const(clubInfos)) {
+            const ClubInfo *other = nullptr;
+            for (const ClubInfo &b : back) {
+                other = (b.name == club.name) ? &b : other;
+            }
+            if (other == nullptr) {
+                out << "MISSING club " << club.name << "\n";
+                ++bad;
+                continue;
+            }
+            int same = 0;
+            for (const ClubRule &r : club.rules) {
+                same += clubHasRule(other->rules, r) ? 1 : 0;
+            }
+            const bool labelsSame = [&]() {
+                for (int i = 0; i < club.rules.size() && i < other->rules.size(); ++i) {
+                    if (club.rules[i].label != other->rules[i].label) return false;
+                }
+                return true;
+            }();
+            out << club.name << ": " << same << "/" << club.rules.size() << " rules match, "
+                << other->rules.size() << " read back, color " << (other->color == club.color.toUpper() ? "same" : "DIFFERENT")
+                << ", labels " << (labelsSame ? "same" : "DIFFERENT") << "\n";
+            bad += (same != club.rules.size() || other->rules.size() != club.rules.size()) ? 1 : 0;
+        }
+        out << (bad == 0 ? "ROUNDTRIP OK\n" : "ROUNDTRIP FAILED\n");
+        return bad == 0 ? 0 : 1;
+    }
+
+    if (!importFile.isEmpty()) {
+        QFile f(importFile);
+        if (!f.open(QIODevice::ReadOnly)) {
+            out << "Can't read " << importFile << "\n";
+            return 1;
+        }
+        QStringList problems;
+        const QList<ClubInfo> imported = clubsFromAIAnswer(QString::fromUtf8(f.readAll()), &problems);
+        out << imported.size() << " clubs read, " << problems.size() << " problems\n";
+        for (const QString &p : std::as_const(problems)) {
+            out << "  PROBLEM: " << p << "\n";
+        }
+        const QList<ClubSuggestion> suggestions = suggestionsForImportedClubs(imported, plays, clubInfos, asOf);
+        for (const ClubSuggestion &s : suggestions) {
+            out << "\n" << (s.checked ? "[x] " : "[ ] ") << s.club.name << "  " << s.club.color << "  ("
+                << s.events.size() << " nights, " << s.plays << " songs)";
+            if (s.existingClubId >= 0) {
+                out << "  -> more nights for " << s.existingClubName;
+            }
+            out << "\n";
+            if (!s.note.isEmpty()) {
+                out << "    -- " << s.note << "\n";
+            }
+            for (const ClubRule &r : s.club.rules) {
+                out << "    " << clubRuleSentence(r) << "\n";
+            }
+        }
+        return 0;
     }
 
     out << "Database: " << dbFile << "\n";

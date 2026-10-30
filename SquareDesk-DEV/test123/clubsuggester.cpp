@@ -135,7 +135,7 @@ QList<Slot> slotsForWeekday(int weekday, QList<SuggestedEvent> events, const Clu
         computeSlotTimes(slot);
 
         // An event that started early (or late) but mostly ran during the slot's time belongs to
-        //   it, e.g. a dance night that began with an hour of practice.  Taken now, before it can
+        //   it, e.g. a dance event that began with an hour of practice.  Taken now, before it can
         //   help make a slot of its own.
         for (qsizetype i = events.size() - 1; i >= 0; --i) {
             const SuggestedEvent &e = events[i];
@@ -281,7 +281,7 @@ QList<ClubRule> rulesForPiece(const Slot &slot, const QList<SuggestedEvent> &pie
     }
 
     // No pattern for the whole stretch: a series inside it becomes a rule (e.g. a class, which
-    //   may skip a week, in the middle of one-off dance nights), and the rest are one-offs
+    //   may skip a week, in the middle of one-off dance events), and the rest are one-offs
     int i = 0;
     while (i < n) {
         int j = i;
@@ -332,7 +332,7 @@ QList<ClubSuggestion> suggestClubs(const QList<QDateTime> &playsUtc, const QDate
     }
 
     // A slot that goes a year or more without an event is a different club on each side of the gap
-    //   (Tuesday nights in 2018 are not the Tuesday club of 2024), so each era is its own suggestion,
+    //   (Tuesday events in 2018 are not the Tuesday club of 2024), so each era is its own suggestion,
     //   with its own times
     QList<Slot> eras;
     QList<int> eraCounts;   // for each era, how many eras its slot has
@@ -376,7 +376,7 @@ QList<ClubSuggestion> suggestClubs(const QList<QDateTime> &playsUtc, const QDate
             rules.append(rulesForPiece(slot, pieces[p], openEnded, params));
         }
 
-        // One-off nights make a club only when they come often (ECR); a few a year are one-off
+        // One-off events make a club only when they come often (ECR); a few a year are one-off
         //   dances or practice, and are left in Other
         ClubSuggestion s;
         QList<ClubRule> recurring, oneOffs;
@@ -402,26 +402,26 @@ QList<ClubSuggestion> suggestClubs(const QList<QDateTime> &playsUtc, const QDate
         if (!oneOffs.isEmpty() && busiestYear >= params.minOneOffsPerYear && !steadyStarts(oneOffEvents, params)) {
             if (recurring.isEmpty()) {
                 s.checked = false;
-                s.note = QString("%1 one-off nights, but they don't start at a steady time: probably practice")
+                s.note = QString("%1 one-off events, but they don't start at a steady time: probably practice")
                              .arg(oneOffs.size());
             } else {
                 for (const ClubRule &r : std::as_const(oneOffs)) {
                     s.leftInOther.append(r.since);
                 }
                 rules = recurring;
-                s.note = QString("%1 one-off nights left in Other (no steady start time)").arg(oneOffs.size());
+                s.note = QString("%1 one-off events left in Other (no steady start time)").arg(oneOffs.size());
             }
         } else if (!oneOffs.isEmpty() && busiestYear < params.minOneOffsPerYear) {
             if (recurring.isEmpty()) {
                 s.checked = false;
-                s.note = QString("%1 one-off nights, at most %2 in a year: probably one-off dances or practice,"
+                s.note = QString("%1 one-off events, at most %2 in a year: probably one-off dances or practice,"
                                  " so left in Other").arg(oneOffs.size()).arg(busiestYear);
             } else {
                 for (const ClubRule &r : std::as_const(oneOffs)) {
                     s.leftInOther.append(r.since);
                 }
                 rules = recurring;
-                s.note = QString("%1 one-off nights left in Other").arg(oneOffs.size());
+                s.note = QString("%1 one-off events left in Other").arg(oneOffs.size());
             }
         }
         if (slot.start_minutes >= params.lateStartMinutes) {
@@ -528,7 +528,7 @@ void matchExistingClubs(QList<ClubSuggestion> &suggestions, const QList<ClubInfo
         s.existingShare = share;
         if (share >= coveredShare) {
             s.checked = false;
-            s.note = QString("already covered by %1: %2 of its %3 nights are %1 nights")
+            s.note = QString("already covered by %1: %2 of its %3 events are %1 events")
                          .arg(clubs[best].name).arg(bestCount).arg(s.events.size());
         }
     }

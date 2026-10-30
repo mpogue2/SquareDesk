@@ -86,6 +86,19 @@ static QDate nthWeekdayOfMonth(int year, int month, int weekday, int nth)
     return (d.month() == month) ? d : QDate();
 }
 
+bool clubHasRule(const QList<ClubRule> &rules, const ClubRule &rule)
+{
+    for (const ClubRule &r : rules) {
+        if (r.kind == rule.kind && r.start_minutes == rule.start_minutes && r.end_minutes == rule.end_minutes
+            && r.since == rule.since && r.until == rule.until
+            && (r.kind == ClubRule::Once || r.weekday == rule.weekday)
+            && (r.kind != ClubRule::Monthly || r.nth == rule.nth)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void sortClubRules(QList<ClubRule> &rules)
 {
     std::stable_sort(rules.begin(), rules.end(), [](const ClubRule &a, const ClubRule &b) {

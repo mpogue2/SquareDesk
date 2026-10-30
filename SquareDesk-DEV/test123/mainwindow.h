@@ -104,6 +104,7 @@
 #include "third_party/levelmeter.h"
 #include "songsettings.h"
 #include "clubinfo.h"
+#include "clubsuggester.h"    // ClubSuggestion, for reviewClubSuggestions() (issue #1814)
 
 // Forward declaration for debug dialog
 class CuesheetMatchingDebugDialog;
@@ -891,6 +892,8 @@ private slots:
     void on_actionItalic_triggered();
     void on_actionClear_Recent_triggered();
     void on_actionSuggest_Clubs_from_Play_History_triggered();
+    void on_actionExport_Play_History_for_AI_triggered();
+    void on_actionImport_Club_Rules_triggered();
     void on_actionSD_Output_triggered();
     void on_actionShow_Frames_triggered();
     void on_menuSections_aboutToShow();
@@ -1466,6 +1469,8 @@ private:
     void applyClubForAges();
     void chooseClubForAges(int clubID);
     void clubsChanged();   // after the clubs were saved: sessions, Age and Recent, the Clubs menu
+    void reviewClubSuggestions(const QList<ClubSuggestion> &suggestions, const QList<ClubInfo> &clubs,
+                               const QDate &today, const QString &title, const QString &intro);
     int currentSongSecondsPlayed;
     bool currentSongSecondsPlayedRecorded;
     bool firstTimeSongIsPlayed;

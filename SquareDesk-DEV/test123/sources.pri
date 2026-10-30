@@ -37,6 +37,7 @@ SOURCES += main.cpp\
     clubinfo.cpp \
     clubstab.cpp \
     clubsuggester.cpp \
+    clubsai.cpp \
     suggestclubsdialog.cpp \
     choreosequencedialog.cpp \
     cuesheetmatchingdebugdialog.cpp \
@@ -127,6 +128,7 @@ HEADERS  += mainwindow.h \
     clubinfo.h \
     clubstab.h \
     clubsuggester.h \
+    clubsai.h \
     suggestclubsdialog.h \
     songhistoryexportdialog.h \
     applemusicfilter.h \
