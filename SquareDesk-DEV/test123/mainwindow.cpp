@@ -1275,9 +1275,17 @@ void MainWindow::on_actionImport_Club_Rules_triggered()
     const QDate today = QDate::currentDate();
     const QList<ClubInfo> clubs = songSettings.getClubInfo();
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    const QList<ClubSuggestion> suggestions = suggestionsForImportedClubs(imported, songSettings.getPlayTimesUtc(), clubs, today);
+    QStringList upToDate;   // the user's clubs that the AI repeated exactly
+    const QList<ClubSuggestion> suggestions = suggestionsForImportedClubs(imported, songSettings.getPlayTimesUtc(), clubs,
+                                                                          today, &upToDate);
     QApplication::restoreOverrideCursor();
-    reviewClubSuggestions(suggestions, clubs, today, "Import Club Rules from AI", importedClubsIntroText());
+    if (suggestions.isEmpty()) {
+        QMessageBox::information(this, "Import Club Rules from AI",
+                                 "There's nothing new in that answer: your clubs already have all of its rules.\n\n"
+                                 "Already up to date: " + upToDate.join(", ") + ".");
+        return;
+    }
+    reviewClubSuggestions(suggestions, clubs, today, "Import Club Rules from AI", importedClubsIntroText(upToDate));
 }
 
 void MainWindow::applyClubForAges()

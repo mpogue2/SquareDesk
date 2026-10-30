@@ -228,12 +228,16 @@ int main(int argc, char *argv[])
         for (const QString &p : std::as_const(problems)) {
             out << "  PROBLEM: " << p << "\n";
         }
-        const QList<ClubSuggestion> suggestions = suggestionsForImportedClubs(imported, plays, clubInfos, asOf);
+        QStringList upToDate;
+        const QList<ClubSuggestion> suggestions = suggestionsForImportedClubs(imported, plays, clubInfos, asOf, &upToDate);
+        if (!upToDate.isEmpty()) {
+            out << "Already up to date (left out): " << upToDate.join(", ") << "\n";
+        }
         for (const ClubSuggestion &s : suggestions) {
             out << "\n" << (s.checked ? "[x] " : "[ ] ") << s.club.name << "  " << s.club.color << "  ("
-                << s.events.size() << " nights, " << s.plays << " songs)";
+                << s.events.size() << " events, " << s.plays << " songs)";
             if (s.existingClubId >= 0) {
-                out << "  -> more nights for " << s.existingClubName;
+                out << "  -> more events for " << s.existingClubName;
             }
             out << "\n";
             if (!s.note.isEmpty()) {

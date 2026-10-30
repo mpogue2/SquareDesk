@@ -132,6 +132,7 @@ int main(int argc, char *argv[])
     }
 
     QList<ClubSuggestion> suggestions;
+    QStringList upToDate;   // with --import: the clubs the answer repeated exactly
     if (importFile.isEmpty()) {
         suggestions = suggestClubs(plays, asOf);
         matchExistingClubs(suggestions, clubs, asOf);
@@ -146,7 +147,11 @@ int main(int argc, char *argv[])
         for (const QString &p : std::as_const(problems)) {
             out << "Problem: " << p << "\n";
         }
-        suggestions = suggestionsForImportedClubs(imported, plays, clubs, asOf);
+        suggestions = suggestionsForImportedClubs(imported, plays, clubs, asOf, &upToDate);
+        if (suggestions.isEmpty()) {
+            out << "Nothing new in the answer.  Already up to date: " << upToDate.join(", ") << "\n";
+            return 0;
+        }
     }
     out << plays.size() << " plays, " << suggestions.size() << " suggestions, " << clubs.size() << " existing clubs\n";
     if (suggestions.isEmpty()) {
@@ -156,7 +161,7 @@ int main(int argc, char *argv[])
 
     SuggestClubsDialog dialog(suggestions, clubs, asOf, theme);
     if (!importFile.isEmpty()) {
-        dialog.setIntroText(importedClubsIntroText());
+        dialog.setIntroText(importedClubsIntroText(upToDate));
     }
     if (!screenshot.isEmpty()) {
         dialog.show();

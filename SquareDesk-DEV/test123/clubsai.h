@@ -66,15 +66,19 @@ QString clubsJsonText(const QList<ClubInfo> &clubs);
 QList<ClubInfo> clubsFromAIAnswer(const QString &text, QStringList *problems);
 
 // Imported clubs, as suggestions for the review dialog: each with the events (from the plays) that
-//   its rules hold, matched with the user's clubs (a club named like one of them adds to it)
+//   its rules hold, matched with the user's clubs (a club named like one of them adds to it, and the
+//   rules it already has are left out).  A club the AI repeated exactly isn't a suggestion: its name
+//   goes in upToDate instead.
 QList<ClubSuggestion> suggestionsForImportedClubs(const QList<ClubInfo> &imported, const QList<QDateTime> &playsUtc,
-                                                  const QList<ClubInfo> &existing, const QDate &asOf);
+                                                  const QList<ClubInfo> &existing, const QDate &asOf,
+                                                  QStringList *upToDate = nullptr);
 
 // Whether text is the exported file itself (with its example JSON and the user's own clubs), which
 //   is easy to paste into Import Club Rules from AI by mistake, instead of the AI's answer
 bool isAIExportText(const QString &text);
 
-// The words over the review dialog's list, for clubs that came from an AI
-QString importedClubsIntroText();
+// The words over the review dialog's list, for clubs that came from an AI, and the user's clubs that
+//   the answer had nothing new for
+QString importedClubsIntroText(const QStringList &upToDate = QStringList());
 
 #endif /* ifndef CLUBSAI_H_INCLUDED */

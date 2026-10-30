@@ -718,14 +718,17 @@ QString SuggestClubsDialog::scheduleText(const Choice &c) const
     QStringList parts;
     // an imported club may have no events yet: then its first rule says which day
     //   (and with rules, the day goes with the times shown)
+    //   (or nothing does, and no day is shown)
     const int weekday = !c.rules.isEmpty()               ? c.rules.first().weekday
                       : !c.original.events.isEmpty()     ? c.original.events.first().date.dayOfWeek()
-                      : !c.original.club.rules.isEmpty() ? c.original.club.rules.first().since.dayOfWeek() : 1;
-    QString when = en.dayName(weekday, QLocale::ShortFormat);
-    if (!c.rules.isEmpty()) {
-        when += " " + timeText(c.rules.first().start_minutes) + QString::fromUtf8("–") + timeText(c.rules.first().end_minutes);
+                      : !c.original.club.rules.isEmpty() ? c.original.club.rules.first().since.dayOfWeek() : 0;
+    if (weekday >= 1 && weekday <= 7) {
+        QString when = en.dayName(weekday, QLocale::ShortFormat);
+        if (!c.rules.isEmpty()) {
+            when += " " + timeText(c.rules.first().start_minutes) + QString::fromUtf8("–") + timeText(c.rules.first().end_minutes);
+        }
+        parts << when;
     }
-    parts << when;
 
     if (c.rules.size() == 1) {
         const ClubRule &r = c.rules.first();

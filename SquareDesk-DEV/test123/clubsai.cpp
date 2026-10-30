@@ -424,7 +424,8 @@ QList<ClubInfo> clubsFromAIAnswer(const QString &text, QStringList *problems)
 }
 
 QList<ClubSuggestion> suggestionsForImportedClubs(const QList<ClubInfo> &imported, const QList<QDateTime> &playsUtc,
-                                                  const QList<ClubInfo> &existing, const QDate &asOf)
+                                                  const QList<ClubInfo> &existing, const QDate &asOf,
+                                                  QStringList *upToDate)
 {
     const QList<SuggestedEvent> events = eventsFromPlays(playsUtc, aiEventParams());
     QList<ClubSuggestion> suggestions;
@@ -438,6 +439,7 @@ QList<ClubSuggestion> suggestionsForImportedClubs(const QList<ClubInfo> &importe
         // a club named like one of the user's adds to it, and the rules that club already has
         //   (the AI was asked to name a club to add to it) are left out
         int named = -1;
+        bool nothingNew = false;
         for (const ClubInfo &mine : existing) {
             if (mine.name.trimmed().compare(club.name.trimmed(), Qt::CaseInsensitive) == 0) {
                 named = mine.id;
@@ -450,14 +452,19 @@ QList<ClubSuggestion> suggestionsForImportedClubs(const QList<ClubInfo> &importe
                 const qsizetype repeated = s.club.rules.size() - fresh.size();
                 s.club.rules = fresh;
                 if (fresh.isEmpty()) {
-                    s.checked = false;
-                    s.note = QString("nothing new: all its rules are already in %1").arg(mine.name);
+                    nothingNew = true;   // the AI repeated this club exactly: not a suggestion at all
+                    if (upToDate != nullptr && !upToDate->contains(mine.name)) {
+                        upToDate->append(mine.name);
+                    }
                 } else if (repeated > 0) {
                     s.note = QString("%1 of its rules %2 already in %3, and left out")
                                  .arg(repeated).arg(repeated == 1 ? "is" : "are").arg(mine.name);
                 }
                 break;
             }
+        }
+        if (nothingNew) {
+            continue;
         }
 
         // the events its (remaining) rules hold: the middle of each event, so that one with practice
@@ -504,11 +511,15 @@ QList<ClubSuggestion> suggestionsForImportedClubs(const QList<ClubInfo> &importe
     return suggestions;
 }
 
-QString importedClubsIntroText()
+QString importedClubsIntroText(const QStringList &upToDate)
 {
-    return "These are the clubs from your AI's answer, each with the events in your play history that its"
-           " rules hold. Choose the ones to keep, rename them, or add their events to a club you already"
-           " have. Events you don't keep stay in Other. Nothing is saved until you click OK.";
+    QString text = "These are the clubs from your AI's answer, each with the events in your play history that its"
+                   " rules hold. Choose the ones to keep, rename them, or add their events to a club you already"
+                   " have. Events you don't keep stay in Other. Nothing is saved until you click OK.";
+    if (!upToDate.isEmpty()) {
+        text += "\n\nAlready up to date, with nothing new in the answer: " + upToDate.join(", ") + ".";
+    }
+    return text;
 }
 
 bool isAIExportText(const QString &text)
