@@ -1257,6 +1257,25 @@ void SongSettings::getSongAgesForClub(QHash<QString,QString> &ages, QHash<QStrin
     }
 }
 
+// When every song was played, oldest first: SquareDesk's own plays, as Age and Recent count them
+//   (Apple Music's imported plays are left out).  For Clubs > Suggest Clubs from Play History
+//   (issue #1814), which works out clubs from the times alone.
+QList<QDateTime> SongSettings::getPlayTimesUtc()
+{
+    QList<QDateTime> plays;
+    QSqlQuery q(m_db);
+    q.setForwardOnly(true);
+    q.prepare("SELECT played_on FROM song_plays WHERE COALESCE(origin,'squaredesk') = 'squaredesk' ORDER BY played_on");
+    exec("playTimesUtc", q);
+    while (q.next()) {
+        const QDateTime when = playedOnUtc(q.value(0).toString());
+        if (when.isValid()) {
+            plays.append(when);
+        }
+    }
+    return plays;
+}
+
 QString SongSettings::getSongAge(const QString &filename, const QString &filenameWithPath, bool show_all_sessions)
 {
     Q_UNUSED(filename)

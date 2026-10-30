@@ -4734,6 +4734,8 @@
     <addaction name="separator"/>
     <addaction name="actionClear_Recent"/>
     <addaction name="actionDon_t_Save_Plays"/>
+    <addaction name="separator"/>
+    <addaction name="actionSuggest_Clubs_from_Play_History"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -5988,6 +5990,11 @@
   <action name="actionClear_Recent">
    <property name="text">
     <string>Clear Recent</string>
+   </property>
+  </action>
+  <action name="actionSuggest_Clubs_from_Play_History">
+   <property name="text">
+    <string>Suggest Clubs from Play History...</string>
    </property>
   </action>
   <action name="actionResetCuesheetFontSize">

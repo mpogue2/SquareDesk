@@ -78,6 +78,8 @@
 #include "calllistcheckbox.h"
 #include "sessioninfo.h"
 #include "clubinfo.h"
+#include "clubsuggester.h"
+#include "suggestclubsdialog.h"
 // #include "songtitlelabel.h"
 #include "tablewidgettimingitem.h"
 #include "danceprograms.h"
@@ -1119,6 +1121,54 @@ void MainWindow::populateMenuSessionOptions()
     addSeparator();
     addChoice(builtInClubName(kClubOther), kClubOther, clubForAges.chosen == kClubOther);
     addChoice(builtInClubName(kClubAll), kClubAll, clubForAges.chosen == kClubAll);
+}
+
+// After the clubs or their schedules were saved (Preferences > Clubs, or Suggest Clubs).  The
+//   sessions for new clubs are added here, since plays and taught-on dates are still recorded by
+//   session (issue #1721).
+void MainWindow::clubsChanged()
+{
+    songSettings.ensureSessionsForClubs();
+    int clubID;
+    int currentSessionID = songSettings.currentSessionIDByClubs(QDateTime::currentDateTime(), &clubID);
+    clubForAges.setAutomatic(clubID);
+    bool chosenStillExists = (clubForAges.chosen == kClubOther || clubForAges.chosen == kClubAll);   // a choice from the Clubs menu stays, unless that club was removed
+    for (const auto &club : songSettings.getClubInfo()) {
+        chosenStillExists = chosenStillExists || (club.id == clubForAges.chosen);
+    }
+    if (!chosenStillExists) {
+        clubForAges.choose(kClubNone);
+    }
+    applyClubForAges();                    // Age and Recent come from this club's events (or Other)
+    setCurrentSessionIdReloadSongAgesCheckMenu(currentSessionID);   // also sets lastSessionID
+    populateMenuSessionOptions();
+}
+
+// Clubs > Suggest Clubs from Play History... (issue #1814): clubs worked out from when songs were
+//   played, which the user reviews before anything is saved
+void MainWindow::on_actionSuggest_Clubs_from_Play_History_triggered()
+{
+    const QDate today = QDate::currentDate();
+    const QList<ClubInfo> clubs = songSettings.getClubInfo();
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    QList<ClubSuggestion> suggestions = suggestClubs(songSettings.getPlayTimesUtc(), today);
+    matchExistingClubs(suggestions, clubs, today);
+    QApplication::restoreOverrideCursor();
+
+    if (suggestions.isEmpty()) {
+        QMessageBox::information(this, "Suggest Clubs",
+                                 "SquareDesk didn't find any regular nights in your play history yet.\n\n"
+                                 "It looks for songs played on the same day of the week, at about the same time,"
+                                 " for an hour or more.  Try again after a few more club nights.");
+        return;
+    }
+
+    SuggestClubsDialog dialog(suggestions, clubs, today, currentThemeString, this);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    songSettings.setClubInfo(dialog.clubs());
+    clubsChanged();
 }
 
 void MainWindow::applyClubForAges()
@@ -4766,22 +4816,7 @@ void MainWindow::on_actionPreferences_triggered()
             }
         }
 
-        // The clubs or their schedules may have changed.  The sessions for new clubs are added here,
-        //   since plays and taught-on dates are still recorded by session (issue #1721).
-        songSettings.ensureSessionsForClubs();
-        int clubID;
-        int currentSessionID = songSettings.currentSessionIDByClubs(QDateTime::currentDateTime(), &clubID);
-        clubForAges.setAutomatic(clubID);
-        bool chosenStillExists = (clubForAges.chosen == kClubOther || clubForAges.chosen == kClubAll);   // a choice from the Clubs menu stays, unless that club was removed
-        for (const auto &club : songSettings.getClubInfo()) {
-            chosenStillExists = chosenStillExists || (club.id == clubForAges.chosen);
-        }
-        if (!chosenStillExists) {
-            clubForAges.choose(kClubNone);
-        }
-        applyClubForAges();                    // Age and Recent come from this club's events (or Other)
-        setCurrentSessionIdReloadSongAgesCheckMenu(currentSessionID);   // also sets lastSessionID
-        populateMenuSessionOptions();
+        clubsChanged();   // the clubs or their schedules may have changed
 
         // musicDirChanged is true iff a full scan actually ran, i.e. something changed on disk
         //   since the last scan -- the songTable must be reloaded in that case, or the new songs

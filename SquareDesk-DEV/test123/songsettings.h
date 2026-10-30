@@ -163,6 +163,7 @@ public:
     void setSessionInfo(const QList<SessionInfo> &sessions);
     QList<ClubInfo> getClubInfo();                      // Preferences > Clubs (issue #1721)
     void setClubInfo(const QList<ClubInfo> &clubs);
+    QList<QDateTime> getPlayTimesUtc();                 // every SquareDesk play, for Suggest Clubs (issue #1814)
     void setTagColors( const QHash<QString,QPair<QString,QString>> &);
     QHash<QString,QPair<QString,QString>> getTagColors(bool loadCache = true);
 

@@ -890,6 +890,7 @@ private slots:
     void on_actionBold_triggered();
     void on_actionItalic_triggered();
     void on_actionClear_Recent_triggered();
+    void on_actionSuggest_Clubs_from_Play_History_triggered();
     void on_actionSD_Output_triggered();
     void on_actionShow_Frames_triggered();
     void on_menuSections_aboutToShow();
@@ -1464,6 +1465,7 @@ private:
     ClubForAges clubForAges;   // in Clubs mode, the club Age and Recent are shown for (issue #1721)
     void applyClubForAges();
     void chooseClubForAges(int clubID);
+    void clubsChanged();   // after the clubs were saved: sessions, Age and Recent, the Clubs menu
     int currentSongSecondsPlayed;
     bool currentSongSecondsPlayedRecorded;
     bool firstTimeSongIsPlayed;
