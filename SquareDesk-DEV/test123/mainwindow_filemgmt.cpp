@@ -2169,26 +2169,7 @@ void MainWindow::loadMusicList(QList<QString> *aPathStack, QString typeFilter, b
                     QString origPath = ((auditionButton *)(sender()))->origPath;
                     // qDebug() << "AUDITION PATH:" << origPath;
 
-                    auditionSetStartMs(origPath);
-
-                    // QModelIndexList list = this->ui->songTable->selectionModel()->selectedRows();
-                    // int row = list.at(0).row();
-                    // QString origPath = this->ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
-                    // // qDebug() << "QPushButton pressed, row:" << row << origPath;
-
-                    this->auditionPlayer.setSource(QUrl::fromLocalFile(origPath));
-                    
-                    // Use the selected audition playback device, or default if not set
-                    QAudioDevice selectedDevice;
-                    if (!auditionPlaybackDeviceName.isEmpty()) {
-                        selectedDevice = getAudioDeviceByName(auditionPlaybackDeviceName);
-                    } else {
-                        selectedDevice = QMediaDevices::defaultAudioOutput();
-                    }
-                    QAudioOutput *audioOutput = new QAudioOutput(selectedDevice);
-                    
-                    this->auditionPlayer.setAudioOutput(audioOutput);
-                    this->auditionPlayer.play();
+                    auditionStart(origPath);
                 });
 
         connect(auditionButton1, &QPushButton::released, this,

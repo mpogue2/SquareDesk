@@ -92,6 +92,7 @@
 
 #include "svgWaveformSlider.h"
 // #include "auditionbutton.h"
+#include "songtempo.h"
 
 #if defined(USE_QWEBENGINE)
 #include "src/communicator.h"
@@ -1792,6 +1793,16 @@ void MainWindow::Info_Volume(void)
 }
 
 // ----------------------------------------------------------------------
+// Volume slider (0-100) --> the audio backend's volume (0-100), shared with Audition (issue #1817)
+static int voltageLevelForVolumeSlider(int value)
+{
+    int voltageLevelToSet = static_cast<int>(100.0*pow(10.0,(((value*0.8)+20)/2.0 - 50)/20.0));
+    if (value == 0) {
+        voltageLevelToSet = 0;  // special case for slider all the way to the left (MUTE)
+    }
+    return(voltageLevelToSet);
+}
+
 void MainWindow::on_volumeSlider_valueChanged(int value)
 {
     Q_UNUSED(value)
@@ -1802,10 +1813,7 @@ void MainWindow::on_volumeSlider_valueChanged(int value)
 //         ui->volumeSlider->setValue(minimumVolume); // this will NOT recurse more than once
 //     }
 
-    int voltageLevelToSet = static_cast<int>(100.0*pow(10.0,(((value*0.8)+20)/2.0 - 50)/20.0));
-    if (value == 0) {
-        voltageLevelToSet = 0;  // special case for slider all the way to the left (MUTE)
-    }
+    int voltageLevelToSet = voltageLevelForVolumeSlider(value);
     cBass->SetVolume(voltageLevelToSet);     // now logarithmic, 0 --> 0.01, 50 --> 0.1, 100 --> 1.0 (values * 100 for the audio backend)
     currentVolume = static_cast<unsigned short>(value);    // this will be saved with the song (0-100)
 
@@ -1848,19 +1856,15 @@ void MainWindow::on_actionMute_triggered()
 void MainWindow::on_tempoSlider_valueChanged(int value)
 {
     // qDebug() << "on_tempoSlider_valueChanged:" << value;
+    // same conversion Audition uses, so they agree (issue #1817)
+    int newBASStempo = tempoPercentForSliderValue(tempoIsBPM, baseBPM, value);
+    cBass->SetTempo(newBASStempo);
     if (tempoIsBPM) {
-        double desiredBPM = static_cast<double>(value);            // desired BPM
-        int newBASStempo = static_cast<int>(round(100.0*desiredBPM/baseBPM));
-        cBass->SetTempo(newBASStempo);
         // ui->tempoLabel->setText(QString::number(value) + " BPM (" + QString::number(newBASStempo) + "%)");
         ui->tempoLabel->setText(QString::number(value));
         fitTempoLabelFont();
     }
     else {
-        double basePercent = 100.0;                      // original detected percent
-        double desiredPercent = static_cast<double>(value);            // desired percent
-        int newBASStempo = static_cast<int>(round(100.0*desiredPercent/basePercent));
-        cBass->SetTempo(newBASStempo);
         ui->tempoLabel->setText(QString::number(value) + "%");
         fitTempoLabelFont();
     }
@@ -5949,32 +5953,10 @@ void MainWindow::loadSettingsForSong(QString songTitle)
     {
         if (settings.isSetPitch()) { pitch = settings.getPitch(); }
 
-        // A saved tempo is a bare number whose meaning depends on the units it was saved in:
-        //   130 means 130 BPM or 130%, and tempoIsPercent is what says which.  handleDurationBPM()
-        //   has already chosen this load's units (tempoIsBPM) and sized the slider to match, so a
-        //   saved value in the OTHER units is not a tempo for this slider at all -- applying it
-        //   would just let setValue() clamp it to the nearest end of the range, silently, which
-        //   is how a song ends up playing at 120% or pinned to the bottom of its BPM range.
-        //
-        //   There is no conversion to make here: a percent was taken against a base BPM we no
-        //   longer know, so the honest thing is to keep the default handleDurationBPM() just
-        //   computed, which is correct for this song (issue #1757).
-        if (settings.isSetTempo()) {
-            const int savedTempo = settings.getTempo();
-            if (settings.isSetTempoIsPercent()) {
-                // tempoIsPercent is stored as !tempoIsBPM, so the units agree exactly when it
-                //   differs from this load's tempoIsBPM.
-                if (settings.getTempoIsPercent() != tempoIsBPM) {
-                    tempo = savedTempo; /*qDebug() << "loadSettingsForSong: " << tempo;*/
-                }
-            } else if (savedTempo >= ui->tempoSlider->minimum()
-                       && savedTempo <= ui->tempoSlider->maximum()) {
-                // A row from before the units were recorded.  Accept it only when it already fits
-                //   this song's slider -- which is the test clamping would have applied anyway,
-                //   just silently and with a wrong answer instead of no answer.
-                tempo = savedTempo;
-            }
-        }
+        // handleDurationBPM() has already chosen this load's units (tempoIsBPM) and sized the
+        //   slider to match; a saved tempo in the other units is ignored (issue #1757).
+        tempo = savedTempoForSlider(settings, tempoIsBPM,
+                                    ui->tempoSlider->minimum(), ui->tempoSlider->maximum(), tempo);
         if (settings.isSetVolume()) { volume = settings.getVolume(); }
         if (settings.isSetIntroPos()) { intro = settings.getIntroPos(); }
         if (settings.isSetOutroPos()) { outro = settings.getOutroPos(); }
@@ -7714,27 +7696,13 @@ void MainWindow::handleDurationBPM() {
     int songBPM = static_cast<int>(round(cBass->Stream_BPM));  // MiniBPM's idea of the BPM
 //    qDebug() << "***** handleDurationBPM(): " << songBPM;
 
-// If the MP3 file has an embedded TBPM frame in the ID3 tag, then it overrides the MiniBPM auto-detect of BPM
+    // The units, range and default come from tempoRangeForSong(), which Audition also uses (issue #1817).
+    //   An ID3 TBPM tag, if there is one, overrides the MiniBPM auto-detect of BPM.
     double songBPM_ID3 = getID3BPM(currentMP3filenameWithPath);  // returns 0.0, if not found or not understandable
-    bool songBPM_fromID3tag = (songBPM_ID3 != 0.0);
+    SongTempoRange tempoRange = tempoRangeForSong(songBPM, songBPM_ID3, currentSongCategoryName);
 
-    if (songBPM_fromID3tag) {
-        // qDebug() << "handleDurationBPM: file has ID3v2 TBPM, so slider center set to:" << songBPM;
-        songBPM = static_cast<int>(songBPM_ID3);
-        tempoIsBPM = true;  // this song's tempo is BPM, not %
-    }
+    baseBPM = tempoRange.baseBPM;  // remember the base-level BPM of this song, for when the Tempo slider changes later
 
-    baseBPM = songBPM;  // remember the base-level BPM of this song, for when the Tempo slider changes later
-
-    // Intentionally compare against a narrower range here than BPM detection, because BPM detection
-    //   returns a number at the limits, when it's actually out of range.
-    // An explicit ID3 TBPM tag is trusted by the user, so it gets a much wider sanity range
-    //   than MiniBPM's auto-detected BPM (which is unreliable near its limits).
-    // Also, turn off BPM for xtras (they are all over the place, including round dance cues, which have no BPM at all).
-    //
-    // TODO: make the types for turning off BPM detection a preference
-    bool songBPMinRange = songBPM_fromID3tag ? (songBPM >= 60 && songBPM <= 300)
-                                              : (songBPM >= 125-15 && songBPM <= 125+15);
     // Switching the tempo slider over to this song is ONE change of three things that have to
     //   agree: the mode flag (tempoIsBPM), the range, and the value.  They cannot be changed
     //   atomically, because setMinimum()/setMaximum() emit valueChanged() whenever they clamp
@@ -7750,27 +7718,10 @@ void MainWindow::handleDurationBPM() {
     // So: block the slider's signals, settle mode + range + value, then emit once, deliberately.
     const bool sliderWasBlocked = ui->tempoSlider->blockSignals(true);
 
-    int newTempoMinimum, newTempoMaximum, newTempoValue;
-
-    if (songBPMinRange && currentSongCategoryName != "extras") {
-        tempoIsBPM = true;
-        newTempoMinimum = songBPM - 15;
-        newTempoMaximum = songBPM + 15;
-        newTempoValue   = songBPM;
-
-//        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
-//                                 ", base tempo: " + QString::number(songBPM) + " BPM");
-    }
-    else {
-        tempoIsBPM = false;
-        // if we can't figure out a BPM, then use percent as a fallback (centered: 100%, range: +/-20%)
-        newTempoMinimum = 100 - 20;     // allow +/-20%
-        newTempoMaximum = 100 + 20;
-        newTempoValue   = 100;
-
-//        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
-//                                 ", base tempo: 100%");
-    }
+    tempoIsBPM = tempoRange.tempoIsBPM;
+    int newTempoMinimum = tempoRange.minimum;
+    int newTempoMaximum = tempoRange.maximum;
+    int newTempoValue   = tempoRange.defaultValue;
 
     // Range first, then value: setValue() clamps to the range, so setting the value against the
     //   PREVIOUS song's range would silently pin it to that range's nearest end.  setRange()
@@ -9730,6 +9681,8 @@ void MainWindow::auditionByKeyPress(void) {
     // qDebug() << rowsSongTable.count() << rowsPaletteSlot1.count() << rowsPaletteSlot2.count() << rowsPaletteSlot3.count();
 
     QString auditionSongFilePath = "";
+    QString playlistPitch = "";  // a playlist row's own pitch and tempo (empty for the songTable)
+    QString playlistTempo = "";
 
     if (rowsSongTable.count() >= 1) {
         auditionInProgress = true;
@@ -9738,12 +9691,18 @@ void MainWindow::auditionByKeyPress(void) {
     } else if (rowsPaletteSlot1.count() >= 1) {
         int row = list1.at(0).row();
         auditionSongFilePath = ui->playlist1Table->item(row,COLUMN_PATH)->text();
+        playlistPitch = ui->playlist1Table->item(row,COLUMN_PITCH)->text();
+        playlistTempo = ui->playlist1Table->item(row,COLUMN_TEMPO)->text();
     } else if (rowsPaletteSlot2.count() >= 1) {
         int row = list2.at(0).row();
         auditionSongFilePath = ui->playlist2Table->item(row,COLUMN_PATH)->text();
+        playlistPitch = ui->playlist2Table->item(row,COLUMN_PITCH)->text();
+        playlistTempo = ui->playlist2Table->item(row,COLUMN_TEMPO)->text();
     } else if (rowsPaletteSlot3.count() >= 1) {
         int row = list3.at(0).row();
         auditionSongFilePath = ui->playlist3Table->item(row,COLUMN_PATH)->text();
+        playlistPitch = ui->playlist3Table->item(row,COLUMN_PITCH)->text();
+        playlistTempo = ui->playlist3Table->item(row,COLUMN_TEMPO)->text();
     } else {
         return;  // nothing was selected, so nothing to do
     }
@@ -9752,9 +9711,67 @@ void MainWindow::auditionByKeyPress(void) {
     auditionInProgress = true;
     // qDebug() << "setting auditionInProgress to true";
 
-    this->auditionPlayer.setSource(QUrl::fromLocalFile(auditionSongFilePath));
+    auditionStart(auditionSongFilePath, playlistPitch, playlistTempo);
+}
 
+// Start auditioning a song, at the pitch, tempo and volume a real load of it would use (issue #1817).
+//   Shared by the songTable's audition buttons and OPT-/.  playlistPitch/playlistTempo are the
+//   Pitch and Tempo columns of the playlist row being auditioned ("" when it's not from a playlist).
+void MainWindow::auditionStart(const QString &auditionSongFilePath,
+                               const QString &playlistPitch, const QString &playlistTempo) {
     auditionSetStartMs(auditionSongFilePath);
+
+    SongSetting settings;
+    bool haveSettings = songSettings.loadSettings(auditionSongFilePath, settings);
+
+    // A playlist row carries its own pitch and tempo, which can differ from the song's saved
+    //   settings, and those are what loading it from that row plays.  So they win here, too.
+    //   The tempo text says its own units: "138" is BPM, "105%" is percent.  "0" means "default".
+    if (!playlistPitch.trimmed().isEmpty()) {
+        settings.setPitch(playlistPitch.trimmed().toInt());
+        haveSettings = true;
+    }
+    QString tempoText = playlistTempo.trimmed();
+    bool tempoIsPercent = tempoText.endsWith("%");
+    int playlistTempoValue = tempoText.remove("%").toInt();
+    if (playlistTempoValue != 0) {
+        settings.setTempo(playlistTempoValue);
+        settings.setTempoIsPercent(tempoIsPercent);
+        haveSettings = true;
+    }
+
+    // PITCH and VOLUME: the saved values, through the same slider ranges a load puts them through
+    int pitch = 0;
+    if (haveSettings && settings.isSetPitch()) {
+        pitch = qBound(ui->pitchSlider->minimum(), settings.getPitch(), ui->pitchSlider->maximum());
+    }
+    int volume = 100;
+    if (haveSettings && settings.isSetVolume()) {
+        volume = qBound(ui->volumeSlider->minimum(), settings.getVolume(), ui->volumeSlider->maximum());
+    }
+    double volumeGain = voltageLevelForVolumeSlider(volume) / 100.0;
+
+    // TEMPO: the same three steps as a load -- handleDurationBPM() picks the units and range,
+    //   loadSettingsForSong() applies the saved tempo, and then the "set all songs to N BPM"
+    //   preference gets the last word.  The units can depend on the song's detected BPM, so this
+    //   runs once the AuditionPlayer has decoded enough of the song to detect it.
+    double id3BPM = getID3BPM(auditionSongFilePath);  // 0.0 if none
+    QString categoryName = filepath2SongCategoryName(auditionSongFilePath);
+    bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
+    int initialBPM = prefsManager.GetinitialBPM();
+
+    auto tempoForDetectedBPM = [=](int detectedBPM) {
+        SongTempoRange range = tempoRangeForSong(detectedBPM, id3BPM, categoryName);
+        int tempo = range.defaultValue;
+        if (haveSettings) {
+            tempo = savedTempoForSlider(settings, range.tempoIsBPM, range.minimum, range.maximum, tempo);
+        }
+        tempo = qBound(range.minimum, tempo, range.maximum);  // the clamp tempoSlider->setValue() does
+        if (tryToSetInitialBPM && range.tempoIsBPM) {
+            tempo = qBound(range.minimum, initialBPM, range.maximum);
+        }
+        return(tempoPercentForSliderValue(range.tempoIsBPM, range.baseBPM, tempo));
+    };
 
     // Use the selected audition playback device, or default if not set
     QAudioDevice selectedDevice;
@@ -9763,10 +9780,11 @@ void MainWindow::auditionByKeyPress(void) {
     } else {
         selectedDevice = QMediaDevices::defaultAudioOutput();
     }
-    QAudioOutput *audioOutput = new QAudioOutput(selectedDevice);
-    
-    this->auditionPlayer.setAudioOutput(audioOutput);
-    this->auditionPlayer.play();
+
+    auditionPlayer.start(auditionSongFilePath, selectedDevice, auditionStartHere_ms,
+                         pitch, volumeGain,
+                         id3BPM == 0.0,  // an ID3 TBPM tag overrides detection, so no need to detect
+                         tempoForDetectedBPM);
 }
 
 void MainWindow::auditionByKeyRelease(void) {

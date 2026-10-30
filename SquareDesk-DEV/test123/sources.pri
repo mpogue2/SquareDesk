@@ -8,6 +8,8 @@ SOURCES += main.cpp\
     addcommentdialog.cpp \
     audiodecoder.cpp \
     auditionbutton.cpp \
+    auditionplayer.cpp \
+    songtempo.cpp \
     flexible_audio.cpp \
     embeddedserver.cpp \
     lyricsEditor.cpp \
@@ -111,6 +113,8 @@ HEADERS  += mainwindow.h \
     addcommentdialog.h \
     audiodecoder.h \
     auditionbutton.h \
+    auditionplayer.h \
+    songtempo.h \
     embeddedserver.h \
     flexible_audio.h \
     globaldefines.h \

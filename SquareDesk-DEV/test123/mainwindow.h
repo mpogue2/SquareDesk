@@ -94,6 +94,7 @@
 #include "math.h"
 
 #include "flexible_audio.h"
+#include "auditionplayer.h"
 #include "embeddedserver.h"
 
 #include "myslider.h"
@@ -233,7 +234,7 @@ public:
     void playSFX(QString which);
 
     // Audition functionality
-    QMediaPlayer auditionPlayer;
+    AuditionPlayer auditionPlayer;  // plays at the song's own pitch/tempo/volume (issue #1817)
     bool auditionInProgress;
     bool auditionPlaying = false;
     QTimer auditionSingleShotTimer;
@@ -243,6 +244,8 @@ public:
     void auditionByKeyPress(void);
     void auditionByKeyRelease(void);
     void auditionSetStartMs(QString filepath);
+    void auditionStart(const QString &auditionSongFilePath,
+                       const QString &playlistPitch = QString(), const QString &playlistTempo = QString());
 
     // Preview Playback Device functions
     void populatePlaybackDeviceMenu();

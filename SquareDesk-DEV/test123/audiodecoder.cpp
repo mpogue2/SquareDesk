@@ -1235,20 +1235,29 @@ float AudioDecoder::BPMsample(float sampleStart_sec, float sampleLength_sec, flo
     // returns BPM if in range
     // return zero if not in range
 
-    float finalBPMresult;
-
     unsigned char *p_data = (unsigned char *)(m_data->data());
     myPlayer.assignDataAndTotalFrames(p_data,  m_data->size()/myPlayer.getBytesPerFrame()); // pre-mixdown is 2 floats per frame = 8
 //    qDebug() << "** AudioDecoder::BPMsample totalFramesInSong: " << myPlayer.totalFramesInSong;  // TODO: this is really frames
 
 //    qDebug() << "BPMsample: " << m_data->size()/myPlayer.bytesPerFrame << p_data;
 
+    return(estimateBPM((const float *)p_data, myPlayer.getTotalFramesInSong(),
+                       sampleStart_sec, sampleLength_sec, BPMbase, BPMtolerance));
+}
+
+// The BPM detection itself, on 44.1kHz interleaved stereo float frames.  Static, so that
+//   Audition (issue #1817) can run exactly the same detection on its own decoded copy of a song.
+float AudioDecoder::estimateBPM(const float *songPointer, unsigned int totalFrames,
+                                float sampleStart_sec, float sampleLength_sec, float BPMbase, float BPMtolerance) {
+    // returns BPM if in range
+    // return zero if not in range
+
+    float finalBPMresult;
+
     // BPM detection -------
     //   this estimate will be based on mono mixed-down samples from T={30,40} sec
-    const float *songPointer = (const float *)p_data;
-
     float sampleEnd_sec = sampleStart_sec + sampleLength_sec;
-    float songLength_sec = ((double)(myPlayer.getTotalFramesInSong()))/(double)(SAMPLE_RATE);
+    float songLength_sec = ((double)(totalFrames))/(double)(SAMPLE_RATE);
 
     // if song is longer than 40, end_sec will be 40; else end_sec will be the end of the song.
     float end_sec = (songLength_sec >= sampleEnd_sec ? sampleEnd_sec : songLength_sec);

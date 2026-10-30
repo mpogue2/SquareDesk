@@ -178,6 +178,8 @@ public:
     double getBPM();
 
     float BPMsample(float sampleStart_sec, float sampleLength_sec, float BPMbase, float BPMtolerance);
+    static float estimateBPM(const float *stereoFrames, unsigned int totalFrames,
+                             float sampleStart_sec, float sampleLength_sec, float BPMbase, float BPMtolerance);
 
     QString makeExternalAudioFile(QString filename);  // used by beatBarDetection and segmentDetection
     QString runVamp(QString whichModule, QString WAVfilename, QString resultsFilename);
