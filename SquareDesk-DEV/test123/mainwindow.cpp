@@ -1707,11 +1707,15 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
         // not initialized yet, so just ignore
 //        qDebug() << "sourceForLoadedSong not initialized yet...";
         return;
-    } else if ((sourceForLoadedSong == ui->playlist1Table && !relPathInSlot[0].startsWith("/tracks")) ||
-               (sourceForLoadedSong == ui->playlist2Table && !relPathInSlot[1].startsWith("/tracks")) ||
-               (sourceForLoadedSong == ui->playlist3Table && !relPathInSlot[2].startsWith("/tracks"))
-               ) {
-        // source was one of the playlists, so we just update this one playlist
+    }
+
+    // The songTable is "the last pitch/tempo used on this song", so it is updated wherever the song was
+    //   loaded from.  A song loaded from a playlist also updates that playlist's row (issue #1819).
+    if ((sourceForLoadedSong == ui->playlist1Table && !relPathInSlot[0].startsWith("/tracks")) ||
+        (sourceForLoadedSong == ui->playlist2Table && !relPathInSlot[1].startsWith("/tracks")) ||
+        (sourceForLoadedSong == ui->playlist3Table && !relPathInSlot[2].startsWith("/tracks"))
+        ) {
+        // source was one of the playlists, so update this one playlist, too
         // first, find which playlist entry is the one that is loaded
         for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
             if (sourceForLoadedSong->item(i, COLUMN_LOADED)->text() == "1") {
@@ -1731,10 +1735,10 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
                 break; // and break out of the loop (because we found the one item we were looking for)
             }
         }
-    } else {
-        // source was one of the songTables, OR one of the palette slots containing a Track Filter, so update
-        //   both songTables and all the palette slots containing Track Filters
-        //
+    }
+
+    {
+        // update the songTable, and all the palette slots containing Track Filters (which show the songTable's values)
         saveCurrentSongSettings();
 
         // and update the songTable, too
@@ -1869,44 +1873,21 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
         fitTempoLabelFont();
     }
 
-    saveCurrentSongSettings();
-// SONGTABLEREFACTOR
-    // update the hidden tempo column
-
-    ui->songTable->setSortingEnabled(false);
-
-    int row = getSelectionRowForFilename(currentMP3filenameWithPath);
-    if (row != -1)
-    {
-        if (tempoIsBPM) {
-            ui->songTable->item(row, kTempoCol)->setText(QString::number(value));
-//            qDebug() << "on_tempoSlider_valueChanged: setting text for tempo to: " << QString::number(value);
-        }
-        else {
-            ui->songTable->item(row, kTempoCol)->setText(QString::number(value) + "%");
-//            qDebug() << "on_tempoSlider_valueChanged: setting text for tempo to: " << QString::number(value) + "%";
-        }
-    }
-
-    ui->songTable->setSortingEnabled(true);
-
-    QString tempoText = QString::number(value);
-    if (row != -1)
-    {
-        if (!tempoIsBPM) {
-            tempoText = tempoText + "%";
-        }
-    }
+    QString tempoText = QString::number(value) + (tempoIsBPM ? "" : "%");
 
     if (sourceForLoadedSong == nullptr) {
         // not initialized yet, so just ignore
         //        qDebug() << "sourceForLoadedSong not initialized yet...";
         return;
-    } else if ((sourceForLoadedSong == ui->playlist1Table && !relPathInSlot[0].startsWith("/tracks")) ||
-               (sourceForLoadedSong == ui->playlist2Table && !relPathInSlot[1].startsWith("/tracks")) ||
-               (sourceForLoadedSong == ui->playlist3Table && !relPathInSlot[2].startsWith("/tracks"))
-               ) {
-        // source was one of the playlists, so we just update this one playlist
+    }
+
+    // The songTable is "the last pitch/tempo used on this song", so it is updated wherever the song was
+    //   loaded from.  A song loaded from a playlist also updates that playlist's row (issue #1819).
+    if ((sourceForLoadedSong == ui->playlist1Table && !relPathInSlot[0].startsWith("/tracks")) ||
+        (sourceForLoadedSong == ui->playlist2Table && !relPathInSlot[1].startsWith("/tracks")) ||
+        (sourceForLoadedSong == ui->playlist3Table && !relPathInSlot[2].startsWith("/tracks"))
+        ) {
+        // source was one of the playlists, so update this one playlist, too
         // first, find which playlist entry is the one that is loaded
         for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
             if (sourceForLoadedSong->item(i, COLUMN_LOADED)->text() == "1") {
@@ -1926,10 +1907,10 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
                 break; // and break out of the loop (because we found the one item we were looking for)
             }
         }
-    } else {
-        // source was one of the songTables, OR one of the palette slots containing a Track Filter, so update
-        //   both songTables and all the palette slots containing Track Filters
-        //
+    }
+
+    {
+        // update the songTable, and all the palette slots containing Track Filters (which show the songTable's values)
         saveCurrentSongSettings();
 
         // and update the songTable, too
@@ -3899,6 +3880,30 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 
     loadGlobalSettingsForSong(songTitle); // sets global eq (e.g. Intelligibility Boost), AFTER song is loaded
 
+    // A song loaded from a playlist plays at that playlist row's pitch and tempo, not the songTable's
+    //   (issue #1819).  They have to be applied down here, after loadSettingsForSong() has applied the
+    //   DB's, and after handleDurationBPM() has decided this song's tempo units and range.
+    bool loadedFromPlaylist = (playlistPitchTempoForPath != "" && playlistPitchTempoForPath == currentMP3filenameWithPath);
+    playlistPitchTempoForPath = "";  // used up
+    if (loadedFromPlaylist) {
+        ui->pitchSlider->setValue(targetPitch.trimmed().toInt());
+
+        // The tempo text says its own units: "138" is BPM, "105%" is percent.  "0" means "the default",
+        //   which is what the slider already has if the DB has nothing better.  A tempo in the other
+        //   units is ignored, exactly as a saved one would be (issue #1757).
+        QString tempoText = targetTempo.trimmed();
+        bool tempoTextIsPercent = tempoText.endsWith("%");
+        int tempoValue = tempoText.remove("%").toInt();
+        if (tempoValue != 0) {
+            SongSetting playlistTempo;
+            playlistTempo.setTempo(tempoValue);
+            playlistTempo.setTempoIsPercent(tempoTextIsPercent);
+            ui->tempoSlider->setValue(savedTempoForSlider(playlistTempo, tempoIsBPM,
+                                                          ui->tempoSlider->minimum(), ui->tempoSlider->maximum(),
+                                                          ui->tempoSlider->value()));
+        }
+    }
+
     // NOTE: this needs to be down here, to override the tempo setting loaded by loadSettingsForSong()
     // This is a preference, e.g. to "[X] set all songs to 125BPM"
     bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
@@ -3912,24 +3917,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
         //  iff the tempo is actually measured in BPM for this song
         ui->tempoSlider->setValue(initialBPM);
         emit ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
-    } else {
-        // qDebug() << "using targetTempo" << targetTempo;
-        if (targetTempo != "0" && targetTempo != "0%") {
-            // iff tempo is known, then update the table
-            QString tempo2 = targetTempo.replace("%",""); // if percentage (not BPM) just get rid of the "%" (setValue knows what to do)
-            int tempoInt = tempo2.toInt();
-            if (tempoInt != 0)
-            {
-            }
-        }
-
-        if (targetTempo == "0" && initialBPM != 0) { // 0 means "set to default value", this is used by initial Apple Music playlists, where tempo = 0 initially
-            // qDebug() << "setting slider to default value";
-        }
     }
-
-//    qDebug() << "using targetPitch" << targetPitch;
-    // int pitchInt = targetPitch.toInt();
 
 //    qDebug() << "setting stream position to: " << startOfSong_sec;
     cBass->StreamSetPosition(startOfSong_sec);  // last thing we do is move the stream position to 1 sec before start of music
@@ -3937,6 +3925,12 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     songLoaded = true;  // now seekBar can be updated
     setInOutButtonState();
     loadingSong = false;
+
+    if (loadedFromPlaylist) {
+        // The playlist's pitch and tempo are now the last ones used on this song, so the songTable
+        //   (the DB) gets them too.  This couldn't happen above: saves are ignored while loadingSong.
+        saveCurrentSongSettings();
+    }
 
     updateLoopAlignmentIndicators();  // #1604: color the loop brackets, now that intro/outro are set
 
@@ -8242,6 +8236,7 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     targetPitch = pitch;  // save this string, and set pitch slider AFTER base BPM has been figured out
     targetTempo = tempo;  // save this string, and set tempo slider AFTER base BPM has been figured out
     targetNumber = number; // save this, because tempo changes when this is set are playlist modifications, too
+    playlistPitchTempoForPath = "";  // the songTable's pitch/tempo are the DB's, which loadSettingsForSong() applies
 
     //    qDebug() << "on_songTable_itemDoubleClicked: " << songTitle << songType << songLabel << pitch << tempo;
 

@@ -1414,6 +1414,11 @@ void MainWindow::handlePlaylistDoubleClick(QTableWidgetItem *item)
     targetPitch = pitch;  // save this string, and set pitch slider AFTER base BPM has been figured out
     targetTempo = tempo;  // save this string, and set tempo slider AFTER base BPM has been figured out
 
+    // secondHalfOfLoad() applies targetPitch/targetTempo once the decode is done, so the song plays at
+    //   this row's pitch and tempo (issue #1819).  A Track Filter slot shows the songTable's values,
+    //   so loading from one is just like loading from the songTable.
+    playlistPitchTempoForPath = (relPathInSlot[slotNumber].startsWith("/tracks") ? "" : pathToMP3);
+
     t.elapsed(__LINE__);
 
     loadMP3File(pathToMP3, songTitle, songType, songLabel, nextFile);

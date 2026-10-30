@@ -1188,6 +1188,7 @@ private:
     QString targetPitch;
     QString targetTempo;
     QString targetNumber;
+    QString playlistPitchTempoForPath;  // a playlist load in flight: apply targetPitch/targetTempo to THIS file (issue #1819)
     bool switchToLyricsOnPlay;
     void Info_Volume(void);
     void Info_Seekbar(bool forceSlider);

@@ -253,6 +253,10 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     loadingSong = true;
     firstTimeSongIsPlayed = true;
 
+    if (MP3FileName != playlistPitchTempoForPath) {
+        playlistPitchTempoForPath = "";  // this load is not the playlist load that set it (issue #1819)
+    }
+
     currentMP3filenameWithPath = MP3FileName;
 
     // currentSongLabel = songLabel;   // remember it, in case we need it later
