@@ -497,6 +497,43 @@ QList<ClubSuggestion> suggestClubs(const QList<QDateTime> &playsUtc, const QDate
     return suggestions;
 }
 
+void matchExistingClubs(QList<ClubSuggestion> &suggestions, const QList<ClubInfo> &clubs, const QDate &asOf,
+                        double coveredShare, double likeShare)
+{
+    QList<QList<ClubWindow>> windows;
+    for (const ClubInfo &club : clubs) {
+        windows.append(clubEventWindowsUtc(club.rules, asOf));
+    }
+    for (ClubSuggestion &s : suggestions) {
+        int best = -1, bestCount = 0;
+        for (int c = 0; c < clubs.size(); ++c) {
+            int count = 0;
+            for (const SuggestedEvent &e : std::as_const(s.events)) {
+                // the middle of the event, so that one that started early still counts
+                const int middle = (e.start_minutes + e.end_minutes) / 2;
+                QDateTime t(e.date.addDays(middle / 1440), QTime((middle % 1440) / 60, middle % 60));
+                count += clubWindowsContain(windows[c], t.toUTC()) ? 1 : 0;
+            }
+            if (count > bestCount) {
+                best = c;
+                bestCount = count;
+            }
+        }
+        const double share = s.events.isEmpty() ? 0 : double(bestCount) / s.events.size();
+        if (best < 0 || share < likeShare) {
+            continue;
+        }
+        s.existingClubId = clubs[best].id;
+        s.existingClubName = clubs[best].name;
+        s.existingShare = share;
+        if (share >= coveredShare) {
+            s.checked = false;
+            s.note = QString("already covered by %1: %2 of its %3 nights are %1 nights")
+                         .arg(clubs[best].name).arg(bestCount).arg(s.events.size());
+        }
+    }
+}
+
 QString clubRuleSentence(const ClubRule &r)
 {
     const QLocale en(QLocale::English);

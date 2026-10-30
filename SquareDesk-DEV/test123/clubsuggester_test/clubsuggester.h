@@ -90,11 +90,20 @@ public:
     bool checked = true;           // starts out checked in the review dialog
     QString note;                  // why it isn't checked, or what was left out of it
     QList<QDate> leftInOther;      // one-off nights not put in its rules (too few a year)
+    int existingClubId = -1;       // the user's club that holds most of its nights (matchExistingClubs()), or -1
+    QString existingClubName;
+    double existingShare = 0;      // how many of its nights that club already holds, 0..1
 };
 
 // `playsUtc` in any order.  `asOf` is "now", for deciding which clubs still meet.
 QList<ClubSuggestion> suggestClubs(const QList<QDateTime> &playsUtc, const QDate &asOf,
                                    const ClubSuggesterParams &params = ClubSuggesterParams());
+
+// For each suggestion, the user's existing club whose events already hold the most of its nights.
+//   At `coveredShare` or more, the suggestion is unchecked as already covered; at `likeShare` or
+//   more, that club is where its rules would go by default (see existingClubId).
+void matchExistingClubs(QList<ClubSuggestion> &suggestions, const QList<ClubInfo> &clubs, const QDate &asOf,
+                        double coveredShare = 0.8, double likeShare = 0.3);
 
 // The events that plays make (step 1), exposed for the test harness
 QList<SuggestedEvent> eventsFromPlays(const QList<QDateTime> &playsUtc, const ClubSuggesterParams &params);
