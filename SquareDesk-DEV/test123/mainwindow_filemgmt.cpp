@@ -1535,8 +1535,11 @@ static QString appleMusicDateText(const QDateTime &when)
 // --------------------------------------------------------------------------------
 // The Date Last Played cell (issue #1783).  Shown like Date Added, and for the same reason it is
 //   a TableSortKeyItem: the text is in the user's own date format, so it sorts on the instant
-//   instead.  A song that has never been played (in the sessions being shown) has no value, and
-//   sorts to the end in both directions.
+//   instead.  A song that has never been played (in the clubs being shown) is not a missing
+//   value, it is the oldest date of all (key 0), so it sorts at the BOTTOM of a most-recent-first
+//   sort and the top of an oldest-first one.  Treating it as valueless put it at the TOP of a
+//   descending sort, because Qt sorts descending by swapping the arguments to operator<
+//   (issue #1815, the same bug as #1775 in the Rating column).
 //
 //   Always a fresh item rather than a setText(), because the sort key can't be changed on an
 //   existing TableSortKeyItem.  Called when the list is loaded, when the ages are reloaded, and
@@ -1551,8 +1554,7 @@ void MainWindow::setDateLastPlayedCell(int row, const QDateTime &lastPlayed, con
     const QString text = lastPlayed.isValid() ? systemLocale.toString(lastPlayed.date(), QLocale::ShortFormat)
                                               : QString();
     QTableWidgetItem *item = new TableSortKeyItem(text,
-                                                  lastPlayed.isValid() ? static_cast<double>(lastPlayed.toMSecsSinceEpoch()) : 0.0,
-                                                  lastPlayed.isValid());
+                                                  lastPlayed.isValid() ? static_cast<double>(lastPlayed.toMSecsSinceEpoch()) : 0.0);
     item->setForeground(textBrush);
     item->setFlags(item->flags() & ~Qt::ItemIsEditable);
     if (lastPlayed.isValid()) {
