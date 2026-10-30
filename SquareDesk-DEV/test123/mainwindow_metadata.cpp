@@ -56,8 +56,6 @@
 #define MINIMP3_FLOAT_OUTPUT
 #include "third_party/minimp3_ex.h"
 
-#include "xxhash64.h"
-
 #include <taglib/toolkit/tlist.h>
 #include <taglib/fileref.h>
 #include <taglib/toolkit/tfile.h>
@@ -79,36 +77,6 @@
 #include "utility.h"
 
 using namespace TagLib;
-
-// ---------------------------------------------------------------------------------
-QString MainWindow::getSongFileIdentifier(QString pathToSong) {
-    Q_UNUSED(pathToSong)
-
-    // LOAD TO MEMORY -----------
-    mp3dec_t mp3d;
-    mp3dec_file_info_t info;
-
-    if (mp3dec_load(&mp3d, pathToSong.toStdString().c_str(), &info, NULL, NULL))
-    {
-        qDebug() << "ERROR: mp3dec_load, can't get SongFileID.";
-        return(QString("0xFFFFFFFF"));  // ERROR: -1
-    }
-
-    // qDebug() << "SongFileID: " << info.samples << info.channels << info.hz << sizeof(mp3d_sample_t);
-
-    // NOTE: THIS HASH ALGORITHM IS FOR LITTLE-ENDIAN MACHINES ONLY, e.g. Intel, ARM *********
-    // On an M1 mac, this hash takes only about 20ms for 31836672 * 4 bytes = 6400MB/s (!)
-
-    uint64_t myseed   = 0;
-    uint64_t numBytes = info.samples * sizeof(mp3d_sample_t);
-    uint64_t result2  = XXHash64::hash(info.buffer, numBytes, myseed);
-
-    QString hexHash = QString::number(result2, 16); // QString of exactly 16 hex characters
-
-    free(info.buffer);
-
-    return(hexHash);
-}
 
 // ID3 ----------------------
 // read ID3Tags from an MP3 file

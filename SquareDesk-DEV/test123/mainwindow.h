@@ -408,7 +408,6 @@ public:
     void changeTagsForPaths(const QStringList &paths, BulkTagOp op, const QString &tag = QString());
     void addMultiSongTagActions(QMenu *menu, const QStringList &paths);  // shared by songTable and palette slot menus
     int MP3FileSampleRate(QString pathToMP3);
-    QString getSongFileIdentifier(QString pathToSong);
 
     // ============================================================================
     // EMBEDDED SERVER & EXTERNAL INTEGRATIONS
