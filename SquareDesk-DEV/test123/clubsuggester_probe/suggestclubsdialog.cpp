@@ -51,6 +51,10 @@
 
 static const int kEndedDays = 8 * 7;   // a weekly rule made from nights this recent gets no end
 
+// the "More nights for" menu's items: an existing club (its id), or another suggestion (its index)
+enum { kTargetKindRole = Qt::UserRole, kTargetIdRole = Qt::UserRole + 1 };
+enum { kTargetExisting = 0, kTargetSuggestion = 1 };
+
 enum { kNightColKeep = 0, kNightColDate = 1, kNightColTime = 2, kNightColPlays = 3, kNightColStatus = 4 };
 
 static QIcon swatchIcon(const QString &color)
@@ -245,6 +249,7 @@ void SuggestClubsDialog::resetChoice(Choice &c) const
     c.name = s.club.name;
     c.color = s.club.color;
     c.targetClubId = s.existingClubId;
+    c.targetChoice = -1;
     c.rules.clear();
     c.oneOffs.clear();
     c.nightRules.clear();
@@ -304,7 +309,7 @@ void SuggestClubsDialog::buildUi()
             if (m_current >= 0) {
                 m_choices[m_current].color = color;
                 m_colorButton->setIcon(swatchIcon(color));
-                refreshListItem(m_current);
+                refreshAllListItems();
                 refreshNights();
             }
         });
@@ -336,10 +341,7 @@ void SuggestClubsDialog::buildUi()
     // not as wide as the longest club name: that would set the pane's minimum width, and leave
     //   the splitter nowhere to go
     m_target->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
-    m_target->setMinimumContentsLength(16);
-    for (const ClubInfo &club : std::as_const(m_existing)) {
-        m_target->addItem(swatchIcon(club.color), club.name, club.id);
-    }
+    m_target->setMinimumContentsLength(22);   // room for "Wednesday evening (new)"
     QHBoxLayout *asRow = new QHBoxLayout();
     QLabel *addAs = new QLabel("Add as:");
     addAs->setObjectName("clubRuleWord");
@@ -349,11 +351,6 @@ void SuggestClubsDialog::buildUi()
     asRow->addWidget(m_asMore);
     asRow->addWidget(m_target);
     asRow->addStretch(1);
-    if (m_existing.isEmpty()) {
-        m_asMore->setEnabled(false);
-        m_target->setEnabled(false);
-        m_asMore->setToolTip("You don't have any clubs yet");
-    }
 
     m_timeline = new NightsTimeline();
     m_timeline->setTheme(m_theme);
@@ -456,44 +453,51 @@ void SuggestClubsDialog::buildUi()
         }
         m_choices[index].keep = (item->checkState() == Qt::Checked);
         if (index == m_current) {
+            const QSignalBlocker blocker(m_keep);
             m_keep->setChecked(m_choices[index].keep);
         }
-        refreshSummary();
+        targetsChanged();
     });
     connect(m_keep, &QCheckBox::toggled, this, [this](bool on) {
         if (m_filling || m_current < 0) {
             return;
         }
         m_choices[m_current].keep = on;
-        refreshListItem(m_current);
-        refreshSummary();
+        targetsChanged();
     });
     connect(m_name, &QLineEdit::textEdited, this, [this](const QString &text) {
         if (m_current >= 0) {
             m_choices[m_current].name = text;
-            refreshListItem(m_current);
+            refreshAllListItems();   // the suggestions headed for this one show its name
             refreshSummary();
         }
     });
     connect(m_reset, &QPushButton::clicked, this, [this]() {
         if (m_current >= 0) {
             resetChoice(m_choices[m_current]);
-            refreshListItem(m_current);
-            selectChoice(m_current);
-            refreshSummary();
+            targetsChanged();
         }
     });
     auto targetChanged = [this]() {
         if (m_filling || m_current < 0) {
             return;
         }
-        m_choices[m_current].targetClubId = m_asMore->isChecked() ? m_target->currentData().toInt() : -1;
-        selectChoice(m_current);   // the name and color follow the target
-        refreshListItem(m_current);
-        refreshSummary();
+        Choice &c = m_choices[m_current];
+        c.targetClubId = -1;
+        c.targetChoice = -1;
+        if (m_asMore->isChecked() && m_target->currentIndex() >= 0) {
+            const int id = m_target->currentData(kTargetIdRole).toInt();
+            if (m_target->currentData(kTargetKindRole).toInt() == kTargetExisting) {
+                c.targetClubId = id;
+            } else {
+                c.targetChoice = id;
+            }
+        }
+        targetsChanged();   // also shows the target's name and color
     };
     connect(m_asNew, &QRadioButton::toggled, this, targetChanged);
-    connect(m_target, &QComboBox::currentIndexChanged, this, [this, targetChanged]() {
+    // activated, not currentIndexChanged: picking the club the menu already shows still chooses it
+    connect(m_target, &QComboBox::activated, this, [this, targetChanged]() {
         if (!m_filling) {
             m_asMore->setChecked(true);
             targetChanged();
@@ -560,6 +564,79 @@ void SuggestClubsDialog::fillList()
     m_filling = false;
 }
 
+bool SuggestClubsDialog::hasTarget(const Choice &c) const
+{
+    return c.targetClubId >= 0 || c.targetChoice >= 0;
+}
+
+QString SuggestClubsDialog::choiceName(int index) const
+{
+    const Choice &c = m_choices[index];
+    return c.name.trimmed().isEmpty() ? c.original.club.name : c.name.trimmed();
+}
+
+// the club these nights would go to: an existing club, or the new club another suggestion makes
+QString SuggestClubsDialog::targetName(const Choice &c) const
+{
+    return (c.targetChoice >= 0) ? choiceName(c.targetChoice) : clubNameForId(c.targetClubId);
+}
+
+QString SuggestClubsDialog::targetColor(const Choice &c) const
+{
+    if (c.targetChoice >= 0) {
+        return m_choices[c.targetChoice].color;
+    }
+    for (const ClubInfo &club : m_existing) {
+        if (club.id == c.targetClubId) {
+            return club.color;
+        }
+    }
+    return c.color;
+}
+
+// After any change to what's kept or where nights go: a suggestion headed for one that isn't kept
+//   any more goes back to "A new club", and one headed for a suggestion that is itself headed
+//   elsewhere follows it there, so that there are never chains (or loops)
+void SuggestClubsDialog::targetsChanged()
+{
+    for (int pass = 0; pass <= m_choices.size(); ++pass) {
+        bool changed = false;
+        for (int i = 0; i < m_choices.size(); ++i) {
+            Choice &a = m_choices[i];
+            if (a.targetChoice < 0) {
+                continue;
+            }
+            const Choice &b = m_choices[a.targetChoice];
+            if (a.targetChoice == i || !b.keep || b.targetChoice == i) {
+                a.targetChoice = -1;
+            } else if (b.targetClubId >= 0) {
+                a.targetClubId = b.targetClubId;
+                a.targetChoice = -1;
+            } else if (b.targetChoice >= 0) {
+                a.targetChoice = b.targetChoice;
+            } else {
+                continue;
+            }
+            changed = true;
+        }
+        if (!changed) {
+            break;
+        }
+    }
+    refreshAllListItems();
+    if (m_current >= 0) {
+        selectChoice(m_current);   // the menu, the name and color, and which nights the target has
+    }
+    refreshSummary();
+}
+
+void SuggestClubsDialog::refreshAllListItems()
+{
+    for (int i = 0; i < m_choices.size(); ++i) {
+        refreshListItem(i);
+    }
+}
+
 QString SuggestClubsDialog::clubNameForId(int id) const
 {
     for (const ClubInfo &club : m_existing) {
@@ -582,11 +659,9 @@ void SuggestClubsDialog::refreshListItem(int index)
         m_filling = true;
         QString title = c.name.trimmed().isEmpty() ? QString("(no name)") : c.name;
         QString color = c.color;
-        if (c.targetClubId >= 0) {
-            title = QString::fromUtf8("→ ") + clubNameForId(c.targetClubId);
-            for (const ClubInfo &club : m_existing) {
-                color = (club.id == c.targetClubId) ? club.color : color;
-            }
+        if (hasTarget(c)) {
+            title = QString::fromUtf8("→ ") + targetName(c);
+            color = targetColor(c);
         }
         item->setText(title + "\n" + scheduleText(c));
         item->setIcon(swatchIcon(color));
@@ -609,9 +684,13 @@ bool SuggestClubsDialog::coveredByRule(const Choice &c, const QDate &date) const
     return false;
 }
 
-// A night that the existing club these nights would go to already has
+// A night that the club these nights would go to already has
 bool SuggestClubsDialog::coveredByTarget(const Choice &c, const QDate &date) const
 {
+    if (c.targetChoice >= 0) {
+        const Choice &target = m_choices[c.targetChoice];
+        return coveredByRule(target, date) || target.oneOffs.contains(date);
+    }
     if (c.targetClubId < 0) {
         return false;
     }
@@ -675,25 +754,60 @@ void SuggestClubsDialog::selectChoice(int index)
     m_filling = true;
 
     m_keep->setChecked(c.keep);
-    const bool asMore = (c.targetClubId >= 0);
+
+    // "More nights for": the user's clubs, then the other kept suggestions that aren't headed
+    //   elsewhere themselves (their new clubs)
+    m_target->clear();
+    for (const ClubInfo &club : std::as_const(m_existing)) {
+        m_target->addItem(swatchIcon(club.color), club.name);
+        m_target->setItemData(m_target->count() - 1, kTargetExisting, kTargetKindRole);
+        m_target->setItemData(m_target->count() - 1, club.id, kTargetIdRole);
+    }
+    bool separated = m_existing.isEmpty();
+    for (int j = 0; j < m_choices.size(); ++j) {
+        if (j == index || !m_choices[j].keep || hasTarget(m_choices[j])) {
+            continue;
+        }
+        if (!separated) {
+            m_target->insertSeparator(m_target->count());
+            separated = true;
+        }
+        m_target->addItem(swatchIcon(m_choices[j].color), choiceName(j) + " (new)");
+        m_target->setItemData(m_target->count() - 1, kTargetSuggestion, kTargetKindRole);
+        m_target->setItemData(m_target->count() - 1, j, kTargetIdRole);
+    }
+    auto findTarget = [this](int kind, int id) {
+        for (int i = 0; i < m_target->count(); ++i) {
+            if (m_target->itemData(i, kTargetKindRole).toInt() == kind && m_target->itemData(i, kTargetIdRole).toInt() == id
+                && m_target->itemData(i, kTargetKindRole).isValid()) {
+                return i;
+            }
+        }
+        return -1;
+    };
+    const bool asMore = hasTarget(c);
+    int targetRow = -1;
+    if (c.targetChoice >= 0) {
+        targetRow = findTarget(kTargetSuggestion, c.targetChoice);
+    } else if (c.targetClubId >= 0) {
+        targetRow = findTarget(kTargetExisting, c.targetClubId);
+    } else if (c.original.existingClubId >= 0) {
+        targetRow = findTarget(kTargetExisting, c.original.existingClubId);
+    }
+    m_target->setCurrentIndex(targetRow >= 0 ? targetRow : (m_target->count() > 0 ? 0 : -1));
+    const bool anyTarget = (m_target->count() > 0);
+    m_asMore->setEnabled(anyTarget);
+    m_target->setEnabled(anyTarget);
+    m_asMore->setToolTip(anyTarget ? QString()
+                                   : QString("No clubs yet: keep another suggestion, and these nights can join its club"));
     m_asMore->setChecked(asMore);
     m_asNew->setChecked(!asMore);
-    if (asMore) {
-        m_target->setCurrentIndex(std::max(0, m_target->findData(c.targetClubId)));
-    } else if (c.original.existingClubId >= 0) {
-        m_target->setCurrentIndex(std::max(0, m_target->findData(c.original.existingClubId)));
-    }
-    // a club of yours keeps its own name and color
+
+    // the club these nights go to keeps its own name and color
     m_name->setEnabled(!asMore);
     m_colorButton->setEnabled(!asMore);
-    QString color = c.color;
-    m_name->setText(asMore ? clubNameForId(c.targetClubId) : c.name);
-    if (asMore) {
-        for (const ClubInfo &club : std::as_const(m_existing)) {
-            color = (club.id == c.targetClubId) ? club.color : color;
-        }
-    }
-    m_colorButton->setIcon(swatchIcon(color));
+    m_name->setText(asMore ? targetName(c) : c.name);
+    m_colorButton->setIcon(swatchIcon(asMore ? targetColor(c) : c.color));
 
     QStringList notes;
     const QDate from = c.original.events.first().date, to = c.original.events.last().date;
@@ -808,7 +922,7 @@ void SuggestClubsDialog::refreshNights()
             state = NightsTimeline::InRule;
             ++inRules;
         } else if (coveredByTarget(c, date)) {
-            status = "already " + clubNameForId(c.targetClubId);
+            status = "already " + targetName(c);
             state = NightsTimeline::InRule;
             ++already;
         } else {
@@ -867,7 +981,7 @@ void SuggestClubsDialog::refreshNights()
 
     QStringList counts;
     if (inRules > 0)  counts << QString("%1 in rules").arg(inRules);
-    if (already > 0)  counts << QString("%1 already %2's").arg(already).arg(clubNameForId(c.targetClubId));
+    if (already > 0)  counts << QString("%1 already %2's").arg(already).arg(targetName(c));
     if (oneOffs > 0)  counts << QString("%1 one-off").arg(oneOffs);
     if (other > 0)    counts << QString("%1 in Other").arg(other);
     m_nightsHeading->setText(QString("NIGHTS (%1)").arg(counts.join(", ")));
@@ -884,10 +998,7 @@ void SuggestClubsDialog::refreshNights()
                                                                            : Qt::PartiallyChecked);
     }
 
-    QString color = c.color;
-    for (const ClubInfo &club : std::as_const(m_existing)) {
-        color = (club.id == c.targetClubId) ? club.color : color;
-    }
+    const QString color = hasTarget(c) ? targetColor(c) : c.color;
     m_timeline->setNights(timeline, c.original.events.first().date, std::max(m_asOf, c.original.events.last().date),
                           QColor(color));
 }
@@ -965,7 +1076,7 @@ void SuggestClubsDialog::refreshSummary()
             if (!added.contains(name)) {
                 added << name;
             }
-        } else {
+        } else if (c.targetChoice < 0) {
             ++newClubs;
         }
     }
@@ -982,12 +1093,9 @@ void SuggestClubsDialog::refreshSummary()
 
 QList<ClubInfo> SuggestClubsDialog::clubs() const
 {
-    QList<ClubInfo> result = m_existing;
-    int order = int(result.size());
-    for (const Choice &c : m_choices) {
-        if (!c.keep) {
-            continue;
-        }
+    // a kept suggestion's rules, and its kept nights that no rule (of its own, or of the club it
+    //   joins) already has
+    auto rulesOf = [this](const Choice &c) {
         QList<ClubRule> rules = c.rules;
         QList<QDate> oneOffs(c.oneOffs.cbegin(), c.oneOffs.cend());
         std::sort(oneOffs.begin(), oneOffs.end());
@@ -996,29 +1104,55 @@ QList<ClubInfo> SuggestClubsDialog::clubs() const
                 rules.append(c.nightRules.value(d));
             }
         }
-        if (rules.isEmpty()) {
+        return rules;
+    };
+
+    QList<ClubInfo> result = m_existing;
+    QHash<int, qsizetype> newClubFor;   // a suggestion's index -> its new club, in result
+    for (int i = 0; i < m_choices.size(); ++i) {
+        const Choice &c = m_choices[i];
+        if (!c.keep || hasTarget(c)) {
             continue;
         }
-        bool merged = false;
+        ClubInfo club;
+        club.name = choiceName(i);
+        club.color = c.color;
+        club.rules = rulesOf(c);
+        newClubFor.insert(i, result.size());
+        result.append(club);
+    }
+    for (const Choice &c : m_choices) {
+        if (!c.keep || !hasTarget(c)) {
+            continue;
+        }
+        const QList<ClubRule> rules = rulesOf(c);
+        if (c.targetChoice >= 0 && newClubFor.contains(c.targetChoice)) {
+            result[newClubFor[c.targetChoice]].rules.append(rules);
+            continue;
+        }
         for (ClubInfo &club : result) {
-            if (c.targetClubId >= 0 && club.id == c.targetClubId) {
+            if (club.id >= 0 && club.id == c.targetClubId) {
                 club.rules.append(rules);
-                sortClubRules(club.rules);
-                merged = true;
                 break;
             }
         }
-        if (!merged) {
-            ClubInfo club;
-            club.name = c.name.trimmed().isEmpty() ? c.original.club.name : c.name.trimmed();
-            club.color = c.color;
-            club.order_number = order++;
-            club.rules = rules;
-            sortClubRules(club.rules);
-            result.append(club);
+    }
+
+    // a new club that ended up with nothing in it isn't made
+    QList<ClubInfo> clubs;
+    for (qsizetype i = 0; i < result.size(); ++i) {
+        if (i < m_existing.size() || !result[i].rules.isEmpty()) {
+            clubs.append(result[i]);
         }
     }
-    return result;
+    int order = 0;
+    for (ClubInfo &club : clubs) {
+        sortClubRules(club.rules);
+        if (club.id < 0) {
+            club.order_number = int(m_existing.size()) + order++;
+        }
+    }
+    return clubs;
 }
 
 // As in ClubsTab: every rule in Themes.qss is keyed on the "theme" property, and widgets made after

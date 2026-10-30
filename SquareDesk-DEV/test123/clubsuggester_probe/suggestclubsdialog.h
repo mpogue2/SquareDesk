@@ -75,7 +75,8 @@ private:
         bool keep;
         QString name;
         QString color;
-        int targetClubId;                  // -1 = a new club
+        int targetClubId;                  // an existing club these nights join, or -1
+        int targetChoice;                  // or another suggestion (an index) whose new club they join, or -1
         QList<ClubRule> rules;             // the recurring rules
         QSet<QDate> oneOffs;               // the nights kept as one-off events
         QHash<QDate, ClubRule> nightRules; // each night's one-off event, should it be kept
@@ -84,6 +85,8 @@ private:
     void buildUi();
     void fillList();
     void refreshListItem(int index);
+    void refreshAllListItems();
+    void targetsChanged();     // keep targets consistent (see the .cpp), then refresh
     void selectChoice(int index);
     void rebuildRuleCards();
     void rebuildNights();      // the nights table's rows, for the selected suggestion
@@ -99,6 +102,10 @@ private:
     bool coveredByTarget(const Choice &c, const QDate &date) const;
     QString scheduleText(const Choice &c) const;
     QString clubNameForId(int id) const;
+    bool hasTarget(const Choice &c) const;
+    QString choiceName(int index) const;
+    QString targetName(const Choice &c) const;
+    QString targetColor(const Choice &c) const;
 
     QList<Choice> m_choices;
     QList<ClubInfo> m_existing;
